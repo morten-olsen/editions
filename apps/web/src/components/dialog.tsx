@@ -19,10 +19,10 @@ const Content = ({
 }: ContentProps): React.ReactElement => (
   <BaseDialog.Portal>
     <BaseDialog.Backdrop
-      className={`fixed inset-0 bg-ink/20 backdrop-blur-xs transition-opacity duration-slow ease-gentle data-[starting-style]:opacity-0 data-[ending-style]:opacity-0 ${overlayClassName}`}
+      className={`fixed inset-0 bg-black/25 backdrop-blur-xs transition-opacity duration-slow ease-gentle data-[starting-style]:opacity-0 data-[ending-style]:opacity-0 ${overlayClassName}`}
     />
     <BaseDialog.Popup
-      className={`fixed top-1/2 left-1/2 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-surface-overlay p-8 shadow-xl border border-border transition-all duration-slow ease-gentle data-[starting-style]:scale-95 data-[starting-style]:opacity-0 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 ${className}`}
+      className={`fixed top-1/2 left-1/2 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-surface-overlay p-5 sm:p-8 shadow-xl border border-border transition-all duration-slow ease-gentle data-[starting-style]:scale-95 data-[starting-style]:opacity-0 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 ${className}`}
       {...props}
     >
       {children}

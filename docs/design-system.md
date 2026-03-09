@@ -10,6 +10,7 @@ The best interface is the one that disappears. Every token, component, and inter
 - **Finite over infinite** — every surface has a natural end
 - **Proportional over prolific** — source budgeting prevents any single feed from dominating
 - **Focused** — when reading, the interface steps back; content is foreground
+- **Adaptive** — comfortable at any hour, on any device. Light and dark modes respect the reader's environment; layouts are mobile-first, scaling up gracefully
 
 ## Tokens
 
@@ -27,6 +28,15 @@ Warm, papery palette inspired by quality print:
 
 Colors use `oklch()` for perceptual uniformity.
 
+#### Dark mode
+
+Dark mode uses the same warm hue angles, shifted to dark surfaces and light ink. Activated via `prefers-color-scheme: dark` or the `.dark` class on `<html>`. All semantic token names stay the same — components never need mode-specific classes.
+
+- **Surface** — deep warm grays (`surface` → `oklch(0.16 …)`)
+- **Ink** — warm off-whites, never pure white
+- **Accent** — slightly lifted lightness for contrast on dark backgrounds
+- **Shadows** — stronger opacity on dark backgrounds to remain visible
+
 ### Typography
 
 - **Sans** (Inter) — interface text: navigation, labels, metadata
@@ -38,6 +48,10 @@ Scale follows a minor third ratio (1.2): `xs` through `5xl`. Display text uses `
 ### Spacing
 
 4px base grid. Use generous spacing — density is the enemy of calm. Content areas get `p-6` to `p-8`; sections get `py-16` between them.
+
+### Responsive
+
+Mobile-first — base styles target phones, scale up with `sm:`, `md:`, `lg:` breakpoints. Breakpoints follow Tailwind defaults (`sm` 640px, `md` 768px, `lg` 1024px). Tap targets are at least 44px. Reading text uses `--width-prose` (65ch) max-width to stay comfortable on wide screens.
 
 ### Shadows
 

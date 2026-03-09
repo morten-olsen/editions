@@ -157,12 +157,12 @@ const EditionViewPage = (): React.ReactNode => {
 
   const editionHeader = (
     <header className="border-b border-border bg-surface">
-      <div className="max-w-prose mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="max-w-prose mx-auto px-4 py-4 md:px-6 flex items-center justify-between gap-3">
         <Link to="/editions/$configId" params={{ configId }}>
           <Button variant="ghost" size="sm">← Back</Button>
         </Link>
-        <div className="flex items-center gap-3">
-          <div className="text-xs text-ink-tertiary">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="hidden sm:block text-xs text-ink-tertiary">
             {edition.articleCount} articles
             {edition.totalReadingMinutes && ` · ${edition.totalReadingMinutes} min`}
           </div>

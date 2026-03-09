@@ -165,3 +165,78 @@
   --duration-slow: 350ms;
   --duration-slower: 500ms;
 }
+
+/*
+ * Dark mode overrides
+ *
+ * Same warm hue angles, inverted lightness.
+ * Activated by OS preference or `.dark` class on <html>.
+ */
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --color-surface: oklch(0.16 0.005 70);
+    --color-surface-raised: oklch(0.2 0.005 70);
+    --color-surface-sunken: oklch(0.12 0.006 70);
+    --color-surface-overlay: oklch(0.22 0.004 70);
+
+    --color-ink: oklch(0.92 0.005 55);
+    --color-ink-secondary: oklch(0.72 0.008 55);
+    --color-ink-tertiary: oklch(0.56 0.006 55);
+    --color-ink-faint: oklch(0.38 0.005 55);
+
+    --color-accent: oklch(0.62 0.08 170);
+    --color-accent-hover: oklch(0.68 0.08 170);
+    --color-accent-subtle: oklch(0.22 0.02 170);
+    --color-accent-ink: oklch(0.99 0 0);
+
+    --color-positive: oklch(0.65 0.1 155);
+    --color-positive-subtle: oklch(0.22 0.03 155);
+    --color-caution: oklch(0.72 0.12 75);
+    --color-caution-subtle: oklch(0.22 0.03 75);
+    --color-critical: oklch(0.65 0.1 20);
+    --color-critical-subtle: oklch(0.22 0.03 20);
+
+    --color-border: oklch(0.26 0.005 55);
+    --color-border-strong: oklch(0.35 0.008 55);
+
+    --shadow-xs: 0 1px 2px oklch(0 0 0 / 0.15);
+    --shadow-sm: 0 1px 3px oklch(0 0 0 / 0.2), 0 1px 2px oklch(0 0 0 / 0.15);
+    --shadow-md: 0 4px 6px oklch(0 0 0 / 0.2), 0 2px 4px oklch(0 0 0 / 0.15);
+    --shadow-lg: 0 10px 15px oklch(0 0 0 / 0.2), 0 4px 6px oklch(0 0 0 / 0.15);
+    --shadow-xl: 0 20px 25px oklch(0 0 0 / 0.25), 0 8px 10px oklch(0 0 0 / 0.15);
+  }
+}
+
+.dark {
+  --color-surface: oklch(0.16 0.005 70);
+  --color-surface-raised: oklch(0.2 0.005 70);
+  --color-surface-sunken: oklch(0.12 0.006 70);
+  --color-surface-overlay: oklch(0.22 0.004 70);
+
+  --color-ink: oklch(0.92 0.005 55);
+  --color-ink-secondary: oklch(0.72 0.008 55);
+  --color-ink-tertiary: oklch(0.56 0.006 55);
+  --color-ink-faint: oklch(0.38 0.005 55);
+
+  --color-accent: oklch(0.62 0.08 170);
+  --color-accent-hover: oklch(0.68 0.08 170);
+  --color-accent-subtle: oklch(0.22 0.02 170);
+  --color-accent-ink: oklch(0.99 0 0);
+
+  --color-positive: oklch(0.65 0.1 155);
+  --color-positive-subtle: oklch(0.22 0.03 155);
+  --color-caution: oklch(0.72 0.12 75);
+  --color-caution-subtle: oklch(0.22 0.03 75);
+  --color-critical: oklch(0.65 0.1 20);
+  --color-critical-subtle: oklch(0.22 0.03 20);
+
+  --color-border: oklch(0.26 0.005 55);
+  --color-border-strong: oklch(0.35 0.008 55);
+
+  --shadow-xs: 0 1px 2px oklch(0 0 0 / 0.15);
+  --shadow-sm: 0 1px 3px oklch(0 0 0 / 0.2), 0 1px 2px oklch(0 0 0 / 0.15);
+  --shadow-md: 0 4px 6px oklch(0 0 0 / 0.2), 0 2px 4px oklch(0 0 0 / 0.15);
+  --shadow-lg: 0 10px 15px oklch(0 0 0 / 0.2), 0 4px 6px oklch(0 0 0 / 0.15);
+  --shadow-xl: 0 20px 25px oklch(0 0 0 / 0.25), 0 8px 10px oklch(0 0 0 / 0.15);
+}

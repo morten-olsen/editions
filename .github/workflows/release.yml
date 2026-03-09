@@ -143,7 +143,7 @@ jobs:
       - name: Inspect image and extract digest
         id: inspect
         run: |
-          digest=$(docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }} --format '{{.Manifest.Digest}}')
+          digest=$(docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }} --raw | sha256sum | awk '{print "sha256:"$1}')
           echo "digest=$digest" >> "$GITHUB_OUTPUT"
 
       - name: Attest build provenance

@@ -55,8 +55,12 @@ COPY apps/server/tsconfig.json apps/server/
 # Copy built frontend into server's public directory
 COPY --from=frontend-build /build/apps/web/dist/ apps/server/public/
 
-# Data directory for SQLite database
-RUN mkdir -p /data
+# Non-root user
+RUN groupadd --gid 1001 editions && \
+    useradd --uid 1001 --gid editions --shell /bin/false editions
+
+# Data directory for SQLite database (ownership preserved on fresh volume mount)
+RUN mkdir -p /data && chown editions:editions /data
 
 ENV EDITIONS_DB=/data/editions.db
 ENV EDITIONS_HOST=0.0.0.0
@@ -65,5 +69,7 @@ ENV EDITIONS_PORT=3007
 EXPOSE 3007
 
 WORKDIR /app/apps/server
+
+USER editions
 
 CMD ["node", "--experimental-strip-types", "src/server.ts"]

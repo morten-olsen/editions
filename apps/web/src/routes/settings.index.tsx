@@ -392,7 +392,7 @@ const SettingsPage = (): React.ReactNode => {
           <p className="text-sm text-ink-secondary mb-6">Your feedback shapes how articles are ranked</p>
 
       {/* Filters */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-6">
         <div className="flex gap-1 border-b border-border">
           {(["all", "global", "focus"] as const).map((s) => (
             <button

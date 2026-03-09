@@ -15,7 +15,7 @@ const PageHeader = ({
   actions,
   serif = false,
 }: PageHeaderProps): React.ReactElement => (
-  <div className="flex items-start justify-between gap-6 mb-8">
+  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6 mb-8">
     <div className="min-w-0">
       {meta && (
         <div className="text-xs text-ink-tertiary tracking-wide uppercase mb-2">

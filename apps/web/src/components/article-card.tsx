@@ -110,7 +110,15 @@ const ArticleCard = ({
   const hasImage = !compact && imageUrl;
 
   const content = hasImage ? (
-    <div className="flex gap-5">
+    <div className="flex flex-col sm:flex-row sm:gap-5">
+      {/* Mobile: full-width banner image */}
+      <div className="sm:hidden -mx-1 mb-2 aspect-[3/1] rounded-md overflow-hidden bg-surface-sunken">
+        <img
+          src={imageUrl}
+          alt=""
+          className="w-full h-full object-cover"
+        />
+      </div>
       <div className="flex-1 flex flex-col gap-1.5 min-w-0">
         {meta}
         {titleEl}
@@ -126,7 +134,8 @@ const ArticleCard = ({
         )}
         {actionBar}
       </div>
-      <div className="shrink-0 w-28 h-20 rounded-md overflow-hidden bg-surface-sunken self-center">
+      {/* Desktop: side thumbnail */}
+      <div className="hidden sm:block shrink-0 w-28 h-20 rounded-md overflow-hidden bg-surface-sunken self-center">
         <img
           src={imageUrl}
           alt=""

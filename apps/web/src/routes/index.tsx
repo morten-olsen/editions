@@ -169,7 +169,7 @@ const IndexPage = (): React.ReactNode => {
       />
 
       {/* Filter bar */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-6">
         <div className="flex gap-1 border-b border-border">
           {(["top", "recent"] as const).map((s) => (
             <button

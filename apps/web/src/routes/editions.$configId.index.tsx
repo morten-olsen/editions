@@ -137,7 +137,7 @@ const EditionConfigDetailPage = (): React.ReactNode => {
   return (
     <>
       {/* Header: name + cog */}
-      <div className="flex items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
         <h1 className="text-2xl font-serif font-medium tracking-tight text-ink">
           {config.name}
         </h1>

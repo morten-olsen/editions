@@ -7,70 +7,55 @@ type AppShellProps = {
 };
 
 /* ── Scroll restoration ────────────────────────────────────
- * TanStack Router's built-in scroll restoration fires before
- * async content renders, so it can't restore properly. This
- * custom implementation polls until the page is tall enough.
- *
- * - Forward navigation → scroll to top
- * - Back/forward (popstate) → restore saved position
+ * Keyed by pathname. Saves position on scroll, restores on
+ * revisit. Polls until async content is tall enough.
+ * No popstate needed — if we have a saved position, restore it.
  * ────────────────────────────────────────────────────────── */
 
 const scrollCache = new Map<string, number>();
 
-const getHistoryKey = (): string =>
-  (window.history.state as Record<string, unknown> | null)?.__TSR_key as string
-    ?? window.location.pathname;
-
 const useScrollRestoration = (pathname: string): void => {
-  const isPopNav = useRef(false);
+  const lastScrollY = useRef(0);
 
-  // Detect back/forward via popstate
+  // Track scroll position for the current pathname
   useEffect(() => {
-    const onPopState = (): void => {
-      isPopNav.current = true;
-    };
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
-  }, []);
+    lastScrollY.current = window.scrollY;
 
-  // Continuously save scroll position (throttled)
-  useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null;
     const onScroll = (): void => {
+      lastScrollY.current = window.scrollY;
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => {
-        scrollCache.set(getHistoryKey(), window.scrollY);
+        scrollCache.set(pathname, window.scrollY);
       }, 100);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
+
     return () => {
       window.removeEventListener("scroll", onScroll);
       if (timer) clearTimeout(timer);
+      scrollCache.set(pathname, lastScrollY.current);
     };
-  }, []);
+  }, [pathname]);
 
-  // On route change: restore or reset
+  // Restore or reset on route change
   useEffect(() => {
-    if (!isPopNav.current) {
+    const savedY = scrollCache.get(pathname);
+
+    if (savedY != null && savedY > 0) {
+      let attempts = 0;
+      const tryRestore = (): void => {
+        if (document.documentElement.scrollHeight > savedY || attempts >= 40) {
+          window.scrollTo(0, savedY);
+          return;
+        }
+        attempts++;
+        setTimeout(tryRestore, 50);
+      };
+      requestAnimationFrame(tryRestore);
+    } else {
       window.scrollTo(0, 0);
-      return;
     }
-
-    isPopNav.current = false;
-    const targetY = scrollCache.get(getHistoryKey()) ?? 0;
-    if (targetY === 0) return;
-
-    // Poll until the page is tall enough for the saved position
-    let attempts = 0;
-    const tryRestore = (): void => {
-      if (document.documentElement.scrollHeight > targetY || attempts >= 40) {
-        window.scrollTo(0, targetY);
-        return;
-      }
-      attempts++;
-      setTimeout(tryRestore, 50);
-    };
-    requestAnimationFrame(tryRestore);
   }, [pathname]);
 };
 

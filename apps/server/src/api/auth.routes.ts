@@ -6,6 +6,7 @@ import {
   UsernameExistsError,
 } from "../auth/auth.ts";
 import { createAuthHook } from "../auth/auth.middleware.ts";
+import { ConfigService } from "../config/config.ts";
 
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import type { Services } from "../services/services.ts";
@@ -40,10 +41,15 @@ const createAuthRoutes = (services: Services): FastifyPluginAsyncZod =>
         body: credentialsSchema,
         response: {
           201: authResponseSchema,
+          403: errorResponseSchema,
           409: errorResponseSchema,
         },
       },
       handler: async (req, reply) => {
+        const config = services.get(ConfigService).config;
+        if (!config.auth.allowSignups) {
+          return reply.code(403).send({ error: "Signups are disabled" });
+        }
         const auth = services.get(AuthService);
         try {
           const result = await auth.register(req.body.username, req.body.password);

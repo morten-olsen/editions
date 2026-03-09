@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
 
+import { client } from "../api/api.ts";
 import { useAuth } from "../auth/auth.tsx";
 import { Input } from "../components/input.tsx";
 import { Button } from "../components/button.tsx";
@@ -13,6 +14,15 @@ const LoginPage = (): React.ReactNode => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [allowSignups, setAllowSignups] = useState(true);
+
+  useEffect(() => {
+    client.GET("/api/config").then(({ data }) => {
+      if (data) {
+        setAllowSignups(data.allowSignups);
+      }
+    });
+  }, []);
 
   if (auth.status === "authenticated") {
     return <Navigate to="/" />;
@@ -77,20 +87,22 @@ const LoginPage = (): React.ReactNode => {
           </Button>
         </form>
 
-        <div className="text-center">
-          <button
-            type="button"
-            onClick={() => {
-              setMode(mode === "login" ? "register" : "login");
-              setError(null);
-            }}
-            className="text-sm text-ink-tertiary hover:text-accent transition-colors duration-fast cursor-pointer"
-          >
-            {mode === "login"
-              ? "Need an account? Register"
-              : "Already have an account? Sign in"}
-          </button>
-        </div>
+        {allowSignups && (
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setMode(mode === "login" ? "register" : "login");
+                setError(null);
+              }}
+              className="text-sm text-ink-tertiary hover:text-accent transition-colors duration-fast cursor-pointer"
+            >
+              {mode === "login"
+                ? "Need an account? Register"
+                : "Already have an account? Sign in"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

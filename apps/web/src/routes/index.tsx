@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { useAuth } from "../auth/auth.tsx";
@@ -7,7 +7,6 @@ import { PageHeader } from "../components/page-header.tsx";
 import { Button } from "../components/button.tsx";
 import { EmptyState } from "../components/empty-state.tsx";
 import { ArticleCard } from "../components/article-card.tsx";
-import { Separator } from "../components/separator.tsx";
 import type { VoteValue } from "../components/vote-controls.tsx";
 
 type FeedArticle = {
@@ -33,68 +32,10 @@ type FeedPage = {
   limit: number;
 };
 
-type TaskItem = {
-  id: string;
-  type: string;
-  status: "pending" | "running" | "completed" | "failed";
-  error: string | null;
-  createdAt: number;
-  startedAt: number | null;
-  completedAt: number | null;
-};
-
 type SortMode = "top" | "recent";
 type ReadStatus = "all" | "unread" | "read";
 
 const PAGE_SIZE = 20;
-
-const TASK_TYPE_LABELS: Record<string, string> = {
-  fetch_source: "Fetching feed",
-  extract_article: "Extracting article",
-  analyse_article: "Analysing article",
-};
-
-const formatTaskType = (type: string): string =>
-  TASK_TYPE_LABELS[type] ?? type;
-
-const formatDuration = (ms: number): string => {
-  if (ms < 1000) return `${ms}ms`;
-  return `${(ms / 1000).toFixed(1)}s`;
-};
-
-const TaskRow = ({ task }: { task: TaskItem }): React.ReactElement => {
-  const [expanded, setExpanded] = useState(false);
-
-  return (
-    <div className="py-2">
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-ink">{formatTaskType(task.type)}</span>
-        {task.status === "failed" ? (
-          <button
-            type="button"
-            onClick={() => setExpanded(!expanded)}
-            className="text-xs text-critical hover:text-critical/80 cursor-pointer"
-          >
-            {expanded ? "collapse" : "error"}
-          </button>
-        ) : (
-          <span className="text-xs text-ink-tertiary">
-            {task.status === "running" && task.startedAt
-              ? formatDuration(Date.now() - task.startedAt)
-              : task.status === "completed" && task.completedAt && task.startedAt
-                ? formatDuration(task.completedAt - task.startedAt)
-                : "queued"}
-          </span>
-        )}
-      </div>
-      {expanded && task.error && (
-        <pre className="mt-2 text-xs text-critical/80 bg-critical-subtle rounded-md p-3 overflow-auto max-h-32">
-          {task.error}
-        </pre>
-      )}
-    </div>
-  );
-};
 
 const IndexPage = (): React.ReactNode => {
   const auth = useAuth();
@@ -104,10 +45,6 @@ const IndexPage = (): React.ReactNode => {
   const [offset, setOffset] = useState(0);
   const [sort, setSort] = useState<SortMode>("top");
   const [status, setStatus] = useState<ReadStatus>("all");
-
-  // Task monitoring
-  const [tasks, setTasks] = useState<TaskItem[]>([]);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const loadFeed = useCallback(async (
     newOffset: number,
@@ -144,33 +81,12 @@ const IndexPage = (): React.ReactNode => {
     }
   }, [auth]);
 
-  const loadTasks = useCallback(async (): Promise<void> => {
-    if (auth.status !== "authenticated") return;
-    const { data } = await client.GET("/api/tasks", {
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
-    if (data) {
-      setTasks((data as { tasks: TaskItem[] }).tasks);
-    }
-  }, [auth]);
-
   useEffect(() => {
     void (async (): Promise<void> => {
-      await Promise.all([loadFeed(0, sort, status), loadTasks()]);
+      await loadFeed(0, sort, status);
       setLoading(false);
     })();
-  }, [loadFeed, loadTasks, sort, status]);
-
-  const hasActive = tasks.some((t) => t.status === "pending" || t.status === "running");
-
-  useEffect(() => {
-    if (hasActive) {
-      pollRef.current = setInterval(() => void loadTasks(), 1000);
-    }
-    return (): void => {
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
-  }, [hasActive, loadTasks]);
+  }, [loadFeed, sort, status]);
 
   if (auth.status !== "authenticated") return null;
 
@@ -240,9 +156,6 @@ const IndexPage = (): React.ReactNode => {
     setOffset(newOffset);
     void loadFeed(newOffset, sort, status);
   };
-
-  const activeTasks = tasks.filter((t) => t.status === "pending" || t.status === "running");
-  const failedTasks = tasks.filter((t) => t.status === "failed");
 
   const totalPages = feedPage ? Math.ceil(feedPage.total / PAGE_SIZE) : 0;
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
@@ -346,40 +259,6 @@ const IndexPage = (): React.ReactNode => {
         </>
       )}
 
-      {/* Task activity */}
-      {(activeTasks.length > 0 || failedTasks.length > 0) && (
-        <>
-          <Separator soft className="my-6" />
-          <div className="max-w-md">
-            {activeTasks.length > 0 && (
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-medium text-ink-tertiary tracking-wide uppercase">Active</span>
-                  <span className="size-1.5 rounded-full bg-caution animate-pulse" />
-                </div>
-                <div className="divide-y divide-border">
-                  {activeTasks.map((task) => (
-                    <TaskRow key={task.id} task={task} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {failedTasks.length > 0 && (
-              <div>
-                <div className="text-xs font-medium text-critical tracking-wide uppercase mb-2">
-                  Failed ({failedTasks.length})
-                </div>
-                <div className="divide-y divide-border">
-                  {failedTasks.slice(0, 10).map((task) => (
-                    <TaskRow key={task.id} task={task} />
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </>
-      )}
     </>
   );
 };

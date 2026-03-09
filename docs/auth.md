@@ -31,7 +31,7 @@ Roles are stored in the `users.role` column and embedded in the JWT payload.
 
 The first user ever registered gets `role: "admin"`. All subsequent users get `role: "user"`.
 
-**Errors:** 409 if username is taken, 400 if validation fails.
+**Errors:** 403 if signups are disabled, 409 if username is taken, 400 if validation fails.
 
 ## Login
 
@@ -110,14 +110,28 @@ fastify.route({
 
 The `security` property in the schema is required for the OpenAPI spec to show the lock icon in Scalar docs. It does not enforce authentication — the `onRequest` hook does.
 
+## Public config endpoint
+
+`GET /api/config` (unauthenticated)
+
+Returns server configuration relevant to the frontend (e.g., whether signups are enabled). The login page uses this to show or hide the registration option.
+
+**Response (200):**
+
+```json
+{ "allowSignups": true }
+```
+
 ## Configuration
 
-JWT secret can be set via:
+Auth settings can be set via config file or environment variables:
 
-1. Config file (`editions.json`): `{ "auth": { "jwtSecret": "your-secret-here" } }`
-2. Environment variable: `EDITIONS_JWT_SECRET=your-secret-here`
+1. Config file (`editions.json`): `{ "auth": { "jwtSecret": "your-secret-here", "allowSignups": false } }`
+2. Environment variables: `EDITIONS_JWT_SECRET=your-secret-here`, `EDITIONS_ALLOW_SIGNUPS=false`
 
-If neither is set, an ephemeral random secret is generated at startup with a console warning.
+If no JWT secret is set, an ephemeral random secret is generated at startup with a console warning.
+
+Setting `allowSignups` to `false` disables the `POST /api/auth/register` endpoint (returns 403) and hides the signup button on the login page.
 
 ## Future plans
 

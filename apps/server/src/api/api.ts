@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 
 import { createArticlesRoutes } from "./articles.routes.ts";
 import { createAuthRoutes } from "./auth.routes.ts";
+import { createConfigRoutes } from "./config.routes.ts";
 import { createBookmarksRoutes } from "./bookmarks.routes.ts";
 import { createEditionsRoutes } from "./editions.routes.ts";
 import { createFeedRoutes } from "./feed.routes.ts";
@@ -39,6 +40,7 @@ const registerRoutes = async (
       await api.register(healthRoute);
       await api.register(createArticlesRoutes(services));
       await api.register(createAuthRoutes(services));
+      await api.register(createConfigRoutes(services));
       await api.register(createBookmarksRoutes(services));
       await api.register(createSourcesRoutes(services));
       await api.register(createFocusesRoutes(services));

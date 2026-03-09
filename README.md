@@ -107,8 +107,11 @@ Editions loads config from these locations (later overrides earlier):
 | `EDITIONS_PORT` | Port | `3007` |
 | `EDITIONS_DB` | SQLite database path | `./editions.db` |
 | `EDITIONS_JWT_SECRET` | Secret for signing auth tokens | Random (sessions lost on restart) |
+| `EDITIONS_ALLOW_SIGNUPS` | Allow new user registration (`true`/`false`) | `true` |
 
 Set `EDITIONS_JWT_SECRET` to a stable value in production — otherwise every restart logs everyone out.
+
+Set `EDITIONS_ALLOW_SIGNUPS=false` to disable new user registration after you've created your accounts.
 
 ## Quick setup guide
 

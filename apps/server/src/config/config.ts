@@ -18,12 +18,13 @@ const databaseSchema = z.object({
 
 const authSchema = z.object({
   jwtSecret: z.string().min(1),
+  allowSignups: z.boolean().default(true),
 });
 
 const configSchema = z.object({
   server: serverSchema.default({ host: "0.0.0.0", port: 3007 }),
   database: databaseSchema.default({ filename: "editions.db" }),
-  auth: authSchema.default({ jwtSecret: "" }),
+  auth: authSchema.default({ jwtSecret: "", allowSignups: true }),
 });
 
 type Config = z.infer<typeof configSchema>;
@@ -74,9 +75,15 @@ const envOverrides = (): Record<string, unknown> => {
   const env = process.env;
 
   if (env["EDITIONS_HOST"]) overrides["server"] = { ...((overrides["server"] as Record<string, unknown>) ?? {}), host: env["EDITIONS_HOST"] };
-  if (env["EDITIONS_PORT"]) overrides["server"] = { ...((overrides["server"] as Record<string, unknown>) ?? {}), port: Number(env["EDITIONS_PORT"]) };
+  if (env["EDITIONS_PORT"]) {
+    const port = Number(env["EDITIONS_PORT"]);
+    if (!Number.isNaN(port)) {
+      overrides["server"] = { ...((overrides["server"] as Record<string, unknown>) ?? {}), port };
+    }
+  }
   if (env["EDITIONS_DB"]) overrides["database"] = { filename: env["EDITIONS_DB"] };
-  if (env["EDITIONS_JWT_SECRET"]) overrides["auth"] = { jwtSecret: env["EDITIONS_JWT_SECRET"] };
+  if (env["EDITIONS_JWT_SECRET"]) overrides["auth"] = { ...((overrides["auth"] as Record<string, unknown>) ?? {}), jwtSecret: env["EDITIONS_JWT_SECRET"] };
+  if (env["EDITIONS_ALLOW_SIGNUPS"] !== undefined) overrides["auth"] = { ...((overrides["auth"] as Record<string, unknown>) ?? {}), allowSignups: env["EDITIONS_ALLOW_SIGNUPS"] !== "false" };
 
   return overrides;
 };

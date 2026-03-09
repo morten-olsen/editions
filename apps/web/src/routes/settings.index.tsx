@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { useAuth } from "../auth/auth.tsx";
@@ -7,6 +7,176 @@ import { PageHeader } from "../components/page-header.tsx";
 import { Button } from "../components/button.tsx";
 import { EmptyState } from "../components/empty-state.tsx";
 import { Separator } from "../components/separator.tsx";
+
+// --- Task types ---
+
+type TaskItem = {
+  id: string;
+  type: string;
+  status: "pending" | "running" | "completed" | "failed";
+  error: string | null;
+  createdAt: number;
+  startedAt: number | null;
+  completedAt: number | null;
+};
+
+const POLL_INTERVAL_MS = 3000;
+
+const formatTaskTime = (ms: number): string => {
+  const date = new Date(ms);
+  const now = Date.now();
+  const diffSec = Math.floor((now - ms) / 1000);
+
+  if (diffSec < 5) return "just now";
+  if (diffSec < 60) return `${diffSec}s ago`;
+  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+};
+
+const formatDuration = (start: number, end: number): string => {
+  const sec = Math.round((end - start) / 1000);
+  if (sec < 1) return "<1s";
+  if (sec < 60) return `${sec}s`;
+  return `${Math.floor(sec / 60)}m ${sec % 60}s`;
+};
+
+const taskStatusLabel = (status: TaskItem["status"]): string => {
+  switch (status) {
+    case "pending": return "Pending";
+    case "running": return "Running";
+    case "completed": return "Completed";
+    case "failed": return "Failed";
+  }
+};
+
+const taskStatusColor = (status: TaskItem["status"]): string => {
+  switch (status) {
+    case "pending": return "text-ink-tertiary";
+    case "running": return "text-accent";
+    case "completed": return "text-positive";
+    case "failed": return "text-critical";
+  }
+};
+
+const formatTaskType = (type: string): string =>
+  type.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+const TasksSection = ({ token }: { token: string }): React.ReactNode => {
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const loadTasks = useCallback(async (): Promise<void> => {
+    const { data } = await client.GET("/api/tasks", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (data) {
+      setTasks(data.tasks as TaskItem[]);
+    }
+    setLoading(false);
+  }, [token]);
+
+  useEffect(() => {
+    void loadTasks();
+  }, [loadTasks]);
+
+  // Poll while any task is pending or running
+  const hasActive = tasks.some((t) => t.status === "pending" || t.status === "running");
+
+  useEffect(() => {
+    if (hasActive) {
+      intervalRef.current = setInterval(() => void loadTasks(), POLL_INTERVAL_MS);
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [hasActive, loadTasks]);
+
+  if (loading) {
+    return <div className="text-sm text-ink-tertiary py-6 text-center">Loading...</div>;
+  }
+
+  if (tasks.length === 0) {
+    return (
+      <EmptyState
+        title="No tasks"
+        description="Background tasks like source fetching and article analysis will appear here."
+      />
+    );
+  }
+
+  const activeTasks = tasks.filter((t) => t.status === "pending" || t.status === "running");
+  const recentTasks = tasks.filter((t) => t.status === "completed" || t.status === "failed");
+
+  return (
+    <div className="flex flex-col gap-6">
+      {activeTasks.length > 0 && (
+        <div>
+          <div className="text-xs font-medium text-ink-tertiary uppercase tracking-wide mb-3">
+            Active ({activeTasks.length})
+          </div>
+          <div className="flex flex-col">
+            {activeTasks.map((task, idx) => (
+              <div key={task.id}>
+                {idx > 0 && <Separator soft />}
+                <div className="flex items-center gap-4 py-3">
+                  <div className={`shrink-0 w-2 h-2 rounded-full ${task.status === "running" ? "bg-accent animate-pulse" : "bg-ink-faint"}`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm text-ink">{formatTaskType(task.type)}</div>
+                    <div className="text-xs text-ink-tertiary mt-0.5">
+                      {taskStatusLabel(task.status)} &middot; started {task.startedAt ? formatTaskTime(task.startedAt) : formatTaskTime(task.createdAt)}
+                    </div>
+                  </div>
+                  <span className={`shrink-0 text-xs font-medium ${taskStatusColor(task.status)}`}>
+                    {taskStatusLabel(task.status)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {recentTasks.length > 0 && (
+        <div>
+          <div className="text-xs font-medium text-ink-tertiary uppercase tracking-wide mb-3">
+            Recent ({recentTasks.length})
+          </div>
+          <div className="flex flex-col">
+            {recentTasks.map((task, idx) => (
+              <div key={task.id}>
+                {idx > 0 && <Separator soft />}
+                <div className="flex items-center gap-4 py-3">
+                  <div className={`shrink-0 w-2 h-2 rounded-full ${task.status === "completed" ? "bg-positive" : "bg-critical"}`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm text-ink">{formatTaskType(task.type)}</div>
+                    <div className="text-xs text-ink-tertiary mt-0.5">
+                      {task.completedAt ? formatTaskTime(task.completedAt) : formatTaskTime(task.createdAt)}
+                      {task.startedAt && task.completedAt && (
+                        <> &middot; took {formatDuration(task.startedAt, task.completedAt)}</>
+                      )}
+                    </div>
+                    {task.error && (
+                      <div className="text-xs text-critical mt-1 leading-relaxed line-clamp-3 font-mono">
+                        {task.error.split("\n")[0]}
+                      </div>
+                    )}
+                  </div>
+                  <span className={`shrink-0 text-xs font-medium ${taskStatusColor(task.status)}`}>
+                    {taskStatusLabel(task.status)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// --- Vote types ---
 
 type VoteWithArticle = {
   id: string;
@@ -125,6 +295,13 @@ const SettingsPage = (): React.ReactNode => {
   return (
     <>
       <PageHeader title="Settings" />
+
+      {/* Tasks section */}
+      <h2 className="text-lg font-medium text-ink mb-1">Tasks</h2>
+      <p className="text-sm text-ink-secondary mb-6">Running and recent background tasks</p>
+      <TasksSection token={auth.token} />
+
+      <Separator className="my-8" />
 
       {/* Votes section */}
       <h2 className="text-lg font-medium text-ink mb-1">Votes</h2>

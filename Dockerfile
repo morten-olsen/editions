@@ -62,7 +62,11 @@ RUN groupadd --gid 1001 editions && \
 # Data directory for SQLite database (ownership preserved on fresh volume mount)
 RUN mkdir -p /data && chown editions:editions /data
 
+# Model cache directory for @huggingface/transformers
+RUN mkdir -p /data/models && chown editions:editions /data/models
+
 ENV EDITIONS_DB=/data/editions.db
+ENV HF_HOME=/data/models
 ENV EDITIONS_HOST=0.0.0.0
 ENV EDITIONS_PORT=3007
 

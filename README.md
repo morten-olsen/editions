@@ -10,14 +10,16 @@ No algorithms optimizing for engagement. No unread counts demanding attention. N
 
 You subscribe to **sources** (RSS feeds today, more planned). You define **focuses** — topic areas like "Technology", "Climate", or "Local News". An on-device ML model classifies incoming articles into your focuses automatically, using zero-shot NLI. Nothing phones home.
 
-Then you create **editions** — scheduled, finite digests built from rules you control:
+Then you create **editions** — scheduled, finite digests built from rules you control. Here's what a "Tech Weekly" edition might look like:
 
-- **"Morning Briefing"** — 15 minutes of reading from your top 3 focuses, every day at 7am
-- **"Weekend Deep Reads"** — longer articles from the past week, capped at 30 minutes
-- **Source budgeting** — no single prolific feed drowns out the small blog you actually care about
-- **Reading-time budgets** — editions target a time commitment, not just an article count
+| Section | Focus | Budget | What you get |
+|---|---|---|---|
+| Quick hits | Tech News | 5 articles, under 5 min each | Fast headlines to start |
+| Deep dive | Tech Policy | 20 minutes of reading time | The regulation and politics behind the tech |
+| Favorite blogs | Indie Voices | up to 10 articles | Brilliant individuals you don't want to miss |
+| Long reads | Featured | 5 articles, no time limit | The pieces worth settling in for |
 
-When an edition is ready, you sit down, read it, reach the end, and feel done. That's the whole point.
+Each section draws from a different focus, with its own budget. Source budgeting makes sure no single prolific feed dominates — that small independent blog gets a fair slot next to The Verge. Editions run on a schedule (daily, weekly, whatever you want), and when one is ready, you sit down, read it, reach the end, and feel done. That's the whole point.
 
 ### The feed
 

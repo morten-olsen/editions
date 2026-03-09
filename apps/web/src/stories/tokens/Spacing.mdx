@@ -1,0 +1,61 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import { SpacingScale, SpacingCompositions } from "./Spacing.stories.tsx";
+
+<Meta title="Design System/Tokens/Spacing" />
+
+<div style={{ maxWidth: "72rem", margin: "0 auto", padding: "4rem 0", fontFamily: "var(--font-sans)" }}>
+
+<div style={{ color: "var(--color-ink-tertiary)", fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: "1.5rem" }}>Tokens</div>
+
+# Spacing
+
+<div style={{ fontSize: "1.2rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginTop: "1rem", marginBottom: "4rem", maxWidth: "65ch" }}>
+  White space isn't empty — it's where the reading happens. Our spacing scale is generous by default, creating room for every element to breathe. Density is the enemy of calm.
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", marginBottom: "4rem" }} />
+
+## Scale
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2.5rem", maxWidth: "65ch" }}>
+  Built on a 4px base grid. The scale provides enough granularity for tight UI work while encouraging generous gaps for content layout. When in doubt, choose the larger value.
+</div>
+
+<SpacingScale />
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Rhythm
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2.5rem", maxWidth: "65ch" }}>
+  Consistent vertical rhythm creates a sense of order without rigidity. These compositions show how spacing tokens combine to create natural visual hierarchies.
+</div>
+
+<SpacingCompositions />
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Guidance
+
+<div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "2.5rem", margin: "2.5rem 0" }}>
+  <div>
+    <div style={{ fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--color-ink-tertiary)", marginBottom: "0.75rem" }}>Breathing room</div>
+    <div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", lineHeight: 1.625 }}>
+      Use generous padding in content areas. Cards get at least p-6 to p-8. Sections get py-16 or more between them.
+    </div>
+  </div>
+  <div>
+    <div style={{ fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--color-ink-tertiary)", marginBottom: "0.75rem" }}>Grouping</div>
+    <div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", lineHeight: 1.625 }}>
+      Related items sit close together (gap-2 to gap-4). Separate groups sit further apart (gap-8 to gap-12). The ratio tells the eye what belongs together.
+    </div>
+  </div>
+  <div>
+    <div style={{ fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--color-ink-tertiary)", marginBottom: "0.75rem" }}>Page margins</div>
+    <div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", lineHeight: 1.625 }}>
+      Content never touches the edge. Minimum px-6 on mobile, px-12 on desktop. The outer quiet frames the inner content.
+    </div>
+  </div>
+</div>
+
+</div>

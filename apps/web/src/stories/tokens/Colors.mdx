@@ -1,0 +1,101 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import { ColorPalette } from "./Colors.stories.tsx";
+
+<Meta title="Design System/Tokens/Colors" />
+
+<div style={{ maxWidth: "72rem", margin: "0 auto", padding: "4rem 0", fontFamily: "var(--font-sans)" }}>
+
+<div style={{ color: "var(--color-ink-tertiary)", fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: "1.5rem" }}>Tokens</div>
+
+# Color
+
+<div style={{ fontSize: "1.2rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginTop: "1rem", marginBottom: "4rem", maxWidth: "65ch" }}>
+  Our palette draws from the world of print. Warm, papery surfaces. Ink that's charcoal rather than black. A single restrained accent that speaks with quiet authority. Color should recede — it supports content, never competes with it.
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", marginBottom: "4rem" }} />
+
+## Surface
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2rem", maxWidth: "65ch" }}>
+  The canvas on which everything rests. Warm off-whites inspired by quality paper stock. The subtle warmth reduces eye strain during long reading sessions.
+</div>
+
+<ColorPalette
+  colors={[
+    { name: "surface", token: "--color-surface", desc: "Primary background" },
+    { name: "surface-raised", token: "--color-surface-raised", desc: "Cards, elevated panels" },
+    { name: "surface-sunken", token: "--color-surface-sunken", desc: "Recessed areas, wells" },
+    { name: "surface-overlay", token: "--color-surface-overlay", desc: "Modals, dropdowns" },
+  ]}
+/>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Ink
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2rem", maxWidth: "65ch" }}>
+  Text and icon colors. Warm charcoal tones create a softer reading experience than pure black. The hierarchy from ink to faint guides the eye naturally.
+</div>
+
+<ColorPalette
+  colors={[
+    { name: "ink", token: "--color-ink", desc: "Primary text, headings" },
+    { name: "ink-secondary", token: "--color-ink-secondary", desc: "Body text, descriptions" },
+    { name: "ink-tertiary", token: "--color-ink-tertiary", desc: "Captions, placeholders" },
+    { name: "ink-faint", token: "--color-ink-faint", desc: "Disabled states" },
+  ]}
+/>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Accent
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2rem", maxWidth: "65ch" }}>
+  A muted sage green. Calm authority without urgency. Used sparingly for interactive elements, links, and focused states. Never shouts.
+</div>
+
+<ColorPalette
+  colors={[
+    { name: "accent", token: "--color-accent", desc: "Links, primary actions" },
+    { name: "accent-hover", token: "--color-accent-hover", desc: "Hover state" },
+    { name: "accent-subtle", token: "--color-accent-subtle", desc: "Tinted backgrounds" },
+    { name: "accent-ink", token: "--color-accent-ink", desc: "Text on accent" },
+  ]}
+/>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Semantic
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2rem", maxWidth: "65ch" }}>
+  Soft signals, never alarming. Even error states are communicated gently — this isn't mission control. The reader's calm is paramount.
+</div>
+
+<ColorPalette
+  colors={[
+    { name: "positive", token: "--color-positive", desc: "Success, completion" },
+    { name: "positive-subtle", token: "--color-positive-subtle", desc: "Success background" },
+    { name: "caution", token: "--color-caution", desc: "Warnings, attention" },
+    { name: "caution-subtle", token: "--color-caution-subtle", desc: "Warning background" },
+    { name: "critical", token: "--color-critical", desc: "Errors, destructive" },
+    { name: "critical-subtle", token: "--color-critical-subtle", desc: "Error background" },
+  ]}
+/>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Border
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2rem", maxWidth: "65ch" }}>
+  Subtle dividers that organize without fragmenting. Borders should be felt more than seen.
+</div>
+
+<ColorPalette
+  colors={[
+    { name: "border", token: "--color-border", desc: "Default dividers" },
+    { name: "border-strong", token: "--color-border-strong", desc: "Emphasized dividers" },
+  ]}
+/>
+
+</div>

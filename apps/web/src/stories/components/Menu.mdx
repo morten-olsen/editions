@@ -1,0 +1,47 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design System/Components/Menu" />
+
+<div style={{ maxWidth: "72rem", margin: "0 auto", padding: "4rem 0", fontFamily: "var(--font-sans)" }}>
+
+<div style={{ color: "var(--color-ink-tertiary)", fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: "1.5rem" }}>Components</div>
+
+# Menu
+
+<div style={{ fontSize: "1.2rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginTop: "1rem", marginBottom: "4rem", maxWidth: "65ch" }}>
+  A dropdown menu for contextual actions. Opens from a trigger button and presents a list of operations relevant to the current context — editing, fetching, sorting, or deleting. The menu floats above the content with a warm shadow and transitions gently into view.
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", marginBottom: "4rem" }} />
+
+## Anatomy
+
+<div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, maxWidth: "65ch" }}>
+  <div><strong style={{ color: "var(--color-ink)" }}>Root</strong> — Manages open/close state and keyboard navigation.</div>
+  <div><strong style={{ color: "var(--color-ink)" }}>Trigger</strong> — The button that opens the menu. Use <code style={{ fontSize: "0.75rem", fontFamily: "var(--font-mono)", background: "var(--color-surface-sunken)", padding: "0.125rem 0.375rem", borderRadius: "0.25rem" }}>render</code> to wrap a styled Button.</div>
+  <div><strong style={{ color: "var(--color-ink)" }}>Content</strong> — The floating panel containing menu items. Automatically positioned relative to the trigger.</div>
+  <div><strong style={{ color: "var(--color-ink)" }}>Item</strong> — An individual action. Highlights on hover/keyboard focus with a subtle background shift.</div>
+  <div><strong style={{ color: "var(--color-ink)" }}>Separator</strong> — A thin line dividing groups of related actions.</div>
+  <div><strong style={{ color: "var(--color-ink)" }}>Label</strong> — A non-interactive heading for a group of items. Small, uppercase, tertiary ink.</div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Guidelines
+
+<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2.5rem" }}>
+  <div>
+    <div style={{ fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--color-ink-tertiary)", marginBottom: "0.75rem" }}>Group logically</div>
+    <div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", lineHeight: 1.625 }}>
+      Use separators and labels to group related actions. Place destructive actions at the bottom, visually separated from safe operations.
+    </div>
+  </div>
+  <div>
+    <div style={{ fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--color-ink-tertiary)", marginBottom: "0.75rem" }}>Verb-first labels</div>
+    <div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", lineHeight: 1.625 }}>
+      Start menu items with a verb: "Edit source", "Fetch now", "Delete". This makes scanning fast and the action immediately clear.
+    </div>
+  </div>
+</div>
+
+</div>

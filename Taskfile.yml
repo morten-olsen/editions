@@ -1,0 +1,100 @@
+version: "3"
+
+vars:
+  SERVER_DIR: apps/server
+  WEB_DIR: apps/web
+  SMOKE_PORT: 3199
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+
+  install:
+    desc: Install all dependencies
+    cmds:
+      - pnpm install
+
+  dev:
+    desc: Start server and web app in dev mode
+    deps: [dev:server, dev:web]
+
+  kill-server:
+    desc: Kill any running server on port 3007
+    silent: true
+    cmds:
+      - lsof -ti :3007 | xargs kill -9 2>/dev/null || true
+
+  dev:server:
+    desc: Start the API server in dev mode with watch
+    dir: "{{.SERVER_DIR}}"
+    deps: [kill-server]
+    cmds:
+      - node --experimental-strip-types --watch src/server.ts
+
+  dev:web:
+    desc: Start the web app in dev mode
+    dir: "{{.WEB_DIR}}"
+    cmds:
+      - npx vite
+
+  storybook:
+    desc: Start Storybook dev server
+    dir: "{{.WEB_DIR}}"
+    cmds:
+      - npx storybook dev -p 6006
+
+  start:
+    desc: Start the server
+    dir: "{{.SERVER_DIR}}"
+    deps: [kill-server]
+    cmds:
+      - node --experimental-strip-types src/server.ts
+
+  check:
+    desc: Run TypeScript type checking
+    cmds:
+      - pnpm --filter @editions/server check
+      - pnpm --filter @editions/web check
+
+  lint:
+    desc: Run all linting (type checking for now)
+    deps: [check]
+
+  clean:
+    desc: Remove build artifacts and databases
+    cmds:
+      - rm -f {{.SERVER_DIR}}/editions.db {{.SERVER_DIR}}/editions.db-wal {{.SERVER_DIR}}/editions.db-shm
+      - rm -rf {{.SERVER_DIR}}/dist
+      - rm -rf {{.WEB_DIR}}/dist
+
+  reset-db:
+    desc: Delete the database (recreated on next start)
+    cmds:
+      - rm -f {{.SERVER_DIR}}/editions.db {{.SERVER_DIR}}/editions.db-wal {{.SERVER_DIR}}/editions.db-shm
+
+  test:
+    desc: Run all tests
+    cmds:
+      - pnpm test
+
+  test:smoke:
+    desc: Start server, hit health endpoint, verify, shut down
+    dir: "{{.SERVER_DIR}}"
+    env:
+      EDITIONS_PORT: "{{.SMOKE_PORT}}"
+    cmds:
+      - |
+        cleanup() { kill $PID 2>/dev/null; wait $PID 2>/dev/null; rm -f editions.db editions.db-wal editions.db-shm; }
+        trap cleanup EXIT
+        node --experimental-strip-types src/server.ts &
+        PID=$!
+        sleep 2
+        STATUS=$(curl -sf http://localhost:{{.SMOKE_PORT}}/api/health | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])")
+        if [ "$STATUS" = "ok" ]; then
+          echo "Smoke test passed"
+        else
+          echo "Smoke test failed: expected 'ok', got '$STATUS'"
+          exit 1
+        fi

@@ -1,0 +1,36 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import { ShadowScale, ShadowElevation } from "./Shadows.stories.tsx";
+
+<Meta title="Design System/Tokens/Shadows & Elevation" />
+
+<div style={{ maxWidth: "72rem", margin: "0 auto", padding: "4rem 0", fontFamily: "var(--font-sans)" }}>
+
+<div style={{ color: "var(--color-ink-tertiary)", fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: "1.5rem" }}>Tokens</div>
+
+# Shadows & Elevation
+
+<div style={{ fontSize: "1.2rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginTop: "1rem", marginBottom: "4rem", maxWidth: "65ch" }}>
+  Warm, diffused shadows that feel like natural light falling on paper. Elevation is used sparingly — most of the interface lives on a single plane. Depth signals interactivity, not importance.
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", marginBottom: "4rem" }} />
+
+## Scale
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2.5rem", maxWidth: "65ch" }}>
+  Five levels, from a barely-there hairline to a substantial float. The shadows use our warm ink color instead of pure black, maintaining the palette's warmth even in depth.
+</div>
+
+<ShadowScale />
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Elevation in context
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2.5rem", maxWidth: "65ch" }}>
+  How shadows create hierarchy in the interface. Notice the restraint — most surfaces sit flat, letting content do the speaking.
+</div>
+
+<ShadowElevation />
+
+</div>

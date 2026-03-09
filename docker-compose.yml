@@ -1,0 +1,14 @@
+services:
+  editions:
+    build: .
+    ports:
+      - "3007:3007"
+    volumes:
+      - editions-data:/data
+    environment:
+      - EDITIONS_DB=/data/editions.db
+      - EDITIONS_JWT_SECRET=${EDITIONS_JWT_SECRET:-}
+    restart: unless-stopped
+
+volumes:
+  editions-data:

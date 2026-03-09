@@ -1,0 +1,28 @@
+@import "tailwindcss";
+@import "./design-tokens.css";
+@plugin "@tailwindcss/typography";
+
+/*
+ * Global base styles
+ * Minimal resets that apply the design token defaults.
+ */
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    line-height: var(--leading-normal);
+  }
+
+  ::selection {
+    background-color: var(--color-accent-subtle);
+    color: var(--color-ink);
+  }
+}

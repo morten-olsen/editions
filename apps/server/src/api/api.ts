@@ -1,0 +1,54 @@
+import { z } from "zod/v4";
+
+import { createArticlesRoutes } from "./articles.routes.ts";
+import { createAuthRoutes } from "./auth.routes.ts";
+import { createBookmarksRoutes } from "./bookmarks.routes.ts";
+import { createEditionsRoutes } from "./editions.routes.ts";
+import { createFeedRoutes } from "./feed.routes.ts";
+import { createFocusesRoutes } from "./focuses.routes.ts";
+import { createSourcesRoutes } from "./sources.routes.ts";
+import { createTasksRoutes } from "./tasks.routes.ts";
+import { createVotesRoutes } from "./votes.routes.ts";
+
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import type { Services } from "../services/services.ts";
+
+const healthRoute: FastifyPluginAsyncZod = async (fastify) => {
+  fastify.route({
+    method: "GET",
+    url: "/health",
+    schema: {
+      response: {
+        200: z.object({
+          status: z.string(),
+        }),
+      },
+    },
+    handler: async (_req, _reply) => {
+      return { status: "ok" };
+    },
+  });
+};
+
+const registerRoutes = async (
+  fastify: Parameters<FastifyPluginAsyncZod>[0],
+  services: Services,
+): Promise<void> => {
+  await fastify.register(
+    async (api) => {
+      await api.register(healthRoute);
+      await api.register(createArticlesRoutes(services));
+      await api.register(createAuthRoutes(services));
+      await api.register(createBookmarksRoutes(services));
+      await api.register(createSourcesRoutes(services));
+      await api.register(createFocusesRoutes(services));
+      await api.register(createEditionsRoutes(services));
+      await api.register(createFeedRoutes(services));
+      await api.register(createTasksRoutes(services));
+      await api.register(createVotesRoutes(services));
+    },
+    { prefix: "/api" },
+  );
+};
+
+export { registerRoutes };

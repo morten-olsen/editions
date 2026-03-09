@@ -1,0 +1,8 @@
+[tools]
+node = "24"
+pnpm = "10"
+task = "latest"
+
+[env]
+# Silence the pnpm warning about NODE_AUTH_TOKEN in ~/.npmrc
+NODE_AUTH_TOKEN = ""

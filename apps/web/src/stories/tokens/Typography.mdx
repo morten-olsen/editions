@@ -1,0 +1,81 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import { TypeScale, TypeFamilies, DualSystem, ReadingMeasure } from "./Typography.stories.tsx";
+
+<Meta title="Design System/Tokens/Typography" />
+
+<div style={{ maxWidth: "72rem", margin: "0 auto", padding: "4rem 0", fontFamily: "var(--font-sans)" }}>
+
+<div style={{ color: "var(--color-ink-tertiary)", fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: "1.5rem" }}>Tokens</div>
+
+# Typography
+
+<div style={{ fontSize: "1.2rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginTop: "1rem", marginBottom: "4rem", maxWidth: "65ch" }}>
+  Typography is our primary design material. Two families — a serif for reading, a sans-serif for interface — work in concert to create a clear hierarchy between content and chrome. The type scale follows a minor third ratio for gentle, natural progression.
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", marginBottom: "4rem" }} />
+
+## Families
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2.5rem", maxWidth: "65ch" }}>
+  The serif carries the editorial voice — warm, authoritative, inviting for extended reading. The sans-serif is clean and functional, stepping back so the content can speak. Monospace appears only where precision matters.
+</div>
+
+<TypeFamilies />
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## The Dual System
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2.5rem", maxWidth: "65ch" }}>
+  The boundary between serif and sans isn't decorative — it signals where the interface ends and the content begins. Serif says "this is something worth reading." Sans says "this is a tool to help you navigate." When both appear in the same view, the reader instinctively knows which is chrome and which is substance.
+</div>
+
+<DualSystem />
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Scale
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2.5rem", maxWidth: "65ch" }}>
+  Built on a minor third ratio (1.2). Each step feels like a natural increment, never a jarring jump. Display sizes use tighter tracking; body text breathes with generous line heights.
+</div>
+
+<TypeScale />
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Measure
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2.5rem", maxWidth: "65ch" }}>
+  Comfortable reading happens between 45 and 75 characters per line. Our prose width of 65ch sits in the sweet spot. This constraint isn't a limitation — it's where the reading happens.
+</div>
+
+<ReadingMeasure />
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Principles
+
+<div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "2.5rem", margin: "2.5rem 0" }}>
+  <div>
+    <div style={{ fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--color-ink-tertiary)", marginBottom: "0.75rem" }}>Hierarchy through weight</div>
+    <div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", lineHeight: 1.625 }}>
+      Use weight and size to establish hierarchy. Avoid relying on color alone — the warm ink palette has intentionally limited contrast steps.
+    </div>
+  </div>
+  <div>
+    <div style={{ fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--color-ink-tertiary)", marginBottom: "0.75rem" }}>Generous leading</div>
+    <div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", lineHeight: 1.625 }}>
+      Body text uses 1.625 line-height. This generous leading lets the eye travel smoothly across long passages. Tight leading is reserved for display headings only.
+    </div>
+  </div>
+  <div>
+    <div style={{ fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--color-ink-tertiary)", marginBottom: "0.75rem" }}>Purposeful tracking</div>
+    <div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", lineHeight: 1.625 }}>
+      Display text pulls tight (-0.02em). Small text and labels open up (0.04em). Each has a reason — readability at every size.
+    </div>
+  </div>
+</div>
+
+</div>

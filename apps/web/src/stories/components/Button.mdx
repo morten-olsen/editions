@@ -1,0 +1,105 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import { Button } from "../../components/button.tsx";
+
+<Meta title="Design System/Components/Button" />
+
+<div style={{ maxWidth: "72rem", margin: "0 auto", padding: "4rem 0", fontFamily: "var(--font-sans)" }}>
+
+<div style={{ color: "var(--color-ink-tertiary)", fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: "1.5rem" }}>Components</div>
+
+# Button
+
+<div style={{ fontSize: "1.2rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginTop: "1rem", marginBottom: "4rem", maxWidth: "65ch" }}>
+  The primary interactive element. Four variants express a clear hierarchy of intent — from the confident accent of a primary action to the quiet retreat of a ghost. Buttons never shout; even destructive actions are communicated with restraint.
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", marginBottom: "4rem" }} />
+
+## Variants
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2rem", maxWidth: "65ch" }}>
+  Choose the variant that matches the action's weight. Most interfaces need only one primary button — the rest should recede.
+</div>
+
+<div style={{ display: "flex", flexDirection: "column", gap: "2rem", marginBottom: "4rem" }}>
+  <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
+    <div style={{ width: "10rem", flexShrink: 0 }}>
+      <Button variant="primary">Save changes</Button>
+    </div>
+    <div>
+      <div style={{ fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.25rem" }}>Primary</div>
+      <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+        The main action on a page. Accent-filled, high contrast. Use once per view — two primary buttons compete for attention.
+      </div>
+    </div>
+  </div>
+  <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
+    <div style={{ width: "10rem", flexShrink: 0 }}>
+      <Button variant="secondary">Cancel</Button>
+    </div>
+    <div>
+      <div style={{ fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.25rem" }}>Secondary</div>
+      <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+        Supporting actions. Bordered, neutral background. Use for cancel, back, or alternative paths alongside a primary.
+      </div>
+    </div>
+  </div>
+  <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
+    <div style={{ width: "10rem", flexShrink: 0 }}>
+      <Button variant="ghost">Skip for now</Button>
+    </div>
+    <div>
+      <div style={{ fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.25rem" }}>Ghost</div>
+      <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+        Tertiary actions that should feel like text. No border, no background until hovered. For inline actions, navigation, and optional paths.
+      </div>
+    </div>
+  </div>
+  <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
+    <div style={{ width: "10rem", flexShrink: 0 }}>
+      <Button variant="destructive">Delete</Button>
+    </div>
+    <div>
+      <div style={{ fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.25rem" }}>Destructive</div>
+      <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+        Irreversible actions. Uses the critical color but still feels restrained — no harsh reds, no alarm. Always pair with a confirmation dialog.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Sizes
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2rem", maxWidth: "65ch" }}>
+  Three sizes for different contexts. Medium is the default and works in most situations.
+</div>
+
+<div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "2rem" }}>
+  <Button size="sm">Small</Button>
+  <Button size="md">Medium</Button>
+  <Button size="lg">Large</Button>
+</div>
+
+<div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, maxWidth: "65ch" }}>
+  <div><strong style={{ color: "var(--color-ink)" }}>Small</strong> — Compact contexts: table rows, inline actions, toolbars.</div>
+  <div><strong style={{ color: "var(--color-ink)" }}>Medium</strong> — Default. Forms, dialogs, page actions.</div>
+  <div><strong style={{ color: "var(--color-ink)" }}>Large</strong> — Hero actions, onboarding, single prominent calls to action.</div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Disabled state
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2rem", maxWidth: "65ch" }}>
+  Disabled buttons reduce to 40% opacity and remove pointer interactions. They remain visible to preserve layout stability but clearly communicate unavailability.
+</div>
+
+<div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+  <Button variant="primary" disabled>Primary</Button>
+  <Button variant="secondary" disabled>Secondary</Button>
+  <Button variant="ghost" disabled>Ghost</Button>
+</div>
+
+</div>

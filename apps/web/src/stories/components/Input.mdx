@@ -1,0 +1,67 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import { Input } from "../../components/input.tsx";
+import { Textarea } from "../../components/textarea.tsx";
+
+<Meta title="Design System/Components/Input" />
+
+<div style={{ maxWidth: "72rem", margin: "0 auto", padding: "4rem 0", fontFamily: "var(--font-sans)" }}>
+
+<div style={{ color: "var(--color-ink-tertiary)", fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: "1.5rem" }}>Components</div>
+
+# Input
+
+<div style={{ fontSize: "1.2rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginTop: "1rem", marginBottom: "4rem", maxWidth: "65ch" }}>
+  Text fields for capturing user input. Built on Base UI's Field primitive for accessible label association, descriptions, and error messaging. The styling is deliberately quiet — a subtle border that brightens with accent on focus.
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", marginBottom: "4rem" }} />
+
+## Text input
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2rem", maxWidth: "65ch" }}>
+  The standard single-line input. Can be used standalone or with a label, description, and error state.
+</div>
+
+<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem", marginBottom: "4rem" }}>
+  <div>
+    <div style={{ fontSize: "0.75rem", fontFamily: "var(--font-mono)", color: "var(--color-ink-tertiary)", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: "1rem" }}>Default</div>
+    <Input placeholder="Enter feed URL..." />
+  </div>
+  <div>
+    <div style={{ fontSize: "0.75rem", fontFamily: "var(--font-mono)", color: "var(--color-ink-tertiary)", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: "1rem" }}>With label</div>
+    <Input label="Feed URL" placeholder="https://example.com/feed.xml" description="RSS or Atom feed URL" />
+  </div>
+  <div>
+    <div style={{ fontSize: "0.75rem", fontFamily: "var(--font-mono)", color: "var(--color-ink-tertiary)", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: "1rem" }}>Error</div>
+    <Input label="Feed URL" defaultValue="not-a-url" error="Please enter a valid URL" />
+  </div>
+  <div>
+    <div style={{ fontSize: "0.75rem", fontFamily: "var(--font-mono)", color: "var(--color-ink-tertiary)", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: "1rem" }}>Disabled</div>
+    <Input label="Feed URL" defaultValue="https://example.com/feed.xml" disabled />
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Textarea
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2rem", maxWidth: "65ch" }}>
+  Multi-line variant for longer text. Shares the same field pattern — label, description, error. Resizable vertically with a comfortable minimum height.
+</div>
+
+<div style={{ maxWidth: "24rem", marginBottom: "4rem" }}>
+  <Textarea label="Description" placeholder="Describe what this focus covers..." description="Optional. Helps classify articles into this focus." />
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Anatomy
+
+<div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, maxWidth: "65ch" }}>
+  <div><strong style={{ color: "var(--color-ink)" }}>Label</strong> — Always visible when the field has meaning beyond its placeholder. Set via the <code style={{ fontSize: "0.75rem", fontFamily: "var(--font-mono)", background: "var(--color-surface-sunken)", padding: "0.125rem 0.375rem", borderRadius: "0.25rem" }}>label</code> prop.</div>
+  <div><strong style={{ color: "var(--color-ink)" }}>Description</strong> — Supplementary guidance below the label. Keep it to one short sentence.</div>
+  <div><strong style={{ color: "var(--color-ink)" }}>Error</strong> — Replaces the description when validation fails. Uses the critical color but remains understated.</div>
+  <div><strong style={{ color: "var(--color-ink)" }}>Placeholder</strong> — Shown when the field is empty. Use for format hints, not labels.</div>
+</div>
+
+</div>

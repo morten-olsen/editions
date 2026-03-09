@@ -1,0 +1,21 @@
+{
+  "private": true,
+  "type": "module",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "onnxruntime-node",
+      "sharp"
+    ]
+  },
+  "scripts": {
+    "dev": "pnpm --filter @editions/server dev",
+    "dev:web": "pnpm --filter @editions/web dev",
+    "build": "pnpm --filter @editions/server build",
+    "check": "pnpm --filter @editions/server check && pnpm --filter @editions/web check",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^4.0.18"
+  }
+}

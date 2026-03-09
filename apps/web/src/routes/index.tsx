@@ -44,7 +44,7 @@ const IndexPage = (): React.ReactNode => {
   const [loading, setLoading] = useState(true);
   const [offset, setOffset] = useState(0);
   const [sort, setSort] = useState<SortMode>("top");
-  const [status, setStatus] = useState<ReadStatus>("all");
+  const [status, setStatus] = useState<ReadStatus>("unread");
 
   const loadFeed = useCallback(async (
     newOffset: number,
@@ -201,9 +201,11 @@ const IndexPage = (): React.ReactNode => {
         <EmptyState
           title="No articles"
           description={
-            sort === "top" && status === "all"
-              ? "Articles will appear here once your sources have been fetched and processed."
-              : "No articles match the current filters."
+            sort === "top" && status === "unread"
+              ? "You're all caught up! Switch to \"All\" to browse past articles."
+              : sort === "top" && status === "all"
+                ? "Articles will appear here once your sources have been fetched and processed."
+                : "No articles match the current filters."
           }
         />
       ) : (

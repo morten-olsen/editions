@@ -71,16 +71,6 @@ const EditionViewPage = (): React.ReactNode => {
       const ed = data as EditionDetail;
       setEdition(ed);
       setIsRead(!!ed.readAt);
-
-      // Mark as read on open
-      if (!ed.readAt) {
-        setIsRead(true);
-        void client.PUT("/api/editions/{editionId}/read", {
-          params: { path: { editionId } },
-          body: { read: true },
-          headers: hdrs,
-        });
-      }
     }
     setLoading(false);
   }, [auth, editionId]);
@@ -102,6 +92,19 @@ const EditionViewPage = (): React.ReactNode => {
       body: { read: newRead },
       headers,
     });
+  };
+
+  const handleMarkDoneAndBack = async (): Promise<void> => {
+    if (!edition) return;
+    if (!isRead) {
+      setIsRead(true);
+      await client.PUT("/api/editions/{editionId}/read", {
+        params: { path: { editionId } },
+        body: { read: true },
+        headers,
+      });
+    }
+    await navigate({ to: "/editions/$configId", params: { configId } });
   };
 
   const handleDelete = async (): Promise<void> => {
@@ -256,20 +259,19 @@ const EditionViewPage = (): React.ReactNode => {
       )}
 
       {/* Completion */}
-      {edition.articles.length > 0 && (
-        <>
-          <Separator />
-          <div className="py-16 text-center">
-            <div className="font-serif text-2xl text-ink mb-2">
-              You're all caught up
-            </div>
-            <div className="text-sm text-ink-tertiary">
-              {edition.articleCount} articles
-              {edition.totalReadingMinutes && ` · ${edition.totalReadingMinutes} minutes well spent`}
-            </div>
-          </div>
-        </>
-      )}
+      <Separator soft className="mt-12" />
+      <div className="py-10 text-center">
+        <div className="font-serif text-xl text-ink mb-3">
+          End of edition
+        </div>
+        <div className="text-sm text-ink-tertiary mb-6">
+          {edition.articleCount} articles
+          {edition.totalReadingMinutes && ` · ${edition.totalReadingMinutes} minutes`}
+        </div>
+        <Button variant="primary" size="sm" onClick={() => void handleMarkDoneAndBack()}>
+          Done
+        </Button>
+      </div>
     </ReadingShell>
   );
 };

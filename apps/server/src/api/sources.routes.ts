@@ -399,6 +399,24 @@ const createSourcesRoutes = (services: Services): FastifyPluginAsyncZod =>
       },
     });
 
+    // Reanalyse all articles across all sources
+    fastify.route({
+      method: "POST",
+      url: "/sources/reanalyse-all",
+      onRequest: authenticate,
+      schema: {
+        security: [{ bearerAuth: [] }],
+        response: {
+          202: z.object({ enqueued: z.number() }),
+        },
+      },
+      handler: async (req, reply) => {
+        const analysisService = services.get(AnalysisService);
+        const count = await analysisService.reanalyseAll(req.user.sub);
+        return reply.code(202).send({ enqueued: count });
+      },
+    });
+
     // Get task status
     fastify.route({
       method: "GET",

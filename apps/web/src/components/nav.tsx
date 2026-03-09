@@ -112,7 +112,9 @@ const Nav = (): React.ReactElement => {
             >
               <span className="truncate flex-1">{cfg.name}</span>
               {cfg.hasUnread && (
-                <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-accent" />
+                <span className="shrink-0 w-5 h-5 flex items-center justify-center">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+                </span>
               )}
             </Link>
           ))}

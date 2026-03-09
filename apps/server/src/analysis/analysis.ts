@@ -192,6 +192,44 @@ class AnalysisService {
     return articles.length;
   };
 
+  /**
+   * Re-analyse all extracted articles across all sources.
+   * Clears existing focus classifications and re-enqueues analysis tasks.
+   */
+  reanalyseAll = async (userId?: string): Promise<number> => {
+    const db = await this.#services.get(DatabaseService).getInstance();
+    const taskService = this.#services.get(TaskService);
+
+    const articles = await db
+      .selectFrom("articles")
+      .select("id")
+      .where("extracted_at", "is not", null)
+      .execute();
+
+    if (articles.length === 0) return 0;
+
+    const articleIds = articles.map((a) => a.id);
+
+    await db
+      .deleteFrom("article_focuses")
+      .where("article_id", "in", articleIds)
+      .execute();
+
+    await db
+      .updateTable("articles")
+      .set({ analysed_at: null })
+      .where("id", "in", articleIds)
+      .execute();
+
+    for (const article of articles) {
+      taskService.enqueue<AnalyseArticlePayload>("analyse_article", {
+        articleId: article.id,
+      }, { userId });
+    }
+
+    return articles.length;
+  };
+
   [destroySymbol] = async (): Promise<void> => {
     if (this.#worker) {
       this.#worker.postMessage({ type: "shutdown" });

@@ -75,7 +75,7 @@ const FocusDetailPage = (): React.ReactNode => {
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [sort, setSort] = useState<SortMode>("top");
   const [window, setWindow] = useState<TimeWindow>("all");
-  const [status, setStatus] = useState<ReadStatus>("all");
+  const [status, setStatus] = useState<ReadStatus>("unread");
 
   const loadFocus = useCallback(async (): Promise<void> => {
     if (auth.status !== "authenticated") return;
@@ -313,9 +313,11 @@ const FocusDetailPage = (): React.ReactNode => {
         <EmptyState
           title="No articles"
           description={
-            sort === "top" && window === "all" && status === "all"
-              ? "No articles have been classified into this focus yet."
-              : "No articles match the current filters."
+            sort === "top" && window === "all" && status === "unread"
+              ? "You're all caught up! Switch to \"All\" to browse past articles."
+              : sort === "top" && window === "all" && status === "all"
+                ? "No articles have been classified into this focus yet."
+                : "No articles match the current filters."
           }
         />
       ) : (

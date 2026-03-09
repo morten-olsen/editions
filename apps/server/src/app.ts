@@ -16,7 +16,8 @@ import {
 import { AnalysisService, registerAnalysisTaskHandlers } from "./analysis/analysis.ts";
 import { registerRoutes } from "./api/api.ts";
 import { ConfigService } from "./config/config.ts";
-import { Services } from "./services/services.ts";
+import { SchedulerService } from "./scheduler/scheduler.ts";
+import { Services, destroySymbol } from "./services/services.ts";
 import { registerSourceTaskHandlers } from "./sources/sources.fetch.ts";
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
@@ -97,6 +98,12 @@ const createApp = async ({ logger = true }: { logger?: boolean } = {}): Promise<
   registerSourceTaskHandlers(services);
   registerAnalysisTaskHandlers(services);
 
+  // Create scheduler (not started until listen completes)
+  const scheduler = new SchedulerService(services, config.scheduler, {
+    info: (msg) => fastify.log.info(msg),
+    error: (msg) => fastify.log.error(msg),
+  });
+
   const start = async (): Promise<void> => {
     await fastify.listen({ host: config.server.host, port: config.server.port });
 
@@ -106,9 +113,13 @@ const createApp = async ({ logger = true }: { logger?: boolean } = {}): Promise<
     if (recovered > 0) {
       fastify.log.info(`Enqueued ${recovered} articles for analysis recovery`);
     }
+
+    // Start the scheduler for automatic feed fetching and edition generation
+    scheduler.start();
   };
 
   const stop = async (): Promise<void> => {
+    scheduler[destroySymbol]();
     await fastify.close();
     await services.destroy();
   };

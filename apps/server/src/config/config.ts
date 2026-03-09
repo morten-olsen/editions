@@ -21,10 +21,16 @@ const authSchema = z.object({
   allowSignups: z.boolean().default(true),
 });
 
+const schedulerSchema = z.object({
+  enabled: z.boolean().default(true),
+  fetchIntervalMinutes: z.number().min(1).default(60),
+});
+
 const configSchema = z.object({
   server: serverSchema.default({ host: "0.0.0.0", port: 3007 }),
   database: databaseSchema.default({ filename: "editions.db" }),
   auth: authSchema.default({ jwtSecret: "", allowSignups: true }),
+  scheduler: schedulerSchema.default({ enabled: true, fetchIntervalMinutes: 60 }),
 });
 
 type Config = z.infer<typeof configSchema>;

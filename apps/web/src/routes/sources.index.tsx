@@ -22,6 +22,7 @@ const SourcesPage = (): React.ReactNode => {
   const auth = useAuth();
   const [sources, setSources] = useState<Source[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reanalysing, setReanalysing] = useState(false);
 
   const fetchSources = useCallback(async (): Promise<void> => {
     if (auth.status !== "authenticated") return;
@@ -41,15 +42,33 @@ const SourcesPage = (): React.ReactNode => {
 
   if (auth.status !== "authenticated") return null;
 
+  const handleReanalyseAll = async (): Promise<void> => {
+    setReanalysing(true);
+    await client.POST("/api/sources/reanalyse-all" as never, {
+      headers: { Authorization: `Bearer ${auth.token}` },
+    });
+    setReanalysing(false);
+  };
+
   return (
     <>
       <PageHeader
         title="Sources"
         subtitle={loading ? "Loading..." : `${sources.length} feeds configured`}
         actions={
-          <Link to="/sources/new">
-            <Button variant="primary" size="sm">Add source</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={reanalysing}
+              onClick={() => void handleReanalyseAll()}
+            >
+              {reanalysing ? "Reanalysing..." : "Reanalyse all"}
+            </Button>
+            <Link to="/sources/new">
+              <Button variant="primary" size="sm">Add source</Button>
+            </Link>
+          </div>
         }
       />
 

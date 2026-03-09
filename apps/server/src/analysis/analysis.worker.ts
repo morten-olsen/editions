@@ -56,7 +56,9 @@ type WorkerResponse = EmbedResponse | ClassifyResponse | ErrorResponse;
 // --- Lazy model loading ---
 
 env.allowLocalModels = true;
-env.cacheDir = process.env.HF_HOME ?? undefined;
+if (process.env.HF_HOME) {
+  env.cacheDir = process.env.HF_HOME;
+}
 
 let embeddingPipeline: Promise<FeatureExtractionPipeline> | null = null;
 let classifierPipeline: Promise<ZeroShotClassificationPipeline> | null = null;

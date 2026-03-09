@@ -8,7 +8,7 @@ import { Button } from "../components/button.tsx";
 import { EmptyState } from "../components/empty-state.tsx";
 import { Separator } from "../components/separator.tsx";
 
-// --- Task types ---
+// --- Task types & helpers ---
 
 type TaskItem = {
   id: string;
@@ -20,18 +20,31 @@ type TaskItem = {
   completedAt: number | null;
 };
 
+type TaskGroup = {
+  type: string;
+  completed: number;
+  failed: number;
+  tasks: TaskItem[];
+};
+
 const POLL_INTERVAL_MS = 3000;
 
-const formatTaskTime = (ms: number): string => {
-  const date = new Date(ms);
-  const now = Date.now();
-  const diffSec = Math.floor((now - ms) / 1000);
+const TASK_TYPE_LABELS: Record<string, string> = {
+  fetch_source: "Fetch feed",
+  extract_article: "Extract article",
+  analyse_article: "Analyse article",
+};
 
+const formatTaskType = (type: string): string =>
+  TASK_TYPE_LABELS[type] ?? type.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+const formatTimeAgo = (ms: number): string => {
+  const diffSec = Math.floor((Date.now() - ms) / 1000);
   if (diffSec < 5) return "just now";
   if (diffSec < 60) return `${diffSec}s ago`;
   if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
   if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
-  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  return new Date(ms).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 };
 
 const formatDuration = (start: number, end: number): string => {
@@ -41,30 +54,25 @@ const formatDuration = (start: number, end: number): string => {
   return `${Math.floor(sec / 60)}m ${sec % 60}s`;
 };
 
-const taskStatusLabel = (status: TaskItem["status"]): string => {
-  switch (status) {
-    case "pending": return "Pending";
-    case "running": return "Running";
-    case "completed": return "Completed";
-    case "failed": return "Failed";
+const groupFinishedTasks = (tasks: TaskItem[]): TaskGroup[] => {
+  const map = new Map<string, TaskGroup>();
+  for (const task of tasks) {
+    let group = map.get(task.type);
+    if (!group) {
+      group = { type: task.type, completed: 0, failed: 0, tasks: [] };
+      map.set(task.type, group);
+    }
+    if (task.status === "completed") group.completed++;
+    else group.failed++;
+    group.tasks.push(task);
   }
+  return Array.from(map.values());
 };
-
-const taskStatusColor = (status: TaskItem["status"]): string => {
-  switch (status) {
-    case "pending": return "text-ink-tertiary";
-    case "running": return "text-accent";
-    case "completed": return "text-positive";
-    case "failed": return "text-critical";
-  }
-};
-
-const formatTaskType = (type: string): string =>
-  type.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 const TasksSection = ({ token }: { token: string }): React.ReactNode => {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const loadTasks = useCallback(async (): Promise<void> => {
@@ -81,7 +89,6 @@ const TasksSection = ({ token }: { token: string }): React.ReactNode => {
     void loadTasks();
   }, [loadTasks]);
 
-  // Poll while any task is pending or running
   const hasActive = tasks.some((t) => t.status === "pending" || t.status === "running");
 
   useEffect(() => {
@@ -107,69 +114,122 @@ const TasksSection = ({ token }: { token: string }): React.ReactNode => {
   }
 
   const activeTasks = tasks.filter((t) => t.status === "pending" || t.status === "running");
-  const recentTasks = tasks.filter((t) => t.status === "completed" || t.status === "failed");
+  const finishedTasks = tasks.filter((t) => t.status === "completed" || t.status === "failed");
+  const groups = groupFinishedTasks(finishedTasks);
+
+  const toggleGroup = (type: string): void => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(type)) next.delete(type);
+      else next.add(type);
+      return next;
+    });
+  };
+
+  // Counts for the summary bar
+  const pendingCount = activeTasks.filter((t) => t.status === "pending").length;
+  const runningCount = activeTasks.filter((t) => t.status === "running").length;
+  const completedCount = finishedTasks.filter((t) => t.status === "completed").length;
+  const failedCount = finishedTasks.filter((t) => t.status === "failed").length;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
+      {/* Summary bar */}
+      <div className="flex items-center gap-4 text-xs">
+        {runningCount > 0 && (
+          <span className="flex items-center gap-1.5 text-accent">
+            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+            {runningCount} running
+          </span>
+        )}
+        {pendingCount > 0 && (
+          <span className="text-ink-tertiary">{pendingCount} queued</span>
+        )}
+        {completedCount > 0 && (
+          <span className="text-positive">{completedCount} completed</span>
+        )}
+        {failedCount > 0 && (
+          <span className="text-critical">{failedCount} failed</span>
+        )}
+        {!hasActive && finishedTasks.length > 0 && (
+          <span className="text-ink-faint ml-auto">
+            last activity {formatTimeAgo(finishedTasks[0]!.completedAt ?? finishedTasks[0]!.createdAt)}
+          </span>
+        )}
+      </div>
+
+      {/* Active tasks — shown individually */}
       {activeTasks.length > 0 && (
-        <div>
-          <div className="text-xs font-medium text-ink-tertiary uppercase tracking-wide mb-3">
-            Active ({activeTasks.length})
-          </div>
-          <div className="flex flex-col">
-            {activeTasks.map((task, idx) => (
-              <div key={task.id}>
-                {idx > 0 && <Separator soft />}
-                <div className="flex items-center gap-4 py-3">
-                  <div className={`shrink-0 w-2 h-2 rounded-full ${task.status === "running" ? "bg-accent animate-pulse" : "bg-ink-faint"}`} />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm text-ink">{formatTaskType(task.type)}</div>
-                    <div className="text-xs text-ink-tertiary mt-0.5">
-                      {taskStatusLabel(task.status)} &middot; started {task.startedAt ? formatTaskTime(task.startedAt) : formatTaskTime(task.createdAt)}
-                    </div>
-                  </div>
-                  <span className={`shrink-0 text-xs font-medium ${taskStatusColor(task.status)}`}>
-                    {taskStatusLabel(task.status)}
-                  </span>
-                </div>
+        <div className="rounded-lg border border-border overflow-hidden">
+          {activeTasks.map((task, idx) => (
+            <div key={task.id} className={idx > 0 ? "border-t border-border" : ""}>
+              <div className="flex items-center gap-3 px-4 py-2.5">
+                <span className={`shrink-0 w-1.5 h-1.5 rounded-full ${task.status === "running" ? "bg-accent animate-pulse" : "bg-ink-faint"}`} />
+                <span className="text-sm text-ink flex-1">{formatTaskType(task.type)}</span>
+                <span className="text-xs text-ink-tertiary">
+                  {task.startedAt ? formatTimeAgo(task.startedAt) : "queued"}
+                </span>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       )}
 
-      {recentTasks.length > 0 && (
-        <div>
-          <div className="text-xs font-medium text-ink-tertiary uppercase tracking-wide mb-3">
-            Recent ({recentTasks.length})
-          </div>
-          <div className="flex flex-col">
-            {recentTasks.map((task, idx) => (
-              <div key={task.id}>
-                {idx > 0 && <Separator soft />}
-                <div className="flex items-center gap-4 py-3">
-                  <div className={`shrink-0 w-2 h-2 rounded-full ${task.status === "completed" ? "bg-positive" : "bg-critical"}`} />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm text-ink">{formatTaskType(task.type)}</div>
-                    <div className="text-xs text-ink-tertiary mt-0.5">
-                      {task.completedAt ? formatTaskTime(task.completedAt) : formatTaskTime(task.createdAt)}
-                      {task.startedAt && task.completedAt && (
-                        <> &middot; took {formatDuration(task.startedAt, task.completedAt)}</>
-                      )}
-                    </div>
-                    {task.error && (
-                      <div className="text-xs text-critical mt-1 leading-relaxed line-clamp-3 font-mono">
-                        {task.error.split("\n")[0]}
-                      </div>
+      {/* Finished tasks — grouped by type */}
+      {groups.length > 0 && (
+        <div className="rounded-lg border border-border overflow-hidden">
+          {groups.map((group, idx) => {
+            const isExpanded = expandedGroups.has(group.type);
+            const failedInGroup = group.tasks.filter((t) => t.status === "failed");
+
+            return (
+              <div key={group.type} className={idx > 0 ? "border-t border-border" : ""}>
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(group.type)}
+                  className="flex items-center gap-3 px-4 py-2.5 w-full text-left hover:bg-surface-hover transition-colors duration-fast cursor-pointer"
+                >
+                  <span className="shrink-0 text-xs text-ink-faint">{isExpanded ? "▾" : "▸"}</span>
+                  <span className="text-sm text-ink flex-1">{formatTaskType(group.type)}</span>
+                  <span className="flex items-center gap-2.5 text-xs">
+                    {group.completed > 0 && (
+                      <span className="text-positive">{group.completed} done</span>
                     )}
-                  </div>
-                  <span className={`shrink-0 text-xs font-medium ${taskStatusColor(task.status)}`}>
-                    {taskStatusLabel(task.status)}
+                    {group.failed > 0 && (
+                      <span className="text-critical">{group.failed} failed</span>
+                    )}
                   </span>
-                </div>
+                </button>
+
+                {isExpanded && failedInGroup.length > 0 && (
+                  <div className="border-t border-border bg-surface-sunken">
+                    {failedInGroup.map((task) => (
+                      <div key={task.id} className="px-4 py-2.5 border-b border-border last:border-b-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs text-critical font-medium">Failed</span>
+                          <span className="text-xs text-ink-faint">
+                            {task.completedAt ? formatTimeAgo(task.completedAt) : ""}
+                            {task.startedAt && task.completedAt && ` · ${formatDuration(task.startedAt, task.completedAt)}`}
+                          </span>
+                        </div>
+                        {task.error && (
+                          <pre className="text-xs text-critical/80 font-mono whitespace-pre-wrap break-words leading-relaxed line-clamp-4">
+                            {task.error}
+                          </pre>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {isExpanded && failedInGroup.length === 0 && (
+                  <div className="border-t border-border bg-surface-sunken px-4 py-3">
+                    <span className="text-xs text-ink-tertiary">All {group.completed} tasks completed successfully</span>
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -215,8 +275,11 @@ const formatDate = (iso: string): string => {
   return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 };
 
+type SettingsTab = "tasks" | "votes";
+
 const SettingsPage = (): React.ReactNode => {
   const auth = useAuth();
+  const [activeTab, setActiveTab] = useState<SettingsTab>("tasks");
   const [votesPage, setVotesPage] = useState<VotesPage | null>(null);
   const [loading, setLoading] = useState(true);
   const [offset, setOffset] = useState(0);
@@ -292,20 +355,41 @@ const SettingsPage = (): React.ReactNode => {
   const totalPages = votesPage ? Math.ceil(votesPage.total / PAGE_SIZE) : 0;
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
 
+  const tabs: { key: SettingsTab; label: string }[] = [
+    { key: "tasks", label: "Tasks" },
+    { key: "votes", label: "Votes" },
+  ];
+
   return (
     <>
       <PageHeader title="Settings" />
 
-      {/* Tasks section */}
-      <h2 className="text-lg font-medium text-ink mb-1">Tasks</h2>
-      <p className="text-sm text-ink-secondary mb-6">Running and recent background tasks</p>
-      <TasksSection token={auth.token} />
+      {/* Tabs */}
+      <div className="flex gap-1 border-b border-border mb-6">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key)}
+            className={`relative flex h-10 items-center justify-center px-4 text-sm font-medium outline-none select-none transition-colors duration-fast cursor-pointer ${activeTab === tab.key ? "text-ink after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-accent" : "text-ink-tertiary hover:text-ink-secondary"}`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-      <Separator className="my-8" />
+      {/* Tasks tab */}
+      {activeTab === "tasks" && (
+        <>
+          <p className="text-sm text-ink-secondary mb-6">Running and recent background tasks</p>
+          <TasksSection token={auth.token} />
+        </>
+      )}
 
-      {/* Votes section */}
-      <h2 className="text-lg font-medium text-ink mb-1">Votes</h2>
-      <p className="text-sm text-ink-secondary mb-6">Your feedback shapes how articles are ranked</p>
+      {/* Votes tab */}
+      {activeTab === "votes" && (
+        <>
+          <p className="text-sm text-ink-secondary mb-6">Your feedback shapes how articles are ranked</p>
 
       {/* Filters */}
       <div className="flex items-center gap-4 mb-6">
@@ -422,6 +506,8 @@ const SettingsPage = (): React.ReactNode => {
               </Button>
             </div>
           )}
+        </>
+      )}
         </>
       )}
     </>

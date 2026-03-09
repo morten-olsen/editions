@@ -162,6 +162,18 @@ const ArticlePage = (): React.ReactNode => {
     });
   };
 
+  const handleMarkDoneAndBack = async (): Promise<void> => {
+    if (!isRead) {
+      setIsRead(true);
+      await client.PUT("/api/sources/{id}/articles/{articleId}/read", {
+        params: { path: { id: sourceId, articleId } },
+        body: { read: true },
+        headers,
+      });
+    }
+    router.history.back();
+  };
+
   const hasContent = article.content !== null && article.content.length > 0;
 
   const headerEl = (
@@ -279,8 +291,8 @@ const ArticlePage = (): React.ReactNode => {
         </div>
 
         <div className="flex items-center justify-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => router.history.back()}>
-            ← Back
+          <Button variant="primary" size="sm" onClick={() => void handleMarkDoneAndBack()}>
+            Done
           </Button>
           {article.url && (
             <a

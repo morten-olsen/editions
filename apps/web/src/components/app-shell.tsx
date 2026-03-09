@@ -9,7 +9,7 @@ const AppShell = ({ nav, children }: AppShellProps): React.ReactElement => (
   <div className="flex h-dvh bg-surface">
     {nav}
     <main className="flex-1 overflow-y-auto">
-      <div className="max-w-content mx-auto px-8 py-8">
+      <div className="max-w-prose mx-auto px-8 py-8">
         {children}
       </div>
     </main>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 
 import { useAuth } from "../auth/auth.tsx";
 import { client } from "../api/api.ts";
@@ -49,6 +49,7 @@ const formatTime = (seconds: number): string => {
 
 const EditionViewPage = (): React.ReactNode => {
   const auth = useAuth();
+  const router = useRouter();
   const navigate = useNavigate();
   const { configId, editionId } = Route.useParams();
   const [edition, setEdition] = useState<EditionDetail | null>(null);
@@ -133,9 +134,7 @@ const EditionViewPage = (): React.ReactNode => {
           <div className="font-serif text-xl text-ink mb-2">
             {error ?? "Edition not found"}
           </div>
-          <Link to="/editions/$configId" params={{ configId }}>
-            <Button variant="ghost" size="sm">Go back</Button>
-          </Link>
+          <Button variant="ghost" size="sm" onClick={() => router.history.back()}>Go back</Button>
         </div>
       </div>
     );
@@ -158,9 +157,7 @@ const EditionViewPage = (): React.ReactNode => {
   const editionHeader = (
     <header className="border-b border-border bg-surface">
       <div className="max-w-prose mx-auto px-4 py-4 md:px-6 flex items-center justify-between gap-3">
-        <Link to="/editions/$configId" params={{ configId }}>
-          <Button variant="ghost" size="sm">← Back</Button>
-        </Link>
+        <Button variant="ghost" size="sm" onClick={() => router.history.back()}>← Back</Button>
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="hidden sm:block text-xs text-ink-tertiary">
             {edition.articleCount} articles

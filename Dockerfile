@@ -7,8 +7,8 @@ RUN corepack enable pnpm
 
 # Native modules (better-sqlite3, sharp) need build tools
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends python3 make g++ && \
-    rm -rf /var/lib/apt/lists/*
+  apt-get install -y --no-install-recommends python3 make g++ && \
+  rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
 
@@ -37,8 +37,8 @@ RUN corepack enable pnpm
 
 # Native modules (better-sqlite3, sharp) need build tools
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends python3 make g++ && \
-    rm -rf /var/lib/apt/lists/*
+  apt-get install -y --no-install-recommends python3 make g++ && \
+  rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -57,7 +57,7 @@ COPY --from=frontend-build /build/apps/web/dist/ apps/server/public/
 
 # Non-root user
 RUN groupadd --gid 1001 editions && \
-    useradd --uid 1001 --gid editions --shell /bin/false editions
+  useradd --uid 1001 --gid editions --shell /bin/false editions
 
 # Data directory for SQLite database (ownership preserved on fresh volume mount)
 RUN mkdir -p /data && chown editions:editions /data
@@ -74,6 +74,6 @@ EXPOSE 3007
 
 WORKDIR /app/apps/server
 
-USER editions
+USER 1001
 
 CMD ["node", "--experimental-strip-types", "src/server.ts"]

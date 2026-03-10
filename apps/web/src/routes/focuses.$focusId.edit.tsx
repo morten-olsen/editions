@@ -13,6 +13,7 @@ import { Separator } from "../components/separator.tsx";
 type FocusSource = {
   sourceId: string;
   mode: "always" | "match";
+  weight: number;
 };
 
 type Focus = {
@@ -103,13 +104,19 @@ const EditFocusPage = (): React.ReactNode => {
     setSelectedSources((prev) => {
       const existing = prev.find((s) => s.sourceId === sourceId);
       if (existing) return prev.filter((s) => s.sourceId !== sourceId);
-      return [...prev, { sourceId, mode: "always" }];
+      return [...prev, { sourceId, mode: "always", weight: 1 }];
     });
   };
 
   const changeMode = (sourceId: string, mode: "always" | "match"): void => {
     setSelectedSources((prev) =>
       prev.map((s) => (s.sourceId === sourceId ? { ...s, mode } : s)),
+    );
+  };
+
+  const changeWeight = (sourceId: string, weight: number): void => {
+    setSelectedSources((prev) =>
+      prev.map((s) => (s.sourceId === sourceId ? { ...s, weight } : s)),
     );
   };
 
@@ -255,27 +262,49 @@ const EditFocusPage = (): React.ReactNode => {
           {allSources.length === 0 ? (
             <div className="text-sm text-ink-tertiary py-4">No sources available.</div>
           ) : (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
               {allSources.map((source) => {
                 const isSelected = selectedIds.has(source.id);
                 const selection = selectedSources.find((s) => s.sourceId === source.id);
 
                 return (
-                  <div key={source.id} className="flex items-center justify-between py-2">
-                    <Checkbox
-                      label={source.name}
-                      checked={isSelected}
-                      onCheckedChange={() => toggleSource(source.id)}
-                    />
+                  <div
+                    key={source.id}
+                    className={`rounded-md transition-colors duration-fast ${isSelected ? "bg-surface-sunken/50 p-3" : "px-3 py-2"}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <Checkbox
+                        label={source.name}
+                        checked={isSelected}
+                        onCheckedChange={() => toggleSource(source.id)}
+                      />
+                      {isSelected && selection && (
+                        <select
+                          value={selection.mode}
+                          onChange={(e) => changeMode(source.id, e.target.value as "always" | "match")}
+                          className="rounded-md border border-border bg-surface px-2 py-1 text-xs text-ink-secondary focus:outline-none focus:ring-1 focus:ring-accent"
+                        >
+                          <option value="always">Always include</option>
+                          <option value="match">If match</option>
+                        </select>
+                      )}
+                    </div>
                     {isSelected && selection && (
-                      <select
-                        value={selection.mode}
-                        onChange={(e) => changeMode(source.id, e.target.value as "always" | "match")}
-                        className="rounded-md border border-border bg-surface px-2 py-1 text-xs text-ink-secondary focus:outline-none focus:ring-1 focus:ring-accent"
-                      >
-                        <option value="always">Always include</option>
-                        <option value="match">If match</option>
-                      </select>
+                      <div className="mt-2 pl-7 flex items-center gap-3">
+                        <span className="text-xs text-ink-tertiary shrink-0">Priority</span>
+                        <input
+                          type="range"
+                          min={0}
+                          max={3}
+                          step={0.1}
+                          value={selection.weight}
+                          onChange={(e) => changeWeight(source.id, Number(e.target.value))}
+                          className="flex-1 accent-accent"
+                        />
+                        <span className="text-xs text-ink-secondary tabular-nums w-6 text-right">
+                          {selection.weight.toFixed(1)}
+                        </span>
+                      </div>
                     )}
                   </div>
                 );

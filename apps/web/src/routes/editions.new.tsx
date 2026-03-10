@@ -20,6 +20,8 @@ type FocusConfig = {
   position: number;
   budgetType: "time" | "count";
   budgetValue: number;
+  lookbackHours: number | null;
+  weight: number;
 };
 
 const NewEditionConfigPage = (): React.ReactNode => {
@@ -64,15 +66,15 @@ const NewEditionConfigPage = (): React.ReactNode => {
       if (existing) return prev.filter((f) => f.focusId !== focusId);
       return [
         ...prev,
-        { focusId, position: prev.length, budgetType: "count" as const, budgetValue: 5 },
+        { focusId, position: prev.length, budgetType: "count" as const, budgetValue: 5, lookbackHours: null, weight: 1 },
       ];
     });
   };
 
-  const updateFocusBudget = (
+  const updateFocusField = (
     focusId: string,
-    field: "budgetType" | "budgetValue",
-    value: string | number,
+    field: "budgetType" | "budgetValue" | "lookbackHours" | "weight",
+    value: string | number | null,
   ): void => {
     setSelectedFocuses((prev) =>
       prev.map((f) => (f.focusId === focusId ? { ...f, [field]: value } : f)),
@@ -105,7 +107,14 @@ const NewEditionConfigPage = (): React.ReactNode => {
         schedule,
         lookbackHours,
         excludePriorEditions,
-        focuses: selectedFocuses.map((f, i) => ({ ...f, position: i })),
+        focuses: selectedFocuses.map((f, i) => ({
+          focusId: f.focusId,
+          position: i,
+          budgetType: f.budgetType,
+          budgetValue: f.budgetValue,
+          lookbackHours: f.lookbackHours,
+          weight: f.weight,
+        })),
       },
       headers: { Authorization: `Bearer ${auth.token}` },
     });
@@ -157,10 +166,11 @@ const NewEditionConfigPage = (): React.ReactNode => {
               onChange={(e) => setLookbackHours(Number(e.target.value))}
               className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent"
             >
-              <option value={12}>12 hours</option>
+              <option value={1}>1 hour</option>
               <option value={24}>24 hours</option>
-              <option value={48}>2 days</option>
               <option value={168}>1 week</option>
+              <option value={730}>1 month</option>
+              <option value={8760}>1 year</option>
             </select>
           </div>
           <Checkbox
@@ -182,14 +192,14 @@ const NewEditionConfigPage = (): React.ReactNode => {
               No sections added yet. Add focuses below.
             </div>
           ) : (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               {selectedFocuses.map((config, idx) => {
                 const focus = allFocuses.find((f) => f.id === config.focusId);
                 if (!focus) return null;
 
                 return (
-                  <div key={config.focusId} className="border border-border rounded-md p-3">
-                    <div className="flex items-center gap-3">
+                  <div key={config.focusId} className="border border-border rounded-lg p-4">
+                    <div className="flex items-center gap-3 mb-4">
                       <span className="text-xs font-mono text-accent w-5 text-center">
                         {String(idx + 1).padStart(2, "0")}
                       </span>
@@ -220,29 +230,70 @@ const NewEditionConfigPage = (): React.ReactNode => {
                         </button>
                       </div>
                     </div>
-                    <div className="mt-2 flex items-center gap-3 pl-8">
-                      <select
-                        value={config.budgetType}
-                        onChange={(e) =>
-                          updateFocusBudget(config.focusId, "budgetType", e.target.value)
-                        }
-                        className="rounded-md border border-border bg-surface px-2 py-1 text-xs text-ink-secondary focus:outline-none focus:ring-1 focus:ring-accent"
-                      >
-                        <option value="count">Articles</option>
-                        <option value="time">Minutes</option>
-                      </select>
-                      <input
-                        type="number"
-                        min={1}
-                        value={config.budgetValue}
-                        onChange={(e) =>
-                          updateFocusBudget(config.focusId, "budgetValue", Number(e.target.value))
-                        }
-                        className="w-16 rounded-md border border-border bg-surface px-2 py-1 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-accent"
-                      />
-                      <span className="text-xs text-ink-tertiary">
-                        {config.budgetType === "count" ? "articles" : "min"}
-                      </span>
+                    <div className="flex flex-col gap-4 pl-8">
+                      {/* Budget */}
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-ink-tertiary w-16 shrink-0">Budget</span>
+                        <input
+                          type="number"
+                          min={1}
+                          value={config.budgetValue}
+                          onChange={(e) =>
+                            updateFocusField(config.focusId, "budgetValue", Number(e.target.value))
+                          }
+                          className="w-16 rounded-md border border-border bg-surface-raised px-2.5 py-1.5 text-sm text-ink focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+                        />
+                        <select
+                          value={config.budgetType}
+                          onChange={(e) =>
+                            updateFocusField(config.focusId, "budgetType", e.target.value)
+                          }
+                          className="rounded-md border border-border bg-surface-raised px-2.5 py-1.5 text-sm text-ink-secondary focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+                        >
+                          <option value="count">articles</option>
+                          <option value="time">minutes</option>
+                        </select>
+                      </div>
+                      {/* Lookback override */}
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-ink-tertiary w-16 shrink-0">Lookback</span>
+                        <select
+                          value={config.lookbackHours === null ? "" : String(config.lookbackHours)}
+                          onChange={(e) =>
+                            updateFocusField(
+                              config.focusId,
+                              "lookbackHours",
+                              e.target.value === "" ? null : Number(e.target.value),
+                            )
+                          }
+                          className="rounded-md border border-border bg-surface-raised px-2.5 py-1.5 text-sm text-ink-secondary focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+                        >
+                          <option value="">Use default</option>
+                          <option value="1">1 hour</option>
+                          <option value="24">24 hours</option>
+                          <option value="168">1 week</option>
+                          <option value="730">1 month</option>
+                          <option value="8760">1 year</option>
+                        </select>
+                      </div>
+                      {/* Priority */}
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-ink-tertiary w-16 shrink-0">Priority</span>
+                        <input
+                          type="range"
+                          min={0}
+                          max={3}
+                          step={0.1}
+                          value={config.weight}
+                          onChange={(e) =>
+                            updateFocusField(config.focusId, "weight", Number(e.target.value))
+                          }
+                          className="flex-1 accent-accent"
+                        />
+                        <span className="text-xs text-ink-secondary tabular-nums w-6 text-right">
+                          {config.weight.toFixed(1)}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 );

@@ -109,6 +109,7 @@ type EditionConfigFocusesTable = {
   budget_type: EditionBudgetType;
   budget_value: number;
   lookback_hours: number | null;
+  weight: ColumnType<number, number | undefined, number>;
 };
 
 type EditionConfigSourceBudgetsTable = {

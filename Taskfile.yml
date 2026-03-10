@@ -30,6 +30,8 @@ tasks:
     desc: Start the API server in dev mode with watch
     dir: "{{.SERVER_DIR}}"
     deps: [kill-server]
+    env:
+      EDITIONS_JWT_SECRET: editions-local-dev-secret
     cmds:
       - node --experimental-strip-types --watch src/server.ts
 
@@ -49,6 +51,8 @@ tasks:
     desc: Start the server
     dir: "{{.SERVER_DIR}}"
     deps: [kill-server]
+    env:
+      EDITIONS_JWT_SECRET: editions-local-dev-secret
     cmds:
       - node --experimental-strip-types src/server.ts
 

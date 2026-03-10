@@ -24,6 +24,7 @@ const editionConfigFocusSchema = z.object({
   budgetType: z.enum(["time", "count"]),
   budgetValue: z.number(),
   lookbackHours: z.number().nullable(),
+  weight: z.number(),
 });
 
 const editionConfigSchema = z.object({
@@ -45,6 +46,7 @@ const createEditionConfigFocusSchema = z.object({
   budgetType: z.enum(["time", "count"]),
   budgetValue: z.number().int().min(1),
   lookbackHours: z.number().int().min(1).nullable().optional(),
+  weight: z.number().min(0).optional(),
 });
 
 const createEditionConfigSchema = z.object({

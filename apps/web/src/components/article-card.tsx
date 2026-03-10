@@ -58,7 +58,7 @@ const ease = [0.25, 0.1, 0.25, 1] as const;
 
 const gentle: Transition = { duration: 0.35, ease };
 
-const collapse: Transition = { duration: 0.35, ease, overflow: "hidden" as unknown as string };
+const collapse: Transition = { duration: 0.35, ease };
 
 /* ── Collapsible wrapper for elements that appear/disappear ─────── */
 

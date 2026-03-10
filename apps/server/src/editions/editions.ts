@@ -43,6 +43,7 @@ type EditionConfigFocus = {
   budgetType: EditionBudgetType;
   budgetValue: number;
   lookbackHours: number | null;
+  weight: number;
 };
 
 type EditionConfig = {
@@ -74,6 +75,7 @@ type CreateEditionConfigFocusParams = {
   budgetType: EditionBudgetType;
   budgetValue: number;
   lookbackHours?: number | null;
+  weight?: number;
 };
 
 type UpdateEditionConfigParams = {
@@ -156,6 +158,7 @@ class EditionsService {
               "edition_config_focuses.budget_type",
               "edition_config_focuses.budget_value",
               "edition_config_focuses.lookback_hours",
+              "edition_config_focuses.weight",
               "focuses.name as focus_name",
             ])
             .where("edition_config_id", "in", configIds)
@@ -173,6 +176,7 @@ class EditionsService {
         budgetType: link.budget_type as EditionBudgetType,
         budgetValue: link.budget_value,
         lookbackHours: link.lookback_hours,
+        weight: link.weight,
       });
       focusesByConfig.set(link.edition_config_id, arr);
     }
@@ -214,6 +218,7 @@ class EditionsService {
         "edition_config_focuses.budget_type",
         "edition_config_focuses.budget_value",
         "edition_config_focuses.lookback_hours",
+        "edition_config_focuses.weight",
         "focuses.name as focus_name",
       ])
       .where("edition_config_id", "=", id)
@@ -235,6 +240,7 @@ class EditionsService {
         budgetType: link.budget_type as EditionBudgetType,
         budgetValue: link.budget_value,
         lookbackHours: link.lookback_hours,
+        weight: link.weight,
       })),
       createdAt: row.created_at,
       updatedAt: row.updated_at,
@@ -270,6 +276,7 @@ class EditionsService {
             budget_type: f.budgetType,
             budget_value: f.budgetValue,
             lookback_hours: f.lookbackHours ?? null,
+            weight: f.weight ?? 1,
           })),
         )
         .execute();
@@ -322,6 +329,7 @@ class EditionsService {
               budget_type: f.budgetType,
               budget_value: f.budgetValue,
               lookback_hours: f.lookbackHours ?? null,
+              weight: f.weight ?? 1,
             })),
           )
           .execute();
@@ -619,8 +627,9 @@ class EditionsService {
         editionVoteContext,
       );
 
-      // Score and rank candidates (apply source weights to scores)
+      // Score and rank candidates (apply source weights and focus weight to scores)
       const { sourceWeights } = focusInfo;
+      const focusWeight = focusConfig.weight;
       const mapped = candidates.map((c) => {
         const embeddingBuf = c.embedding as Buffer | null;
         return {
@@ -638,7 +647,7 @@ class EditionsService {
       });
       const scored = mapped.map((c) => ({
         item: c,
-        score: computeScore(c, voteContext) * (sourceWeights.get(c.source_id) ?? 1),
+        score: computeScore(c, voteContext) * (sourceWeights.get(c.source_id) ?? 1) * focusWeight,
       }));
       scored.sort((a, b) => b.score - a.score);
       const scoredCandidates = scored.map((s) => s.item);

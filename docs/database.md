@@ -189,6 +189,7 @@ Which focuses an edition config draws from, with per-focus budgets. Position det
 | budget_type | text | `time` (minutes) or `count` (articles) |
 | budget_value | integer | Minutes or article count depending on budget_type |
 | lookback_hours | integer | Optional per-focus lookback window; null = use edition config default |
+| weight | real | Score multiplier for articles in this focus section (default 1.0) |
 
 Unique on `(edition_config_id, focus_id)`.
 

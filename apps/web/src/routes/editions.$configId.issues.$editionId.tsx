@@ -7,6 +7,7 @@ import { ReadingShell } from "../components/app-shell.tsx";
 import { Button } from "../components/button.tsx";
 import { Separator } from "../components/separator.tsx";
 import { ArticleCard } from "../components/article-card.tsx";
+import type { VoteValue } from "../components/vote-controls.tsx";
 
 type EditionArticle = {
   id: string;
@@ -57,6 +58,7 @@ const EditionViewPage = (): React.ReactNode => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isRead, setIsRead] = useState(false);
+  const [votes, setVotes] = useState<Record<string, VoteValue>>({});
 
   const loadEdition = useCallback(async (): Promise<void> => {
     if (auth.status !== "authenticated") return;
@@ -118,6 +120,22 @@ const EditionViewPage = (): React.ReactNode => {
       headers,
     });
     await navigate({ to: "/editions/$configId", params: { configId } });
+  };
+
+  const handleEditionVote = async (articleId: string, value: VoteValue): Promise<void> => {
+    setVotes((prev) => ({ ...prev, [articleId]: value }));
+    if (value === null) {
+      await client.DELETE("/api/editions/{editionId}/articles/{articleId}/vote", {
+        params: { path: { editionId, articleId } },
+        headers,
+      });
+    } else {
+      await client.PUT("/api/editions/{editionId}/articles/{articleId}/vote", {
+        params: { path: { editionId, articleId } },
+        body: { value },
+        headers,
+      });
+    }
   };
 
   if (loading) {
@@ -248,6 +266,8 @@ const EditionViewPage = (): React.ReactNode => {
                       readingTimeSeconds={article.readingTimeSeconds}
                       read={!!article.readAt}
                       href={`/sources/${article.sourceId}/articles/${article.id}`}
+                      focusVote={votes[article.id] ?? null}
+                      onFocusVote={(value) => void handleEditionVote(article.id, value)}
                     />
                   ))}
                 </div>

@@ -70,6 +70,7 @@ export interface paths {
                             userId: string;
                             articleId: string;
                             focusId: string | (null);
+                            editionId: string | (null);
                             value: 1 | -1;
                             createdAt: string;
                         };
@@ -112,6 +113,7 @@ export interface paths {
                             userId: string;
                             articleId: string;
                             focusId: string | (null);
+                            editionId: string | (null);
                             value: 1 | -1;
                             createdAt: string;
                         };
@@ -1289,6 +1291,7 @@ export interface paths {
                                 sourceId: string;
                                 /** @enum {string} */
                                 mode: "always" | "match";
+                                weight: number;
                             }[];
                             createdAt: string;
                             updatedAt: string;
@@ -1317,6 +1320,8 @@ export interface paths {
                             sourceId: string;
                             /** @enum {string} */
                             mode: "always" | "match";
+                            /** @default 1 */
+                            weight?: number;
                         }[];
                     };
                 };
@@ -1340,6 +1345,7 @@ export interface paths {
                                 sourceId: string;
                                 /** @enum {string} */
                                 mode: "always" | "match";
+                                weight: number;
                             }[];
                             createdAt: string;
                             updatedAt: string;
@@ -1390,6 +1396,7 @@ export interface paths {
                                 sourceId: string;
                                 /** @enum {string} */
                                 mode: "always" | "match";
+                                weight: number;
                             }[];
                             createdAt: string;
                             updatedAt: string;
@@ -1483,6 +1490,7 @@ export interface paths {
                                 sourceId: string;
                                 /** @enum {string} */
                                 mode: "always" | "match";
+                                weight: number;
                             }[];
                             createdAt: string;
                             updatedAt: string;
@@ -1606,6 +1614,8 @@ export interface paths {
                             sourceId: string;
                             /** @enum {string} */
                             mode: "always" | "match";
+                            /** @default 1 */
+                            weight?: number;
                         }[];
                     };
                 };
@@ -1629,6 +1639,7 @@ export interface paths {
                                 sourceId: string;
                                 /** @enum {string} */
                                 mode: "always" | "match";
+                                weight: number;
                             }[];
                             createdAt: string;
                             updatedAt: string;
@@ -1692,6 +1703,7 @@ export interface paths {
                             userId: string;
                             articleId: string;
                             focusId: string | (null);
+                            editionId: string | (null);
                             value: 1 | -1;
                             createdAt: string;
                         };
@@ -1774,6 +1786,8 @@ export interface paths {
                                 /** @enum {string} */
                                 budgetType: "time" | "count";
                                 budgetValue: number;
+                                lookbackHours: number | (null);
+                                weight: number;
                             }[];
                             createdAt: string;
                             updatedAt: string;
@@ -1804,6 +1818,8 @@ export interface paths {
                             /** @enum {string} */
                             budgetType: "time" | "count";
                             budgetValue: number;
+                            lookbackHours?: number | (null);
+                            weight?: number;
                         }[];
                     };
                 };
@@ -1830,6 +1846,8 @@ export interface paths {
                                 /** @enum {string} */
                                 budgetType: "time" | "count";
                                 budgetValue: number;
+                                lookbackHours: number | (null);
+                                weight: number;
                             }[];
                             createdAt: string;
                             updatedAt: string;
@@ -1883,6 +1901,8 @@ export interface paths {
                                 /** @enum {string} */
                                 budgetType: "time" | "count";
                                 budgetValue: number;
+                                lookbackHours: number | (null);
+                                weight: number;
                             }[];
                             createdAt: string;
                             updatedAt: string;
@@ -1960,6 +1980,8 @@ export interface paths {
                             /** @enum {string} */
                             budgetType: "time" | "count";
                             budgetValue: number;
+                            lookbackHours?: number | (null);
+                            weight?: number;
                         }[];
                     };
                 };
@@ -1986,6 +2008,8 @@ export interface paths {
                                 /** @enum {string} */
                                 budgetType: "time" | "count";
                                 budgetValue: number;
+                                lookbackHours: number | (null);
+                                weight: number;
                             }[];
                             createdAt: string;
                             updatedAt: string;
@@ -2053,6 +2077,7 @@ export interface paths {
                                 imageUrl: string | (null);
                                 publishedAt: string | (null);
                                 readingTimeSeconds: number | (null);
+                                readAt: string | (null);
                                 sourceName: string;
                                 focusId: string;
                                 focusName: string;
@@ -2194,6 +2219,7 @@ export interface paths {
                                 imageUrl: string | (null);
                                 publishedAt: string | (null);
                                 readingTimeSeconds: number | (null);
+                                readAt: string | (null);
                                 sourceName: string;
                                 focusId: string;
                                 focusName: string;
@@ -2381,6 +2407,89 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/editions/{editionId}/articles/{articleId}/vote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    editionId: string;
+                    articleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        value: 1 | -1;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            userId: string;
+                            articleId: string;
+                            focusId: string | (null);
+                            editionId: string | (null);
+                            value: 1 | -1;
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    editionId: string;
+                    articleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/feed": {
         parameters: {
             query?: never;
@@ -2556,7 +2665,7 @@ export interface paths {
                 query?: {
                     offset?: number;
                     limit?: number;
-                    scope?: "global" | "focus";
+                    scope?: "global" | "focus" | "edition";
                     value?: number;
                 };
                 header?: never;

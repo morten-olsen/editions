@@ -111,6 +111,48 @@ All primitives accept `duration` (token name) and `delay` props. Use them instea
 - Collapsible sections use `Collapse` for smooth height transitions
 - Never animate text content itself (no typewriter effects, no letter-by-letter reveals)
 
+## Layouts
+
+### Edition View (newspaper style)
+
+The default edition rendering — a vertical scroll through focus-grouped article cards within a `ReadingShell`. Sections are numbered, articles use `ArticleCard` with dividers. Feels like a newspaper column: linear, scannable, compact.
+
+### Magazine View (`components/magazine/`)
+
+An alternative paginated reading experience inspired by editorial magazines like Wired. Instead of scrolling, the reader navigates full-viewport pages using keyboard arrows or the page indicator.
+
+#### Structure
+
+An edition becomes a sequence of pages:
+
+1. **Cover** (`MagazineCover`) — bold typographic cover with lead story headline at display scale, secondary highlights, and edition metadata. Top bar shows edition branding and date.
+2. **Table of Contents** (`MagazineToc`) — numbered sections with dotted-leader article lists. Clicking an article navigates to its page.
+3. **Section Divider** (`MagazineSection`) — full-page section break with oversized section number (decorative, at `8rem`+), focus name, and article count.
+4. **Article Spreads** (`MagazineArticle`) — three layout variants that rotate by position to create visual rhythm:
+   - **Hero** (position 0) — two-column grid with image and text side-by-side
+   - **Editorial** (position 1) — centered, single-column with full-width image
+   - **Compact** (position 2) — asymmetric sidebar layout with square image or accent border
+5. **Finale** (`MagazineFinale`) — completion page with article count and reading time summary.
+
+#### Design principles
+
+- **Page-based, not scroll-based** — each spread occupies the viewport. The reader sees one thing at a time.
+- **Layout variety** — article spreads alternate layouts so the magazine feels curated, not templated. A real magazine editor would never lay out every page identically.
+- **Typography at scale** — cover headlines use `text-5xl` to `text-[5rem]`. Section numbers are decorative at `text-[8rem]+`. The type scale has room to breathe at full-page sizes.
+- **Entrance choreography** — each page animates in sequentially: source badge → title → summary → meta. Delays are staggered 0.1–0.4s using `ease-out-soft`.
+- **Mono for wayfinding** — source names, dates, page numbers, and section indices use `font-mono tracking-wide` in accent or tertiary ink. This creates a consistent navigational voice distinct from the reading voice (serif).
+
+#### Navigation
+
+`MagazineLayout` wraps all pages and manages:
+- **Keyboard** — Left/Up for previous, Right/Down for next
+- **Page indicator** — fixed bottom bar with prev/next buttons and `01 / 14` counter in mono
+- **Page transitions** — crossfade with directional slide (40px), 400ms with `ease-gentle`
+
+#### When to use
+
+The magazine view suits readers who want a slower, more intentional experience — "settling into a favourite chair." The newspaper view suits quick scanning and triage. Both views share the same edition data; the difference is purely presentational.
+
 ## Fonts
 
 Google Fonts loaded in `index.html` and `.storybook/preview-head.html`:

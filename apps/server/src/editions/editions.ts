@@ -100,6 +100,7 @@ type EditionArticle = {
   imageUrl: string | null;
   publishedAt: string | null;
   consumptionTimeSeconds: number | null;
+  content: string | null;
   mediaUrl: string | null;
   mediaType: string | null;
   sourceType: string;
@@ -442,6 +443,7 @@ class EditionsService {
         "articles.image_url",
         "articles.published_at",
         "articles.consumption_time_seconds",
+        "articles.content",
         "articles.media_url",
         "articles.media_type",
         "articles.read_at",
@@ -475,6 +477,7 @@ class EditionsService {
         imageUrl: a.image_url,
         publishedAt: a.published_at,
         consumptionTimeSeconds: a.consumption_time_seconds,
+        content: a.content,
         mediaUrl: a.media_url,
         mediaType: a.media_type,
         sourceType: a.source_type,
@@ -506,11 +509,22 @@ class EditionsService {
     const edition = await this.getEdition(userId, editionId);
     const readAt = read ? new Date().toISOString() : null;
 
+    // Mark the edition itself
     await db
       .updateTable("editions")
       .set({ read_at: readAt })
       .where("id", "=", editionId)
       .execute();
+
+    // Mark all articles in the edition
+    const articleIds = edition.articles.map((a) => a.id);
+    if (articleIds.length > 0) {
+      await db
+        .updateTable("articles")
+        .set({ read_at: readAt })
+        .where("id", "in", articleIds)
+        .execute();
+    }
 
     return { ...edition, readAt };
   };

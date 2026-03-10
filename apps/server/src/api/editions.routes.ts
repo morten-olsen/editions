@@ -80,6 +80,7 @@ const editionArticleSchema = z.object({
   imageUrl: z.string().nullable(),
   publishedAt: z.string().nullable(),
   consumptionTimeSeconds: z.number().nullable(),
+  content: z.string().nullable(),
   mediaUrl: z.string().nullable(),
   mediaType: z.string().nullable(),
   sourceType: z.string(),

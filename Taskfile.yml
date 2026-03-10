@@ -55,6 +55,14 @@ tasks:
     cmds:
       - portless editions-api node --experimental-strip-types src/server.ts
 
+  generate:api:
+    desc: Regenerate OpenAPI types from running server
+    dir: "{{.WEB_DIR}}"
+    env:
+      API_URL: "http://{{.PORTLESS_PREFIX}}editions-api.localhost:1355"
+    cmds:
+      - pnpm generate:api
+
   check:
     desc: Run TypeScript type checking
     cmds:

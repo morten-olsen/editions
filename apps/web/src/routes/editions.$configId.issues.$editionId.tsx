@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -9,6 +9,16 @@ import { Button } from "../components/button.tsx";
 import { Separator } from "../components/separator.tsx";
 import { ArticleCard } from "../components/article-card.tsx";
 import type { VoteValue } from "../components/vote-controls.tsx";
+import {
+  MagazineLayout,
+  MagazineCover,
+  MagazineToc,
+  MagazineSection,
+  MagazineArticle,
+  MagazineFinale,
+} from "../components/magazine/magazine.tsx";
+
+/* ── Types ────────────────────────────────────────────────────────── */
 
 type EditionArticle = {
   id: string;
@@ -20,6 +30,7 @@ type EditionArticle = {
   imageUrl: string | null;
   publishedAt: string | null;
   consumptionTimeSeconds: number | null;
+  content: string | null;
   readAt?: string | null;
   sourceName: string;
   focusId: string;
@@ -45,10 +56,146 @@ type FocusSection = {
   articles: EditionArticle[];
 };
 
+type ViewMode = "list" | "magazine";
+
+/* ── Helpers ──────────────────────────────────────────────────────── */
+
 const formatTime = (seconds: number): string => {
   const minutes = Math.round(seconds / 60);
   return minutes < 1 ? "< 1 min" : `${minutes} min read`;
 };
+
+const groupByFocus = (articles: EditionArticle[]): FocusSection[] => {
+  const sections: FocusSection[] = [];
+  const map = new Map<string, FocusSection>();
+  for (const article of articles) {
+    let section = map.get(article.focusId);
+    if (!section) {
+      section = { focusId: article.focusId, focusName: article.focusName, articles: [] };
+      map.set(article.focusId, section);
+      sections.push(section);
+    }
+    section.articles.push(article);
+  }
+  return sections;
+};
+
+/* ── Magazine view wrapper ────────────────────────────────────────── */
+
+type MagazineViewProps = {
+  edition: EditionDetail;
+  sections: FocusSection[];
+  onExit: () => void;
+  onMarkDone: () => void;
+};
+
+const MagazineView = ({ edition, sections, onExit, onMarkDone }: MagazineViewProps): React.ReactElement => {
+  const [page, setPage] = useState(0);
+
+  const pages: React.ReactElement[] = [];
+
+  // Track page numbers for TOC
+  let pageIdx = 2; // cover=0, toc=1
+  const tocSections = sections.map((s) => {
+    const startPage = pageIdx;
+    pageIdx += 1 + s.articles.length;
+    return { focusName: s.focusName, articles: s.articles, startPage };
+  });
+
+  // Cover
+  const leadArticle = edition.articles[0] ?? { title: edition.title, sourceName: "" };
+  const highlightArticles = sections
+    .slice(1, 3)
+    .map((s) => s.articles[0])
+    .filter((a): a is EditionArticle => !!a);
+
+  pages.push(
+    <MagazineCover
+      key="cover"
+      editionTitle={edition.title}
+      date={edition.publishedAt}
+      totalReadingMinutes={edition.totalReadingMinutes ?? 0}
+      articleCount={edition.articleCount}
+      focusCount={sections.length}
+      lead={leadArticle}
+      highlights={highlightArticles}
+    />,
+  );
+
+  // TOC
+  pages.push(
+    <MagazineToc
+      key="toc"
+      editionTitle={edition.title}
+      sections={tocSections}
+      onNavigate={setPage}
+    />,
+  );
+
+  // Sections + articles
+  sections.forEach((section, sIdx) => {
+    const sectionMinutes = Math.round(
+      section.articles.reduce((sum, a) => sum + (a.consumptionTimeSeconds ?? 0), 0) / 60,
+    );
+
+    pages.push(
+      <MagazineSection
+        key={`section-${sIdx}`}
+        focusName={section.focusName}
+        index={sIdx}
+        articleCount={section.articles.length}
+        totalReadingMinutes={sectionMinutes}
+      />,
+    );
+
+    section.articles.forEach((article, aIdx) => {
+      pages.push(
+        <MagazineArticle
+          key={`article-${sIdx}-${aIdx}`}
+          title={article.title}
+          sourceName={article.sourceName}
+          author={article.author}
+          summary={article.summary}
+          publishedAt={article.publishedAt}
+          consumptionTimeSeconds={article.consumptionTimeSeconds}
+          imageUrl={article.imageUrl}
+          content={article.content}
+          positionInSection={aIdx}
+        />,
+      );
+    });
+  });
+
+  // Finale
+  pages.push(
+    <MagazineFinale
+      key="finale"
+      articleCount={edition.articleCount}
+      totalReadingMinutes={edition.totalReadingMinutes ?? 0}
+      editionTitle={edition.title}
+      onMarkDone={onMarkDone}
+    />,
+  );
+
+  return (
+    <div className="relative">
+      {/* Exit button — fixed top-left, above the magazine */}
+      <button
+        onClick={onExit}
+        className="fixed top-4 left-4 z-[60] text-xs font-mono tracking-wide px-3 py-1.5 rounded-full
+          bg-surface/80 text-ink-tertiary hover:text-ink backdrop-blur-sm border border-border
+          transition-colors duration-fast cursor-pointer"
+      >
+        ← Exit magazine
+      </button>
+      <MagazineLayout page={page} onPageChange={setPage}>
+        {pages}
+      </MagazineLayout>
+    </div>
+  );
+};
+
+/* ── Main component ───────────────────────────────────────────────── */
 
 const EditionViewPage = (): React.ReactNode => {
   const headers = useAuthHeaders();
@@ -58,6 +205,7 @@ const EditionViewPage = (): React.ReactNode => {
   const { configId, editionId } = Route.useParams();
   const [isRead, setIsRead] = useState(false);
   const [votes, setVotes] = useState<Record<string, VoteValue>>({});
+  const [view, setView] = useState<ViewMode>("list");
 
   const queryKey = queryKeys.editions.detail(editionId);
 
@@ -144,6 +292,8 @@ const EditionViewPage = (): React.ReactNode => {
     }
   };
 
+  const handleExitMagazine = useCallback((): void => setView("list"), []);
+
   if (!headers || isLoading) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-surface">
@@ -165,19 +315,22 @@ const EditionViewPage = (): React.ReactNode => {
     );
   }
 
-  // Group articles by focus section, maintaining order
-  const sections: FocusSection[] = [];
-  const sectionMap = new Map<string, FocusSection>();
+  const sections = groupByFocus(edition.articles);
 
-  for (const article of edition.articles) {
-    let section = sectionMap.get(article.focusId);
-    if (!section) {
-      section = { focusId: article.focusId, focusName: article.focusName, articles: [] };
-      sectionMap.set(article.focusId, section);
-      sections.push(section);
-    }
-    section.articles.push(article);
+  /* ── Magazine view ──────────────────────────────────────────────── */
+
+  if (view === "magazine") {
+    return (
+      <MagazineView
+        edition={edition}
+        sections={sections}
+        onExit={handleExitMagazine}
+        onMarkDone={() => void handleMarkDoneAndBack()}
+      />
+    );
   }
+
+  /* ── List view (default) ────────────────────────────────────────── */
 
   const editionHeader = (
     <header className="border-b border-border bg-surface">
@@ -207,8 +360,54 @@ const EditionViewPage = (): React.ReactNode => {
     </header>
   );
 
+  // Find the first article with an image for the magazine promo
+  const promoImage = edition.articles.find((a) => a.imageUrl)?.imageUrl;
+
   return (
     <ReadingShell header={editionHeader}>
+      {/* Magazine promo — prominent entry point */}
+      {edition.articles.length > 0 && (
+        <button
+          onClick={() => setView("magazine")}
+          className="group relative w-full rounded-lg overflow-hidden mb-12 text-left cursor-pointer transition-shadow duration-normal hover:shadow-lg"
+        >
+          {/* Background image */}
+          {promoImage && (
+            <div className="absolute inset-0">
+              <img src={promoImage} alt="" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-linear-to-r from-ink/85 via-ink/70 to-ink/50" />
+            </div>
+          )}
+
+          {/* Fallback solid background when no image */}
+          {!promoImage && (
+            <div className="absolute inset-0 bg-linear-to-r from-accent/15 to-accent/5" />
+          )}
+
+          <div className={`relative flex items-center justify-between gap-6 px-6 py-5 ${promoImage ? "text-white" : ""}`}>
+            <div className="min-w-0">
+              <div className={`text-xs font-mono tracking-wide mb-1.5 ${promoImage ? "text-white/60" : "text-accent"}`}>
+                Magazine experience
+              </div>
+              <div className={`font-serif text-lg leading-snug ${promoImage ? "text-white" : "text-ink"}`}>
+                Read this edition as an immersive magazine
+              </div>
+              <div className={`text-xs mt-1 ${promoImage ? "text-white/50" : "text-ink-tertiary"}`}>
+                {edition.articleCount} articles · {edition.totalReadingMinutes ?? "?"} min · page-by-page
+              </div>
+            </div>
+            <div className={`shrink-0 text-sm font-medium tracking-wide px-4 py-2 rounded-full transition-all duration-normal
+              ${promoImage
+                ? "bg-white/15 text-white group-hover:bg-white/25 border border-white/20"
+                : "bg-accent text-accent-ink group-hover:bg-accent-hover"
+              }`}
+            >
+              Open →
+            </div>
+          </div>
+        </button>
+      )}
+
       {/* Edition title */}
       <div className="mb-12">
         <div className="text-xs text-ink-tertiary tracking-wide uppercase mb-3">

@@ -123,6 +123,6 @@ Full reference: [docs/coding-standards.md](docs/coding-standards.md)
 - Vite uses bundler module resolution — import `.tsx` for files containing JSX (not `.ts`), unlike the server where `.ts` works for everything
 - TanStack Router uses file-based routing — routes live in `src/routes/`, the route tree is auto-generated (`routeTree.gen.ts`)
 - TanStack Router: `foo.tsx` is a **layout route** (parent of `/foo/*`), `foo.index.tsx` is the **index route** (leaf at `/foo`). If a route has child routes (e.g., `/sources/new`), the parent must be `sources.index.tsx` — not `sources.tsx` — or it becomes a layout and child routes won't render without an `<Outlet />`
-- API client uses `openapi-fetch` with types from `openapi-typescript` — regenerate types with `pnpm --filter @editions/web generate:api` (requires server running on port 3007)
+- API client uses `openapi-fetch` with types from `openapi-typescript` — regenerate types with `task generate:api` (requires dev server running). **Never hack API types** — always regenerate from the running server when the API schema changes
 - Auth state is managed via React context (`AuthProvider`) — JWT token persisted in `localStorage`
 - Vite proxy forwards `/api` to `http://localhost:3000` in dev — no CORS config needed

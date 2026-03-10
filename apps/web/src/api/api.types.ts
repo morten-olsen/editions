@@ -2110,6 +2110,7 @@ export interface paths {
                                 imageUrl: string | (null);
                                 publishedAt: string | (null);
                                 consumptionTimeSeconds: number | (null);
+                                content: string | (null);
                                 mediaUrl: string | (null);
                                 mediaType: string | (null);
                                 sourceType: string;
@@ -2255,6 +2256,7 @@ export interface paths {
                                 imageUrl: string | (null);
                                 publishedAt: string | (null);
                                 consumptionTimeSeconds: number | (null);
+                                content: string | (null);
                                 mediaUrl: string | (null);
                                 mediaType: string | (null);
                                 sourceType: string;

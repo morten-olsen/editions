@@ -34,8 +34,15 @@ type FeedPage = {
 
 type SortMode = "top" | "recent";
 type ReadStatus = "all" | "unread" | "read";
+type TimeWindow = "today" | "week" | "all";
 
 const PAGE_SIZE = 20;
+
+const windowToRange = (w: TimeWindow): { from?: string } => {
+  if (w === "all") return {};
+  const ms = w === "today" ? 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000;
+  return { from: new Date(Date.now() - ms).toISOString() };
+};
 
 const IndexPage = (): React.ReactNode => {
   const auth = useAuth();
@@ -45,11 +52,13 @@ const IndexPage = (): React.ReactNode => {
   const [offset, setOffset] = useState(0);
   const [sort, setSort] = useState<SortMode>("top");
   const [status, setStatus] = useState<ReadStatus>("unread");
+  const [window, setWindow] = useState<TimeWindow>("all");
 
   const loadFeed = useCallback(async (
     newOffset: number,
     sortMode: SortMode,
     readStatus: ReadStatus,
+    timeWindow: TimeWindow = "all",
   ): Promise<void> => {
     if (auth.status !== "authenticated") return;
     const { data } = await client.GET("/api/feed", {
@@ -59,6 +68,7 @@ const IndexPage = (): React.ReactNode => {
           limit: PAGE_SIZE,
           sort: sortMode,
           status: readStatus,
+          ...windowToRange(timeWindow),
         },
       },
       headers: { Authorization: `Bearer ${auth.token}` },
@@ -83,10 +93,10 @@ const IndexPage = (): React.ReactNode => {
 
   useEffect(() => {
     void (async (): Promise<void> => {
-      await loadFeed(0, sort, status);
+      await loadFeed(0, sort, status, window);
       setLoading(false);
     })();
-  }, [loadFeed, sort, status]);
+  }, [loadFeed, sort, status, window]);
 
   if (auth.status !== "authenticated") return null;
 
@@ -145,16 +155,18 @@ const IndexPage = (): React.ReactNode => {
   const handleFilterChange = (
     newSort: SortMode = sort,
     newStatus: ReadStatus = status,
+    newWindow: TimeWindow = window,
   ): void => {
     setSort(newSort);
     setStatus(newStatus);
+    setWindow(newWindow);
     setOffset(0);
-    void loadFeed(0, newSort, newStatus);
+    void loadFeed(0, newSort, newStatus, newWindow);
   };
 
   const handlePageChange = (newOffset: number): void => {
     setOffset(newOffset);
-    void loadFeed(newOffset, sort, status);
+    void loadFeed(newOffset, sort, status, window);
   };
 
   const totalPages = feedPage ? Math.ceil(feedPage.total / PAGE_SIZE) : 0;
@@ -184,9 +196,19 @@ const IndexPage = (): React.ReactNode => {
         </div>
 
         <select
+          value={window}
+          onChange={(e) => handleFilterChange(undefined, undefined, e.target.value as TimeWindow)}
+          className="h-8 rounded-md border border-border bg-surface px-2.5 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-accent cursor-pointer ml-auto"
+        >
+          <option value="all">All time</option>
+          <option value="week">This week</option>
+          <option value="today">Today</option>
+        </select>
+
+        <select
           value={status}
           onChange={(e) => handleFilterChange(undefined, e.target.value as ReadStatus)}
-          className="h-8 rounded-md border border-border bg-surface px-2.5 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-accent cursor-pointer ml-auto"
+          className="h-8 rounded-md border border-border bg-surface px-2.5 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-accent cursor-pointer"
         >
           <option value="all">All</option>
           <option value="unread">Unread</option>

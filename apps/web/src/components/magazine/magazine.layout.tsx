@@ -86,6 +86,83 @@ const PageIndicator = ({
   </div>
 );
 
+/* ── Touch / swipe helpers ────────────────────────────────────────── */
+
+/** Minimum horizontal distance (px) for a swipe to register. */
+const SWIPE_THRESHOLD = 50;
+/** Tap zones: fraction of screen width from each edge that counts as a nav tap. */
+const TAP_ZONE = 0.25;
+
+type TouchState = {
+  startX: number;
+  startY: number;
+  startTime: number;
+};
+
+/**
+ * Hook that adds swipe-to-navigate and edge-tap-to-navigate on touch devices.
+ * - Horizontal swipe (≥ SWIPE_THRESHOLD px, mostly horizontal) turns the page.
+ * - Quick tap (< 300 ms, < 10 px movement) in the left/right 25% of the screen turns the page.
+ * - Taps in the center 50% and vertical scrolls are left alone.
+ */
+const useTouchNav = (
+  ref: React.RefObject<HTMLDivElement | null>,
+  page: number,
+  total: number,
+  onPageChange: (page: number) => void,
+): void => {
+  const touch = React.useRef<TouchState | null>(null);
+
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const onTouchStart = (e: TouchEvent): void => {
+      if (e.touches.length !== 1) return;
+      const t = e.touches[0];
+      touch.current = { startX: t.clientX, startY: t.clientY, startTime: Date.now() };
+    };
+
+    const onTouchEnd = (e: TouchEvent): void => {
+      if (!touch.current || e.changedTouches.length !== 1) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - touch.current.startX;
+      const dy = t.clientY - touch.current.startY;
+      const elapsed = Date.now() - touch.current.startTime;
+      touch.current = null;
+
+      const absDx = Math.abs(dx);
+      const absDy = Math.abs(dy);
+
+      /* ── Swipe detection ── */
+      if (absDx >= SWIPE_THRESHOLD && absDx > absDy * 1.2) {
+        if (dx < 0 && page < total - 1) onPageChange(page + 1);    // swipe left → next
+        else if (dx > 0 && page > 0) onPageChange(page - 1);        // swipe right → prev
+        return;
+      }
+
+      /* ── Edge-tap detection ── */
+      if (elapsed < 300 && absDx < 10 && absDy < 10) {
+        /* Ignore taps on interactive elements */
+        const target = e.target as HTMLElement;
+        if (target.closest("a, button, audio, video, input, textarea, [role='button']")) return;
+
+        const x = t.clientX;
+        const width = window.innerWidth;
+        if (x < width * TAP_ZONE && page > 0) onPageChange(page - 1);
+        else if (x > width * (1 - TAP_ZONE) && page < total - 1) onPageChange(page + 1);
+      }
+    };
+
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchend", onTouchEnd, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [ref, page, total, onPageChange]);
+};
+
 /* ── MagazineLayout ───────────────────────────────────────────────── */
 
 const MagazineLayout = ({
@@ -111,6 +188,9 @@ const MagazineLayout = ({
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [page, total, onPageChange]);
+
+  /* Swipe and edge-tap navigation for touch devices */
+  useTouchNav(scrollRef, page, total, onPageChange);
 
   /* Scroll to top when the page changes */
   React.useEffect(() => {

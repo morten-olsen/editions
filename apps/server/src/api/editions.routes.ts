@@ -85,6 +85,7 @@ const editionArticleSchema = z.object({
   mediaType: z.string().nullable(),
   sourceType: z.string(),
   readAt: z.string().nullable(),
+  progress: z.number(),
   sourceName: z.string(),
   focusId: z.string(),
   focusName: z.string(),

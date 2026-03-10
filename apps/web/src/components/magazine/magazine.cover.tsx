@@ -9,6 +9,7 @@ type CoverArticle = {
   sourceName: string;
   consumptionTimeSeconds?: number | null;
   imageUrl?: string | null;
+  sourceType?: string | null;
 };
 
 type MagazineCoverProps = {
@@ -112,11 +113,11 @@ const MagazineCover = ({
         </h1>
         {lead.consumptionTimeSeconds && (
           <div className={`text-sm ${lead.imageUrl ? "text-white/60" : "text-ink-tertiary"}`}>
-            {Math.round(lead.consumptionTimeSeconds / 60)} min read
+            {Math.round(lead.consumptionTimeSeconds / 60)} min {lead.sourceType === "podcast" ? "listen" : "read"}
           </div>
         )}
 
-        {/* Start reading CTA */}
+        {/* Start CTA */}
         <button
           onClick={handleStart}
           className={`mt-8 inline-flex items-center gap-2 text-sm font-medium tracking-wide px-6 py-3 rounded-full transition-all duration-normal self-start cursor-pointer
@@ -125,7 +126,7 @@ const MagazineCover = ({
               : "bg-accent text-accent-ink hover:bg-accent-hover"
             }`}
         >
-          Start reading
+          {lead.sourceType === "podcast" ? "Start listening" : "Start reading"}
           <span aria-hidden="true">→</span>
         </button>
       </motion.div>

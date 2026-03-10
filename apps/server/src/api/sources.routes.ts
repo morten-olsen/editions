@@ -83,6 +83,7 @@ const articleDetailSchema = z.object({
   publishedAt: z.string().nullable(),
   readAt: z.string().nullable(),
   extractedAt: z.string().nullable(),
+  progress: z.number(),
   createdAt: z.string(),
 });
 

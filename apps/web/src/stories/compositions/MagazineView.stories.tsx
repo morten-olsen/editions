@@ -157,6 +157,24 @@ const euDataContent = `
 <p>The next twelve months will determine whether DMA Phase II becomes a genuine inflection point for digital markets or another regulatory framework that sounds transformative on paper but changes little in practice.</p>
 `;
 
+const podcastShowNotes = `
+<p>In this episode, we sit down with two engineers who've spent the last year rebuilding their company's entire content pipeline around the idea of "finite feeds" — the principle that a reading experience should have a beginning, a middle, and an end.</p>
+
+<p>They walk us through the technical decisions behind source budgeting (how to algorithmically prevent any single source from dominating a feed), the surprisingly tricky problem of estimating reading time accurately across different content types, and why they chose SQLite over Postgres for a system that handles thousands of articles per day.</p>
+
+<h3>Topics covered</h3>
+
+<p>We discuss the concept of "edition generation" — assembling a bounded set of articles that balances topics, sources, reading time, and importance — and how it differs from traditional feed ranking. The conversation touches on embedding-based topic classification, the trade-offs of server-side vs. client-side pagination, and why the team decided to extract full article text rather than relying on RSS summaries.</p>
+
+<h3>The SQLite decision</h3>
+
+<p>Perhaps the most interesting segment covers their database choice. The team explains why they moved from PostgreSQL to SQLite for their self-hosted product, how WAL mode and careful write serialization solved their concurrency concerns, and the operational simplicity gains that followed. "Our entire database is a single file. Backup is cp. There's no daemon to monitor, no connection pool to tune."</p>
+
+<h3>Links</h3>
+
+<p>Show notes and links to everything mentioned in this episode are available on our website. Special thanks to our guests for sharing their experience so openly — it's rare to get this level of technical detail about architectural decisions in production systems.</p>
+`;
+
 const tradeContent = `
 <p>After three years of negotiations that nearly collapsed twice, the Comprehensive Pacific Economic Partnership (CPEP) was formally ratified today in a ceremony in Auckland. The agreement, signed by twelve nations spanning from Chile to Japan, creates the world's largest free trade zone by GDP — surpassing both the EU single market and USMCA.</p>
 
@@ -175,7 +193,7 @@ const sampleEdition = {
   title: "Morning Briefing",
   date: new Date(now - 2 * 60 * 60 * 1000).toISOString(),
   totalReadingMinutes: 14,
-  articleCount: 7,
+  articleCount: 8,
   sections: [
     {
       focusName: "Technology",
@@ -190,6 +208,20 @@ const sampleEdition = {
           consumptionTimeSeconds: 480,
           imageUrl: "https://picsum.photos/seed/reader-mag/800/600",
           content: readerDesignContent,
+        },
+        {
+          title: "Building finite feeds: architecture for calm software",
+          sourceName: "Software Unscripted",
+          sourceType: "podcast" as const,
+          author: "Richard Feldman",
+          summary:
+            "Two engineers discuss source budgeting, edition generation, and why they chose SQLite — a deep technical conversation about building reading software that respects attention.",
+          publishedAt: new Date(now - 4 * 60 * 60 * 1000).toISOString(),
+          consumptionTimeSeconds: 2700,
+          imageUrl: "https://picsum.photos/seed/podcast-cover/800/800",
+          mediaUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+          mediaType: "audio/mpeg",
+          content: podcastShowNotes,
         },
         {
           title: "TypeScript 6.0 introduces pattern matching",
@@ -469,6 +501,66 @@ const ArticleCompact: Story = {
   ),
 };
 
+/* Article spread: podcast layout with player and show notes */
+const ArticlePodcast: Story = {
+  render: () => (
+    <div className="h-screen overflow-y-auto">
+      <MagazineArticle
+        title="Building finite feeds: architecture for calm software"
+        sourceName="Software Unscripted"
+        sourceType="podcast"
+        author="Richard Feldman"
+        summary="Two engineers discuss source budgeting, edition generation, and why they chose SQLite — a deep technical conversation about building reading software that respects attention."
+        publishedAt={new Date(now - 4 * 60 * 60 * 1000).toISOString()}
+        consumptionTimeSeconds={2700}
+        imageUrl="https://picsum.photos/seed/podcast-cover/800/800"
+        mediaUrl="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+        mediaType="audio/mpeg"
+        content={podcastShowNotes}
+        positionInSection={1}
+      />
+    </div>
+  ),
+};
+
+/* Article spread: podcast with player but no show notes */
+const ArticlePodcastMinimal: Story = {
+  render: () => (
+    <div className="h-screen overflow-y-auto">
+      <MagazineArticle
+        title="The future of local-first software"
+        sourceName="Changelog"
+        sourceType="podcast"
+        summary="A wide-ranging conversation about CRDTs, sync engines, and why the pendulum is swinging back toward client-side data ownership."
+        publishedAt={new Date(now - 12 * 60 * 60 * 1000).toISOString()}
+        consumptionTimeSeconds={3600}
+        mediaUrl="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+        mediaType="audio/mpeg"
+        positionInSection={0}
+      />
+    </div>
+  ),
+};
+
+/* Article spread: podcast with no media URL (waveform fallback) */
+const ArticlePodcastNoMedia: Story = {
+  render: () => (
+    <div className="h-screen overflow-y-auto">
+      <MagazineArticle
+        title="Designing for calm technology"
+        sourceName="Design Details"
+        sourceType="podcast"
+        author="Brian Lovin"
+        summary="How do you design software that respects attention? We explore the principles behind calm technology and what it means for modern product design."
+        publishedAt={new Date(now - 24 * 60 * 60 * 1000).toISOString()}
+        consumptionTimeSeconds={2400}
+        imageUrl="https://picsum.photos/seed/podcast-calm/800/800"
+        positionInSection={0}
+      />
+    </div>
+  ),
+};
+
 /* Finale page */
 const Finale: Story = {
   render: () => (
@@ -489,5 +581,8 @@ export {
   ArticleHero,
   ArticleEditorial,
   ArticleCompact,
+  ArticlePodcast,
+  ArticlePodcastMinimal,
+  ArticlePodcastNoMedia,
   Finale,
 };

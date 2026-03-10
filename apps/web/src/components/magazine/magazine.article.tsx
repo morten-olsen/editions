@@ -1,10 +1,13 @@
 import * as React from "react";
 import { motion } from "motion/react";
+import { MediaPlayer, waveformHeights } from "../media-player.tsx";
 import { MagazinePage, useMagazineNav } from "./magazine.layout.tsx";
 
 /* ── Types ────────────────────────────────────────────────────────── */
 
 type MagazineArticleProps = {
+  /** Article ID — used for persisting playback progress to the server */
+  articleId?: string | null;
   title: string;
   sourceName: string;
   author?: string | null;
@@ -13,6 +16,12 @@ type MagazineArticleProps = {
   consumptionTimeSeconds?: number | null;
   imageUrl?: string | null;
   sourceType?: string | null;
+  /** Media URL — renders an audio player or video player when present */
+  mediaUrl?: string | null;
+  /** MIME type of the media (e.g. "audio/mpeg", "video/mp4") */
+  mediaType?: string | null;
+  /** Server-side playback progress (0.0–1.0) — used to restore position */
+  progress?: number | null;
   /** Extracted article body — rendered as HTML in a prose column */
   content?: string | null;
   /** Position within the section (for layout variety) */
@@ -144,6 +153,32 @@ const Byline = ({
   </motion.div>
 );
 
+/* ── Waveform decoration ─────────────────────────────────────────── */
+
+/**
+ * Decorative soundwave — used as a static ornament when no mediaUrl
+ * is available. Signals "this is audio" like a pull-quote ornament.
+ * Uses the shared waveform shape from the media player.
+ */
+const Waveform = ({ delay = 0.3 }: { delay?: number }): React.ReactElement => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.5, ease: easeOut, delay }}
+    className="flex justify-center"
+  >
+    <div className="flex items-center gap-[2px] h-9">
+      {waveformHeights.map((h, i) => (
+        <div
+          key={i}
+          className="w-[3px] rounded-full bg-accent/20"
+          style={{ height: h }}
+        />
+      ))}
+    </div>
+  </motion.div>
+);
+
 /* ── Layout variants ──────────────────────────────────────────────── */
 
 /**
@@ -152,6 +187,9 @@ const Byline = ({
  *
  * When `content` is provided, every layout flows into a shared prose
  * body column below the header, then a "next article" prompt.
+ *
+ * Podcast articles get a dedicated layout regardless of position —
+ * square album art, a decorative waveform, and prominent listen time.
  */
 
 const HeroLayout = (props: MagazineArticleProps): React.ReactElement => {
@@ -394,9 +432,118 @@ const CompactLayout = (props: MagazineArticleProps): React.ReactElement => {
   );
 };
 
+/* ── Podcast layout ──────────────────────────────────────────────── */
+
+/**
+ * A centered, contemplative spread for podcast episodes. Evokes the
+ * feeling of a featured audio piece in a print magazine — album art
+ * at moderate scale, a decorative waveform, and prominent listen time.
+ */
+const PodcastLayout = (props: MagazineArticleProps): React.ReactElement => {
+  const { articleId, title, sourceName, author, summary, publishedAt, consumptionTimeSeconds, imageUrl, mediaUrl, mediaType, progress, content } = props;
+  const hasContent = !!content;
+  const listenMin = consumptionTimeSeconds ? Math.round(consumptionTimeSeconds / 60) : null;
+
+  return (
+    <MagazinePage className={hasContent ? "" : "items-center"} flow={hasContent}>
+      <div className="max-w-prose mx-auto w-full">
+        {/* Type label */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, ease: easeOut }}
+          className="flex items-center justify-center gap-2 text-xs font-mono tracking-wide text-accent mb-8"
+        >
+          <span className="uppercase">Podcast</span>
+          <span className="text-ink-faint">·</span>
+          <span>{sourceName}</span>
+        </motion.div>
+
+        {/* Album art — square, centered, moderate size */}
+        {imageUrl && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, ease: easeOut, delay: 0.1 }}
+            className="mx-auto mb-8 w-48 h-48 md:w-64 md:h-64 rounded-lg overflow-hidden bg-surface-sunken shadow-lg"
+          >
+            <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+          </motion.div>
+        )}
+
+        {/* Episode title */}
+        <motion.h2
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: easeOut, delay: 0.15 }}
+          className="font-serif text-3xl md:text-4xl tracking-tight leading-tight text-ink text-center mb-6"
+        >
+          {title}
+        </motion.h2>
+
+        {/* Media player or waveform + listen time fallback */}
+        {mediaUrl ? (
+          <div className="mb-8">
+            <MediaPlayer mediaUrl={mediaUrl} mediaType={mediaType} articleId={articleId} initialProgress={progress} delay={0.25} />
+          </div>
+        ) : (
+          <>
+            <div className="mb-6">
+              <Waveform delay={0.2} />
+            </div>
+            {listenMin !== null && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4, ease: easeOut, delay: 0.3 }}
+                className="text-center mb-6"
+              >
+                <span className="inline-flex items-center gap-2 text-sm font-mono tracking-wide text-ink-tertiary">
+                  <span className="text-lg leading-none text-ink">{listenMin}</span>
+                  <span>min listen</span>
+                </span>
+              </motion.div>
+            )}
+          </>
+        )}
+
+        {/* Summary / episode description */}
+        {summary && (
+          <motion.p
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: easeOut, delay: mediaUrl ? 0.35 : 0.4 }}
+            className={`font-serif text-lg leading-relaxed text-ink-secondary mb-6 ${hasContent ? "" : "text-center"}`}
+          >
+            {summary}
+          </motion.p>
+        )}
+
+        {/* Author / date byline */}
+        <Byline
+          author={author}
+          publishedAt={publishedAt}
+          centered={!hasContent}
+          delay={mediaUrl ? 0.4 : 0.45}
+        />
+
+        {/* Show notes / transcript */}
+        {hasContent && (
+          <>
+            <ArticleBody content={content} delay={mediaUrl ? 0.5 : 0.55} />
+            <NextPrompt delay={mediaUrl ? 0.65 : 0.7} />
+          </>
+        )}
+      </div>
+    </MagazinePage>
+  );
+};
+
 /* ── MagazineArticle (selects layout variant) ─────────────────────── */
 
 const MagazineArticle = (props: MagazineArticleProps): React.ReactElement => {
+  if (props.sourceType === "podcast") return <PodcastLayout {...props} />;
+
   const pos = props.positionInSection ?? 0;
   const variant = pos % 3;
 

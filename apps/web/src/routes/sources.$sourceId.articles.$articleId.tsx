@@ -7,6 +7,7 @@ import { useAuthHeaders } from "../api/api.hooks.ts";
 import { BookmarkButton } from "../components/bookmark-button.tsx";
 import { ReadingShell } from "../components/app-shell.tsx";
 import { Button } from "../components/button.tsx";
+import { MediaPlayer } from "../components/media-player.tsx";
 import { Separator } from "../components/separator.tsx";
 import { VoteControls } from "../components/vote-controls.tsx";
 import type { VoteValue } from "../components/vote-controls.tsx";
@@ -27,6 +28,7 @@ type ArticleDetail = {
   publishedAt: string | null;
   readAt: string | null;
   extractedAt: string | null;
+  progress: number;
 };
 
 type ArticleData = {
@@ -256,16 +258,18 @@ const ArticlePage = (): React.ReactNode => {
         </div>
       )}
 
-      {/* Media player for podcasts */}
-      {article.mediaUrl && article.mediaType?.startsWith("video/") ? (
-        <div className="mb-10 rounded-lg overflow-hidden bg-surface-sunken">
-          <video controls src={article.mediaUrl} className="w-full" />
+      {/* Media player for podcasts / video */}
+      {article.mediaUrl && (
+        <div className="mb-10">
+          <MediaPlayer
+            mediaUrl={article.mediaUrl}
+            mediaType={article.mediaType}
+            articleId={article.id}
+            initialProgress={article.progress}
+            delay={0}
+          />
         </div>
-      ) : article.mediaUrl && article.mediaType?.startsWith("audio/") ? (
-        <div className="mb-10 p-4 rounded-lg bg-surface-sunken">
-          <audio controls src={article.mediaUrl} className="w-full" />
-        </div>
-      ) : null}
+      )}
 
       {/* Content */}
       {hasContent ? (

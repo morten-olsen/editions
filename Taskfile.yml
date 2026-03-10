@@ -45,7 +45,7 @@ tasks:
     desc: Start Storybook dev server
     dir: "{{.WEB_DIR}}"
     cmds:
-      - npx storybook dev -p 6006
+      - portless {{.PORTLESS_PREFIX}}editions-storybook sh -c 'npx storybook dev -p $PORT --ci'
 
   start:
     desc: Start the server

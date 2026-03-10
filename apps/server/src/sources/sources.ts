@@ -74,6 +74,7 @@ type ArticleDetail = Article & {
   sourceType: string;
   readAt: string | null;
   extractedAt: string | null;
+  progress: number;
 };
 
 type ArticlesPage = {
@@ -259,6 +260,7 @@ class SourcesService {
         "articles.consumption_time_seconds", "articles.image_url",
         "articles.media_url", "articles.media_type",
         "articles.published_at", "articles.read_at", "articles.extracted_at",
+        "articles.progress",
         "articles.created_at",
         "sources.type as source_type",
       ])
@@ -287,8 +289,27 @@ class SourcesService {
       publishedAt: row.published_at,
       readAt: row.read_at,
       extractedAt: row.extracted_at,
+      progress: row.progress,
       createdAt: row.created_at,
     };
+  };
+
+  setArticleProgress = async (
+    userId: string,
+    articleId: string,
+    progress: number,
+  ): Promise<ArticleDetail> => {
+    const db = await this.#services.get(DatabaseService).getInstance();
+
+    await this.getArticle(userId, articleId);
+
+    await db
+      .updateTable("articles")
+      .set({ progress })
+      .where("id", "=", articleId)
+      .execute();
+
+    return this.getArticle(userId, articleId);
   };
 
   setArticleReadStatus = async (

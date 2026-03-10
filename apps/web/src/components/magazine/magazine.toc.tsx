@@ -8,6 +8,7 @@ type TocArticle = {
   title: string;
   sourceName: string;
   consumptionTimeSeconds?: number | null;
+  sourceType?: string | null;
 };
 
 type TocSection = {
@@ -91,6 +92,9 @@ const MagazineToc = ({
                   </span>
                   <span className="flex-1 border-b border-dotted border-ink-faint/40 min-w-8 translate-y-[-3px]" />
                   <span className="text-xs font-mono text-ink-faint shrink-0">
+                    {article.sourceType === "podcast" && (
+                      <span className="text-accent/70 mr-1.5">podcast</span>
+                    )}
                     {article.sourceName}
                     {article.consumptionTimeSeconds
                       ? ` · ${formatMin(article.consumptionTimeSeconds)}`

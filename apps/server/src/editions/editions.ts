@@ -105,6 +105,7 @@ type EditionArticle = {
   mediaType: string | null;
   sourceType: string;
   readAt: string | null;
+  progress: number;
   sourceName: string;
   focusId: string;
   focusName: string;
@@ -447,6 +448,7 @@ class EditionsService {
         "articles.media_url",
         "articles.media_type",
         "articles.read_at",
+        "articles.progress",
         "sources.name as source_name",
         "sources.type as source_type",
         "edition_articles.focus_id",
@@ -482,6 +484,7 @@ class EditionsService {
         mediaType: a.media_type,
         sourceType: a.source_type,
         readAt: a.read_at,
+        progress: a.progress,
         sourceName: a.source_name,
         focusId: a.focus_id,
         focusName: a.focus_name,

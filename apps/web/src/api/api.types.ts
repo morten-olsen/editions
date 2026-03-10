@@ -41,6 +41,64 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/articles/{articleId}/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                articleId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    articleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        progress: number;
+                    };
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            progress: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
     "/api/articles/{articleId}/vote": {
         parameters: {
             query?: never;
@@ -971,6 +1029,7 @@ export interface paths {
                             imageUrl: string | (null);
                             publishedAt: string | (null);
                             readAt: string | (null);
+                            progress: number;
                             extractedAt: string | (null);
                             createdAt: string;
                         };
@@ -1045,6 +1104,7 @@ export interface paths {
                             imageUrl: string | (null);
                             publishedAt: string | (null);
                             readAt: string | (null);
+                            progress: number;
                             extractedAt: string | (null);
                             createdAt: string;
                         };
@@ -1583,6 +1643,7 @@ export interface paths {
                                 createdAt: string;
                                 consumptionTimeSeconds: number | (null);
                                 readAt: string | (null);
+                                progress: number;
                                 confidence: number;
                                 score: number;
                                 vote: (1 | -1) | (null);
@@ -2098,6 +2159,7 @@ export interface paths {
                             articleCount: number;
                             currentPosition: number;
                             readAt: string | (null);
+                            progress: number;
                             publishedAt: string;
                             createdAt: string;
                             articles: {
@@ -2115,6 +2177,7 @@ export interface paths {
                                 mediaType: string | (null);
                                 sourceType: string;
                                 readAt: string | (null);
+                                progress: number;
                                 sourceName: string;
                                 focusId: string;
                                 focusName: string;
@@ -2185,6 +2248,7 @@ export interface paths {
                             articleCount: number;
                             currentPosition: number;
                             readAt: string | (null);
+                            progress: number;
                             publishedAt: string;
                             createdAt: string;
                             configName: string;
@@ -2244,6 +2308,7 @@ export interface paths {
                             articleCount: number;
                             currentPosition: number;
                             readAt: string | (null);
+                            progress: number;
                             publishedAt: string;
                             createdAt: string;
                             articles: {
@@ -2261,6 +2326,7 @@ export interface paths {
                                 mediaType: string | (null);
                                 sourceType: string;
                                 readAt: string | (null);
+                                progress: number;
                                 sourceName: string;
                                 focusId: string;
                                 focusName: string;
@@ -2364,6 +2430,7 @@ export interface paths {
                             articleCount: number;
                             currentPosition: number;
                             readAt: string | (null);
+                            progress: number;
                             publishedAt: string;
                             createdAt: string;
                         };
@@ -2423,6 +2490,7 @@ export interface paths {
                             articleCount: number;
                             currentPosition: number;
                             readAt: string | (null);
+                            progress: number;
                             publishedAt: string;
                             createdAt: string;
                         };
@@ -2575,6 +2643,7 @@ export interface paths {
                                 mediaType: string | (null);
                                 sourceType: string;
                                 readAt: string | (null);
+                                progress: number;
                                 createdAt: string;
                                 score: number;
                                 vote: (1 | -1) | (null);

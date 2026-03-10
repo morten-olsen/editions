@@ -2,6 +2,10 @@ import { z } from "zod/v4";
 
 import { createAuthHook } from "../auth/auth.middleware.ts";
 import {
+  SourceNotFoundError,
+  SourcesService,
+} from "../sources/sources.ts";
+import {
   ArticleNotFoundForVoteError,
   VotesService,
 } from "../votes/votes.ts";
@@ -27,6 +31,15 @@ const voteResponseSchema = z.object({
   editionId: z.string().nullable(),
   value: z.union([z.literal(1), z.literal(-1)]),
   createdAt: z.string(),
+});
+
+const updateProgressBodySchema = z.object({
+  progress: z.number().min(0).max(1),
+});
+
+const progressResponseSchema = z.object({
+  id: z.string(),
+  progress: z.number(),
 });
 
 const errorResponseSchema = z.object({
@@ -115,6 +128,38 @@ const createArticlesRoutes = (services: Services): FastifyPluginAsyncZod =>
         const votesService = services.get(VotesService);
         await votesService.remove(req.user.sub, req.params.articleId, null);
         return reply.code(204).send();
+      },
+    });
+
+    // Update playback / reading progress on an article (0.0–1.0)
+    fastify.route({
+      method: "PATCH",
+      url: "/articles/:articleId/progress",
+      onRequest: authenticate,
+      schema: {
+        security: [{ bearerAuth: [] }],
+        params: articleVoteParamsSchema,
+        body: updateProgressBodySchema,
+        response: {
+          200: progressResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+      handler: async (req, reply) => {
+        const sources = services.get(SourcesService);
+        try {
+          const article = await sources.setArticleProgress(
+            req.user.sub,
+            req.params.articleId,
+            req.body.progress,
+          );
+          return { id: article.id, progress: article.progress };
+        } catch (err) {
+          if (err instanceof SourceNotFoundError) {
+            return reply.code(404).send({ error: err.message });
+          }
+          throw err;
+        }
       },
     });
   };

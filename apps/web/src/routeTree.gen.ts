@@ -15,6 +15,7 @@ import { Route as VotesIndexRouteImport } from "./routes/votes.index"
 import { Route as SourcesIndexRouteImport } from "./routes/sources.index"
 import { Route as SettingsIndexRouteImport } from "./routes/settings.index"
 import { Route as FocusesIndexRouteImport } from "./routes/focuses.index"
+import { Route as FeedIndexRouteImport } from "./routes/feed.index"
 import { Route as EditionsIndexRouteImport } from "./routes/editions.index"
 import { Route as BookmarksIndexRouteImport } from "./routes/bookmarks.index"
 import { Route as SourcesNewRouteImport } from "./routes/sources.new"
@@ -60,6 +61,11 @@ const SettingsIndexRoute = SettingsIndexRouteImport.update({
 const FocusesIndexRoute = FocusesIndexRouteImport.update({
   id: "/focuses/",
   path: "/focuses/",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedIndexRoute = FeedIndexRouteImport.update({
+  id: "/feed/",
+  path: "/feed/",
   getParentRoute: () => rootRouteImport,
 } as any)
 const EditionsIndexRoute = EditionsIndexRouteImport.update({
@@ -156,6 +162,7 @@ export interface FileRoutesByFullPath {
   "/sources/new": typeof SourcesNewRoute
   "/bookmarks/": typeof BookmarksIndexRoute
   "/editions/": typeof EditionsIndexRoute
+  "/feed/": typeof FeedIndexRoute
   "/focuses/": typeof FocusesIndexRoute
   "/settings/": typeof SettingsIndexRoute
   "/sources/": typeof SourcesIndexRoute
@@ -177,6 +184,7 @@ export interface FileRoutesByTo {
   "/sources/new": typeof SourcesNewRoute
   "/bookmarks": typeof BookmarksIndexRoute
   "/editions": typeof EditionsIndexRoute
+  "/feed": typeof FeedIndexRoute
   "/focuses": typeof FocusesIndexRoute
   "/settings": typeof SettingsIndexRoute
   "/sources": typeof SourcesIndexRoute
@@ -202,6 +210,7 @@ export interface FileRoutesById {
   "/sources/new": typeof SourcesNewRoute
   "/bookmarks/": typeof BookmarksIndexRoute
   "/editions/": typeof EditionsIndexRoute
+  "/feed/": typeof FeedIndexRoute
   "/focuses/": typeof FocusesIndexRoute
   "/settings/": typeof SettingsIndexRoute
   "/sources/": typeof SourcesIndexRoute
@@ -228,6 +237,7 @@ export interface FileRouteTypes {
     | "/sources/new"
     | "/bookmarks/"
     | "/editions/"
+    | "/feed/"
     | "/focuses/"
     | "/settings/"
     | "/sources/"
@@ -249,6 +259,7 @@ export interface FileRouteTypes {
     | "/sources/new"
     | "/bookmarks"
     | "/editions"
+    | "/feed"
     | "/focuses"
     | "/settings"
     | "/sources"
@@ -273,6 +284,7 @@ export interface FileRouteTypes {
     | "/sources/new"
     | "/bookmarks/"
     | "/editions/"
+    | "/feed/"
     | "/focuses/"
     | "/settings/"
     | "/sources/"
@@ -298,6 +310,7 @@ export interface RootRouteChildren {
   SourcesNewRoute: typeof SourcesNewRoute
   BookmarksIndexRoute: typeof BookmarksIndexRoute
   EditionsIndexRoute: typeof EditionsIndexRoute
+  FeedIndexRoute: typeof FeedIndexRoute
   FocusesIndexRoute: typeof FocusesIndexRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
   SourcesIndexRoute: typeof SourcesIndexRoute
@@ -346,6 +359,13 @@ declare module "@tanstack/react-router" {
       path: "/focuses"
       fullPath: "/focuses/"
       preLoaderRoute: typeof FocusesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/feed/": {
+      id: "/feed/"
+      path: "/feed"
+      fullPath: "/feed/"
+      preLoaderRoute: typeof FeedIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/editions/": {
@@ -519,6 +539,7 @@ const rootRouteChildren: RootRouteChildren = {
   SourcesNewRoute: SourcesNewRoute,
   BookmarksIndexRoute: BookmarksIndexRoute,
   EditionsIndexRoute: EditionsIndexRoute,
+  FeedIndexRoute: FeedIndexRoute,
   FocusesIndexRoute: FocusesIndexRoute,
   SettingsIndexRoute: SettingsIndexRoute,
   SourcesIndexRoute: SourcesIndexRoute,

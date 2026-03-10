@@ -94,9 +94,16 @@ const Nav = (): React.ReactElement => {
 
   return (
     <nav className="flex flex-col h-full w-56 border-r border-border bg-surface py-6 px-3">
-      {/* Editions header + add */}
+      {/* Home link */}
+      <div className="mb-4">
+        <Link to="/" className={linkClass(currentPath === "/")}>
+          <span className="font-serif text-lg tracking-tight">Editions</span>
+        </Link>
+      </div>
+
+      {/* Edition configs header + add */}
       <div className={sectionHeadClass}>
-        <div className="font-serif text-lg tracking-tight text-ink">Editions</div>
+        <div className={sectionLabelClass}>Your editions</div>
         <Link to="/editions/new" className={addButtonClass} aria-label="New edition">
           <PlusIcon />
         </Link>
@@ -140,7 +147,7 @@ const Nav = (): React.ReactElement => {
           </Link>
         </div>
         <div className="flex flex-col gap-0.5">
-          <Link to="/" className={linkClass(currentPath === "/")}>
+          <Link to="/feed" className={linkClass(currentPath.startsWith("/feed"))}>
             All articles
           </Link>
           {focuses.map((focus) => (

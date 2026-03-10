@@ -94,6 +94,7 @@ Reusable `motion` components that encode the design system's animation values:
 | `Collapse` | Animate height for expand/collapse | slow (350ms) |
 | `Presence` | Animate mount and unmount (fade) | normal (200ms) |
 | `StaggerList` + `StaggerItem` | Children animate in sequence | 60ms stagger |
+| `PageTransition` | Route-level crossfade + slide | slower (500ms) enter, normal (200ms) exit |
 
 All primitives accept `duration` (token name) and `delay` props. Use them instead of writing raw `motion.div` — they ensure consistent timing across the app.
 

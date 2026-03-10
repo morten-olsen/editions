@@ -1,6 +1,7 @@
 import { Outlet, createRootRouteWithContext, Navigate, useRouterState } from "@tanstack/react-router";
 
 import { useAuth } from "../auth/auth.tsx";
+import { PageTransition } from "../components/animate.tsx";
 import { AppShell } from "../components/app-shell.tsx";
 import { Nav } from "../components/nav.tsx";
 
@@ -28,12 +29,18 @@ const RootComponent = (): React.ReactNode => {
   }
 
   if (isPublicRoute) {
-    return <Outlet />;
+    return (
+      <PageTransition locationKey={routerState.location.pathname}>
+        <Outlet />
+      </PageTransition>
+    );
   }
 
   return (
     <AppShell nav={<Nav />}>
-      <Outlet />
+      <PageTransition locationKey={routerState.location.pathname}>
+        <Outlet />
+      </PageTransition>
     </AppShell>
   );
 };

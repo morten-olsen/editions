@@ -14,7 +14,10 @@ type ArticleCardProps = {
   author?: string | null;
   summary?: string | null;
   publishedAt?: string | null;
-  readingTimeSeconds?: number | null;
+  consumptionTimeSeconds?: number | null;
+  mediaUrl?: string | null;
+  mediaType?: string | null;
+  sourceType?: string | null;
   imageUrl?: string | null;
   url?: string | null;
   href?: string;
@@ -32,9 +35,11 @@ type ArticleCardProps = {
   onBookmarkToggle?: () => void;
 };
 
-const formatTime = (seconds: number): string => {
+const formatTime = (seconds: number, sourceType?: string | null): string => {
   const minutes = Math.round(seconds / 60);
-  return minutes < 1 ? "< 1 min" : `${minutes} min read`;
+  if (minutes < 1) return "< 1 min";
+  const suffix = sourceType === "podcast" ? "listen" : "read";
+  return `${minutes} min ${suffix}`;
 };
 
 const formatDate = (iso: string): string => {
@@ -69,7 +74,8 @@ const ArticleCard = ({
   author,
   summary,
   publishedAt,
-  readingTimeSeconds,
+  consumptionTimeSeconds,
+  sourceType,
   imageUrl,
   href,
   compact = false,
@@ -95,10 +101,16 @@ const ArticleCard = ({
           <span>{formatDate(publishedAt)}</span>
         </>
       )}
-      {readingTimeSeconds && (
+      {sourceType === "podcast" && (
         <>
           <Dot />
-          <span>{formatTime(readingTimeSeconds)}</span>
+          <span className="text-accent font-medium">Podcast</span>
+        </>
+      )}
+      {consumptionTimeSeconds && (
+        <>
+          <Dot />
+          <span>{formatTime(consumptionTimeSeconds, sourceType)}</span>
         </>
       )}
     </div>

@@ -25,8 +25,8 @@ const focusSchema = z.object({
   description: z.string().nullable(),
   icon: z.string().nullable(),
   minConfidence: z.number(),
-  minReadingTimeSeconds: z.number().nullable(),
-  maxReadingTimeSeconds: z.number().nullable(),
+  minConsumptionTimeSeconds: z.number().nullable(),
+  maxConsumptionTimeSeconds: z.number().nullable(),
   sources: z.array(focusSourceSchema),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -43,8 +43,8 @@ const createFocusSchema = z.object({
   description: z.string().max(1024).optional(),
   icon: z.string().max(64).nullable().optional(),
   minConfidence: z.number().min(0).max(1).optional(),
-  minReadingTimeSeconds: z.number().int().min(0).nullable().optional(),
-  maxReadingTimeSeconds: z.number().int().min(0).nullable().optional(),
+  minConsumptionTimeSeconds: z.number().int().min(0).nullable().optional(),
+  maxConsumptionTimeSeconds: z.number().int().min(0).nullable().optional(),
   sources: z.array(createFocusSourceSchema).optional(),
 });
 
@@ -53,8 +53,8 @@ const updateFocusSchema = z.object({
   description: z.string().max(1024).nullable().optional(),
   icon: z.string().max(64).nullable().optional(),
   minConfidence: z.number().min(0).max(1).optional(),
-  minReadingTimeSeconds: z.number().int().min(0).nullable().optional(),
-  maxReadingTimeSeconds: z.number().int().min(0).nullable().optional(),
+  minConsumptionTimeSeconds: z.number().int().min(0).nullable().optional(),
+  maxConsumptionTimeSeconds: z.number().int().min(0).nullable().optional(),
 });
 
 const setFocusSourcesSchema = z.object({
@@ -72,7 +72,7 @@ const focusArticleSchema = z.object({
   imageUrl: z.string().nullable(),
   publishedAt: z.string().nullable(),
   createdAt: z.string(),
-  readingTimeSeconds: z.number().nullable(),
+  consumptionTimeSeconds: z.number().nullable(),
   readAt: z.string().nullable(),
   confidence: z.number(),
   score: z.number(),
@@ -174,8 +174,8 @@ const createFocusesRoutes = (services: Services): FastifyPluginAsyncZod =>
           description: req.body.description,
           icon: req.body.icon,
           minConfidence: req.body.minConfidence,
-          minReadingTimeSeconds: req.body.minReadingTimeSeconds,
-          maxReadingTimeSeconds: req.body.maxReadingTimeSeconds,
+          minConsumptionTimeSeconds: req.body.minConsumptionTimeSeconds,
+          maxConsumptionTimeSeconds: req.body.maxConsumptionTimeSeconds,
           sources: req.body.sources,
         });
         return reply.code(201).send(focus);

@@ -406,7 +406,7 @@ export interface paths {
                                 summary: string | (null);
                                 imageUrl: string | (null);
                                 publishedAt: string | (null);
-                                readingTimeSeconds: number | (null);
+                                consumptionTimeSeconds: number | (null);
                                 sourceId: string;
                                 sourceName: string;
                             }[];
@@ -635,6 +635,7 @@ export interface paths {
                             config: {
                                 [key: string]: unknown;
                             };
+                            direction: string;
                             lastFetchedAt: string | (null);
                             fetchError: string | (null);
                             createdAt: string;
@@ -658,6 +659,16 @@ export interface paths {
                         name: string;
                         /** Format: uri */
                         url: string;
+                        /**
+                         * @default rss
+                         * @enum {string}
+                         */
+                        type?: "rss" | "podcast" | "mastodon" | "bluesky" | "youtube" | "custom";
+                        /**
+                         * @default newest
+                         * @enum {string}
+                         */
+                        direction?: "newest" | "oldest";
                     };
                 };
             };
@@ -677,6 +688,7 @@ export interface paths {
                             config: {
                                 [key: string]: unknown;
                             };
+                            direction: string;
                             lastFetchedAt: string | (null);
                             fetchError: string | (null);
                             createdAt: string;
@@ -725,6 +737,7 @@ export interface paths {
                             config: {
                                 [key: string]: unknown;
                             };
+                            direction: string;
                             lastFetchedAt: string | (null);
                             fetchError: string | (null);
                             createdAt: string;
@@ -806,6 +819,8 @@ export interface paths {
                         name?: string;
                         /** Format: uri */
                         url?: string;
+                        /** @enum {string} */
+                        direction?: "newest" | "oldest";
                     };
                 };
             };
@@ -825,6 +840,7 @@ export interface paths {
                             config: {
                                 [key: string]: unknown;
                             };
+                            direction: string;
                             lastFetchedAt: string | (null);
                             fetchError: string | (null);
                             createdAt: string;
@@ -948,8 +964,10 @@ export interface paths {
                             author: string | (null);
                             summary: string | (null);
                             content: string | (null);
-                            wordCount: number | (null);
-                            readingTimeSeconds: number | (null);
+                            consumptionTimeSeconds: number | (null);
+                            mediaUrl: string | (null);
+                            mediaType: string | (null);
+                            sourceType: string;
                             imageUrl: string | (null);
                             publishedAt: string | (null);
                             readAt: string | (null);
@@ -1020,8 +1038,10 @@ export interface paths {
                             author: string | (null);
                             summary: string | (null);
                             content: string | (null);
-                            wordCount: number | (null);
-                            readingTimeSeconds: number | (null);
+                            consumptionTimeSeconds: number | (null);
+                            mediaUrl: string | (null);
+                            mediaType: string | (null);
+                            sourceType: string;
                             imageUrl: string | (null);
                             publishedAt: string | (null);
                             readAt: string | (null);
@@ -1286,8 +1306,8 @@ export interface paths {
                             description: string | (null);
                             icon: string | (null);
                             minConfidence: number;
-                            minReadingTimeSeconds: number | (null);
-                            maxReadingTimeSeconds: number | (null);
+                            minConsumptionTimeSeconds: number | (null);
+                            maxConsumptionTimeSeconds: number | (null);
                             sources: {
                                 sourceId: string;
                                 /** @enum {string} */
@@ -1316,8 +1336,8 @@ export interface paths {
                         description?: string;
                         icon?: string | (null);
                         minConfidence?: number;
-                        minReadingTimeSeconds?: number | (null);
-                        maxReadingTimeSeconds?: number | (null);
+                        minConsumptionTimeSeconds?: number | (null);
+                        maxConsumptionTimeSeconds?: number | (null);
                         sources?: {
                             sourceId: string;
                             /** @enum {string} */
@@ -1342,8 +1362,8 @@ export interface paths {
                             description: string | (null);
                             icon: string | (null);
                             minConfidence: number;
-                            minReadingTimeSeconds: number | (null);
-                            maxReadingTimeSeconds: number | (null);
+                            minConsumptionTimeSeconds: number | (null);
+                            maxConsumptionTimeSeconds: number | (null);
                             sources: {
                                 sourceId: string;
                                 /** @enum {string} */
@@ -1394,8 +1414,8 @@ export interface paths {
                             description: string | (null);
                             icon: string | (null);
                             minConfidence: number;
-                            minReadingTimeSeconds: number | (null);
-                            maxReadingTimeSeconds: number | (null);
+                            minConsumptionTimeSeconds: number | (null);
+                            maxConsumptionTimeSeconds: number | (null);
                             sources: {
                                 sourceId: string;
                                 /** @enum {string} */
@@ -1471,8 +1491,8 @@ export interface paths {
                         description?: string | (null);
                         icon?: string | (null);
                         minConfidence?: number;
-                        minReadingTimeSeconds?: number | (null);
-                        maxReadingTimeSeconds?: number | (null);
+                        minConsumptionTimeSeconds?: number | (null);
+                        maxConsumptionTimeSeconds?: number | (null);
                     };
                 };
             };
@@ -1490,8 +1510,8 @@ export interface paths {
                             description: string | (null);
                             icon: string | (null);
                             minConfidence: number;
-                            minReadingTimeSeconds: number | (null);
-                            maxReadingTimeSeconds: number | (null);
+                            minConsumptionTimeSeconds: number | (null);
+                            maxConsumptionTimeSeconds: number | (null);
                             sources: {
                                 sourceId: string;
                                 /** @enum {string} */
@@ -1561,7 +1581,7 @@ export interface paths {
                                 imageUrl: string | (null);
                                 publishedAt: string | (null);
                                 createdAt: string;
-                                readingTimeSeconds: number | (null);
+                                consumptionTimeSeconds: number | (null);
                                 readAt: string | (null);
                                 confidence: number;
                                 score: number;
@@ -1640,8 +1660,8 @@ export interface paths {
                             description: string | (null);
                             icon: string | (null);
                             minConfidence: number;
-                            minReadingTimeSeconds: number | (null);
-                            maxReadingTimeSeconds: number | (null);
+                            minConsumptionTimeSeconds: number | (null);
+                            maxConsumptionTimeSeconds: number | (null);
                             sources: {
                                 sourceId: string;
                                 /** @enum {string} */
@@ -2089,7 +2109,10 @@ export interface paths {
                                 url: string | (null);
                                 imageUrl: string | (null);
                                 publishedAt: string | (null);
-                                readingTimeSeconds: number | (null);
+                                consumptionTimeSeconds: number | (null);
+                                mediaUrl: string | (null);
+                                mediaType: string | (null);
+                                sourceType: string;
                                 readAt: string | (null);
                                 sourceName: string;
                                 focusId: string;
@@ -2231,7 +2254,10 @@ export interface paths {
                                 url: string | (null);
                                 imageUrl: string | (null);
                                 publishedAt: string | (null);
-                                readingTimeSeconds: number | (null);
+                                consumptionTimeSeconds: number | (null);
+                                mediaUrl: string | (null);
+                                mediaType: string | (null);
+                                sourceType: string;
                                 readAt: string | (null);
                                 sourceName: string;
                                 focusId: string;
@@ -2542,7 +2568,10 @@ export interface paths {
                                 summary: string | (null);
                                 imageUrl: string | (null);
                                 publishedAt: string | (null);
-                                readingTimeSeconds: number | (null);
+                                consumptionTimeSeconds: number | (null);
+                                mediaUrl: string | (null);
+                                mediaType: string | (null);
+                                sourceType: string;
                                 readAt: string | (null);
                                 createdAt: string;
                                 score: number;

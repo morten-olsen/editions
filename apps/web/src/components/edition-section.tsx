@@ -15,7 +15,7 @@ const EditionSection = ({
   index = 0,
 }: EditionSectionProps): React.ReactElement => {
   const totalSeconds = articles.reduce(
-    (sum, a) => sum + (a.readingTimeSeconds ?? 0),
+    (sum, a) => sum + (a.consumptionTimeSeconds ?? 0),
     0,
   );
 

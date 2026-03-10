@@ -31,6 +31,9 @@ type FeedItem = {
   content: string | null;
   imageUrl: string | null;
   publishedAt: string | null;
+  mediaUrl: string | null;
+  mediaType: string | null;
+  consumptionTimeSeconds: number | null;
 };
 
 type FetchResult = {
@@ -80,15 +83,20 @@ const normalizeItems = (items: unknown): FeedItem[] => {
       ? (guid as Record<string, unknown>)["#text"]
       : guid;
 
+    const { mediaUrl, mediaType } = extractMediaEnclosure(item);
+
     return {
       externalId: String(guidText ?? item.link ?? crypto.randomUUID()),
       url: toStringOrNull(item.link),
       title: String(item.title ?? "Untitled"),
-      author: toStringOrNull(item["dc:creator"] ?? item.author),
+      author: toStringOrNull(item["dc:creator"] ?? item.author ?? item["itunes:author"]),
       summary: toStringOrNull(item.description),
       content: toStringOrNull(item["content:encoded"]),
       imageUrl: extractImageUrl(item),
       publishedAt: toIsoDate(item.pubDate ?? item["dc:date"]),
+      mediaUrl,
+      mediaType,
+      consumptionTimeSeconds: parseItunesDuration(item["itunes:duration"]),
     };
   });
 };
@@ -121,6 +129,9 @@ const normalizeAtomEntries = (entries: unknown): FeedItem[] => {
       ),
       imageUrl: null,
       publishedAt: toIsoDate(entry.published ?? entry.updated),
+      mediaUrl: null,
+      mediaType: null,
+      consumptionTimeSeconds: null,
     };
   });
 };
@@ -158,6 +169,40 @@ const extractImageUrl = (item: Record<string, unknown>): string | null => {
       return toStringOrNull(enclosure["@_url"]);
     }
   }
+  // Podcast feeds often use itunes:image for episode artwork
+  const itunesImage = item["itunes:image"] as Record<string, unknown> | undefined;
+  if (itunesImage) {
+    return toStringOrNull(itunesImage["@_href"]);
+  }
+  return null;
+};
+
+const extractMediaEnclosure = (item: Record<string, unknown>): { mediaUrl: string | null; mediaType: string | null } => {
+  const enclosure = item.enclosure as Record<string, unknown> | undefined;
+  if (!enclosure) return { mediaUrl: null, mediaType: null };
+
+  const type = String(enclosure["@_type"] ?? "");
+  if (type.startsWith("audio/") || type.startsWith("video/")) {
+    return {
+      mediaUrl: toStringOrNull(enclosure["@_url"]),
+      mediaType: type || null,
+    };
+  }
+
+  return { mediaUrl: null, mediaType: null };
+};
+
+const parseItunesDuration = (val: unknown): number | null => {
+  if (val === null || val === undefined) return null;
+  const s = String(val).trim();
+  if (s.length === 0) return null;
+
+  const parts = s.split(":").map(Number);
+  if (parts.some(isNaN)) return null;
+
+  if (parts.length === 3) return parts[0]! * 3600 + parts[1]! * 60 + parts[2]!;
+  if (parts.length === 2) return parts[0]! * 60 + parts[1]!;
+  if (parts.length === 1) return parts[0]!;
   return null;
 };
 
@@ -218,6 +263,7 @@ const handleFetchSource = async (payload: FetchSourcePayload, services: Services
 
   // Insert articles, dedup on (source_id, external_id)
   const taskService = services.get(TaskService);
+  const isPodcast = source.type === "podcast";
   let newArticles = 0;
 
   for (const item of items) {
@@ -236,6 +282,11 @@ const handleFetchSource = async (payload: FetchSourcePayload, services: Services
         content: item.content,
         image_url: item.imageUrl,
         published_at: item.publishedAt,
+        media_url: item.mediaUrl,
+        media_type: item.mediaType,
+        consumption_time_seconds: item.consumptionTimeSeconds,
+        // Podcast episodes are fully described by the feed — mark extracted immediately
+        ...(isPodcast ? { extracted_at: new Date().toISOString() } : {}),
       })
       .onConflict((oc) => oc.columns(["source_id", "external_id"]).doNothing())
       .returning("id")
@@ -243,11 +294,21 @@ const handleFetchSource = async (payload: FetchSourcePayload, services: Services
 
     if (result) {
       newArticles++;
-      // Queue extraction task for new articles
-      taskService.enqueue<ExtractArticlePayload>("extract_article", {
-        articleId: result.id,
-        userId: payload.userId,
-      }, { userId: payload.userId });
+
+      if (isPodcast) {
+        // Podcast: skip extraction, go straight to analysis if we have content
+        if (item.summary || item.content) {
+          taskService.enqueue<AnalyseArticlePayload>("analyse_article", {
+            articleId: result.id,
+          }, { userId: payload.userId });
+        }
+      } else {
+        // Article: queue extraction which chains to analysis
+        taskService.enqueue<ExtractArticlePayload>("extract_article", {
+          articleId: result.id,
+          userId: payload.userId,
+        }, { userId: payload.userId });
+      }
     }
   }
 
@@ -265,11 +326,15 @@ const handleExtractArticle = async (payload: ExtractArticlePayload, services: Se
 
   const article = await db
     .selectFrom("articles")
-    .select(["id", "url", "title", "content", "extracted_at"])
-    .where("id", "=", payload.articleId)
+    .innerJoin("sources", "sources.id", "articles.source_id")
+    .select(["articles.id", "articles.url", "articles.title", "articles.content", "articles.extracted_at", "sources.type as source_type"])
+    .where("articles.id", "=", payload.articleId)
     .executeTakeFirst();
 
   if (!article) return;
+
+  // Podcast episodes are fully handled at fetch time — no extraction needed
+  if (article.source_type === "podcast") return;
 
   // Extract full content if we don't already have substantial content
   if (!article.extracted_at && article.url) {
@@ -277,12 +342,11 @@ const handleExtractArticle = async (payload: ExtractArticlePayload, services: Se
       const result = await extract(article.url);
       if (result?.content) {
         const wordCount = result.content.replace(/<[^>]*>/g, "").split(/\s+/).filter(Boolean).length;
-        const readingTimeSeconds = Math.ceil((wordCount / WORDS_PER_MINUTE) * 60);
+        const consumptionTimeSeconds = Math.ceil((wordCount / WORDS_PER_MINUTE) * 60);
 
         const updates: Record<string, unknown> = {
           content: result.content,
-          word_count: wordCount,
-          reading_time_seconds: readingTimeSeconds,
+          consumption_time_seconds: consumptionTimeSeconds,
           image_url: result.image ?? undefined,
           extracted_at: new Date().toISOString(),
         };
@@ -303,13 +367,12 @@ const handleExtractArticle = async (payload: ExtractArticlePayload, services: Se
       } else if (article.content) {
         // Extractor returned nothing but we have feed content — mark as extracted
         const wordCount = article.content.replace(/<[^>]*>/g, "").split(/\s+/).filter(Boolean).length;
-        const readingTimeSeconds = Math.ceil((wordCount / WORDS_PER_MINUTE) * 60);
+        const consumptionTimeSeconds = Math.ceil((wordCount / WORDS_PER_MINUTE) * 60);
 
         await db
           .updateTable("articles")
           .set({
-            word_count: wordCount,
-            reading_time_seconds: readingTimeSeconds,
+            consumption_time_seconds: consumptionTimeSeconds,
             extracted_at: new Date().toISOString(),
           })
           .where("id", "=", article.id)
@@ -319,13 +382,12 @@ const handleExtractArticle = async (payload: ExtractArticlePayload, services: Se
       // Extraction failures are non-fatal — if we have feed content, mark extracted
       if (article.content) {
         const wordCount = article.content.replace(/<[^>]*>/g, "").split(/\s+/).filter(Boolean).length;
-        const readingTimeSeconds = Math.ceil((wordCount / WORDS_PER_MINUTE) * 60);
+        const consumptionTimeSeconds = Math.ceil((wordCount / WORDS_PER_MINUTE) * 60);
 
         await db
           .updateTable("articles")
           .set({
-            word_count: wordCount,
-            reading_time_seconds: readingTimeSeconds,
+            consumption_time_seconds: consumptionTimeSeconds,
             extracted_at: new Date().toISOString(),
           })
           .where("id", "=", article.id)

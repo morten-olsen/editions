@@ -36,8 +36,8 @@ type CreateFocusParams = {
   description?: string;
   icon?: string | null;
   minConfidence?: number;
-  minReadingTimeSeconds?: number | null;
-  maxReadingTimeSeconds?: number | null;
+  minConsumptionTimeSeconds?: number | null;
+  maxConsumptionTimeSeconds?: number | null;
   sources?: FocusSource[];
 };
 
@@ -46,8 +46,8 @@ type UpdateFocusParams = {
   description?: string | null;
   icon?: string | null;
   minConfidence?: number;
-  minReadingTimeSeconds?: number | null;
-  maxReadingTimeSeconds?: number | null;
+  minConsumptionTimeSeconds?: number | null;
+  maxConsumptionTimeSeconds?: number | null;
 };
 
 type FocusSource = {
@@ -63,8 +63,8 @@ type Focus = {
   description: string | null;
   icon: string | null;
   minConfidence: number;
-  minReadingTimeSeconds: number | null;
-  maxReadingTimeSeconds: number | null;
+  minConsumptionTimeSeconds: number | null;
+  maxConsumptionTimeSeconds: number | null;
   sources: FocusSource[];
   createdAt: string;
   updatedAt: string;
@@ -113,8 +113,8 @@ class FocusesService {
       description: row.description,
       icon: row.icon,
       minConfidence: row.min_confidence,
-      minReadingTimeSeconds: row.min_reading_time_seconds,
-      maxReadingTimeSeconds: row.max_reading_time_seconds,
+      minConsumptionTimeSeconds: row.min_consumption_time_seconds,
+      maxConsumptionTimeSeconds: row.max_consumption_time_seconds,
       sources: sourceLinksByFocus.get(row.id) ?? [],
       createdAt: row.created_at,
       updatedAt: row.updated_at,
@@ -148,8 +148,8 @@ class FocusesService {
       description: row.description,
       icon: row.icon,
       minConfidence: row.min_confidence,
-      minReadingTimeSeconds: row.min_reading_time_seconds,
-      maxReadingTimeSeconds: row.max_reading_time_seconds,
+      minConsumptionTimeSeconds: row.min_consumption_time_seconds,
+      maxConsumptionTimeSeconds: row.max_consumption_time_seconds,
       sources: sourceLinks.map((link) => ({
         sourceId: link.source_id,
         mode: link.mode as FocusSourceMode,
@@ -176,11 +176,11 @@ class FocusesService {
         ...(params.minConfidence !== undefined
           ? { min_confidence: params.minConfidence }
           : {}),
-        ...(params.minReadingTimeSeconds !== undefined
-          ? { min_reading_time_seconds: params.minReadingTimeSeconds }
+        ...(params.minConsumptionTimeSeconds !== undefined
+          ? { min_consumption_time_seconds: params.minConsumptionTimeSeconds }
           : {}),
-        ...(params.maxReadingTimeSeconds !== undefined
-          ? { max_reading_time_seconds: params.maxReadingTimeSeconds }
+        ...(params.maxConsumptionTimeSeconds !== undefined
+          ? { max_consumption_time_seconds: params.maxConsumptionTimeSeconds }
           : {}),
       })
       .execute();
@@ -216,8 +216,8 @@ class FocusesService {
     if (params.description !== undefined) values.description = params.description;
     if (params.icon !== undefined) values.icon = params.icon;
     if (params.minConfidence !== undefined) values.min_confidence = params.minConfidence;
-    if (params.minReadingTimeSeconds !== undefined) values.min_reading_time_seconds = params.minReadingTimeSeconds;
-    if (params.maxReadingTimeSeconds !== undefined) values.max_reading_time_seconds = params.maxReadingTimeSeconds;
+    if (params.minConsumptionTimeSeconds !== undefined) values.min_consumption_time_seconds = params.minConsumptionTimeSeconds;
+    if (params.maxConsumptionTimeSeconds !== undefined) values.max_consumption_time_seconds = params.maxConsumptionTimeSeconds;
 
     await db
       .updateTable("focuses")
@@ -324,11 +324,11 @@ class FocusesService {
       }
 
       // Reading time filters
-      if (focus.minReadingTimeSeconds !== null) {
-        q = q.where("articles.reading_time_seconds", ">=", focus.minReadingTimeSeconds);
+      if (focus.minConsumptionTimeSeconds !== null) {
+        q = q.where("articles.consumption_time_seconds", ">=", focus.minConsumptionTimeSeconds);
       }
-      if (focus.maxReadingTimeSeconds !== null) {
-        q = q.where("articles.reading_time_seconds", "<=", focus.maxReadingTimeSeconds);
+      if (focus.maxConsumptionTimeSeconds !== null) {
+        q = q.where("articles.consumption_time_seconds", "<=", focus.maxConsumptionTimeSeconds);
       }
 
       return q;
@@ -356,7 +356,7 @@ class FocusesService {
           "articles.summary",
           "articles.image_url",
           "articles.published_at",
-          "articles.reading_time_seconds",
+          "articles.consumption_time_seconds",
           "articles.read_at",
           "articles.created_at",
           "article_focuses.confidence",
@@ -389,7 +389,7 @@ class FocusesService {
             summary: row.summary,
             imageUrl: row.image_url,
             publishedAt: row.published_at,
-            readingTimeSeconds: row.reading_time_seconds,
+            consumptionTimeSeconds: row.consumption_time_seconds,
             readAt: row.read_at,
             createdAt: row.created_at,
             confidence: row.confidence,
@@ -422,7 +422,7 @@ class FocusesService {
         "articles.summary",
         "articles.image_url",
         "articles.published_at",
-        "articles.reading_time_seconds",
+        "articles.consumption_time_seconds",
         "articles.read_at",
         "articles.created_at",
         "article_focuses.confidence",
@@ -469,7 +469,7 @@ class FocusesService {
         author: row.author,
         summary: row.summary,
         imageUrl: row.image_url,
-        readingTimeSeconds: row.reading_time_seconds,
+        consumptionTimeSeconds: row.consumption_time_seconds,
         readAt: row.read_at,
         createdAt: row.created_at,
         sourceName: row.source_name,
@@ -508,7 +508,7 @@ class FocusesService {
           summary: c.summary,
           imageUrl: c.imageUrl,
           publishedAt: c.publishedAt,
-          readingTimeSeconds: c.readingTimeSeconds,
+          consumptionTimeSeconds: c.consumptionTimeSeconds,
           readAt: c.readAt,
           createdAt: c.createdAt,
           confidence: c.confidence,
@@ -549,7 +549,7 @@ type FocusArticle = {
   summary: string | null;
   imageUrl: string | null;
   publishedAt: string | null;
-  readingTimeSeconds: number | null;
+  consumptionTimeSeconds: number | null;
   readAt: string | null;
   createdAt: string;
   confidence: number;

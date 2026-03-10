@@ -42,7 +42,7 @@ const sampleEdition = {
           summary:
             "How a new generation of reading apps is rethinking the relationship between content, interface, and the reader's attention span.",
           publishedAt: new Date(now - 3 * 60 * 60 * 1000).toISOString(),
-          readingTimeSeconds: 480,
+          consumptionTimeSeconds: 480,
           imageUrl: "https://picsum.photos/seed/reader/400/300",
         },
         {
@@ -52,7 +52,7 @@ const sampleEdition = {
           summary:
             "The long-awaited pattern matching RFC lands in TypeScript, bringing exhaustive checks and destructuring to a new level.",
           publishedAt: new Date(now - 5 * 60 * 60 * 1000).toISOString(),
-          readingTimeSeconds: 180,
+          consumptionTimeSeconds: 180,
         },
       ],
     },
@@ -67,7 +67,7 @@ const sampleEdition = {
           summary:
             "New observations push the frontier of known galaxies back another 200 million years, challenging existing models of early star formation.",
           publishedAt: new Date(now - 4 * 60 * 60 * 1000).toISOString(),
-          readingTimeSeconds: 360,
+          consumptionTimeSeconds: 360,
           imageUrl: "https://picsum.photos/seed/jwst/400/300",
         },
       ],
@@ -83,7 +83,7 @@ const sampleEdition = {
           summary:
             "The Digital Markets Act enters its second phase, requiring tech giants to open their platforms.",
           publishedAt: new Date(now - 6 * 60 * 60 * 1000).toISOString(),
-          readingTimeSeconds: 240,
+          consumptionTimeSeconds: 240,
           imageUrl: "https://picsum.photos/seed/eu-data/400/300",
         },
         {
@@ -91,7 +91,7 @@ const sampleEdition = {
           title: "Pacific trade agreement reaches final ratification",
           sourceName: "Reuters",
           publishedAt: new Date(now - 7 * 60 * 60 * 1000).toISOString(),
-          readingTimeSeconds: 120,
+          consumptionTimeSeconds: 120,
         },
       ],
     },

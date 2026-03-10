@@ -19,8 +19,10 @@ type ArticleDetail = {
   author: string | null;
   summary: string | null;
   content: string | null;
-  wordCount: number | null;
-  readingTimeSeconds: number | null;
+  consumptionTimeSeconds: number | null;
+  mediaUrl: string | null;
+  mediaType: string | null;
+  sourceType: string;
   imageUrl: string | null;
   publishedAt: string | null;
   readAt: string | null;
@@ -33,10 +35,11 @@ type ArticleData = {
   bookmarked: boolean;
 };
 
-const formatReadingTime = (seconds: number): string => {
+const formatConsumptionTime = (seconds: number, sourceType: string): string => {
   const minutes = Math.round(seconds / 60);
-  if (minutes < 1) return "< 1 min read";
-  return `${minutes} min read`;
+  const suffix = sourceType === "podcast" ? "listen" : "read";
+  if (minutes < 1) return `< 1 min ${suffix}`;
+  return `${minutes} min ${suffix}`;
 };
 
 const formatPublishedDate = (iso: string): string =>
@@ -223,10 +226,10 @@ const ArticlePage = (): React.ReactNode => {
           {article.publishedAt && (
             <time>{formatPublishedDate(article.publishedAt)}</time>
           )}
-          {article.readingTimeSeconds !== null && (
+          {article.consumptionTimeSeconds !== null && (
             <>
               <span className="text-ink-faint">·</span>
-              <span>{formatReadingTime(article.readingTimeSeconds)}</span>
+              <span>{formatConsumptionTime(article.consumptionTimeSeconds, article.sourceType)}</span>
             </>
           )}
         </div>
@@ -252,6 +255,17 @@ const ArticlePage = (): React.ReactNode => {
           />
         </div>
       )}
+
+      {/* Media player for podcasts */}
+      {article.mediaUrl && article.mediaType?.startsWith("video/") ? (
+        <div className="mb-10 rounded-lg overflow-hidden bg-surface-sunken">
+          <video controls src={article.mediaUrl} className="w-full" />
+        </div>
+      ) : article.mediaUrl && article.mediaType?.startsWith("audio/") ? (
+        <div className="mb-10 p-4 rounded-lg bg-surface-sunken">
+          <audio controls src={article.mediaUrl} className="w-full" />
+        </div>
+      ) : null}
 
       {/* Content */}
       {hasContent ? (

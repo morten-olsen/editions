@@ -42,7 +42,7 @@ const feedArticles = [
     author: "Samuel Axon",
     summary: "How a new generation of reading apps is rethinking the relationship between content, interface, and the reader's attention span.",
     publishedAt: new Date(now - 2 * 60 * 60 * 1000).toISOString(),
-    readingTimeSeconds: 480,
+    consumptionTimeSeconds: 480,
     imageUrl: "https://picsum.photos/seed/reader/400/300",
   },
   {
@@ -52,7 +52,7 @@ const feedArticles = [
     author: "Alex Hern",
     summary: "The Digital Markets Act enters its second phase, requiring tech giants to open their platforms to interoperability.",
     publishedAt: new Date(now - 4 * 60 * 60 * 1000).toISOString(),
-    readingTimeSeconds: 360,
+    consumptionTimeSeconds: 360,
     imageUrl: "https://picsum.photos/seed/eu-data/400/300",
   },
   {
@@ -62,7 +62,7 @@ const feedArticles = [
     author: "Dr. Emily Carter",
     summary: "New observations push the frontier of known galaxies back another 200 million years.",
     publishedAt: new Date(now - 6 * 60 * 60 * 1000).toISOString(),
-    readingTimeSeconds: 300,
+    consumptionTimeSeconds: 300,
     imageUrl: "https://picsum.photos/seed/jwst/400/300",
   },
   {
@@ -71,14 +71,14 @@ const feedArticles = [
     sourceName: "Hacker News",
     summary: "A deep dive into why embedded databases are making a comeback in server-side applications.",
     publishedAt: new Date(now - 8 * 60 * 60 * 1000).toISOString(),
-    readingTimeSeconds: 720,
+    consumptionTimeSeconds: 720,
   },
   {
     id: "5",
     title: "Pacific trade agreement reaches final ratification",
     sourceName: "Reuters",
     publishedAt: new Date(now - 10 * 60 * 60 * 1000).toISOString(),
-    readingTimeSeconds: 120,
+    consumptionTimeSeconds: 120,
     imageUrl: "https://picsum.photos/seed/trade/400/300",
   },
 ];

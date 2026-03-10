@@ -11,7 +11,7 @@ const sampleProps = {
   author: "Samuel Axon",
   summary: "How a new generation of reading apps is rethinking the relationship between content, interface, and the reader's attention span.",
   publishedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-  readingTimeSeconds: 480,
+  consumptionTimeSeconds: 480,
 } satisfies ArticleCardProps;
 
 const meta: Meta<typeof ArticleCard> = {
@@ -27,7 +27,7 @@ const meta: Meta<typeof ArticleCard> = {
     author: { control: "text" },
     summary: { control: "text" },
     imageUrl: { control: "text" },
-    readingTimeSeconds: { control: "number" },
+    consumptionTimeSeconds: { control: "number" },
   },
   render: (args) => (
     <div style={{ width: "40rem" }}>
@@ -54,7 +54,7 @@ const Compact: Story = {
     author: undefined,
     summary: undefined,
     publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-    readingTimeSeconds: 180,
+    consumptionTimeSeconds: 180,
     compact: true,
   },
 };
@@ -80,7 +80,7 @@ const List: Story = {
         author="Samuel Axon"
         summary="How a new generation of reading apps is rethinking the relationship between content, interface, and the reader's attention span."
         publishedAt={new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()}
-        readingTimeSeconds={480}
+        consumptionTimeSeconds={480}
         imageUrl="https://picsum.photos/seed/reader/400/300"
       />
       <ArticleCard
@@ -90,7 +90,7 @@ const List: Story = {
         author="Alex Hern"
         summary="The Digital Markets Act enters its second phase, requiring tech giants to open their platforms to interoperability. What it means for everyday users."
         publishedAt={new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()}
-        readingTimeSeconds={360}
+        consumptionTimeSeconds={360}
         imageUrl="https://picsum.photos/seed/eu-data/400/300"
       />
       <ArticleCard
@@ -99,14 +99,14 @@ const List: Story = {
         sourceName="Hacker News"
         summary="A deep dive into why embedded databases are making a comeback in server-side applications, and what the trade-offs really look like."
         publishedAt={new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString()}
-        readingTimeSeconds={720}
+        consumptionTimeSeconds={720}
       />
       <ArticleCard
         id="4"
         title="Pacific trade agreement reaches final ratification"
         sourceName="Reuters"
         publishedAt={new Date(Date.now() - 10 * 60 * 60 * 1000).toISOString()}
-        readingTimeSeconds={120}
+        consumptionTimeSeconds={120}
         imageUrl="https://picsum.photos/seed/trade/400/300"
       />
     </div>
@@ -123,7 +123,7 @@ const ReadMixedList: Story = {
         author="Samuel Axon"
         summary="How a new generation of reading apps is rethinking the relationship between content, interface, and the reader's attention span."
         publishedAt={new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()}
-        readingTimeSeconds={480}
+        consumptionTimeSeconds={480}
         imageUrl="https://picsum.photos/seed/reader/400/300"
       />
       <ArticleCard
@@ -133,7 +133,7 @@ const ReadMixedList: Story = {
         author="Alex Hern"
         summary="The Digital Markets Act enters its second phase, requiring tech giants to open their platforms to interoperability. What it means for everyday users."
         publishedAt={new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()}
-        readingTimeSeconds={360}
+        consumptionTimeSeconds={360}
         read
       />
       <ArticleCard
@@ -142,7 +142,7 @@ const ReadMixedList: Story = {
         sourceName="Hacker News"
         summary="A deep dive into why embedded databases are making a comeback in server-side applications, and what the trade-offs really look like."
         publishedAt={new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString()}
-        readingTimeSeconds={720}
+        consumptionTimeSeconds={720}
       />
       <ArticleCard
         id="4"
@@ -150,7 +150,7 @@ const ReadMixedList: Story = {
         sourceName="Reuters"
         summary="Twelve nations sign the landmark agreement after three years of negotiations."
         publishedAt={new Date(Date.now() - 10 * 60 * 60 * 1000).toISOString()}
-        readingTimeSeconds={120}
+        consumptionTimeSeconds={120}
         read
       />
     </div>
@@ -188,7 +188,7 @@ const WithActiveVotes: Story = {
         sourceName="Nature"
         summary="This article was marked as a good match for the current focus, and you also liked it globally."
         publishedAt={new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()}
-        readingTimeSeconds={360}
+        consumptionTimeSeconds={360}
         focusVote={1}
         onFocusVote={() => {}}
         vote={1}
@@ -200,7 +200,7 @@ const WithActiveVotes: Story = {
         sourceName="The Guardian"
         summary="You enjoyed this article but it doesn't belong in this focus."
         publishedAt={new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()}
-        readingTimeSeconds={240}
+        consumptionTimeSeconds={240}
         focusVote={-1}
         onFocusVote={() => {}}
         vote={1}
@@ -212,7 +212,7 @@ const WithActiveVotes: Story = {
         sourceName="Hacker News"
         summary="You downvoted this globally."
         publishedAt={new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString()}
-        readingTimeSeconds={180}
+        consumptionTimeSeconds={180}
         vote={-1}
         onVote={() => {}}
         focusVote={null}

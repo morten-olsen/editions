@@ -18,7 +18,7 @@ type UsersTable = {
   updated_at: Timestamp;
 };
 
-type SourceType = "rss" | "mastodon" | "bluesky" | "youtube" | "custom" | "bookmarks";
+type SourceType = "rss" | "podcast" | "mastodon" | "bluesky" | "youtube" | "custom" | "bookmarks";
 
 type SourcesTable = {
   id: string;
@@ -27,6 +27,7 @@ type SourcesTable = {
   name: string;
   url: string;
   config: string; // JSON
+  direction: string;
   last_fetched_at: string | null;
   fetch_error: string | null;
   created_at: Timestamp;
@@ -42,15 +43,16 @@ type ArticlesTable = {
   author: string | null;
   summary: string | null;
   content: string | null;
-  word_count: number | null;
-  reading_time_seconds: number | null;
+  consumption_time_seconds: number | null;
   image_url: string | null;
+  media_url: string | null;
+  media_type: string | null;
   published_at: string | null;
   fetched_at: Timestamp;
   extracted_at: string | null;
   analysed_at: string | null;
   read_at: string | null;
-  read_progress: ColumnType<number, number | undefined, number>;
+  progress: ColumnType<number, number | undefined, number>;
   created_at: Timestamp;
 };
 
@@ -61,8 +63,8 @@ type FocusesTable = {
   description: string | null;
   icon: string | null;
   min_confidence: ColumnType<number, number | undefined, number>;
-  min_reading_time_seconds: number | null;
-  max_reading_time_seconds: number | null;
+  min_consumption_time_seconds: number | null;
+  max_consumption_time_seconds: number | null;
   created_at: Timestamp;
   updated_at: Timestamp;
 };

@@ -19,7 +19,7 @@ type EditionArticle = {
   url: string | null;
   imageUrl: string | null;
   publishedAt: string | null;
-  readingTimeSeconds: number | null;
+  consumptionTimeSeconds: number | null;
   readAt?: string | null;
   sourceName: string;
   focusId: string;
@@ -236,7 +236,7 @@ const EditionViewPage = (): React.ReactNode => {
       ) : (
         sections.map((section, i) => {
           const totalSeconds = section.articles.reduce(
-            (sum, a) => sum + (a.readingTimeSeconds ?? 0),
+            (sum, a) => sum + (a.consumptionTimeSeconds ?? 0),
             0,
           );
 
@@ -269,7 +269,7 @@ const EditionViewPage = (): React.ReactNode => {
                       summary={article.summary}
                       imageUrl={article.imageUrl}
                       publishedAt={article.publishedAt}
-                      readingTimeSeconds={article.readingTimeSeconds}
+                      consumptionTimeSeconds={article.consumptionTimeSeconds}
                       read={!!article.readAt}
                       href={`/sources/${article.sourceId}/articles/${article.id}`}
                       focusVote={votes[article.id] ?? null}

@@ -19,7 +19,7 @@ type BookmarkWithArticle = {
   summary: string | null;
   imageUrl: string | null;
   publishedAt: string | null;
-  readingTimeSeconds: number | null;
+  consumptionTimeSeconds: number | null;
   sourceId: string;
   sourceName: string;
 };
@@ -155,7 +155,7 @@ const BookmarksIndexPage = (): React.ReactNode => {
                 author={bookmark.author}
                 summary={bookmark.summary}
                 publishedAt={bookmark.publishedAt}
-                readingTimeSeconds={bookmark.readingTimeSeconds}
+                consumptionTimeSeconds={bookmark.consumptionTimeSeconds}
                 imageUrl={bookmark.imageUrl}
                 href={`/sources/${bookmark.sourceId}/articles/${bookmark.articleId}`}
                 bookmarked

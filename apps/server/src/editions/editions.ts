@@ -99,7 +99,10 @@ type EditionArticle = {
   url: string | null;
   imageUrl: string | null;
   publishedAt: string | null;
-  readingTimeSeconds: number | null;
+  consumptionTimeSeconds: number | null;
+  mediaUrl: string | null;
+  mediaType: string | null;
+  sourceType: string;
   readAt: string | null;
   sourceName: string;
   focusId: string;
@@ -438,9 +441,12 @@ class EditionsService {
         "articles.url",
         "articles.image_url",
         "articles.published_at",
-        "articles.reading_time_seconds",
+        "articles.consumption_time_seconds",
+        "articles.media_url",
+        "articles.media_type",
         "articles.read_at",
         "sources.name as source_name",
+        "sources.type as source_type",
         "edition_articles.focus_id",
         "focuses.name as focus_name",
         "edition_articles.position",
@@ -468,7 +474,10 @@ class EditionsService {
         url: a.url,
         imageUrl: a.image_url,
         publishedAt: a.published_at,
-        readingTimeSeconds: a.reading_time_seconds,
+        consumptionTimeSeconds: a.consumption_time_seconds,
+        mediaUrl: a.media_url,
+        mediaType: a.media_type,
+        sourceType: a.source_type,
         readAt: a.read_at,
         sourceName: a.source_name,
         focusId: a.focus_id,
@@ -606,7 +615,7 @@ class EditionsService {
           "articles.id",
           "articles.source_id",
           "articles.published_at",
-          "articles.reading_time_seconds",
+          "articles.consumption_time_seconds",
           "article_focuses.confidence",
           "article_embeddings.embedding",
         ])
@@ -722,8 +731,8 @@ class EditionsService {
             if (focusConfig.budgetType === "count") {
               focusBudgetUsed++;
             } else {
-              totalReadingSeconds += article.reading_time_seconds ?? 0;
-              focusBudgetUsed += Math.ceil((article.reading_time_seconds ?? 0) / 60);
+              totalReadingSeconds += article.consumption_time_seconds ?? 0;
+              focusBudgetUsed += Math.ceil((article.consumption_time_seconds ?? 0) / 60);
             }
 
             progress = true;

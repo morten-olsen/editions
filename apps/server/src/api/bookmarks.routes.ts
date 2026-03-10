@@ -25,7 +25,7 @@ const bookmarkWithArticleSchema = z.object({
   summary: z.string().nullable(),
   imageUrl: z.string().nullable(),
   publishedAt: z.string().nullable(),
-  readingTimeSeconds: z.number().nullable(),
+  consumptionTimeSeconds: z.number().nullable(),
   sourceId: z.string(),
   sourceName: z.string(),
 });

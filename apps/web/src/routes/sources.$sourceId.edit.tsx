@@ -12,6 +12,7 @@ type Source = {
   id: string;
   name: string;
   url: string;
+  direction: string;
 };
 
 const EditSourcePage = (): React.ReactNode => {
@@ -21,6 +22,7 @@ const EditSourcePage = (): React.ReactNode => {
   const { sourceId } = Route.useParams();
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
+  const [direction, setDirection] = useState("newest");
   const [error, setError] = useState<string | null>(null);
 
   const sourceQuery = useQuery({
@@ -40,6 +42,7 @@ const EditSourcePage = (): React.ReactNode => {
     if (sourceQuery.data) {
       setName(sourceQuery.data.name);
       setUrl(sourceQuery.data.url);
+      setDirection(sourceQuery.data.direction);
     }
   }, [sourceQuery.data]);
 
@@ -86,6 +89,7 @@ const EditSourcePage = (): React.ReactNode => {
     const body: Record<string, string> = {};
     if (name !== source.name) body.name = name;
     if (url !== source.url) body.url = url;
+    if (direction !== source.direction) body.direction = direction;
 
     if (Object.keys(body).length === 0) {
       await navigate({ to: "/sources/$sourceId", params: { sourceId } });
@@ -119,6 +123,17 @@ const EditSourcePage = (): React.ReactNode => {
           value={url}
           onChange={(e) => setUrl(e.target.value)}
         />
+        <div>
+          <label className="block text-sm font-medium text-ink mb-1.5">Direction</label>
+          <select
+            value={direction}
+            onChange={(e) => setDirection(e.target.value)}
+            className="h-10 w-full rounded-md border border-border bg-surface px-3 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent cursor-pointer"
+          >
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first (series)</option>
+          </select>
+        </div>
         <div className="flex items-center gap-3 mt-2">
           <Button variant="primary" type="submit" disabled={updateMutation.isPending}>
             {updateMutation.isPending ? "Saving..." : "Save changes"}

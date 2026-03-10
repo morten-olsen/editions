@@ -27,7 +27,7 @@ type FocusArticle = {
   summary: string | null;
   imageUrl: string | null;
   publishedAt: string | null;
-  readingTimeSeconds: number | null;
+  consumptionTimeSeconds: number | null;
   readAt: string | null;
   confidence: number;
   score: number;
@@ -324,7 +324,7 @@ const FocusDetailPage = (): React.ReactNode => {
                   author={article.author}
                   summary={article.summary}
                   publishedAt={article.publishedAt}
-                  readingTimeSeconds={article.readingTimeSeconds}
+                  consumptionTimeSeconds={article.consumptionTimeSeconds}
                   imageUrl={article.imageUrl}
                   href={`/sources/${article.sourceId}/articles/${article.id}`}
                   read={status === "all" ? !!article.readAt : false}

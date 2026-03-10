@@ -26,7 +26,7 @@ type BookmarkWithArticle = {
   summary: string | null;
   imageUrl: string | null;
   publishedAt: string | null;
-  readingTimeSeconds: number | null;
+  consumptionTimeSeconds: number | null;
   sourceId: string;
   sourceName: string;
 };
@@ -210,7 +210,7 @@ class BookmarksService {
         "articles.summary",
         "articles.image_url",
         "articles.published_at",
-        "articles.reading_time_seconds",
+        "articles.consumption_time_seconds",
         "articles.source_id",
         "sources.name as source_name",
       ])
@@ -230,7 +230,7 @@ class BookmarksService {
         summary: row.summary,
         imageUrl: row.image_url,
         publishedAt: row.published_at,
-        readingTimeSeconds: row.reading_time_seconds,
+        consumptionTimeSeconds: row.consumption_time_seconds,
         sourceId: row.source_id,
         sourceName: row.source_name,
       })),

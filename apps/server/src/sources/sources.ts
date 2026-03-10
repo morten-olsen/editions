@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 
 import { DatabaseService } from "../database/database.ts";
 
+import type { SourceType } from "../database/database.types.ts";
 import type { Services } from "../services/services.ts";
 
 // --- Errors ---
@@ -26,12 +27,15 @@ type CreateSourceParams = {
   userId: string;
   name: string;
   url: string;
+  type?: string;
+  direction?: string;
   config?: Record<string, unknown>;
 };
 
 type UpdateSourceParams = {
   name?: string;
   url?: string;
+  direction?: string;
   config?: Record<string, unknown>;
 };
 
@@ -42,6 +46,7 @@ type Source = {
   name: string;
   url: string;
   config: Record<string, unknown>;
+  direction: string;
   lastFetchedAt: string | null;
   fetchError: string | null;
   createdAt: string;
@@ -63,8 +68,10 @@ type Article = {
 
 type ArticleDetail = Article & {
   content: string | null;
-  wordCount: number | null;
-  readingTimeSeconds: number | null;
+  consumptionTimeSeconds: number | null;
+  mediaUrl: string | null;
+  mediaType: string | null;
+  sourceType: string;
   readAt: string | null;
   extractedAt: string | null;
 };
@@ -123,6 +130,7 @@ class SourcesService {
         name: "Saved Articles",
         url: "bookmarks://saved",
         config: "{}",
+        direction: "newest",
       })
       .execute();
 
@@ -157,10 +165,11 @@ class SourcesService {
       .values({
         id,
         user_id: params.userId,
-        type: "rss",
+        type: (params.type ?? "rss") as SourceType,
         name: params.name,
         url: params.url,
         config,
+        direction: params.direction ?? "newest",
       })
       .execute();
 
@@ -179,6 +188,7 @@ class SourcesService {
 
     if (params.name !== undefined) values.name = params.name;
     if (params.url !== undefined) values.url = params.url;
+    if (params.direction !== undefined) values.direction = params.direction;
     if (params.config !== undefined) values.config = JSON.stringify(params.config);
 
     await db
@@ -192,10 +202,11 @@ class SourcesService {
   };
 
   listArticles = async (userId: string, sourceId: string, { offset = 0, limit = 20 }: { offset?: number; limit?: number } = {}): Promise<ArticlesPage> => {
-    // Verify ownership
-    await this.get(userId, sourceId);
+    // Verify ownership and get source for direction
+    const source = await this.get(userId, sourceId);
 
     const db = await this.#services.get(DatabaseService).getInstance();
+    const order = source.direction === "oldest" ? "asc" as const : "desc" as const;
 
     const countResult = await db
       .selectFrom("articles")
@@ -210,8 +221,8 @@ class SourcesService {
         "author", "summary", "image_url", "published_at", "created_at",
       ])
       .where("source_id", "=", sourceId)
-      .orderBy("published_at", "desc")
-      .orderBy("created_at", "desc")
+      .orderBy("published_at", order)
+      .orderBy("created_at", order)
       .offset(offset)
       .limit(limit)
       .execute();
@@ -244,10 +255,12 @@ class SourcesService {
       .select([
         "articles.id", "articles.source_id", "articles.external_id",
         "articles.url", "articles.title", "articles.author",
-        "articles.summary", "articles.content", "articles.word_count",
-        "articles.reading_time_seconds", "articles.image_url",
+        "articles.summary", "articles.content",
+        "articles.consumption_time_seconds", "articles.image_url",
+        "articles.media_url", "articles.media_type",
         "articles.published_at", "articles.read_at", "articles.extracted_at",
         "articles.created_at",
+        "sources.type as source_type",
       ])
       .where("articles.id", "=", articleId)
       .where("sources.user_id", "=", userId)
@@ -266,8 +279,10 @@ class SourcesService {
       author: row.author,
       summary: row.summary,
       content: row.content,
-      wordCount: row.word_count,
-      readingTimeSeconds: row.reading_time_seconds,
+      consumptionTimeSeconds: row.consumption_time_seconds,
+      mediaUrl: row.media_url,
+      mediaType: row.media_type,
+      sourceType: row.source_type,
       imageUrl: row.image_url,
       publishedAt: row.published_at,
       readAt: row.read_at,
@@ -318,6 +333,7 @@ const toSource = (row: {
   name: string;
   url: string;
   config: string;
+  direction: string;
   last_fetched_at: string | null;
   fetch_error: string | null;
   created_at: string;
@@ -329,6 +345,7 @@ const toSource = (row: {
   name: row.name,
   url: row.url,
   config: JSON.parse(row.config) as Record<string, unknown>,
+  direction: row.direction,
   lastFetchedAt: row.last_fetched_at,
   fetchError: row.fetch_error,
   createdAt: row.created_at,

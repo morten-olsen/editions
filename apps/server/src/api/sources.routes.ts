@@ -18,6 +18,7 @@ const sourceSchema = z.object({
   name: z.string(),
   url: z.string(),
   config: z.record(z.string(), z.unknown()),
+  direction: z.string(),
   lastFetchedAt: z.string().nullable(),
   fetchError: z.string().nullable(),
   createdAt: z.string(),
@@ -27,11 +28,14 @@ const sourceSchema = z.object({
 const createSourceSchema = z.object({
   name: z.string().min(1).max(256),
   url: z.url(),
+  type: z.enum(["rss", "podcast", "mastodon", "bluesky", "youtube", "custom"]).default("rss"),
+  direction: z.enum(["newest", "oldest"]).default("newest"),
 });
 
 const updateSourceSchema = z.object({
   name: z.string().min(1).max(256).optional(),
   url: z.url().optional(),
+  direction: z.enum(["newest", "oldest"]).optional(),
 });
 
 const errorResponseSchema = z.object({
@@ -71,8 +75,10 @@ const articleDetailSchema = z.object({
   author: z.string().nullable(),
   summary: z.string().nullable(),
   content: z.string().nullable(),
-  wordCount: z.number().nullable(),
-  readingTimeSeconds: z.number().nullable(),
+  consumptionTimeSeconds: z.number().nullable(),
+  mediaUrl: z.string().nullable(),
+  mediaType: z.string().nullable(),
+  sourceType: z.string(),
   imageUrl: z.string().nullable(),
   publishedAt: z.string().nullable(),
   readAt: z.string().nullable(),
@@ -178,6 +184,8 @@ const createSourcesRoutes = (services: Services): FastifyPluginAsyncZod =>
           userId: req.user.sub,
           name: req.body.name,
           url: req.body.url,
+          type: req.body.type,
+          direction: req.body.direction,
         });
         return reply.code(201).send(source);
       },

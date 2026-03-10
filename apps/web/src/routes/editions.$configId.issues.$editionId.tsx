@@ -384,7 +384,7 @@ const EditionViewPage = (): React.ReactNode => {
           {promoImage && (
             <div className="absolute inset-0">
               <img src={promoImage} alt="" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-linear-to-r from-ink/85 via-ink/70 to-ink/50" />
+              <div className="absolute inset-0 bg-linear-to-r from-black/85 via-black/70 to-black/50" />
             </div>
           )}
 

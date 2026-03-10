@@ -70,7 +70,7 @@ const MagazineCover = ({
           className="w-full h-full object-cover"
         />
         {/* Gradient overlays for text legibility */}
-        <div className="absolute inset-0 bg-linear-to-b from-ink/70 via-ink/30 to-ink/80" />
+        <div className="absolute inset-0 bg-linear-to-b from-black/70 via-black/30 to-black/80" />
       </motion.div>
     )}
 

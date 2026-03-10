@@ -262,7 +262,7 @@ const SourceDetailPage = (): React.ReactNode => {
                 summary={article.summary}
                 imageUrl={article.imageUrl}
                 publishedAt={article.publishedAt}
-
+                sourceType={source.type}
                 href={`/sources/${sourceId}/articles/${article.id}`}
               />
             ))}

@@ -361,6 +361,7 @@ class FocusesService {
           "articles.created_at",
           "article_focuses.confidence",
           "sources.name as source_name",
+          "sources.type as source_type",
         ])
         .orderBy("articles.published_at", "desc")
         .offset(offset)
@@ -397,6 +398,7 @@ class FocusesService {
             vote: votes?.focus ?? null,
             globalVote: votes?.global ?? null,
             sourceName: row.source_name,
+            sourceType: row.source_type,
           };
         }),
         total: Number(countResult.count),
@@ -428,6 +430,7 @@ class FocusesService {
         "article_focuses.confidence",
         "article_embeddings.embedding",
         "sources.name as source_name",
+        "sources.type as source_type",
       ])
       .execute();
 
@@ -473,6 +476,7 @@ class FocusesService {
         readAt: row.read_at,
         createdAt: row.created_at,
         sourceName: row.source_name,
+        sourceType: row.source_type,
       };
     });
 
@@ -516,6 +520,7 @@ class FocusesService {
           vote: votes?.focus ?? null,
           globalVote: votes?.global ?? null,
           sourceName: c.sourceName,
+          sourceType: c.sourceType,
         };
       }),
       total: Number(countResult.count),
@@ -557,6 +562,7 @@ type FocusArticle = {
   vote: 1 | -1 | null;
   globalVote: 1 | -1 | null;
   sourceName: string;
+  sourceType: string;
 };
 
 type FocusArticlesPage = {

@@ -28,6 +28,7 @@ const bookmarkWithArticleSchema = z.object({
   consumptionTimeSeconds: z.number().nullable(),
   sourceId: z.string(),
   sourceName: z.string(),
+  sourceType: z.string(),
 });
 
 const bookmarksPageSchema = z.object({

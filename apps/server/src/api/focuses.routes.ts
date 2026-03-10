@@ -79,6 +79,7 @@ const focusArticleSchema = z.object({
   vote: z.union([z.literal(1), z.literal(-1)]).nullable(),
   globalVote: z.union([z.literal(1), z.literal(-1)]).nullable(),
   sourceName: z.string(),
+  sourceType: z.string(),
 });
 
 const focusArticlesPageSchema = z.object({

@@ -590,7 +590,7 @@ class EditionsService {
     const focusesService = this.#services.get(FocusesService);
     const focusDetails = new Map<
       string,
-      { minConfidence: number; sourceWeights: Map<string, number> }
+      { minConfidence: number; minConsumptionTimeSeconds: number | null; maxConsumptionTimeSeconds: number | null; sourceWeights: Map<string, number> }
     >();
     for (const fc of sortedFocuses) {
       const focus = await focusesService.get(userId, fc.focusId);
@@ -598,7 +598,7 @@ class EditionsService {
       for (const src of focus.sources) {
         sourceWeights.set(src.sourceId, src.weight);
       }
-      focusDetails.set(fc.focusId, { minConfidence: focus.minConfidence, sourceWeights });
+      focusDetails.set(fc.focusId, { minConfidence: focus.minConfidence, minConsumptionTimeSeconds: focus.minConsumptionTimeSeconds, maxConsumptionTimeSeconds: focus.maxConsumptionTimeSeconds, sourceWeights });
     }
 
     // Load global vote context and user scoring weights once for the user
@@ -646,6 +646,22 @@ class EditionsService {
           "article_focuses.confidence",
           ">=",
           focusInfo.minConfidence,
+        );
+      }
+
+      if (focusInfo.minConsumptionTimeSeconds !== null) {
+        candidateQuery = candidateQuery.where(
+          "articles.consumption_time_seconds",
+          ">=",
+          focusInfo.minConsumptionTimeSeconds,
+        );
+      }
+
+      if (focusInfo.maxConsumptionTimeSeconds !== null) {
+        candidateQuery = candidateQuery.where(
+          "articles.consumption_time_seconds",
+          "<=",
+          focusInfo.maxConsumptionTimeSeconds,
         );
       }
 

@@ -50,6 +50,7 @@ type EditionConfig = {
   id: string;
   userId: string;
   name: string;
+  icon: string | null;
   schedule: string;
   lookbackHours: number;
   excludePriorEditions: boolean;
@@ -62,6 +63,7 @@ type EditionConfig = {
 type CreateEditionConfigParams = {
   userId: string;
   name: string;
+  icon?: string | null;
   schedule: string;
   lookbackHours: number;
   excludePriorEditions?: boolean;
@@ -80,6 +82,7 @@ type CreateEditionConfigFocusParams = {
 
 type UpdateEditionConfigParams = {
   name?: string;
+  icon?: string | null;
   schedule?: string;
   lookbackHours?: number;
   excludePriorEditions?: boolean;
@@ -185,6 +188,7 @@ class EditionsService {
       id: row.id,
       userId: row.user_id,
       name: row.name,
+      icon: row.icon,
       schedule: row.schedule,
       lookbackHours: row.lookback_hours,
       excludePriorEditions: row.exclude_prior_editions === 1,
@@ -229,6 +233,7 @@ class EditionsService {
       id: row.id,
       userId: row.user_id,
       name: row.name,
+      icon: row.icon,
       schedule: row.schedule,
       lookbackHours: row.lookback_hours,
       excludePriorEditions: row.exclude_prior_editions === 1,
@@ -258,6 +263,7 @@ class EditionsService {
         id,
         user_id: params.userId,
         name: params.name,
+        icon: params.icon ?? null,
         schedule: params.schedule,
         lookback_hours: params.lookbackHours,
         exclude_prior_editions: params.excludePriorEditions ? 1 : 0,
@@ -299,6 +305,7 @@ class EditionsService {
     };
 
     if (params.name !== undefined) values.name = params.name;
+    if (params.icon !== undefined) values.icon = params.icon;
     if (params.schedule !== undefined) values.schedule = params.schedule;
     if (params.lookbackHours !== undefined) values.lookback_hours = params.lookbackHours;
     if (params.excludePriorEditions !== undefined)

@@ -31,6 +31,7 @@ const editionConfigSchema = z.object({
   id: z.string(),
   userId: z.string(),
   name: z.string(),
+  icon: z.string().nullable(),
   schedule: z.string(),
   lookbackHours: z.number(),
   excludePriorEditions: z.boolean(),
@@ -51,6 +52,7 @@ const createEditionConfigFocusSchema = z.object({
 
 const createEditionConfigSchema = z.object({
   name: z.string().min(1).max(256),
+  icon: z.string().max(64).nullable().optional(),
   schedule: z.string().min(1),
   lookbackHours: z.number().int().min(1),
   excludePriorEditions: z.boolean().optional(),
@@ -60,6 +62,7 @@ const createEditionConfigSchema = z.object({
 
 const updateEditionConfigSchema = z.object({
   name: z.string().min(1).max(256).optional(),
+  icon: z.string().max(64).nullable().optional(),
   schedule: z.string().min(1).optional(),
   lookbackHours: z.number().int().min(1).optional(),
   excludePriorEditions: z.boolean().optional(),

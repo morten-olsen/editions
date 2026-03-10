@@ -34,6 +34,7 @@ type CreateFocusParams = {
   userId: string;
   name: string;
   description?: string;
+  icon?: string | null;
   minConfidence?: number;
   minReadingTimeSeconds?: number | null;
   maxReadingTimeSeconds?: number | null;
@@ -43,6 +44,7 @@ type CreateFocusParams = {
 type UpdateFocusParams = {
   name?: string;
   description?: string | null;
+  icon?: string | null;
   minConfidence?: number;
   minReadingTimeSeconds?: number | null;
   maxReadingTimeSeconds?: number | null;
@@ -59,6 +61,7 @@ type Focus = {
   userId: string;
   name: string;
   description: string | null;
+  icon: string | null;
   minConfidence: number;
   minReadingTimeSeconds: number | null;
   maxReadingTimeSeconds: number | null;
@@ -108,6 +111,7 @@ class FocusesService {
       userId: row.user_id,
       name: row.name,
       description: row.description,
+      icon: row.icon,
       minConfidence: row.min_confidence,
       minReadingTimeSeconds: row.min_reading_time_seconds,
       maxReadingTimeSeconds: row.max_reading_time_seconds,
@@ -142,6 +146,7 @@ class FocusesService {
       userId: row.user_id,
       name: row.name,
       description: row.description,
+      icon: row.icon,
       minConfidence: row.min_confidence,
       minReadingTimeSeconds: row.min_reading_time_seconds,
       maxReadingTimeSeconds: row.max_reading_time_seconds,
@@ -167,6 +172,7 @@ class FocusesService {
         user_id: params.userId,
         name: params.name,
         description: params.description ?? null,
+        icon: params.icon ?? null,
         ...(params.minConfidence !== undefined
           ? { min_confidence: params.minConfidence }
           : {}),
@@ -208,6 +214,7 @@ class FocusesService {
 
     if (params.name !== undefined) values.name = params.name;
     if (params.description !== undefined) values.description = params.description;
+    if (params.icon !== undefined) values.icon = params.icon;
     if (params.minConfidence !== undefined) values.min_confidence = params.minConfidence;
     if (params.minReadingTimeSeconds !== undefined) values.min_reading_time_seconds = params.minReadingTimeSeconds;
     if (params.maxReadingTimeSeconds !== undefined) values.max_reading_time_seconds = params.maxReadingTimeSeconds;

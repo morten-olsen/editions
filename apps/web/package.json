@@ -17,6 +17,7 @@
     "@tailwindcss/typography": "^0.5.19",
     "@tanstack/react-query": "^5.0.0",
     "@tanstack/react-router": "^1.120.0",
+    "lucide-react": "^0.577.0",
     "motion": "^12.35.2",
     "openapi-fetch": "^0.14.0",
     "react": "^19.2.0",

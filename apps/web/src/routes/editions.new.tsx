@@ -8,6 +8,7 @@ import { Input } from "../components/input.tsx";
 import { Button } from "../components/button.tsx";
 import { Checkbox } from "../components/checkbox.tsx";
 import { Separator } from "../components/separator.tsx";
+import { IconPicker } from "../components/icon-picker.tsx";
 
 type Focus = {
   id: string;
@@ -28,6 +29,7 @@ const NewEditionConfigPage = (): React.ReactNode => {
   const auth = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState("");
+  const [icon, setIcon] = useState<string | null>(null);
   const [schedule, setSchedule] = useState("0 7 * * *");
   const [lookbackHours, setLookbackHours] = useState(24);
   const [excludePriorEditions, setExcludePriorEditions] = useState(false);
@@ -104,6 +106,7 @@ const NewEditionConfigPage = (): React.ReactNode => {
     const { error: err } = await client.POST("/api/editions/configs", {
       body: {
         name,
+        icon,
         schedule,
         lookbackHours,
         excludePriorEditions,
@@ -147,6 +150,7 @@ const NewEditionConfigPage = (): React.ReactNode => {
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
+          <IconPicker value={icon} onChange={setIcon} />
           <Input
             label="Schedule"
             description="Cron expression"

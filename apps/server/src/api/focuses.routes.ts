@@ -23,6 +23,7 @@ const focusSchema = z.object({
   userId: z.string(),
   name: z.string(),
   description: z.string().nullable(),
+  icon: z.string().nullable(),
   minConfidence: z.number(),
   minReadingTimeSeconds: z.number().nullable(),
   maxReadingTimeSeconds: z.number().nullable(),
@@ -40,6 +41,7 @@ const createFocusSourceSchema = z.object({
 const createFocusSchema = z.object({
   name: z.string().min(1).max(256),
   description: z.string().max(1024).optional(),
+  icon: z.string().max(64).nullable().optional(),
   minConfidence: z.number().min(0).max(1).optional(),
   minReadingTimeSeconds: z.number().int().min(0).nullable().optional(),
   maxReadingTimeSeconds: z.number().int().min(0).nullable().optional(),
@@ -49,6 +51,7 @@ const createFocusSchema = z.object({
 const updateFocusSchema = z.object({
   name: z.string().min(1).max(256).optional(),
   description: z.string().max(1024).nullable().optional(),
+  icon: z.string().max(64).nullable().optional(),
   minConfidence: z.number().min(0).max(1).optional(),
   minReadingTimeSeconds: z.number().int().min(0).nullable().optional(),
   maxReadingTimeSeconds: z.number().int().min(0).nullable().optional(),
@@ -169,6 +172,7 @@ const createFocusesRoutes = (services: Services): FastifyPluginAsyncZod =>
           userId: req.user.sub,
           name: req.body.name,
           description: req.body.description,
+          icon: req.body.icon,
           minConfidence: req.body.minConfidence,
           minReadingTimeSeconds: req.body.minReadingTimeSeconds,
           maxReadingTimeSeconds: req.body.maxReadingTimeSeconds,

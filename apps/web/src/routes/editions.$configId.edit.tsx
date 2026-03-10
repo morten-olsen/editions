@@ -8,6 +8,7 @@ import { Input } from "../components/input.tsx";
 import { Button } from "../components/button.tsx";
 import { Checkbox } from "../components/checkbox.tsx";
 import { Separator } from "../components/separator.tsx";
+import { IconPicker } from "../components/icon-picker.tsx";
 
 type Focus = {
   id: string;
@@ -28,6 +29,7 @@ type EditionConfigFocus = {
 type EditionConfig = {
   id: string;
   name: string;
+  icon: string | null;
   schedule: string;
   lookbackHours: number;
   excludePriorEditions: boolean;
@@ -52,6 +54,7 @@ const EditEditionConfigPage = (): React.ReactNode => {
   const [allFocuses, setAllFocuses] = useState<Focus[]>([]);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
+  const [icon, setIcon] = useState<string | null>(null);
   const [schedule, setSchedule] = useState("");
   const [lookbackHours, setLookbackHours] = useState(24);
   const [excludePriorEditions, setExcludePriorEditions] = useState(false);
@@ -75,9 +78,10 @@ const EditEditionConfigPage = (): React.ReactNode => {
     if (configRes.error) {
       setError("Edition config not found");
     } else {
-      const c = configRes.data as EditionConfig;
+      const c = configRes.data as unknown as EditionConfig;
       setConfig(c);
       setName(c.name);
+      setIcon(c.icon);
       setSchedule(c.schedule);
       setLookbackHours(c.lookbackHours);
       setExcludePriorEditions(c.excludePriorEditions);
@@ -167,6 +171,7 @@ const EditEditionConfigPage = (): React.ReactNode => {
     const body: Record<string, unknown> = {};
 
     if (name !== config.name) body.name = name;
+    if (icon !== config.icon) body.icon = icon;
     if (schedule !== config.schedule) body.schedule = schedule;
     if (lookbackHours !== config.lookbackHours) body.lookbackHours = lookbackHours;
     if (excludePriorEditions !== config.excludePriorEditions)
@@ -235,6 +240,7 @@ const EditEditionConfigPage = (): React.ReactNode => {
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
+          <IconPicker value={icon} onChange={setIcon} />
           <Input
             label="Schedule"
             description="Cron expression"

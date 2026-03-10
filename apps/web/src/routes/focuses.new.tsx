@@ -9,6 +9,7 @@ import { Textarea } from "../components/textarea.tsx";
 import { Button } from "../components/button.tsx";
 import { Checkbox } from "../components/checkbox.tsx";
 import { Separator } from "../components/separator.tsx";
+import { IconPicker } from "../components/icon-picker.tsx";
 
 type Source = {
   id: string;
@@ -27,6 +28,7 @@ const NewFocusPage = (): React.ReactNode => {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [icon, setIcon] = useState<string | null>(null);
   const [minConfidence, setMinConfidence] = useState(0);
   const [minReadingTime, setMinReadingTime] = useState("");
   const [maxReadingTime, setMaxReadingTime] = useState("");
@@ -87,12 +89,14 @@ const NewFocusPage = (): React.ReactNode => {
     const body: {
       name: string;
       description?: string;
+      icon?: string | null;
       minConfidence?: number;
       minReadingTimeSeconds?: number | null;
       maxReadingTimeSeconds?: number | null;
       sources?: SourceSelection[];
     } = { name };
     if (description.trim()) body.description = description.trim();
+    if (icon) body.icon = icon;
     if (minConfidence > 0) body.minConfidence = minConfidence / 100;
     const parsedMin = minReadingTime ? Number(minReadingTime) : null;
     const parsedMax = maxReadingTime ? Number(maxReadingTime) : null;
@@ -141,6 +145,7 @@ const NewFocusPage = (): React.ReactNode => {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
+          <IconPicker value={icon} onChange={setIcon} />
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-ink">
               Minimum confidence

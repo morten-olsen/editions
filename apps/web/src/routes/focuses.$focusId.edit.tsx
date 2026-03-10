@@ -9,6 +9,7 @@ import { Textarea } from "../components/textarea.tsx";
 import { Button } from "../components/button.tsx";
 import { Checkbox } from "../components/checkbox.tsx";
 import { Separator } from "../components/separator.tsx";
+import { IconPicker } from "../components/icon-picker.tsx";
 
 type FocusSource = {
   sourceId: string;
@@ -20,6 +21,7 @@ type Focus = {
   id: string;
   name: string;
   description: string | null;
+  icon: string | null;
   minConfidence: number;
   minReadingTimeSeconds: number | null;
   maxReadingTimeSeconds: number | null;
@@ -41,6 +43,7 @@ const EditFocusPage = (): React.ReactNode => {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [icon, setIcon] = useState<string | null>(null);
   const [minConfidence, setMinConfidence] = useState(0);
   const [minReadingTime, setMinReadingTime] = useState("");
   const [maxReadingTime, setMaxReadingTime] = useState("");
@@ -63,10 +66,11 @@ const EditFocusPage = (): React.ReactNode => {
     if (focusRes.error) {
       setError("Focus not found");
     } else {
-      const f = focusRes.data as Focus;
+      const f = focusRes.data as unknown as Focus;
       setFocus(f);
       setName(f.name);
       setDescription(f.description ?? "");
+      setIcon(f.icon);
       setMinConfidence(Math.round(f.minConfidence * 100));
       setMinReadingTime(f.minReadingTimeSeconds !== null ? String(f.minReadingTimeSeconds / 60) : "");
       setMaxReadingTime(f.maxReadingTimeSeconds !== null ? String(f.maxReadingTimeSeconds / 60) : "");
@@ -131,6 +135,7 @@ const EditFocusPage = (): React.ReactNode => {
     if (name !== focus.name) patchBody.name = name;
     const newDesc = description.trim() || null;
     if (newDesc !== focus.description) patchBody.description = newDesc;
+    if (icon !== focus.icon) patchBody.icon = icon;
     const newMinConfidence = minConfidence / 100;
     if (newMinConfidence !== focus.minConfidence) patchBody.minConfidence = newMinConfidence;
     const newMinReading = minReadingTime ? Number(minReadingTime) * 60 : null;
@@ -203,6 +208,7 @@ const EditFocusPage = (): React.ReactNode => {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
+          <IconPicker value={icon} onChange={setIcon} />
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-ink">
               Minimum confidence

@@ -3,16 +3,19 @@ import { Link, useRouterState } from "@tanstack/react-router";
 
 import { useAuth } from "../auth/auth.tsx";
 import { client } from "../api/api.ts";
+import { EntityIcon } from "./entity-icon.tsx";
 
 type NavEditionConfig = {
   id: string;
   name: string;
+  icon: string | null;
   hasUnread: boolean;
 };
 
 type NavFocus = {
   id: string;
   name: string;
+  icon: string | null;
 };
 
 type EditionSummary = {
@@ -61,8 +64,8 @@ const Nav = (): React.ReactElement => {
       client.GET("/api/focuses", { headers: hdrs }),
     ]);
 
-    const rawConfigs = (configsRes.data ?? []) as { id: string; name: string }[];
-    const rawFocuses = (focusesRes.data ?? []) as NavFocus[];
+    const rawConfigs = (configsRes.data ?? []) as unknown as { id: string; name: string; icon: string | null }[];
+    const rawFocuses = (focusesRes.data ?? []) as unknown as NavFocus[];
 
     const configsWithUnread = await Promise.all(
       rawConfigs.map(async (cfg): Promise<NavEditionConfig> => {
@@ -74,6 +77,7 @@ const Nav = (): React.ReactElement => {
         return {
           id: cfg.id,
           name: cfg.name,
+          icon: cfg.icon,
           hasUnread: editions.some((e) => e.readAt === null),
         };
       }),
@@ -110,6 +114,7 @@ const Nav = (): React.ReactElement => {
               params={{ configId: cfg.id }}
               className={linkClass(isActive(`/editions/${cfg.id}`))}
             >
+              <EntityIcon icon={cfg.icon} size={14} className="shrink-0" />
               <span className="truncate flex-1">{cfg.name}</span>
               {cfg.hasUnread && (
                 <span className="shrink-0 w-5 h-5 flex items-center justify-center">
@@ -147,6 +152,7 @@ const Nav = (): React.ReactElement => {
               params={{ focusId: focus.id }}
               className={linkClass(isActive(`/focuses/${focus.id}`))}
             >
+              <EntityIcon icon={focus.icon} size={14} className="shrink-0" />
               <span className="truncate">{focus.name}</span>
             </Link>
           ))}

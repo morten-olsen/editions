@@ -157,36 +157,27 @@ class AnalysisService {
     const db = await this.#services.get(DatabaseService).getInstance();
     const taskService = this.#services.get(TaskService);
 
-    // For podcasts, content comes from the feed itself — backfill extracted_at for any
-    // articles that are missing it (can happen if the source type was initially wrong).
-    const source = await db
-      .selectFrom("sources")
-      .select("type")
-      .where("id", "=", sourceId)
-      .executeTakeFirst();
-
-    const isPodcast = source?.type === "podcast";
-
-    if (isPodcast) {
-      await db
-        .updateTable("articles")
-        .set({ extracted_at: new Date().toISOString() })
-        .where("source_id", "=", sourceId)
-        .where("extracted_at", "is", null)
-        .execute();
-    }
+    // Backfill extracted_at for articles that have feed content (content or summary)
+    // but were never marked as extracted. This handles podcast episodes stored before
+    // the podcast feature was added, or sources created with an incorrect type.
+    await db
+      .updateTable("articles")
+      .set({ extracted_at: new Date().toISOString() })
+      .where("source_id", "=", sourceId)
+      .where("extracted_at", "is", null)
+      .where((eb) => eb.or([
+        eb("content", "is not", null),
+        eb("summary", "is not", null),
+      ]))
+      .execute();
 
     // Get all extracted articles for this source
-    let articlesQuery = db
+    const articles = await db
       .selectFrom("articles")
       .select("id")
-      .where("source_id", "=", sourceId);
-
-    if (!isPodcast) {
-      articlesQuery = articlesQuery.where("extracted_at", "is not", null);
-    }
-
-    const articles = await articlesQuery.execute();
+      .where("source_id", "=", sourceId)
+      .where("extracted_at", "is not", null)
+      .execute();
 
     if (articles.length === 0) return 0;
 

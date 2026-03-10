@@ -30,6 +30,7 @@ type Vote = {
   userId: string;
   articleId: string;
   focusId: string | null;
+  editionId: string | null;
   value: ArticleVoteValue;
   createdAt: string;
 };
@@ -38,12 +39,14 @@ type UpsertVoteParams = {
   userId: string;
   articleId: string;
   focusId: string | null;
+  editionId: string | null;
   value: ArticleVoteValue;
 };
 
 type ArticleVotePair = {
   focus: ArticleVoteValue | null;
   global: ArticleVoteValue | null;
+  edition: ArticleVoteValue | null;
 };
 
 type ArticleVotesMap = Map<string, ArticleVotePair>;
@@ -51,7 +54,7 @@ type ArticleVotesMap = Map<string, ArticleVotePair>;
 type ListVotesOptions = {
   offset?: number;
   limit?: number;
-  scope?: "global" | "focus";
+  scope?: "global" | "focus" | "edition";
   value?: ArticleVoteValue;
 };
 
@@ -114,6 +117,12 @@ class VotesService {
         query = query.where("focus_id", "=", params.focusId);
       }
 
+      if (params.editionId === null) {
+        query = query.where("edition_id", "is", null);
+      } else {
+        query = query.where("edition_id", "=", params.editionId);
+      }
+
       await query.execute();
 
       await trx
@@ -123,6 +132,7 @@ class VotesService {
           user_id: params.userId,
           article_id: params.articleId,
           focus_id: params.focusId,
+          edition_id: params.editionId,
           value: params.value,
           created_at: now,
         })
@@ -134,6 +144,7 @@ class VotesService {
       userId: params.userId,
       articleId: params.articleId,
       focusId: params.focusId,
+      editionId: params.editionId,
       value: params.value,
       createdAt: now,
     };
@@ -143,6 +154,7 @@ class VotesService {
     userId: string,
     articleId: string,
     focusId: string | null,
+    editionId: string | null = null,
   ): Promise<void> => {
     const db = await this.#services.get(DatabaseService).getInstance();
 
@@ -155,6 +167,12 @@ class VotesService {
       query = query.where("focus_id", "is", null);
     } else {
       query = query.where("focus_id", "=", focusId);
+    }
+
+    if (editionId === null) {
+      query = query.where("edition_id", "is", null);
+    } else {
+      query = query.where("edition_id", "=", editionId);
     }
 
     await query.execute();
@@ -187,6 +205,7 @@ class VotesService {
       userId: row.user_id,
       articleId: row.article_id,
       focusId: row.focus_id,
+      editionId: row.edition_id,
       value: row.value as ArticleVoteValue,
       createdAt: row.created_at,
     };
@@ -243,6 +262,52 @@ class VotesService {
     return { votes, votedArticles };
   };
 
+  loadEditionVoteContext = async (
+    userId: string,
+    editionConfigId: string,
+  ): Promise<VoteContext> => {
+    const db = await this.#services.get(DatabaseService).getInstance();
+
+    const rows = await db
+      .selectFrom("article_votes")
+      .innerJoin("editions", "editions.id", "article_votes.edition_id")
+      .leftJoin(
+        "article_embeddings",
+        "article_embeddings.article_id",
+        "article_votes.article_id",
+      )
+      .select([
+        "article_votes.article_id",
+        "article_votes.value",
+        "article_embeddings.embedding",
+      ])
+      .where("article_votes.user_id", "=", userId)
+      .where("editions.edition_config_id", "=", editionConfigId)
+      .orderBy("article_votes.created_at", "desc")
+      .limit(MAX_VOTE_CONTEXT_SIZE)
+      .execute();
+
+    const votes = new Map<string, 1 | -1>();
+    const votedArticles: VotedArticle[] = [];
+
+    for (const row of rows) {
+      const value = row.value as ArticleVoteValue;
+      votes.set(row.article_id, value);
+
+      if (row.embedding) {
+        const buffer = row.embedding as Buffer;
+        const embedding = new Float32Array(
+          buffer.buffer,
+          buffer.byteOffset,
+          buffer.byteLength / 4,
+        );
+        votedArticles.push({ embedding, value });
+      }
+    }
+
+    return { votes, votedArticles };
+  };
+
   listByUser = async (
     userId: string,
     { offset = 0, limit = 50, scope, value }: ListVotesOptions = {},
@@ -258,9 +323,11 @@ class VotesService {
         .where("article_votes.user_id", "=", userId);
 
       if (scope === "global") {
-        q = q.where("article_votes.focus_id", "is", null);
+        q = q.where("article_votes.focus_id", "is", null).where("article_votes.edition_id", "is", null);
       } else if (scope === "focus") {
         q = q.where("article_votes.focus_id", "is not", null);
+      } else if (scope === "edition") {
+        q = q.where("article_votes.edition_id", "is not", null);
       }
 
       if (value !== undefined) {
@@ -327,6 +394,7 @@ class VotesService {
     userId: string,
     articleIds: string[],
     focusId: string | null,
+    editionId: string | null = null,
   ): Promise<ArticleVotesMap> => {
     if (articleIds.length === 0) return new Map();
 
@@ -334,23 +402,33 @@ class VotesService {
 
     const rows = await db
       .selectFrom("article_votes")
-      .select(["article_id", "focus_id", "value"])
+      .select(["article_id", "focus_id", "edition_id", "value"])
       .where("user_id", "=", userId)
       .where("article_id", "in", articleIds)
-      .where((eb) =>
-        focusId === null
-          ? eb("focus_id", "is", null)
-          : eb.or([eb("focus_id", "=", focusId), eb("focus_id", "is", null)]),
-      )
+      .where((eb) => {
+        const conditions = [
+          // Global votes (no focus, no edition)
+          eb.and([eb("focus_id", "is", null), eb("edition_id", "is", null)]),
+        ];
+        if (focusId !== null) {
+          conditions.push(eb("focus_id", "=", focusId));
+        }
+        if (editionId !== null) {
+          conditions.push(eb("edition_id", "=", editionId));
+        }
+        return eb.or(conditions);
+      })
       .execute();
 
     const result: ArticleVotesMap = new Map();
 
     for (const row of rows) {
       const value = row.value as ArticleVoteValue;
-      const existing = result.get(row.article_id) ?? { focus: null, global: null };
+      const existing = result.get(row.article_id) ?? { focus: null, global: null, edition: null };
 
-      if (row.focus_id !== null) {
+      if (row.edition_id !== null) {
+        existing.edition = value;
+      } else if (row.focus_id !== null) {
         existing.focus = value;
       } else {
         existing.global = value;

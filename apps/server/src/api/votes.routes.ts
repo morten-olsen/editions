@@ -31,7 +31,7 @@ const votesPageSchema = z.object({
 const listVotesQuerySchema = z.object({
   offset: z.coerce.number().int().min(0).default(0),
   limit: z.coerce.number().int().min(1).max(100).default(50),
-  scope: z.enum(["global", "focus"]).optional(),
+  scope: z.enum(["global", "focus", "edition"]).optional(),
   value: z.coerce.number().pipe(z.union([z.literal(1), z.literal(-1)])).optional(),
 });
 

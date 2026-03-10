@@ -98,6 +98,7 @@ Many-to-many: which sources a focus considers, and how.
 | focus_id | text FK → focuses | |
 | source_id | text FK → sources | |
 | mode | text | `always` (always include articles) or `match` (use classifier) |
+| weight | real | Source weight for scoring and round-robin selection, default 1.0. Higher weight = more influence |
 
 Unique on `(focus_id, source_id)`.
 
@@ -135,14 +136,16 @@ User votes on articles — either globally ("I like/dislike this content") or sc
 | user_id | text FK → users | Who voted |
 | article_id | text FK → articles | What they voted on |
 | focus_id | text FK → focuses | Null = global vote; non-null = focus-scoped vote |
+| edition_id | text FK → editions | Null = not edition-scoped; non-null = edition-scoped vote |
 | value | integer | `1` (upvote) or `-1` (downvote) |
 | created_at | text | |
 
-Uniqueness is enforced via two partial indexes (SQLite treats NULLs as distinct in regular UNIQUE constraints):
+Uniqueness is enforced via three partial indexes (SQLite treats NULLs as distinct in regular UNIQUE constraints):
 - `idx_article_votes_global` — `UNIQUE(user_id, article_id) WHERE focus_id IS NULL`
 - `idx_article_votes_focus` — `UNIQUE(user_id, article_id, focus_id) WHERE focus_id IS NOT NULL`
+- `idx_article_votes_edition` — `UNIQUE(user_id, article_id, edition_id) WHERE edition_id IS NOT NULL`
 
-A user can have both a global vote and a focus-scoped vote on the same article — they are independent signals.
+A user can have global, focus-scoped, and edition-scoped votes on the same article — they are independent signals. Edition votes influence future edition generation for that config.
 
 ### bookmarks
 
@@ -185,6 +188,7 @@ Which focuses an edition config draws from, with per-focus budgets. Position det
 | position | integer | User-controlled order |
 | budget_type | text | `time` (minutes) or `count` (articles) |
 | budget_value | integer | Minutes or article count depending on budget_type |
+| lookback_hours | integer | Optional per-focus lookback window; null = use edition config default |
 
 Unique on `(edition_config_id, focus_id)`.
 

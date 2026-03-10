@@ -73,6 +73,7 @@ type FocusSourcesTable = {
   focus_id: string;
   source_id: string;
   mode: FocusSourceMode;
+  weight: ColumnType<number, number | undefined, number>;
 };
 
 type ArticleFocusesTable = {
@@ -107,6 +108,7 @@ type EditionConfigFocusesTable = {
   position: number;
   budget_type: EditionBudgetType;
   budget_value: number;
+  lookback_hours: number | null;
 };
 
 type EditionConfigSourceBudgetsTable = {
@@ -142,6 +144,7 @@ type ArticleVotesTable = {
   user_id: string;
   article_id: string;
   focus_id: string | null;
+  edition_id: string | null;
   value: ArticleVoteValue;
   created_at: Timestamp;
 };

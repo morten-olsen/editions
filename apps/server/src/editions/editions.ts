@@ -5,8 +5,8 @@ import { FocusesService } from "../focuses/focuses.ts";
 import {
   VotesService,
   mergeVoteContexts,
-  rankArticles,
 } from "../votes/votes.ts";
+import { computeScore } from "../votes/votes.scoring.ts";
 
 import type { EditionBudgetType } from "../database/database.types.ts";
 import type { Services } from "../services/services.ts";
@@ -42,6 +42,7 @@ type EditionConfigFocus = {
   position: number;
   budgetType: EditionBudgetType;
   budgetValue: number;
+  lookbackHours: number | null;
 };
 
 type EditionConfig = {
@@ -72,6 +73,7 @@ type CreateEditionConfigFocusParams = {
   position: number;
   budgetType: EditionBudgetType;
   budgetValue: number;
+  lookbackHours?: number | null;
 };
 
 type UpdateEditionConfigParams = {
@@ -153,6 +155,7 @@ class EditionsService {
               "edition_config_focuses.position",
               "edition_config_focuses.budget_type",
               "edition_config_focuses.budget_value",
+              "edition_config_focuses.lookback_hours",
               "focuses.name as focus_name",
             ])
             .where("edition_config_id", "in", configIds)
@@ -169,6 +172,7 @@ class EditionsService {
         position: link.position,
         budgetType: link.budget_type as EditionBudgetType,
         budgetValue: link.budget_value,
+        lookbackHours: link.lookback_hours,
       });
       focusesByConfig.set(link.edition_config_id, arr);
     }
@@ -209,6 +213,7 @@ class EditionsService {
         "edition_config_focuses.position",
         "edition_config_focuses.budget_type",
         "edition_config_focuses.budget_value",
+        "edition_config_focuses.lookback_hours",
         "focuses.name as focus_name",
       ])
       .where("edition_config_id", "=", id)
@@ -229,6 +234,7 @@ class EditionsService {
         position: link.position,
         budgetType: link.budget_type as EditionBudgetType,
         budgetValue: link.budget_value,
+        lookbackHours: link.lookback_hours,
       })),
       createdAt: row.created_at,
       updatedAt: row.updated_at,
@@ -263,6 +269,7 @@ class EditionsService {
             position: f.position,
             budget_type: f.budgetType,
             budget_value: f.budgetValue,
+            lookback_hours: f.lookbackHours ?? null,
           })),
         )
         .execute();
@@ -314,6 +321,7 @@ class EditionsService {
               position: f.position,
               budget_type: f.budgetType,
               budget_value: f.budgetValue,
+              lookback_hours: f.lookbackHours ?? null,
             })),
           )
           .execute();
@@ -512,10 +520,6 @@ class EditionsService {
       throw new EditionError("Edition config has no focuses");
     }
 
-    const cutoff = new Date(
-      Date.now() - config.lookbackHours * 60 * 60 * 1000,
-    ).toISOString();
-
     // Collect IDs of articles already in prior editions of this config (if configured)
     const excludedArticleIds = new Set<string>();
 
@@ -541,20 +545,36 @@ class EditionsService {
     // Process focuses in position order
     const sortedFocuses = [...config.focuses].sort((a, b) => a.position - b.position);
 
-    // Load focus details to get min_confidence thresholds
+    // Load focus details to get min_confidence thresholds and source weights
     const focusesService = this.#services.get(FocusesService);
-    const focusDetails = new Map<string, { minConfidence: number }>();
+    const focusDetails = new Map<
+      string,
+      { minConfidence: number; sourceWeights: Map<string, number> }
+    >();
     for (const fc of sortedFocuses) {
       const focus = await focusesService.get(userId, fc.focusId);
-      focusDetails.set(fc.focusId, { minConfidence: focus.minConfidence });
+      const sourceWeights = new Map<string, number>();
+      for (const src of focus.sources) {
+        sourceWeights.set(src.sourceId, src.weight);
+      }
+      focusDetails.set(fc.focusId, { minConfidence: focus.minConfidence, sourceWeights });
     }
 
     // Load global vote context once for the user
     const votesService = this.#services.get(VotesService);
     const globalVoteContext = await votesService.loadVoteContext(userId, null);
 
+    // Load edition-config-scoped vote context
+    const editionVoteContext = await votesService.loadEditionVoteContext(userId, configId);
+
     for (const focusConfig of sortedFocuses) {
       const focusInfo = focusDetails.get(focusConfig.focusId)!;
+
+      // Per-focus cutoff: use focus-level lookback if set, otherwise config default
+      const lookbackHours = focusConfig.lookbackHours ?? config.lookbackHours;
+      const cutoff = new Date(
+        Date.now() - lookbackHours * 60 * 60 * 1000,
+      ).toISOString();
 
       // Get all candidate articles for this focus within the time window
       let candidateQuery = db
@@ -589,39 +609,46 @@ class EditionsService {
 
       const candidates = await candidateQuery.execute();
 
-      // Load focus-scoped vote context and merge with global
+      // Load focus-scoped vote context and merge with global + edition
       const focusVoteContext = await votesService.loadVoteContext(
         userId,
         focusConfig.focusId,
       );
-      const voteContext = mergeVoteContexts(globalVoteContext, focusVoteContext);
-
-      // Score and rank candidates
-      const scoredCandidates = rankArticles(
-        candidates.map((c) => {
-          const embeddingBuf = c.embedding as Buffer | null;
-          return {
-            ...c,
-            articleId: c.id,
-            publishedAt: c.published_at,
-            embedding: embeddingBuf
-              ? new Float32Array(
-                  embeddingBuf.buffer,
-                  embeddingBuf.byteOffset,
-                  embeddingBuf.byteLength / 4,
-                )
-              : null,
-          };
-        }),
-        voteContext,
+      const voteContext = mergeVoteContexts(
+        mergeVoteContexts(globalVoteContext, focusVoteContext),
+        editionVoteContext,
       );
+
+      // Score and rank candidates (apply source weights to scores)
+      const { sourceWeights } = focusInfo;
+      const mapped = candidates.map((c) => {
+        const embeddingBuf = c.embedding as Buffer | null;
+        return {
+          ...c,
+          articleId: c.id,
+          publishedAt: c.published_at,
+          embedding: embeddingBuf
+            ? new Float32Array(
+                embeddingBuf.buffer,
+                embeddingBuf.byteOffset,
+                embeddingBuf.byteLength / 4,
+              )
+            : null,
+        };
+      });
+      const scored = mapped.map((c) => ({
+        item: c,
+        score: computeScore(c, voteContext) * (sourceWeights.get(c.source_id) ?? 1),
+      }));
+      scored.sort((a, b) => b.score - a.score);
+      const scoredCandidates = scored.map((s) => s.item);
 
       // Filter out already claimed or excluded articles
       const eligible = scoredCandidates.filter(
         (c) => !claimedArticleIds.has(c.id) && !excludedArticleIds.has(c.id),
       );
 
-      // Group by source for round-robin
+      // Group by source for weighted round-robin
       const bySource = new Map<string, typeof eligible>();
       for (const article of eligible) {
         const arr = bySource.get(article.source_id) ?? [];
@@ -629,54 +656,68 @@ class EditionsService {
         bySource.set(article.source_id, arr);
       }
 
-      // Track per-source index for round-robin
+      // Weighted round-robin using fractional accumulator
       const sourceIds = [...bySource.keys()];
       const sourceIndex = new Map<string, number>();
+      const accumulator = new Map<string, number>();
       for (const sid of sourceIds) {
         sourceIndex.set(sid, 0);
+        accumulator.set(sid, 0);
       }
 
       let focusBudgetUsed = 0;
-      let exhaustedSources = 0;
 
-      // Round-robin until budget is met or all sources exhausted
-      while (exhaustedSources < sourceIds.length) {
-        let pickedThisRound = false;
+      // Each round: add weight to accumulators, then pick from sources with accumulator >= 1
+      let progress = true;
+      while (progress) {
+        progress = false;
 
+        // Add weight to each source's accumulator
         for (const sourceId of sourceIds) {
-          const idx = sourceIndex.get(sourceId)!;
-          const articles = bySource.get(sourceId)!;
+          const weight = sourceWeights.get(sourceId) ?? 1;
+          accumulator.set(sourceId, (accumulator.get(sourceId) ?? 0) + weight);
+        }
 
-          const article = articles[idx];
-          if (!article) continue;
+        // Sort sources by accumulator descending for fairness
+        const sortedSources = [...sourceIds].sort(
+          (a, b) => (accumulator.get(b) ?? 0) - (accumulator.get(a) ?? 0),
+        );
 
-          sourceIndex.set(sourceId, idx + 1);
+        for (const sourceId of sortedSources) {
+          // Pick articles while accumulator >= 1 and articles remain
+          while ((accumulator.get(sourceId) ?? 0) >= 1) {
+            const idx = sourceIndex.get(sourceId)!;
+            const articles = bySource.get(sourceId)!;
+            const article = articles[idx];
 
-          if (idx + 1 >= articles.length) {
-            exhaustedSources++;
+            if (!article) break;
+
+            sourceIndex.set(sourceId, idx + 1);
+            accumulator.set(sourceId, (accumulator.get(sourceId) ?? 0) - 1);
+
+            claimedArticleIds.add(article.id);
+            editionArticles.push({
+              articleId: article.id,
+              focusId: focusConfig.focusId,
+              position: globalPosition++,
+            });
+
+            if (focusConfig.budgetType === "count") {
+              focusBudgetUsed++;
+            } else {
+              totalReadingSeconds += article.reading_time_seconds ?? 0;
+              focusBudgetUsed += Math.ceil((article.reading_time_seconds ?? 0) / 60);
+            }
+
+            progress = true;
+
+            if (focusBudgetUsed >= focusConfig.budgetValue) break;
           }
-
-          claimedArticleIds.add(article.id);
-          editionArticles.push({
-            articleId: article.id,
-            focusId: focusConfig.focusId,
-            position: globalPosition++,
-          });
-
-          if (focusConfig.budgetType === "count") {
-            focusBudgetUsed++;
-          } else {
-            totalReadingSeconds += article.reading_time_seconds ?? 0;
-            focusBudgetUsed += Math.ceil((article.reading_time_seconds ?? 0) / 60);
-          }
-
-          pickedThisRound = true;
 
           if (focusBudgetUsed >= focusConfig.budgetValue) break;
         }
 
         if (focusBudgetUsed >= focusConfig.budgetValue) break;
-        if (!pickedThisRound) break;
       }
     }
 

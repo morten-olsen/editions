@@ -51,6 +51,7 @@ type UpdateFocusParams = {
 type FocusSource = {
   sourceId: string;
   mode: FocusSourceMode;
+  weight: number;
 };
 
 type Focus = {
@@ -98,7 +99,7 @@ class FocusesService {
     const sourceLinksByFocus = new Map<string, FocusSource[]>();
     for (const link of sourceLinks) {
       const arr = sourceLinksByFocus.get(link.focus_id) ?? [];
-      arr.push({ sourceId: link.source_id, mode: link.mode as FocusSourceMode });
+      arr.push({ sourceId: link.source_id, mode: link.mode as FocusSourceMode, weight: link.weight });
       sourceLinksByFocus.set(link.focus_id, arr);
     }
 
@@ -147,6 +148,7 @@ class FocusesService {
       sources: sourceLinks.map((link) => ({
         sourceId: link.source_id,
         mode: link.mode as FocusSourceMode,
+        weight: link.weight,
       })),
       createdAt: row.created_at,
       updatedAt: row.updated_at,
@@ -185,6 +187,7 @@ class FocusesService {
             focus_id: id,
             source_id: s.sourceId,
             mode: s.mode,
+            weight: s.weight,
           })),
         )
         .execute();
@@ -253,6 +256,7 @@ class FocusesService {
             focus_id: focusId,
             source_id: s.sourceId,
             mode: s.mode,
+            weight: s.weight,
           })),
         )
         .execute();
@@ -428,6 +432,12 @@ class FocusesService {
     ]);
     const voteContext = mergeVoteContexts(globalContext, focusContext);
 
+    // Build source weight map from focus sources
+    const sourceWeights = new Map<string, number>();
+    for (const src of focus.sources) {
+      sourceWeights.set(src.sourceId, src.weight);
+    }
+
     // Build scoring candidates
     const candidates = rows.map((row) => {
       const embeddingBuf = row.embedding as Buffer | null;
@@ -458,8 +468,13 @@ class FocusesService {
       };
     });
 
-    // Score and rank
-    const ranked = rankArticles(candidates, voteContext);
+    // Score and rank (apply source weights to scores)
+    const scored = candidates.map((c) => ({
+      item: c,
+      score: computeScore(c, voteContext) * (sourceWeights.get(c.sourceId) ?? 1),
+    }));
+    scored.sort((a, b) => b.score - a.score);
+    const ranked = scored.map((s) => s.item);
 
     // Paginate
     const page = ranked.slice(offset, offset + limit);
@@ -489,7 +504,7 @@ class FocusesService {
           readAt: c.readAt,
           createdAt: c.createdAt,
           confidence: c.confidence,
-          score: computeScore(c, voteContext),
+          score: computeScore(c, voteContext) * (sourceWeights.get(c.sourceId) ?? 1),
           vote: votes?.focus ?? null,
           globalVote: votes?.global ?? null,
           sourceName: c.sourceName,

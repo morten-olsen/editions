@@ -15,6 +15,7 @@ import type { Services } from "../services/services.ts";
 const focusSourceSchema = z.object({
   sourceId: z.string(),
   mode: z.enum(["always", "match"]),
+  weight: z.number(),
 });
 
 const focusSchema = z.object({
@@ -30,13 +31,19 @@ const focusSchema = z.object({
   updatedAt: z.string(),
 });
 
+const createFocusSourceSchema = z.object({
+  sourceId: z.string(),
+  mode: z.enum(["always", "match"]),
+  weight: z.number().min(0).default(1),
+});
+
 const createFocusSchema = z.object({
   name: z.string().min(1).max(256),
   description: z.string().max(1024).optional(),
   minConfidence: z.number().min(0).max(1).optional(),
   minReadingTimeSeconds: z.number().int().min(0).nullable().optional(),
   maxReadingTimeSeconds: z.number().int().min(0).nullable().optional(),
-  sources: z.array(focusSourceSchema).optional(),
+  sources: z.array(createFocusSourceSchema).optional(),
 });
 
 const updateFocusSchema = z.object({
@@ -48,7 +55,7 @@ const updateFocusSchema = z.object({
 });
 
 const setFocusSourcesSchema = z.object({
-  sources: z.array(focusSourceSchema),
+  sources: z.array(createFocusSourceSchema),
 });
 
 const focusArticleSchema = z.object({
@@ -303,6 +310,7 @@ const createFocusesRoutes = (services: Services): FastifyPluginAsyncZod =>
             userId: z.string(),
             articleId: z.string(),
             focusId: z.string().nullable(),
+            editionId: z.string().nullable(),
             value: z.union([z.literal(1), z.literal(-1)]),
             createdAt: z.string(),
           }),
@@ -316,6 +324,7 @@ const createFocusesRoutes = (services: Services): FastifyPluginAsyncZod =>
             userId: req.user.sub,
             articleId: req.params.articleId,
             focusId: req.params.id,
+            editionId: null,
             value: req.body.value,
           });
         } catch (err) {

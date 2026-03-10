@@ -24,6 +24,7 @@ const voteResponseSchema = z.object({
   userId: z.string(),
   articleId: z.string(),
   focusId: z.string().nullable(),
+  editionId: z.string().nullable(),
   value: z.union([z.literal(1), z.literal(-1)]),
   createdAt: z.string(),
 });
@@ -86,6 +87,7 @@ const createArticlesRoutes = (services: Services): FastifyPluginAsyncZod =>
             userId: req.user.sub,
             articleId: req.params.articleId,
             focusId: null,
+            editionId: null,
             value: req.body.value,
           });
         } catch (err) {

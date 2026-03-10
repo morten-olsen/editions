@@ -7,6 +7,10 @@ import {
   EditionNotFoundError,
   EditionsService,
 } from "../editions/editions.ts";
+import {
+  ArticleNotFoundForVoteError,
+  VotesService,
+} from "../votes/votes.ts";
 
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import type { Services } from "../services/services.ts";
@@ -19,6 +23,7 @@ const editionConfigFocusSchema = z.object({
   position: z.number(),
   budgetType: z.enum(["time", "count"]),
   budgetValue: z.number(),
+  lookbackHours: z.number().nullable(),
 });
 
 const editionConfigSchema = z.object({
@@ -39,6 +44,7 @@ const createEditionConfigFocusSchema = z.object({
   position: z.number().int().min(0),
   budgetType: z.enum(["time", "count"]),
   budgetValue: z.number().int().min(1),
+  lookbackHours: z.number().int().min(1).nullable().optional(),
 });
 
 const createEditionConfigSchema = z.object({
@@ -111,6 +117,11 @@ const editionIdParamSchema = z.object({
 const configEditionIdParamSchema = z.object({
   configId: z.string(),
   editionId: z.string(),
+});
+
+const editionArticleIdParamSchema = z.object({
+  editionId: z.string(),
+  articleId: z.string(),
 });
 
 const updateProgressSchema = z.object({
@@ -416,6 +427,75 @@ const createEditionsRoutes = (services: Services): FastifyPluginAsyncZod =>
           }
           throw err;
         }
+      },
+    });
+
+    // --- Edition-scoped votes ---
+
+    // Upsert edition-scoped vote on an article
+    fastify.route({
+      method: "PUT",
+      url: "/editions/:editionId/articles/:articleId/vote",
+      onRequest: authenticate,
+      schema: {
+        security: [{ bearerAuth: [] }],
+        params: editionArticleIdParamSchema,
+        body: z.object({
+          value: z.union([z.literal(1), z.literal(-1)]),
+        }),
+        response: {
+          200: z.object({
+            id: z.string(),
+            userId: z.string(),
+            articleId: z.string(),
+            focusId: z.string().nullable(),
+            editionId: z.string().nullable(),
+            value: z.union([z.literal(1), z.literal(-1)]),
+            createdAt: z.string(),
+          }),
+          404: errorResponseSchema,
+        },
+      },
+      handler: async (req, reply) => {
+        const votesService = services.get(VotesService);
+        try {
+          return await votesService.upsert({
+            userId: req.user.sub,
+            articleId: req.params.articleId,
+            focusId: null,
+            editionId: req.params.editionId,
+            value: req.body.value,
+          });
+        } catch (err) {
+          if (err instanceof ArticleNotFoundForVoteError) {
+            return reply.code(404).send({ error: err.message });
+          }
+          throw err;
+        }
+      },
+    });
+
+    // Remove edition-scoped vote on an article
+    fastify.route({
+      method: "DELETE",
+      url: "/editions/:editionId/articles/:articleId/vote",
+      onRequest: authenticate,
+      schema: {
+        security: [{ bearerAuth: [] }],
+        params: editionArticleIdParamSchema,
+        response: {
+          204: z.undefined(),
+        },
+      },
+      handler: async (req, reply) => {
+        const votesService = services.get(VotesService);
+        await votesService.remove(
+          req.user.sub,
+          req.params.articleId,
+          null,
+          req.params.editionId,
+        );
+        return reply.code(204).send();
       },
     });
   };

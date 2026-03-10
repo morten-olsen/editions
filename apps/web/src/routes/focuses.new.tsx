@@ -53,8 +53,8 @@ const NewFocusPage = (): React.ReactNode => {
         description?: string;
         icon?: string | null;
         minConfidence?: number;
-        minReadingTimeSeconds?: number | null;
-        maxReadingTimeSeconds?: number | null;
+        minConsumptionTimeSeconds?: number | null;
+        maxConsumptionTimeSeconds?: number | null;
         sources?: SourceSelection[];
       } = { name };
       if (description.trim()) body.description = description.trim();
@@ -62,8 +62,8 @@ const NewFocusPage = (): React.ReactNode => {
       if (minConfidence > 0) body.minConfidence = minConfidence / 100;
       const parsedMin = minReadingTime ? Number(minReadingTime) : null;
       const parsedMax = maxReadingTime ? Number(maxReadingTime) : null;
-      if (parsedMin !== null) body.minReadingTimeSeconds = parsedMin * 60;
-      if (parsedMax !== null) body.maxReadingTimeSeconds = parsedMax * 60;
+      if (parsedMin !== null) body.minConsumptionTimeSeconds = parsedMin * 60;
+      if (parsedMax !== null) body.maxConsumptionTimeSeconds = parsedMax * 60;
       if (selectedSources.length > 0) body.sources = selectedSources;
 
       const { error: err } = await client.POST("/api/focuses", {

@@ -696,68 +696,68 @@ class EditionsService {
         bySource.set(article.source_id, arr);
       }
 
-      // Weighted round-robin using fractional accumulator
-      const sourceIds = [...bySource.keys()];
+      // Weighted random source picker — each source's chance of being selected
+      // is proportional to its weight, ensuring fair distribution over time.
       const sourceIndex = new Map<string, number>();
-      const accumulator = new Map<string, number>();
-      for (const sid of sourceIds) {
+      const activeSources = new Set<string>();
+      for (const sid of bySource.keys()) {
         sourceIndex.set(sid, 0);
-        accumulator.set(sid, 0);
+        activeSources.add(sid);
       }
 
       let focusBudgetUsed = 0;
 
-      // Each round: add weight to accumulators, then pick from sources with accumulator >= 1
-      let progress = true;
-      while (progress) {
-        progress = false;
-
-        // Add weight to each source's accumulator
-        for (const sourceId of sourceIds) {
-          const weight = sourceWeights.get(sourceId) ?? 1;
-          accumulator.set(sourceId, (accumulator.get(sourceId) ?? 0) + weight);
+      while (activeSources.size > 0 && focusBudgetUsed < focusConfig.budgetValue) {
+        // Build weighted pool from sources that still have articles
+        let totalWeight = 0;
+        const pool: Array<{ sourceId: string; weight: number }> = [];
+        for (const sourceId of activeSources) {
+          const w = sourceWeights.get(sourceId) ?? 1;
+          pool.push({ sourceId, weight: w });
+          totalWeight += w;
         }
 
-        // Sort sources by accumulator descending for fairness
-        const sortedSources = [...sourceIds].sort(
-          (a, b) => (accumulator.get(b) ?? 0) - (accumulator.get(a) ?? 0),
-        );
-
-        for (const sourceId of sortedSources) {
-          // Pick articles while accumulator >= 1 and articles remain
-          while ((accumulator.get(sourceId) ?? 0) >= 1) {
-            const idx = sourceIndex.get(sourceId)!;
-            const articles = bySource.get(sourceId)!;
-            const article = articles[idx];
-
-            if (!article) break;
-
-            sourceIndex.set(sourceId, idx + 1);
-            accumulator.set(sourceId, (accumulator.get(sourceId) ?? 0) - 1);
-
-            claimedArticleIds.add(article.id);
-            editionArticles.push({
-              articleId: article.id,
-              focusId: focusConfig.focusId,
-              position: globalPosition++,
-            });
-
-            if (focusConfig.budgetType === "count") {
-              focusBudgetUsed++;
-            } else {
-              totalReadingSeconds += article.consumption_time_seconds ?? 0;
-              focusBudgetUsed += Math.ceil((article.consumption_time_seconds ?? 0) / 60);
-            }
-
-            progress = true;
-
-            if (focusBudgetUsed >= focusConfig.budgetValue) break;
+        // Pick a source randomly, weighted by source weight
+        let roll = Math.random() * totalWeight;
+        let picked = pool[0]!.sourceId;
+        for (const entry of pool) {
+          roll -= entry.weight;
+          if (roll <= 0) {
+            picked = entry.sourceId;
+            break;
           }
-
-          if (focusBudgetUsed >= focusConfig.budgetValue) break;
         }
 
-        if (focusBudgetUsed >= focusConfig.budgetValue) break;
+        // Take the next best article from the picked source
+        const idx = sourceIndex.get(picked)!;
+        const articles = bySource.get(picked)!;
+        const article = articles[idx];
+
+        if (!article) {
+          activeSources.delete(picked);
+          continue;
+        }
+
+        sourceIndex.set(picked, idx + 1);
+
+        claimedArticleIds.add(article.id);
+        editionArticles.push({
+          articleId: article.id,
+          focusId: focusConfig.focusId,
+          position: globalPosition++,
+        });
+
+        if (focusConfig.budgetType === "count") {
+          focusBudgetUsed++;
+        } else {
+          totalReadingSeconds += article.consumption_time_seconds ?? 0;
+          focusBudgetUsed += Math.ceil((article.consumption_time_seconds ?? 0) / 60);
+        }
+
+        // Remove source if no more articles
+        if (idx + 1 >= articles.length) {
+          activeSources.delete(picked);
+        }
       }
     }
 

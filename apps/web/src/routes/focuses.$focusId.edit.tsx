@@ -24,8 +24,8 @@ type Focus = {
   description: string | null;
   icon: string | null;
   minConfidence: number;
-  minReadingTimeSeconds: number | null;
-  maxReadingTimeSeconds: number | null;
+  minConsumptionTimeSeconds: number | null;
+  maxConsumptionTimeSeconds: number | null;
   sources: FocusSource[];
 };
 
@@ -79,8 +79,8 @@ const EditFocusPage = (): React.ReactNode => {
       setDescription(focus.description ?? "");
       setIcon(focus.icon);
       setMinConfidence(Math.round(focus.minConfidence * 100));
-      setMinReadingTime(focus.minReadingTimeSeconds !== null ? String(focus.minReadingTimeSeconds / 60) : "");
-      setMaxReadingTime(focus.maxReadingTimeSeconds !== null ? String(focus.maxReadingTimeSeconds / 60) : "");
+      setMinReadingTime(focus.minConsumptionTimeSeconds !== null ? String(focus.minConsumptionTimeSeconds / 60) : "");
+      setMaxReadingTime(focus.maxConsumptionTimeSeconds !== null ? String(focus.maxConsumptionTimeSeconds / 60) : "");
       setSelectedSources(focus.sources);
       setFormPopulated(true);
     }
@@ -98,9 +98,9 @@ const EditFocusPage = (): React.ReactNode => {
       const newMinConfidence = minConfidence / 100;
       if (newMinConfidence !== focus.minConfidence) patchBody.minConfidence = newMinConfidence;
       const newMinReading = minReadingTime ? Number(minReadingTime) * 60 : null;
-      if (newMinReading !== focus.minReadingTimeSeconds) patchBody.minReadingTimeSeconds = newMinReading;
+      if (newMinReading !== focus.minConsumptionTimeSeconds) patchBody.minConsumptionTimeSeconds = newMinReading;
       const newMaxReading = maxReadingTime ? Number(maxReadingTime) * 60 : null;
-      if (newMaxReading !== focus.maxReadingTimeSeconds) patchBody.maxReadingTimeSeconds = newMaxReading;
+      if (newMaxReading !== focus.maxConsumptionTimeSeconds) patchBody.maxConsumptionTimeSeconds = newMaxReading;
 
       const sourcesChanged =
         JSON.stringify(selectedSources.slice().sort((a, b) => a.sourceId.localeCompare(b.sourceId))) !==

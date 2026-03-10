@@ -120,18 +120,17 @@ For each focus, candidates must:
 - Not already be claimed by an earlier focus in this edition
 - Not appear in prior editions of the same config (if `excludePriorEditions` is enabled)
 
-### Weighted round-robin source distribution
+### Weighted random source distribution
 
-After scoring, articles aren't simply taken top-to-bottom. Instead, a weighted round-robin ensures fair source representation:
+After scoring, articles aren't simply taken top-to-bottom. Instead, a weighted random picker ensures fair source representation:
 
-1. Group scored candidates by source.
-2. Each source gets an accumulator starting at 0.
-3. Each round, add the source's weight to its accumulator.
-4. Sources with accumulator ≥ 1 can emit articles (highest accumulator first).
-5. When a source emits, its accumulator decrements by 1 and the next highest-scored article from that source is picked.
-6. Repeat until the focus budget is exhausted or no candidates remain.
+1. Group scored candidates by source. Within each source, articles are pre-sorted by score descending.
+2. For each pick, select a source randomly with probability proportional to its weight.
+3. Take the next highest-scored article from that source.
+4. If a source runs out of articles, remove it from the pool.
+5. Repeat until the focus budget is exhausted or no candidates remain.
 
-This prevents a prolific high-scoring source from consuming the entire budget.
+This prevents a prolific high-scoring source from consuming the entire budget and ensures weight ratios are respected probabilistically over time — a source with weight 2 is twice as likely to be picked as a source with weight 1 on each draw.
 
 ### Budgeting
 
@@ -157,7 +156,7 @@ Source: `editions/editions.ts`
 | Vote context | global | global + focus | global + focus + edition |
 | Source weights | no | yes | yes |
 | Focus weights | no | no | yes |
-| Source distribution | none | none | weighted round-robin |
+| Source distribution | none | none | weighted random |
 | Budgeting | none | none | count or reading time |
 
 ## User-customisable weights
@@ -184,7 +183,7 @@ Read status is already tracked, so the main addition is recording when an articl
 
 ### Source diversity in feeds
 
-The global and focus feeds have no diversity mechanism. If one source publishes 50 articles and another publishes 5, the prolific source can dominate the top even with equal per-article scores. Editions solve this with weighted round-robin, but that's too heavy for paginated feeds.
+The global and focus feeds have no diversity mechanism. If one source publishes 50 articles and another publishes 5, the prolific source can dominate the top even with equal per-article scores. Editions solve this with weighted random, but that's too heavy for paginated feeds.
 
 A lighter approach: position-based source penalty. After placing N articles from the same source above a given position, apply a diminishing multiplier:
 

@@ -1,6 +1,8 @@
 import * as React from "react";
 import { motion } from "motion/react";
 import { MediaPlayer, waveformHeights } from "../media-player.tsx";
+import { VoteControls } from "../vote-controls.tsx";
+import type { VoteValue } from "../vote-controls.tsx";
 import { MagazinePage, useMagazineNav } from "./magazine.layout.tsx";
 
 /* ── Types ────────────────────────────────────────────────────────── */
@@ -26,6 +28,10 @@ type MagazineArticleProps = {
   content?: string | null;
   /** Position within the section (for layout variety) */
   positionInSection?: number;
+  /** Current user's focus relevance vote for this article */
+  focusVote?: VoteValue | null;
+  /** Called when the user casts or removes a vote */
+  onFocusVote?: ((value: VoteValue) => void) | null;
 };
 
 /* ── Helpers ──────────────────────────────────────────────────────── */
@@ -112,6 +118,25 @@ const NextPrompt = ({ delay = 0.6 }: NextPromptProps): React.ReactElement => {
   );
 };
 
+/* ── Vote row ─────────────────────────────────────────────────────── */
+
+type VoteRowProps = {
+  focusVote: VoteValue | null;
+  onFocusVote: (value: VoteValue) => void;
+  delay?: number;
+};
+
+const VoteRow = ({ focusVote, onFocusVote, delay = 0.5 }: VoteRowProps): React.ReactElement => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.4, ease: easeOut, delay }}
+    className="flex items-center justify-center pt-6 mt-6 border-t border-border"
+  >
+    <VoteControls value={focusVote} onVote={onFocusVote} label="Relevance" />
+  </motion.div>
+);
+
 /* ── Byline row ───────────────────────────────────────────────────── */
 
 type BylineProps = {
@@ -193,7 +218,7 @@ const Waveform = ({ delay = 0.3 }: { delay?: number }): React.ReactElement => (
  */
 
 const HeroLayout = (props: MagazineArticleProps): React.ReactElement => {
-  const { title, sourceName, author, summary, publishedAt, consumptionTimeSeconds, imageUrl, sourceType, content } = props;
+  const { title, sourceName, author, summary, publishedAt, consumptionTimeSeconds, imageUrl, sourceType, content, focusVote, onFocusVote } = props;
   const hasContent = !!content;
 
   return (
@@ -257,7 +282,13 @@ const HeroLayout = (props: MagazineArticleProps): React.ReactElement => {
       {hasContent && (
         <div className="max-w-prose mx-auto w-full mt-12">
           <ArticleBody content={content} />
+          {onFocusVote && <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} />}
           <NextPrompt />
+        </div>
+      )}
+      {!hasContent && onFocusVote && (
+        <div className="max-w-prose mx-auto w-full">
+          <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} />
         </div>
       )}
     </MagazinePage>
@@ -265,7 +296,7 @@ const HeroLayout = (props: MagazineArticleProps): React.ReactElement => {
 };
 
 const EditorialLayout = (props: MagazineArticleProps): React.ReactElement => {
-  const { title, sourceName, author, summary, publishedAt, consumptionTimeSeconds, imageUrl, sourceType, content } = props;
+  const { title, sourceName, author, summary, publishedAt, consumptionTimeSeconds, imageUrl, sourceType, content, focusVote, onFocusVote } = props;
   const hasContent = !!content;
 
   return (
@@ -337,8 +368,12 @@ const EditorialLayout = (props: MagazineArticleProps): React.ReactElement => {
         {hasContent && (
           <>
             <ArticleBody content={content} delay={0.5} />
+            {onFocusVote && <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} delay={0.65} />}
             <NextPrompt delay={0.7} />
           </>
+        )}
+        {!hasContent && onFocusVote && (
+          <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} delay={0.5} />
         )}
       </div>
     </MagazinePage>
@@ -346,7 +381,7 @@ const EditorialLayout = (props: MagazineArticleProps): React.ReactElement => {
 };
 
 const CompactLayout = (props: MagazineArticleProps): React.ReactElement => {
-  const { title, sourceName, author, summary, publishedAt, consumptionTimeSeconds, imageUrl, sourceType, content } = props;
+  const { title, sourceName, author, summary, publishedAt, consumptionTimeSeconds, imageUrl, sourceType, content, focusVote, onFocusVote } = props;
   const hasContent = !!content;
 
   return (
@@ -425,7 +460,13 @@ const CompactLayout = (props: MagazineArticleProps): React.ReactElement => {
       {hasContent && (
         <div className="max-w-prose mx-auto w-full mt-12">
           <ArticleBody content={content} />
+          {onFocusVote && <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} />}
           <NextPrompt />
+        </div>
+      )}
+      {!hasContent && onFocusVote && (
+        <div className="max-w-wide mx-auto w-full mt-8">
+          <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} />
         </div>
       )}
     </MagazinePage>
@@ -440,7 +481,7 @@ const CompactLayout = (props: MagazineArticleProps): React.ReactElement => {
  * at moderate scale, a decorative waveform, and prominent listen time.
  */
 const PodcastLayout = (props: MagazineArticleProps): React.ReactElement => {
-  const { articleId, title, sourceName, author, summary, publishedAt, consumptionTimeSeconds, imageUrl, mediaUrl, mediaType, progress, content } = props;
+  const { articleId, title, sourceName, author, summary, publishedAt, consumptionTimeSeconds, imageUrl, mediaUrl, mediaType, progress, content, focusVote, onFocusVote } = props;
   const hasContent = !!content;
   const listenMin = consumptionTimeSeconds ? Math.round(consumptionTimeSeconds / 60) : null;
 
@@ -531,8 +572,12 @@ const PodcastLayout = (props: MagazineArticleProps): React.ReactElement => {
         {hasContent && (
           <>
             <ArticleBody content={content} delay={mediaUrl ? 0.5 : 0.55} />
+            {onFocusVote && <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} delay={mediaUrl ? 0.6 : 0.65} />}
             <NextPrompt delay={mediaUrl ? 0.65 : 0.7} />
           </>
+        )}
+        {!hasContent && onFocusVote && (
+          <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} delay={mediaUrl ? 0.5 : 0.55} />
         )}
       </div>
     </MagazinePage>
@@ -554,5 +599,5 @@ const MagazineArticle = (props: MagazineArticleProps): React.ReactElement => {
 
 /* ── Exports ──────────────────────────────────────────────────────── */
 
-export type { MagazineArticleProps };
+export type { MagazineArticleProps, VoteValue };
 export { MagazineArticle };

@@ -89,11 +89,13 @@ const groupByFocus = (articles: EditionArticle[]): FocusSection[] => {
 type MagazineViewProps = {
   edition: EditionDetail;
   sections: FocusSection[];
+  votes: Record<string, VoteValue>;
+  onVote: (articleId: string, value: VoteValue) => void;
   onExit: () => void;
   onMarkDone: () => void;
 };
 
-const MagazineView = ({ edition, sections, onExit, onMarkDone }: MagazineViewProps): React.ReactElement => {
+const MagazineView = ({ edition, sections, votes, onVote, onExit, onMarkDone }: MagazineViewProps): React.ReactElement => {
   const [page, setPage] = useState(0);
 
   const pages: React.ReactElement[] = [];
@@ -170,6 +172,8 @@ const MagazineView = ({ edition, sections, onExit, onMarkDone }: MagazineViewPro
           mediaType={article.mediaType}
           progress={article.progress}
           articleId={article.id}
+          focusVote={votes[article.id] ?? null}
+          onFocusVote={(value) => onVote(article.id, value)}
         />,
       );
     });
@@ -333,6 +337,8 @@ const EditionViewPage = (): React.ReactNode => {
       <MagazineView
         edition={edition}
         sections={sections}
+        votes={votes}
+        onVote={(articleId, value) => void handleEditionVote(articleId, value)}
         onExit={handleExitMagazine}
         onMarkDone={() => void handleMarkDoneAndBack()}
       />

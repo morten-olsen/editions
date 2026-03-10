@@ -131,3 +131,4 @@ If something breaks, [open an issue](https://github.com/morten-olsen/editions/is
 ## License
 
 [AGPL-3.0](LICENSE)
+

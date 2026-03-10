@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { useAuth } from "../auth/auth.tsx";
+import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
 import { client } from "../api/api.ts";
 import { Button } from "../components/button.tsx";
 import { EmptyState } from "../components/empty-state.tsx";
@@ -42,6 +43,11 @@ type FocusArticlesPage = {
   limit: number;
 };
 
+type ArticlesWithBookmarks = {
+  page: FocusArticlesPage;
+  bookmarkedIds: Set<string>;
+};
+
 type SortMode = "top" | "recent";
 type TimeWindow = "today" | "week" | "all";
 type ReadStatus = "all" | "unread" | "read";
@@ -64,91 +70,77 @@ const windowToRange = (window: TimeWindow): { from?: string; to?: string } => {
 };
 
 const FocusDetailPage = (): React.ReactNode => {
-  const auth = useAuth();
+  const headers = useAuthHeaders();
   const { focusId } = Route.useParams();
-  const [focus, setFocus] = useState<Focus | null>(null);
-  const [articlesPage, setArticlesPage] = useState<FocusArticlesPage | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [offset, setOffset] = useState(0);
-
-  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [sort, setSort] = useState<SortMode>("top");
   const [window, setWindow] = useState<TimeWindow>("all");
   const [status, setStatus] = useState<ReadStatus>("unread");
 
-  const loadFocus = useCallback(async (): Promise<void> => {
-    if (auth.status !== "authenticated") return;
-    const { data, error: err } = await client.GET("/api/focuses/{id}", {
-      params: { path: { id: focusId } },
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
-    if (err) {
-      setError("Focus not found");
-    } else {
-      setFocus(data as Focus);
-    }
-  }, [auth, focusId]);
+  // Local optimistic state for votes and bookmarks
+  const [voteOverrides, setVoteOverrides] = useState<Record<string, { vote?: VoteValue; globalVote?: VoteValue }>>({});
+  const [bookmarkOverrides, setBookmarkOverrides] = useState<Record<string, boolean>>({});
 
-  const loadArticles = useCallback(async (
-    newOffset: number,
-    sortMode: SortMode,
-    timeWindow: TimeWindow,
-    readStatus: ReadStatus,
-  ): Promise<void> => {
-    if (auth.status !== "authenticated") return;
-    const range = windowToRange(timeWindow);
-    const { data } = await client.GET("/api/focuses/{id}/articles", {
-      params: {
-        path: { id: focusId },
-        query: {
-          offset: newOffset,
-          limit: PAGE_SIZE,
-          sort: sortMode,
-          status: readStatus,
-          ...range,
+  const { data: focus, isLoading: loadingFocus, error: focusError } = useQuery({
+    queryKey: queryKeys.focuses.detail(focusId),
+    queryFn: async (): Promise<Focus> => {
+      const { data, error: err } = await client.GET("/api/focuses/{id}", {
+        params: { path: { id: focusId } },
+        headers,
+      });
+      if (err) throw new Error("Focus not found");
+      return data as Focus;
+    },
+    enabled: !!headers,
+  });
+
+  const { data: articlesData, isLoading: loadingArticles } = useQuery({
+    queryKey: ["focuses", focusId, "articles", { sort, window, status, offset }],
+    queryFn: async (): Promise<ArticlesWithBookmarks> => {
+      const range = windowToRange(window);
+      const { data } = await client.GET("/api/focuses/{id}/articles", {
+        params: {
+          path: { id: focusId },
+          query: {
+            offset,
+            limit: PAGE_SIZE,
+            sort,
+            status,
+            ...range,
+          },
         },
-      },
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
-    if (data) {
-      const page = data as FocusArticlesPage;
-      setArticlesPage(page);
+        headers,
+      });
 
+      const page = (data as FocusArticlesPage) ?? { articles: [], total: 0, offset: 0, limit: PAGE_SIZE };
+
+      let bookmarkedIds = new Set<string>();
       const articleIds = page.articles.map((a) => a.id);
       if (articleIds.length > 0) {
         const { data: bmData } = await client.POST("/api/bookmarks/check", {
           body: { articleIds },
-          headers: { Authorization: `Bearer ${auth.token}` },
+          headers,
         });
         if (bmData) {
-          setBookmarkedIds(new Set((bmData as { bookmarkedIds: string[] }).bookmarkedIds));
+          bookmarkedIds = new Set((bmData as { bookmarkedIds: string[] }).bookmarkedIds);
         }
       }
-    }
-  }, [auth, focusId]);
 
-  useEffect(() => {
-    void (async (): Promise<void> => {
-      await Promise.all([loadFocus(), loadArticles(0, sort, window, status)]);
-      setLoading(false);
-    })();
-  }, [loadFocus, loadArticles, sort, window, status]);
+      return { page, bookmarkedIds };
+    },
+    enabled: !!headers,
+  });
 
-  if (auth.status !== "authenticated") return null;
+  const articlesPage = articlesData?.page ?? null;
+  const serverBookmarkedIds = articlesData?.bookmarkedIds ?? new Set<string>();
 
-  const headers = { Authorization: `Bearer ${auth.token}` };
+  if (!headers) return null;
 
   const handleFocusVote = async (articleId: string, value: VoteValue): Promise<void> => {
-    setArticlesPage((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        articles: prev.articles.map((a) =>
-          a.id === articleId ? { ...a, vote: value } : a,
-        ),
-      };
-    });
+    setVoteOverrides((prev) => ({
+      ...prev,
+      [articleId]: { ...prev[articleId], vote: value },
+    }));
 
     if (value === null) {
       await client.DELETE("/api/focuses/{id}/articles/{articleId}/vote", {
@@ -165,15 +157,10 @@ const FocusDetailPage = (): React.ReactNode => {
   };
 
   const handleGlobalVote = async (articleId: string, value: VoteValue): Promise<void> => {
-    setArticlesPage((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        articles: prev.articles.map((a) =>
-          a.id === articleId ? { ...a, globalVote: value } : a,
-        ),
-      };
-    });
+    setVoteOverrides((prev) => ({
+      ...prev,
+      [articleId]: { ...prev[articleId], globalVote: value },
+    }));
 
     if (value === null) {
       await client.DELETE("/api/articles/{articleId}/vote", {
@@ -190,18 +177,13 @@ const FocusDetailPage = (): React.ReactNode => {
   };
 
   const handleBookmarkToggle = async (articleId: string): Promise<void> => {
-    const isBookmarked = bookmarkedIds.has(articleId);
-    setBookmarkedIds((prev) => {
-      const next = new Set(prev);
-      if (isBookmarked) {
-        next.delete(articleId);
-      } else {
-        next.add(articleId);
-      }
-      return next;
-    });
+    const currentlyBookmarked = bookmarkOverrides[articleId] ?? serverBookmarkedIds.has(articleId);
+    setBookmarkOverrides((prev) => ({
+      ...prev,
+      [articleId]: !currentlyBookmarked,
+    }));
 
-    if (isBookmarked) {
+    if (currentlyBookmarked) {
       await client.DELETE("/api/articles/{articleId}/bookmark", {
         params: { path: { articleId } },
         headers,
@@ -223,22 +205,26 @@ const FocusDetailPage = (): React.ReactNode => {
     setWindow(newWindow);
     setStatus(newStatus);
     setOffset(0);
-    void loadArticles(0, newSort, newWindow, newStatus);
+    setVoteOverrides({});
+    setBookmarkOverrides({});
   };
 
   const handlePageChange = (newOffset: number): void => {
     setOffset(newOffset);
-    void loadArticles(newOffset, sort, window, status);
+    setVoteOverrides({});
+    setBookmarkOverrides({});
   };
 
-  if (loading) {
+  const loading = loadingFocus || loadingArticles;
+
+  if (loading && !focus) {
     return <div className="text-sm text-ink-tertiary py-12 text-center">Loading...</div>;
   }
 
   if (!focus) {
     return (
       <div className="py-12 text-center">
-        <div className="text-sm text-critical">{error ?? "Focus not found"}</div>
+        <div className="text-sm text-critical">{focusError ? "Focus not found" : "Focus not found"}</div>
       </div>
     );
   }
@@ -323,27 +309,34 @@ const FocusDetailPage = (): React.ReactNode => {
       ) : (
         <>
           <div className="divide-y divide-border">
-            {articlesPage.articles.map((article) => (
-              <ArticleCard
-                key={article.id}
-                id={article.id}
-                title={article.title}
-                sourceName={article.sourceName}
-                author={article.author}
-                summary={article.summary}
-                publishedAt={article.publishedAt}
-                readingTimeSeconds={article.readingTimeSeconds}
-                imageUrl={article.imageUrl}
-                href={`/sources/${article.sourceId}/articles/${article.id}`}
-                read={status === "all" ? !!article.readAt : false}
-                focusVote={article.vote}
-                onFocusVote={(v) => void handleFocusVote(article.id, v)}
-                vote={article.globalVote}
-                onVote={(v) => void handleGlobalVote(article.id, v)}
-                bookmarked={bookmarkedIds.has(article.id)}
-                onBookmarkToggle={() => void handleBookmarkToggle(article.id)}
-              />
-            ))}
+            {articlesPage.articles.map((article) => {
+              const overrides = voteOverrides[article.id];
+              const focusVote = overrides?.vote !== undefined ? overrides.vote : article.vote;
+              const globalVote = overrides?.globalVote !== undefined ? overrides.globalVote : article.globalVote;
+              const bookmarked = bookmarkOverrides[article.id] ?? serverBookmarkedIds.has(article.id);
+
+              return (
+                <ArticleCard
+                  key={article.id}
+                  id={article.id}
+                  title={article.title}
+                  sourceName={article.sourceName}
+                  author={article.author}
+                  summary={article.summary}
+                  publishedAt={article.publishedAt}
+                  readingTimeSeconds={article.readingTimeSeconds}
+                  imageUrl={article.imageUrl}
+                  href={`/sources/${article.sourceId}/articles/${article.id}`}
+                  read={status === "all" ? !!article.readAt : false}
+                  focusVote={focusVote}
+                  onFocusVote={(v) => void handleFocusVote(article.id, v)}
+                  vote={globalVote}
+                  onVote={(v) => void handleGlobalVote(article.id, v)}
+                  bookmarked={bookmarked}
+                  onBookmarkToggle={() => void handleBookmarkToggle(article.id)}
+                />
+              );
+            })}
           </div>
 
           <div className="text-xs text-ink-tertiary mt-4">

@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { useAuth } from "../auth/auth.tsx";
 import { client } from "../api/api.ts";
-import { emitNavRefresh } from "../components/nav-events.ts";
+import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { Input } from "../components/input.tsx";
 import { Button } from "../components/button.tsx";
@@ -27,37 +27,51 @@ type FocusConfig = {
 };
 
 const NewEditionConfigPage = (): React.ReactNode => {
-  const auth = useAuth();
+  const headers = useAuthHeaders();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [icon, setIcon] = useState<string | null>(null);
   const [schedule, setSchedule] = useState("0 7 * * *");
   const [lookbackHours, setLookbackHours] = useState(24);
   const [excludePriorEditions, setExcludePriorEditions] = useState(false);
-  const [allFocuses, setAllFocuses] = useState<Focus[]>([]);
   const [selectedFocuses, setSelectedFocuses] = useState<FocusConfig[]>([]);
-  const [loadingFocuses, setLoadingFocuses] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
 
-  const loadFocuses = useCallback(async (): Promise<void> => {
-    if (auth.status !== "authenticated") return;
-    const { data } = await client.GET("/api/focuses", {
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
-    if (data) {
-      setAllFocuses(data as Focus[]);
-    }
-    setLoadingFocuses(false);
-  }, [auth]);
+  const focusesQuery = useQuery({
+    queryKey: queryKeys.focuses.all,
+    queryFn: async (): Promise<Focus[]> => {
+      const { data } = await client.GET("/api/focuses", { headers });
+      return (data ?? []) as Focus[];
+    },
+    enabled: !!headers,
+  });
 
-  useEffect(() => {
-    void loadFocuses();
-  }, [loadFocuses]);
+  const createMutation = useMutation({
+    mutationFn: async (body: Record<string, unknown>): Promise<void> => {
+      const { error: err } = await client.POST("/api/editions/configs", {
+        body,
+        headers,
+      });
+      if (err) {
+        throw new Error("error" in err ? (err as { error: string }).error : "Failed to create edition");
+      }
+    },
+    onSuccess: (): void => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.editions.configs });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.nav });
+      void navigate({ to: "/editions" });
+    },
+    onError: (err: Error): void => {
+      setError(err.message);
+    },
+  });
 
-  if (auth.status !== "authenticated") return null;
+  if (!headers) return null;
 
-  if (loadingFocuses) {
+  const allFocuses = focusesQuery.data ?? [];
+
+  if (focusesQuery.isLoading) {
     return <div className="text-sm text-ink-tertiary py-12 text-center">Loading...</div>;
   }
 
@@ -99,38 +113,25 @@ const NewEditionConfigPage = (): React.ReactNode => {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
+  const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
     setError(null);
-    setSubmitting(true);
 
-    const { error: err } = await client.POST("/api/editions/configs", {
-      body: {
-        name,
-        icon,
-        schedule,
-        lookbackHours,
-        excludePriorEditions,
-        focuses: selectedFocuses.map((f, i) => ({
-          focusId: f.focusId,
-          position: i,
-          budgetType: f.budgetType,
-          budgetValue: f.budgetValue,
-          lookbackHours: f.lookbackHours,
-          weight: f.weight,
-        })),
-      },
-      headers: { Authorization: `Bearer ${auth.token}` },
+    createMutation.mutate({
+      name,
+      icon,
+      schedule,
+      lookbackHours,
+      excludePriorEditions,
+      focuses: selectedFocuses.map((f, i) => ({
+        focusId: f.focusId,
+        position: i,
+        budgetType: f.budgetType,
+        budgetValue: f.budgetValue,
+        lookbackHours: f.lookbackHours,
+        weight: f.weight,
+      })),
     });
-
-    if (err) {
-      setError("error" in err ? (err as { error: string }).error : "Failed to create edition");
-      setSubmitting(false);
-      return;
-    }
-
-    emitNavRefresh();
-    await navigate({ to: "/editions" });
   };
 
   return (
@@ -341,8 +342,8 @@ const NewEditionConfigPage = (): React.ReactNode => {
         )}
 
         <div className="flex items-center gap-3">
-          <Button variant="primary" type="submit" disabled={submitting}>
-            {submitting ? "Creating..." : "Create edition"}
+          <Button variant="primary" type="submit" disabled={createMutation.isPending}>
+            {createMutation.isPending ? "Creating..." : "Create edition"}
           </Button>
           <Button
             variant="ghost"

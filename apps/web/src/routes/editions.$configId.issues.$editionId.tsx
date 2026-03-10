@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { useAuth } from "../auth/auth.tsx";
 import { client } from "../api/api.ts";
+import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
 import { ReadingShell } from "../components/app-shell.tsx";
 import { Button } from "../components/button.tsx";
 import { Separator } from "../components/separator.tsx";
@@ -50,42 +51,39 @@ const formatTime = (seconds: number): string => {
 };
 
 const EditionViewPage = (): React.ReactNode => {
-  const auth = useAuth();
+  const headers = useAuthHeaders();
+  const queryClient = useQueryClient();
   const router = useRouter();
   const navigate = useNavigate();
   const { configId, editionId } = Route.useParams();
-  const [edition, setEdition] = useState<EditionDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [isRead, setIsRead] = useState(false);
   const [votes, setVotes] = useState<Record<string, VoteValue>>({});
 
-  const loadEdition = useCallback(async (): Promise<void> => {
-    if (auth.status !== "authenticated") return;
+  const queryKey = queryKeys.editions.detail(editionId);
 
-    const hdrs = { Authorization: `Bearer ${auth.token}` };
-    const { data, error: err } = await client.GET("/api/editions/{editionId}", {
-      params: { path: { editionId } },
-      headers: hdrs,
-    });
+  const { data: edition, isLoading, error } = useQuery<EditionDetail>({
+    queryKey,
+    queryFn: async (): Promise<EditionDetail> => {
+      const { data, error: err } = await client.GET("/api/editions/{editionId}", {
+        params: { path: { editionId } },
+        headers,
+      });
 
-    if (err) {
-      setError("Edition not found");
-    } else {
-      const ed = data as EditionDetail;
-      setEdition(ed);
-      setIsRead(!!ed.readAt);
-    }
-    setLoading(false);
-  }, [auth, editionId]);
+      if (err) {
+        throw new Error("Edition not found");
+      }
 
-  useEffect(() => {
-    void loadEdition();
-  }, [loadEdition]);
+      return data as EditionDetail;
+    },
+    enabled: !!headers,
+  });
 
-  if (auth.status !== "authenticated") return null;
-
-  const headers = { Authorization: `Bearer ${auth.token}` };
+  // Initialize local state from query data
+  const [initialized, setInitialized] = useState(false);
+  if (edition && !initialized) {
+    setIsRead(!!edition.readAt);
+    setInitialized(true);
+  }
 
   const handleToggleRead = async (): Promise<void> => {
     if (!edition) return;
@@ -111,15 +109,23 @@ const EditionViewPage = (): React.ReactNode => {
     await navigate({ to: "/editions/$configId", params: { configId } });
   };
 
-  const handleDelete = async (): Promise<void> => {
+  const deleteMutation = useMutation({
+    mutationFn: async (): Promise<void> => {
+      await client.DELETE("/api/editions/{editionId}", {
+        params: { path: { editionId } },
+        headers,
+      });
+    },
+    onSuccess: (): void => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.editions.forConfig(configId) });
+      void navigate({ to: "/editions/$configId", params: { configId } });
+    },
+  });
+
+  const handleDelete = (): void => {
     if (!edition) return;
     if (!confirm(`Delete "${edition.title}"?`)) return;
-
-    await client.DELETE("/api/editions/{editionId}", {
-      params: { path: { editionId } },
-      headers,
-    });
-    await navigate({ to: "/editions/$configId", params: { configId } });
+    deleteMutation.mutate();
   };
 
   const handleEditionVote = async (articleId: string, value: VoteValue): Promise<void> => {
@@ -138,7 +144,7 @@ const EditionViewPage = (): React.ReactNode => {
     }
   };
 
-  if (loading) {
+  if (!headers || isLoading) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-surface">
         <div className="font-serif text-lg text-ink-tertiary">Loading...</div>
@@ -146,12 +152,12 @@ const EditionViewPage = (): React.ReactNode => {
     );
   }
 
-  if (!edition) {
+  if (error || !edition) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-surface">
         <div className="text-center">
           <div className="font-serif text-xl text-ink mb-2">
-            {error ?? "Edition not found"}
+            {error instanceof Error ? error.message : "Edition not found"}
           </div>
           <Button variant="ghost" size="sm" onClick={() => router.history.back()}>Go back</Button>
         </div>
@@ -191,7 +197,7 @@ const EditionViewPage = (): React.ReactNode => {
           </button>
           <button
             type="button"
-            onClick={() => void handleDelete()}
+            onClick={() => handleDelete()}
             className="text-xs text-ink-tertiary hover:text-critical transition-colors duration-fast cursor-pointer"
           >
             Delete

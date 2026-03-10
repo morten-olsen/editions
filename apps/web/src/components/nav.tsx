@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 
 import { useAuth } from "../auth/auth.tsx";
 import { client } from "../api/api.ts";
+import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
 import { EntityIcon } from "./entity-icon.tsx";
-import { navEvents } from "./nav-events.ts";
 
 type NavEditionConfig = {
   id: string;
@@ -47,53 +47,47 @@ const Nav = (): React.ReactElement => {
   const auth = useAuth();
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
-
-  const [configs, setConfigs] = useState<NavEditionConfig[]>([]);
-  const [focuses, setFocuses] = useState<NavFocus[]>([]);
+  const headers = useAuthHeaders();
 
   const isActive = (href: string): boolean => {
     if (href === "/") return currentPath === "/";
     return currentPath.startsWith(href);
   };
 
-  const loadNav = useCallback(async (): Promise<void> => {
-    if (auth.status !== "authenticated") return;
-    const hdrs = { Authorization: `Bearer ${auth.token}` };
+  const { data: navData } = useQuery({
+    queryKey: queryKeys.nav,
+    queryFn: async (): Promise<{ configs: NavEditionConfig[]; focuses: NavFocus[] }> => {
+      const [configsRes, focusesRes] = await Promise.all([
+        client.GET("/api/editions/configs", { headers }),
+        client.GET("/api/focuses", { headers }),
+      ]);
 
-    const [configsRes, focusesRes] = await Promise.all([
-      client.GET("/api/editions/configs", { headers: hdrs }),
-      client.GET("/api/focuses", { headers: hdrs }),
-    ]);
+      const rawConfigs = (configsRes.data ?? []) as unknown as { id: string; name: string; icon: string | null }[];
+      const rawFocuses = (focusesRes.data ?? []) as unknown as NavFocus[];
 
-    const rawConfigs = (configsRes.data ?? []) as unknown as { id: string; name: string; icon: string | null }[];
-    const rawFocuses = (focusesRes.data ?? []) as unknown as NavFocus[];
+      const configsWithUnread = await Promise.all(
+        rawConfigs.map(async (cfg): Promise<NavEditionConfig> => {
+          const { data } = await client.GET("/api/editions/configs/{configId}/editions", {
+            params: { path: { configId: cfg.id } },
+            headers,
+          });
+          const editions = (data ?? []) as EditionSummary[];
+          return {
+            id: cfg.id,
+            name: cfg.name,
+            icon: cfg.icon,
+            hasUnread: editions.some((e) => e.readAt === null),
+          };
+        }),
+      );
 
-    const configsWithUnread = await Promise.all(
-      rawConfigs.map(async (cfg): Promise<NavEditionConfig> => {
-        const { data } = await client.GET("/api/editions/configs/{configId}/editions", {
-          params: { path: { configId: cfg.id } },
-          headers: hdrs,
-        });
-        const editions = (data ?? []) as EditionSummary[];
-        return {
-          id: cfg.id,
-          name: cfg.name,
-          icon: cfg.icon,
-          hasUnread: editions.some((e) => e.readAt === null),
-        };
-      }),
-    );
+      return { configs: configsWithUnread, focuses: rawFocuses };
+    },
+    enabled: auth.status === "authenticated",
+  });
 
-    setConfigs(configsWithUnread);
-    setFocuses(rawFocuses);
-  }, [auth]);
-
-  useEffect(() => {
-    void loadNav();
-    const handler = (): void => void loadNav();
-    navEvents.addEventListener("refresh", handler);
-    return () => navEvents.removeEventListener("refresh", handler);
-  }, [loadNav]);
+  const configs = navData?.configs ?? [];
+  const focuses = navData?.focuses ?? [];
 
   const username = auth.status === "authenticated" ? auth.user.username : undefined;
   const logout = auth.status === "authenticated" ? auth.logout : undefined;

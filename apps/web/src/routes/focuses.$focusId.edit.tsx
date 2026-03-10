@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
-import { useAuth } from "../auth/auth.tsx";
+import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
 import { client } from "../api/api.ts";
-import { emitNavRefresh } from "../components/nav-events.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { Input } from "../components/input.tsx";
 import { Textarea } from "../components/textarea.tsx";
@@ -36,12 +36,10 @@ type Source = {
 };
 
 const EditFocusPage = (): React.ReactNode => {
-  const auth = useAuth();
+  const headers = useAuthHeaders();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { focusId } = Route.useParams();
-  const [focus, setFocus] = useState<Focus | null>(null);
-  const [allSources, setAllSources] = useState<Source[]>([]);
-  const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [icon, setIcon] = useState<string | null>(null);
@@ -50,54 +48,106 @@ const EditFocusPage = (): React.ReactNode => {
   const [maxReadingTime, setMaxReadingTime] = useState("");
   const [selectedSources, setSelectedSources] = useState<FocusSource[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [formPopulated, setFormPopulated] = useState(false);
 
-  const fetchData = useCallback(async (): Promise<void> => {
-    if (auth.status !== "authenticated") return;
-
-    const hdrs = { Authorization: `Bearer ${auth.token}` };
-    const [focusRes, sourcesRes] = await Promise.all([
-      client.GET("/api/focuses/{id}", {
+  const { data: focus, isLoading: loadingFocus, isError: focusError } = useQuery({
+    queryKey: queryKeys.focuses.detail(focusId),
+    queryFn: async (): Promise<Focus> => {
+      const { data, error: err } = await client.GET("/api/focuses/{id}", {
         params: { path: { id: focusId } },
-        headers: hdrs,
-      }),
-      client.GET("/api/sources", { headers: hdrs }),
-    ]);
+        headers,
+      });
+      if (err) throw new Error("Focus not found");
+      return data as unknown as Focus;
+    },
+    enabled: !!headers,
+  });
 
-    if (focusRes.error) {
-      setError("Focus not found");
-    } else {
-      const f = focusRes.data as unknown as Focus;
-      setFocus(f);
-      setName(f.name);
-      setDescription(f.description ?? "");
-      setIcon(f.icon);
-      setMinConfidence(Math.round(f.minConfidence * 100));
-      setMinReadingTime(f.minReadingTimeSeconds !== null ? String(f.minReadingTimeSeconds / 60) : "");
-      setMaxReadingTime(f.maxReadingTimeSeconds !== null ? String(f.maxReadingTimeSeconds / 60) : "");
-      setSelectedSources(f.sources);
-    }
+  const { data: allSources = [], isLoading: loadingSources } = useQuery({
+    queryKey: queryKeys.sources.all,
+    queryFn: async (): Promise<Source[]> => {
+      const { data } = await client.GET("/api/sources", { headers });
+      return (data as Source[]) ?? [];
+    },
+    enabled: !!headers,
+  });
 
-    if (sourcesRes.data) {
-      setAllSources(sourcesRes.data as Source[]);
-    }
-
-    setLoading(false);
-  }, [auth, focusId]);
-
+  // Populate form state from fetched focus data
   useEffect(() => {
-    void fetchData();
-  }, [fetchData]);
+    if (focus && !formPopulated) {
+      setName(focus.name);
+      setDescription(focus.description ?? "");
+      setIcon(focus.icon);
+      setMinConfidence(Math.round(focus.minConfidence * 100));
+      setMinReadingTime(focus.minReadingTimeSeconds !== null ? String(focus.minReadingTimeSeconds / 60) : "");
+      setMaxReadingTime(focus.maxReadingTimeSeconds !== null ? String(focus.maxReadingTimeSeconds / 60) : "");
+      setSelectedSources(focus.sources);
+      setFormPopulated(true);
+    }
+  }, [focus, formPopulated]);
 
-  if (auth.status !== "authenticated") return null;
+  const updateFocus = useMutation({
+    mutationFn: async (): Promise<void> => {
+      if (!focus) return;
 
-  const headers = { Authorization: `Bearer ${auth.token}` };
+      const patchBody: Record<string, string | number | null> = {};
+      if (name !== focus.name) patchBody.name = name;
+      const newDesc = description.trim() || null;
+      if (newDesc !== focus.description) patchBody.description = newDesc;
+      if (icon !== focus.icon) patchBody.icon = icon;
+      const newMinConfidence = minConfidence / 100;
+      if (newMinConfidence !== focus.minConfidence) patchBody.minConfidence = newMinConfidence;
+      const newMinReading = minReadingTime ? Number(minReadingTime) * 60 : null;
+      if (newMinReading !== focus.minReadingTimeSeconds) patchBody.minReadingTimeSeconds = newMinReading;
+      const newMaxReading = maxReadingTime ? Number(maxReadingTime) * 60 : null;
+      if (newMaxReading !== focus.maxReadingTimeSeconds) patchBody.maxReadingTimeSeconds = newMaxReading;
+
+      const sourcesChanged =
+        JSON.stringify(selectedSources.slice().sort((a, b) => a.sourceId.localeCompare(b.sourceId))) !==
+        JSON.stringify(focus.sources.slice().sort((a, b) => a.sourceId.localeCompare(b.sourceId)));
+
+      const hasFieldChanges = Object.keys(patchBody).length > 0;
+
+      if (!hasFieldChanges && !sourcesChanged) return;
+
+      if (hasFieldChanges) {
+        const { error: err } = await client.PATCH("/api/focuses/{id}", {
+          params: { path: { id: focusId } },
+          body: patchBody,
+          headers,
+        });
+        if (err) throw new Error("Failed to update focus");
+      }
+
+      if (sourcesChanged) {
+        const { error: err } = await client.PUT("/api/focuses/{id}/sources", {
+          params: { path: { id: focusId } },
+          body: { sources: selectedSources },
+          headers,
+        });
+        if (err) throw new Error("Failed to update sources");
+      }
+    },
+    onSuccess: async (): Promise<void> => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.nav });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.focuses.all });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.focuses.detail(focusId) });
+      await navigate({ to: "/focuses/$focusId", params: { focusId } });
+    },
+    onError: (err: Error): void => {
+      setError(err.message);
+    },
+  });
+
+  if (!headers) return null;
+
+  const loading = loadingFocus || loadingSources;
 
   if (loading) {
     return <div className="text-sm text-ink-tertiary py-12 text-center">Loading...</div>;
   }
 
-  if (!focus) {
+  if (!focus || focusError) {
     return (
       <div className="py-12 text-center">
         <div className="text-sm text-critical">{error ?? "Focus not found"}</div>
@@ -130,59 +180,7 @@ const EditFocusPage = (): React.ReactNode => {
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setError(null);
-    setSubmitting(true);
-
-    const patchBody: Record<string, string | number | null> = {};
-    if (name !== focus.name) patchBody.name = name;
-    const newDesc = description.trim() || null;
-    if (newDesc !== focus.description) patchBody.description = newDesc;
-    if (icon !== focus.icon) patchBody.icon = icon;
-    const newMinConfidence = minConfidence / 100;
-    if (newMinConfidence !== focus.minConfidence) patchBody.minConfidence = newMinConfidence;
-    const newMinReading = minReadingTime ? Number(minReadingTime) * 60 : null;
-    if (newMinReading !== focus.minReadingTimeSeconds) patchBody.minReadingTimeSeconds = newMinReading;
-    const newMaxReading = maxReadingTime ? Number(maxReadingTime) * 60 : null;
-    if (newMaxReading !== focus.maxReadingTimeSeconds) patchBody.maxReadingTimeSeconds = newMaxReading;
-
-    const sourcesChanged =
-      JSON.stringify(selectedSources.slice().sort((a, b) => a.sourceId.localeCompare(b.sourceId))) !==
-      JSON.stringify(focus.sources.slice().sort((a, b) => a.sourceId.localeCompare(b.sourceId)));
-
-    const hasFieldChanges = Object.keys(patchBody).length > 0;
-
-    if (!hasFieldChanges && !sourcesChanged) {
-      await navigate({ to: "/focuses/$focusId", params: { focusId } });
-      return;
-    }
-
-    if (hasFieldChanges) {
-      const { error: err } = await client.PATCH("/api/focuses/{id}", {
-        params: { path: { id: focusId } },
-        body: patchBody,
-        headers,
-      });
-      if (err) {
-        setError("Failed to update focus");
-        setSubmitting(false);
-        return;
-      }
-    }
-
-    if (sourcesChanged) {
-      const { error: err } = await client.PUT("/api/focuses/{id}/sources", {
-        params: { path: { id: focusId } },
-        body: { sources: selectedSources },
-        headers,
-      });
-      if (err) {
-        setError("Failed to update sources");
-        setSubmitting(false);
-        return;
-      }
-    }
-
-    emitNavRefresh();
-    await navigate({ to: "/focuses/$focusId", params: { focusId } });
+    updateFocus.mutate();
   };
 
   return (
@@ -322,8 +320,8 @@ const EditFocusPage = (): React.ReactNode => {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button variant="primary" type="submit" disabled={submitting}>
-            {submitting ? "Saving..." : "Save changes"}
+          <Button variant="primary" type="submit" disabled={updateFocus.isPending}>
+            {updateFocus.isPending ? "Saving..." : "Save changes"}
           </Button>
           <Button
             variant="ghost"

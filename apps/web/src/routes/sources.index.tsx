@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery, useMutation } from "@tanstack/react-query";
 
-import { useAuth } from "../auth/auth.tsx";
+import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
 import { client } from "../api/api.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { SourceCard } from "../components/source-card.tsx";
@@ -19,36 +20,25 @@ type Source = {
 };
 
 const SourcesPage = (): React.ReactNode => {
-  const auth = useAuth();
-  const [sources, setSources] = useState<Source[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [reanalysing, setReanalysing] = useState(false);
+  const headers = useAuthHeaders();
 
-  const fetchSources = useCallback(async (): Promise<void> => {
-    if (auth.status !== "authenticated") return;
-    setLoading(true);
-    const { data } = await client.GET("/api/sources", {
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
-    if (data) {
-      setSources((data as Source[]).filter((s) => s.type !== "bookmarks"));
-    }
-    setLoading(false);
-  }, [auth]);
+  const sourcesQuery = useQuery({
+    queryKey: queryKeys.sources.all,
+    queryFn: async (): Promise<Source[]> => {
+      const { data } = await client.GET("/api/sources", { headers });
+      return ((data as Source[]) ?? []).filter((s) => s.type !== "bookmarks");
+    },
+    enabled: !!headers,
+  });
 
-  useEffect(() => {
-    void fetchSources();
-  }, [fetchSources]);
+  const reanalyseMutation = useMutation({
+    mutationFn: async (): Promise<void> => {
+      await client.POST("/api/sources/reanalyse-all", { headers });
+    },
+  });
 
-  if (auth.status !== "authenticated") return null;
-
-  const handleReanalyseAll = async (): Promise<void> => {
-    setReanalysing(true);
-    await client.POST("/api/sources/reanalyse-all", {
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
-    setReanalysing(false);
-  };
+  const sources = sourcesQuery.data ?? [];
+  const loading = sourcesQuery.isLoading;
 
   return (
     <>
@@ -60,10 +50,10 @@ const SourcesPage = (): React.ReactNode => {
             <Button
               variant="secondary"
               size="sm"
-              disabled={reanalysing}
-              onClick={() => void handleReanalyseAll()}
+              disabled={reanalyseMutation.isPending}
+              onClick={() => reanalyseMutation.mutate()}
             >
-              {reanalysing ? "Reanalysing..." : "Reanalyse all"}
+              {reanalyseMutation.isPending ? "Reanalysing..." : "Reanalyse all"}
             </Button>
             <Link to="/sources/new">
               <Button variant="primary" size="sm">Add source</Button>

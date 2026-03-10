@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { useAuth } from "../auth/auth.tsx";
+import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
 import { client } from "../api/api.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { Button } from "../components/button.tsx";
@@ -40,139 +41,146 @@ type ArticlesPage = {
 const PAGE_SIZE = 20;
 
 const SourceDetailPage = (): React.ReactNode => {
-  const auth = useAuth();
+  const headers = useAuthHeaders();
+  const queryClient = useQueryClient();
   const { sourceId } = Route.useParams();
-  const [source, setSource] = useState<Source | null>(null);
-  const [articlesPage, setArticlesPage] = useState<ArticlesPage | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [fetching, setFetching] = useState(false);
-  const [fetchResult, setFetchResult] = useState<string | null>(null);
-  const [reanalysing, setReanalysing] = useState(false);
-  const [reanalyseResult, setReanalyseResult] = useState<string | null>(null);
   const [offset, setOffset] = useState(0);
+  const [fetchResult, setFetchResult] = useState<string | null>(null);
+  const [reanalyseResult, setReanalyseResult] = useState<string | null>(null);
 
-  const loadSource = useCallback(async (): Promise<void> => {
-    if (auth.status !== "authenticated") return;
-    const { data, error: err } = await client.GET("/api/sources/{id}", {
-      params: { path: { id: sourceId } },
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
-    if (err) {
-      setError("Source not found");
-    } else {
-      setSource(data as Source);
-    }
-  }, [auth, sourceId]);
+  const sourceQuery = useQuery({
+    queryKey: queryKeys.sources.detail(sourceId),
+    queryFn: async (): Promise<Source> => {
+      const { data, error: err } = await client.GET("/api/sources/{id}", {
+        params: { path: { id: sourceId } },
+        headers,
+      });
+      if (err) throw new Error("Source not found");
+      return data as Source;
+    },
+    enabled: !!headers,
+  });
 
-  const loadArticles = useCallback(async (newOffset: number): Promise<void> => {
-    if (auth.status !== "authenticated") return;
-    const { data } = await client.GET("/api/sources/{id}/articles", {
-      params: { path: { id: sourceId }, query: { offset: newOffset, limit: PAGE_SIZE } },
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
-    if (data) {
-      setArticlesPage(data as ArticlesPage);
-    }
-  }, [auth, sourceId]);
+  const articlesQuery = useQuery({
+    queryKey: queryKeys.sources.articles(sourceId, offset),
+    queryFn: async (): Promise<ArticlesPage> => {
+      const { data } = await client.GET("/api/sources/{id}/articles", {
+        params: { path: { id: sourceId }, query: { offset, limit: PAGE_SIZE } },
+        headers,
+      });
+      return data as ArticlesPage;
+    },
+    enabled: !!headers,
+  });
 
-  useEffect(() => {
-    void (async (): Promise<void> => {
-      await Promise.all([loadSource(), loadArticles(0)]);
-      setLoading(false);
-    })();
-  }, [loadSource, loadArticles]);
-
-  if (auth.status !== "authenticated") return null;
-
-  const headers = { Authorization: `Bearer ${auth.token}` };
-
-  const handlePageChange = (newOffset: number): void => {
-    setOffset(newOffset);
-    void loadArticles(newOffset);
-  };
-
-  const handleFetch = async (): Promise<void> => {
-    setFetching(true);
-    setFetchResult(null);
-
-    const { data, error: err } = await client.POST("/api/sources/{id}/fetch", {
-      params: { path: { id: sourceId } },
-      headers,
-    });
-
-    if (err || !data) {
-      setFetchResult("Failed to start fetch");
-      setFetching(false);
-      return;
-    }
-
-    const taskId = (data as { taskId: string }).taskId;
-    const poll = async (): Promise<void> => {
-      const { data: task } = await client.GET("/api/sources/{id}/tasks/{taskId}", {
-        params: { path: { id: sourceId, taskId } },
+  const fetchMutation = useMutation({
+    mutationFn: async (): Promise<string> => {
+      const { data, error: err } = await client.POST("/api/sources/{id}/fetch", {
+        params: { path: { id: sourceId } },
         headers,
       });
 
-      if (!task) {
-        setFetchResult("Lost track of task");
-        setFetching(false);
-        return;
-      }
+      if (err || !data) throw new Error("Failed to start fetch");
 
-      const t = task as { status: string; result: unknown; error: string | null };
+      const taskId = (data as { taskId: string }).taskId;
 
-      if (t.status === "completed") {
-        const result = t.result as { newArticles: number; totalItems: number } | null;
-        setFetchResult(
-          result
-            ? `Fetched ${result.totalItems} items, ${result.newArticles} new`
-            : "Fetch completed",
-        );
-        setFetching(false);
-        void loadSource();
-        void loadArticles(offset);
-      } else if (t.status === "failed") {
-        setFetchResult(t.error ?? "Fetch failed");
-        setFetching(false);
-        void loadSource();
-      } else {
-        setTimeout(() => void poll(), 500);
-      }
-    };
+      // Poll task status until completion
+      const poll = (): Promise<string> =>
+        new Promise((resolve, reject) => {
+          const check = async (): Promise<void> => {
+            const { data: task } = await client.GET("/api/sources/{id}/tasks/{taskId}", {
+              params: { path: { id: sourceId, taskId } },
+              headers,
+            });
 
-    void poll();
-  };
+            if (!task) {
+              reject(new Error("Lost track of task"));
+              return;
+            }
 
-  const handleReanalyse = async (): Promise<void> => {
-    setReanalysing(true);
-    setReanalyseResult(null);
+            const t = task as { status: string; result: unknown; error: string | null };
 
-    const { data, error: err } = await client.POST("/api/sources/{id}/reanalyse", {
-      params: { path: { id: sourceId } },
-      headers,
-    });
+            if (t.status === "completed") {
+              const result = t.result as { newArticles: number; totalItems: number } | null;
+              resolve(
+                result
+                  ? `Fetched ${result.totalItems} items, ${result.newArticles} new`
+                  : "Fetch completed",
+              );
+            } else if (t.status === "failed") {
+              reject(new Error(t.error ?? "Fetch failed"));
+            } else {
+              setTimeout(() => void check(), 500);
+            }
+          };
 
-    if (err || !data) {
-      setReanalyseResult("Failed to start reanalysis");
-    } else {
+          void check();
+        });
+
+      return poll();
+    },
+    onSuccess: (message: string): void => {
+      setFetchResult(message);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.sources.detail(sourceId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.sources.articles(sourceId, offset) });
+    },
+    onError: (err: Error): void => {
+      setFetchResult(err.message);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.sources.detail(sourceId) });
+    },
+  });
+
+  const reanalyseMutation = useMutation({
+    mutationFn: async (): Promise<string> => {
+      const { data, error: err } = await client.POST("/api/sources/{id}/reanalyse", {
+        params: { path: { id: sourceId } },
+        headers,
+      });
+
+      if (err || !data) throw new Error("Failed to start reanalysis");
       const result = data as { enqueued: number };
-      setReanalyseResult(`Enqueued ${result.enqueued} articles for analysis`);
-    }
-    setReanalysing(false);
-  };
+      return `Enqueued ${result.enqueued} articles for analysis`;
+    },
+    onSuccess: (message: string): void => {
+      setReanalyseResult(message);
+    },
+    onError: (err: Error): void => {
+      setReanalyseResult(err.message);
+    },
+  });
+
+  if (!headers) return null;
+
+  const loading = sourceQuery.isLoading || articlesQuery.isLoading;
 
   if (loading) {
     return <div className="text-sm text-ink-tertiary py-12 text-center">Loading...</div>;
   }
 
+  const source = sourceQuery.data;
+  const articlesPage = articlesQuery.data ?? null;
+
   if (!source) {
     return (
       <div className="py-12 text-center">
-        <div className="text-sm text-critical">{error ?? "Source not found"}</div>
+        <div className="text-sm text-critical">{sourceQuery.error?.message ?? "Source not found"}</div>
       </div>
     );
   }
+
+  const handlePageChange = (newOffset: number): void => {
+    setOffset(newOffset);
+  };
+
+  const handleFetch = (): void => {
+    setFetchResult(null);
+    fetchMutation.mutate();
+  };
+
+  const handleReanalyse = (): void => {
+    setReanalyseResult(null);
+    reanalyseMutation.mutate();
+  };
 
   const totalPages = articlesPage ? Math.ceil(articlesPage.total / PAGE_SIZE) : 0;
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
@@ -190,18 +198,18 @@ const SourceDetailPage = (): React.ReactNode => {
             <Button
               variant="secondary"
               size="sm"
-              disabled={reanalysing}
-              onClick={() => void handleReanalyse()}
+              disabled={reanalyseMutation.isPending}
+              onClick={handleReanalyse}
             >
-              {reanalysing ? "Reanalysing..." : "Reanalyse"}
+              {reanalyseMutation.isPending ? "Reanalysing..." : "Reanalyse"}
             </Button>
             <Button
               variant="primary"
               size="sm"
-              disabled={fetching}
-              onClick={() => void handleFetch()}
+              disabled={fetchMutation.isPending}
+              onClick={handleFetch}
             >
-              {fetching ? "Fetching..." : "Fetch now"}
+              {fetchMutation.isPending ? "Fetching..." : "Fetch now"}
             </Button>
           </div>
         }
@@ -236,8 +244,8 @@ const SourceDetailPage = (): React.ReactNode => {
           title="No articles yet"
           description="Try fetching the feed to pull in articles."
           action={
-            <Button variant="primary" disabled={fetching} onClick={() => void handleFetch()}>
-              {fetching ? "Fetching..." : "Fetch now"}
+            <Button variant="primary" disabled={fetchMutation.isPending} onClick={handleFetch}>
+              {fetchMutation.isPending ? "Fetching..." : "Fetch now"}
             </Button>
           }
         />

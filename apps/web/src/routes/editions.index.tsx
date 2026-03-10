@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { useAuth } from "../auth/auth.tsx";
 import { client } from "../api/api.ts";
-import { emitNavRefresh } from "../components/nav-events.ts";
+import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { Button } from "../components/button.tsx";
 import { EmptyState } from "../components/empty-state.tsx";
@@ -34,37 +34,41 @@ const formatLookback = (hours: number): string => {
 };
 
 const EditionsPage = (): React.ReactNode => {
-  const auth = useAuth();
-  const [configs, setConfigs] = useState<EditionConfig[]>([]);
-  const [loading, setLoading] = useState(true);
+  const headers = useAuthHeaders();
+  const queryClient = useQueryClient();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const fetchConfigs = useCallback(async (): Promise<void> => {
-    if (auth.status !== "authenticated") return;
-    setLoading(true);
-    const { data } = await client.GET("/api/editions/configs", {
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
-    if (data) {
-      setConfigs(data as EditionConfig[]);
-    }
-    setLoading(false);
-  }, [auth]);
+  const configsQuery = useQuery({
+    queryKey: queryKeys.editions.configs,
+    queryFn: async (): Promise<EditionConfig[]> => {
+      const { data } = await client.GET("/api/editions/configs", { headers });
+      return (data ?? []) as EditionConfig[];
+    },
+    enabled: !!headers,
+  });
 
-  useEffect(() => {
-    void fetchConfigs();
-  }, [fetchConfigs]);
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string): Promise<void> => {
+      await client.DELETE("/api/editions/configs/{configId}", {
+        params: { path: { configId: id } },
+        headers,
+      });
+    },
+    onSuccess: (): void => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.editions.configs });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.nav });
+    },
+  });
 
-  if (auth.status !== "authenticated") return null;
+  if (!headers) return null;
 
-  const handleDelete = async (id: string, name: string): Promise<void> => {
+  const configs = configsQuery.data ?? [];
+  const loading = configsQuery.isLoading;
+
+  const handleDelete = (id: string, name: string): void => {
     if (!confirm(`Delete "${name}"? This will also delete all generated editions.`)) return;
-
-    await client.DELETE("/api/editions/configs/{configId}", {
-      params: { path: { configId: id } },
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
-    setConfigs((prev) => prev.filter((c) => c.id !== id));
-    emitNavRefresh();
+    setDeletingId(id);
+    deleteMutation.mutate(id, { onSettled: () => setDeletingId(null) });
   };
 
   return (
@@ -122,10 +126,10 @@ const EditionsPage = (): React.ReactNode => {
               </div>
               <button
                 type="button"
-                onClick={() => void handleDelete(config.id, config.name)}
+                onClick={() => handleDelete(config.id, config.name)}
                 className="text-xs text-ink-tertiary hover:text-critical transition-colors duration-fast cursor-pointer ml-4"
               >
-                Delete
+                {deletingId === config.id ? "Deleting..." : "Delete"}
               </button>
             </div>
           ))}

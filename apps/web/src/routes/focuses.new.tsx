@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
-import { useAuth } from "../auth/auth.tsx";
+import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
 import { client } from "../api/api.ts";
-import { emitNavRefresh } from "../components/nav-events.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { Input } from "../components/input.tsx";
 import { Textarea } from "../components/textarea.tsx";
@@ -25,36 +25,67 @@ type SourceSelection = {
 };
 
 const NewFocusPage = (): React.ReactNode => {
-  const auth = useAuth();
+  const headers = useAuthHeaders();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [icon, setIcon] = useState<string | null>(null);
   const [minConfidence, setMinConfidence] = useState(0);
   const [minReadingTime, setMinReadingTime] = useState("");
   const [maxReadingTime, setMaxReadingTime] = useState("");
-  const [allSources, setAllSources] = useState<Source[]>([]);
   const [selectedSources, setSelectedSources] = useState<SourceSelection[]>([]);
-  const [loadingSources, setLoadingSources] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
 
-  const loadSources = useCallback(async (): Promise<void> => {
-    if (auth.status !== "authenticated") return;
-    const { data } = await client.GET("/api/sources", {
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
-    if (data) {
-      setAllSources(data as Source[]);
-    }
-    setLoadingSources(false);
-  }, [auth]);
+  const { data: allSources = [], isLoading: loadingSources } = useQuery({
+    queryKey: queryKeys.sources.all,
+    queryFn: async (): Promise<Source[]> => {
+      const { data } = await client.GET("/api/sources", { headers });
+      return (data as Source[]) ?? [];
+    },
+    enabled: !!headers,
+  });
 
-  useEffect(() => {
-    void loadSources();
-  }, [loadSources]);
+  const createFocus = useMutation({
+    mutationFn: async (): Promise<void> => {
+      const body: {
+        name: string;
+        description?: string;
+        icon?: string | null;
+        minConfidence?: number;
+        minReadingTimeSeconds?: number | null;
+        maxReadingTimeSeconds?: number | null;
+        sources?: SourceSelection[];
+      } = { name };
+      if (description.trim()) body.description = description.trim();
+      if (icon) body.icon = icon;
+      if (minConfidence > 0) body.minConfidence = minConfidence / 100;
+      const parsedMin = minReadingTime ? Number(minReadingTime) : null;
+      const parsedMax = maxReadingTime ? Number(maxReadingTime) : null;
+      if (parsedMin !== null) body.minReadingTimeSeconds = parsedMin * 60;
+      if (parsedMax !== null) body.maxReadingTimeSeconds = parsedMax * 60;
+      if (selectedSources.length > 0) body.sources = selectedSources;
 
-  if (auth.status !== "authenticated") return null;
+      const { error: err } = await client.POST("/api/focuses", {
+        body,
+        headers,
+      });
+
+      if (err) {
+        throw new Error("error" in err ? (err as { error: string }).error : "Failed to create focus");
+      }
+    },
+    onSuccess: async (): Promise<void> => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.nav });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.focuses.all });
+      await navigate({ to: "/focuses" });
+    },
+    onError: (err: Error): void => {
+      setError(err.message);
+    },
+  });
+
+  if (!headers) return null;
 
   if (loadingSources) {
     return <div className="text-sm text-ink-tertiary py-12 text-center">Loading...</div>;
@@ -85,39 +116,7 @@ const NewFocusPage = (): React.ReactNode => {
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setError(null);
-    setSubmitting(true);
-
-    const body: {
-      name: string;
-      description?: string;
-      icon?: string | null;
-      minConfidence?: number;
-      minReadingTimeSeconds?: number | null;
-      maxReadingTimeSeconds?: number | null;
-      sources?: SourceSelection[];
-    } = { name };
-    if (description.trim()) body.description = description.trim();
-    if (icon) body.icon = icon;
-    if (minConfidence > 0) body.minConfidence = minConfidence / 100;
-    const parsedMin = minReadingTime ? Number(minReadingTime) : null;
-    const parsedMax = maxReadingTime ? Number(maxReadingTime) : null;
-    if (parsedMin !== null) body.minReadingTimeSeconds = parsedMin * 60;
-    if (parsedMax !== null) body.maxReadingTimeSeconds = parsedMax * 60;
-    if (selectedSources.length > 0) body.sources = selectedSources;
-
-    const { error: err } = await client.POST("/api/focuses", {
-      body,
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
-
-    if (err) {
-      setError("error" in err ? (err as { error: string }).error : "Failed to create focus");
-      setSubmitting(false);
-      return;
-    }
-
-    emitNavRefresh();
-    await navigate({ to: "/focuses" });
+    createFocus.mutate();
   };
 
   return (
@@ -262,8 +261,8 @@ const NewFocusPage = (): React.ReactNode => {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button variant="primary" type="submit" disabled={submitting}>
-            {submitting ? "Creating..." : "Create focus"}
+          <Button variant="primary" type="submit" disabled={createFocus.isPending}>
+            {createFocus.isPending ? "Creating..." : "Create focus"}
           </Button>
           <Button
             variant="ghost"

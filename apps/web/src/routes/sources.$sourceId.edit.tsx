@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { useAuth } from "../auth/auth.tsx";
+import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
 import { client } from "../api/api.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { Input } from "../components/input.tsx";
@@ -14,55 +15,73 @@ type Source = {
 };
 
 const EditSourcePage = (): React.ReactNode => {
-  const auth = useAuth();
+  const headers = useAuthHeaders();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { sourceId } = Route.useParams();
-  const [source, setSource] = useState<Source | null>(null);
-  const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
 
-  const fetchSource = useCallback(async (): Promise<void> => {
-    if (auth.status !== "authenticated") return;
-    const { data, error: err } = await client.GET("/api/sources/{id}", {
-      params: { path: { id: sourceId } },
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
-    if (err) {
-      setError("Source not found");
-    } else {
-      const s = data as Source;
-      setSource(s);
-      setName(s.name);
-      setUrl(s.url);
-    }
-    setLoading(false);
-  }, [auth, sourceId]);
+  const sourceQuery = useQuery({
+    queryKey: queryKeys.sources.detail(sourceId),
+    queryFn: async (): Promise<Source> => {
+      const { data, error: err } = await client.GET("/api/sources/{id}", {
+        params: { path: { id: sourceId } },
+        headers,
+      });
+      if (err) throw new Error("Source not found");
+      return data as Source;
+    },
+    enabled: !!headers,
+  });
 
   useEffect(() => {
-    void fetchSource();
-  }, [fetchSource]);
+    if (sourceQuery.data) {
+      setName(sourceQuery.data.name);
+      setUrl(sourceQuery.data.url);
+    }
+  }, [sourceQuery.data]);
 
-  if (auth.status !== "authenticated") return null;
+  const updateMutation = useMutation({
+    mutationFn: async (body: Record<string, string>): Promise<void> => {
+      const { error: err } = await client.PATCH("/api/sources/{id}", {
+        params: { path: { id: sourceId } },
+        body,
+        headers,
+      });
+      if (err) throw new Error("Failed to update source");
+    },
+    onSuccess: async (): Promise<void> => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.sources.detail(sourceId) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.sources.all });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.nav });
+      await navigate({ to: "/sources/$sourceId", params: { sourceId } });
+    },
+    onError: (err: Error): void => {
+      setError(err.message);
+    },
+  });
 
-  if (loading) {
+  if (!headers) return null;
+
+  if (sourceQuery.isLoading) {
     return <div className="text-sm text-ink-tertiary py-12 text-center">Loading...</div>;
   }
 
-  if (!source) {
+  if (!sourceQuery.data) {
     return (
       <div className="py-12 text-center">
-        <div className="text-sm text-critical">{error ?? "Source not found"}</div>
+        <div className="text-sm text-critical">{error ?? sourceQuery.error?.message ?? "Source not found"}</div>
       </div>
     );
   }
 
+  const source = sourceQuery.data;
+
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setError(null);
-    setSubmitting(true);
 
     const body: Record<string, string> = {};
     if (name !== source.name) body.name = name;
@@ -73,19 +92,7 @@ const EditSourcePage = (): React.ReactNode => {
       return;
     }
 
-    const { error: err } = await client.PATCH("/api/sources/{id}", {
-      params: { path: { id: sourceId } },
-      body,
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
-
-    if (err) {
-      setError("Failed to update source");
-      setSubmitting(false);
-      return;
-    }
-
-    await navigate({ to: "/sources/$sourceId", params: { sourceId } });
+    updateMutation.mutate(body);
   };
 
   return (
@@ -113,8 +120,8 @@ const EditSourcePage = (): React.ReactNode => {
           onChange={(e) => setUrl(e.target.value)}
         />
         <div className="flex items-center gap-3 mt-2">
-          <Button variant="primary" type="submit" disabled={submitting}>
-            {submitting ? "Saving..." : "Save changes"}
+          <Button variant="primary" type="submit" disabled={updateMutation.isPending}>
+            {updateMutation.isPending ? "Saving..." : "Save changes"}
           </Button>
           <Button
             variant="ghost"

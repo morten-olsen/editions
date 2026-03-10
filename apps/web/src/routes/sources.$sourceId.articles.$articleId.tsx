@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 
-import { useAuth } from "../auth/auth.tsx";
 import { client } from "../api/api.ts";
+import { useAuthHeaders } from "../api/api.hooks.ts";
 import { BookmarkButton } from "../components/bookmark-button.tsx";
 import { ReadingShell } from "../components/app-shell.tsx";
 import { Button } from "../components/button.tsx";
@@ -26,6 +27,12 @@ type ArticleDetail = {
   extractedAt: string | null;
 };
 
+type ArticleData = {
+  article: ArticleDetail;
+  vote: VoteValue;
+  bookmarked: boolean;
+};
+
 const formatReadingTime = (seconds: number): string => {
   const minutes = Math.round(seconds / 60);
   if (minutes < 1) return "< 1 min read";
@@ -40,60 +47,61 @@ const formatPublishedDate = (iso: string): string =>
   });
 
 const ArticlePage = (): React.ReactNode => {
-  const auth = useAuth();
+  const headers = useAuthHeaders();
   const router = useRouter();
   const { sourceId, articleId } = Route.useParams();
-  const [article, setArticle] = useState<ArticleDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [vote, setVote] = useState<VoteValue>(null);
   const [isRead, setIsRead] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
 
-  const loadArticle = useCallback(async (): Promise<void> => {
-    if (auth.status !== "authenticated") return;
-    const headers = { Authorization: `Bearer ${auth.token}` };
+  const { data, isLoading, error } = useQuery<ArticleData>({
+    queryKey: ["sources", sourceId, "articles", articleId],
+    queryFn: async (): Promise<ArticleData> => {
+      const [articleRes, voteRes, bookmarkRes] = await Promise.all([
+        client.GET("/api/sources/{id}/articles/{articleId}", {
+          params: { path: { id: sourceId, articleId } },
+          headers,
+        }),
+        client.GET("/api/articles/{articleId}/vote", {
+          params: { path: { articleId } },
+          headers,
+        }),
+        client.GET("/api/articles/{articleId}/bookmark", {
+          params: { path: { articleId } },
+          headers,
+        }),
+      ]);
 
-    const [articleRes, voteRes, bookmarkRes] = await Promise.all([
-      client.GET("/api/sources/{id}/articles/{articleId}", {
-        params: { path: { id: sourceId, articleId } },
-        headers,
-      }),
-      client.GET("/api/articles/{articleId}/vote", {
-        params: { path: { articleId } },
-        headers,
-      }),
-      client.GET("/api/articles/{articleId}/bookmark", {
-        params: { path: { articleId } },
-        headers,
-      }),
-    ]);
+      if (articleRes.error) {
+        throw new Error("Article not found");
+      }
 
-    if (articleRes.error) {
-      setError("Article not found");
-    } else {
-      const art = articleRes.data as ArticleDetail;
-      setArticle(art);
-      setIsRead(!!art.readAt);
-    }
+      const article = articleRes.data as ArticleDetail;
+      const voteValue = voteRes.data
+        ? (voteRes.data as { value: 1 | -1 }).value
+        : null;
+      const isBookmarked = bookmarkRes.data
+        ? (bookmarkRes.data as { bookmarked: boolean }).bookmarked
+        : false;
 
-    if (voteRes.data) {
-      const voteData = voteRes.data as { value: 1 | -1 };
-      setVote(voteData.value);
-    }
+      return { article, vote: voteValue, bookmarked: isBookmarked };
+    },
+    enabled: !!headers,
+  });
 
-    if (bookmarkRes.data) {
-      setBookmarked((bookmarkRes.data as { bookmarked: boolean }).bookmarked);
-    }
+  // Sync server state into local state for optimistic updates
+  const article = data?.article ?? null;
 
-    setLoading(false);
-  }, [auth, sourceId, articleId]);
+  // Initialize local state from query data when it first arrives
+  const [initialized, setInitialized] = useState(false);
+  if (data && !initialized) {
+    setVote(data.vote);
+    setIsRead(!!data.article.readAt);
+    setBookmarked(data.bookmarked);
+    setInitialized(true);
+  }
 
-  useEffect(() => {
-    void loadArticle();
-  }, [loadArticle]);
-
-  if (auth.status === "loading" || loading) {
+  if (!headers || isLoading) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-surface">
         <div className="font-serif text-lg text-ink-tertiary">Loading...</div>
@@ -101,12 +109,12 @@ const ArticlePage = (): React.ReactNode => {
     );
   }
 
-  if (auth.status !== "authenticated" || !article) {
+  if (error || !article) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-surface">
         <div className="text-center">
           <div className="font-serif text-xl text-ink mb-2">
-            {error ?? "Article not found"}
+            {error instanceof Error ? error.message : "Article not found"}
           </div>
           <Button variant="ghost" size="sm" onClick={() => router.history.back()}>
             Go back
@@ -115,8 +123,6 @@ const ArticlePage = (): React.ReactNode => {
       </div>
     );
   }
-
-  const headers = { Authorization: `Bearer ${auth.token}` };
 
   const handleVote = async (value: VoteValue): Promise<void> => {
     setVote(value);

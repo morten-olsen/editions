@@ -1,39 +1,49 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { useAuth } from "../auth/auth.tsx";
+import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
 import { client } from "../api/api.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { Input } from "../components/input.tsx";
 import { Button } from "../components/button.tsx";
 
 const NewSourcePage = (): React.ReactNode => {
-  const auth = useAuth();
+  const headers = useAuthHeaders();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
 
-  if (auth.status !== "authenticated") return null;
+  const createMutation = useMutation({
+    mutationFn: async (body: { name: string; url: string }): Promise<void> => {
+      const { error: err } = await client.POST("/api/sources", {
+        body,
+        headers,
+      });
+      if (err) {
+        throw new Error(
+          "error" in err ? (err as { error: string }).error : "Failed to create source",
+        );
+      }
+    },
+    onSuccess: async (): Promise<void> => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.sources.all });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.nav });
+      await navigate({ to: "/sources" });
+    },
+    onError: (err: Error): void => {
+      setError(err.message);
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
+  if (!headers) return null;
+
+  const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
     setError(null);
-    setSubmitting(true);
-
-    const { error: err } = await client.POST("/api/sources", {
-      body: { name, url },
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
-
-    if (err) {
-      setError("error" in err ? (err as { error: string }).error : "Failed to create source");
-      setSubmitting(false);
-      return;
-    }
-
-    await navigate({ to: "/sources" });
+    createMutation.mutate({ name, url });
   };
 
   return (
@@ -63,8 +73,8 @@ const NewSourcePage = (): React.ReactNode => {
           onChange={(e) => setUrl(e.target.value)}
         />
         <div className="flex items-center gap-3 mt-2">
-          <Button variant="primary" type="submit" disabled={submitting}>
-            {submitting ? "Adding..." : "Add source"}
+          <Button variant="primary" type="submit" disabled={createMutation.isPending}>
+            {createMutation.isPending ? "Adding..." : "Add source"}
           </Button>
           <Button
             variant="ghost"

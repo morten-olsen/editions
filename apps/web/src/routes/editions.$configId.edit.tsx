@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { useAuth } from "../auth/auth.tsx";
 import { client } from "../api/api.ts";
-import { emitNavRefresh } from "../components/nav-events.ts";
+import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { Input } from "../components/input.tsx";
 import { Button } from "../components/button.tsx";
@@ -48,12 +48,10 @@ type FocusConfig = {
 };
 
 const EditEditionConfigPage = (): React.ReactNode => {
-  const auth = useAuth();
+  const headers = useAuthHeaders();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { configId } = Route.useParams();
-  const [config, setConfig] = useState<EditionConfig | null>(null);
-  const [allFocuses, setAllFocuses] = useState<Focus[]>([]);
-  const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [icon, setIcon] = useState<string | null>(null);
   const [schedule, setSchedule] = useState("");
@@ -62,57 +60,76 @@ const EditEditionConfigPage = (): React.ReactNode => {
   const [enabled, setEnabled] = useState(true);
   const [selectedFocuses, setSelectedFocuses] = useState<FocusConfig[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
 
-  const fetchData = useCallback(async (): Promise<void> => {
-    if (auth.status !== "authenticated") return;
-
-    const hdrs = { Authorization: `Bearer ${auth.token}` };
-    const [configRes, focusesRes] = await Promise.all([
-      client.GET("/api/editions/configs/{configId}", {
+  const configQuery = useQuery({
+    queryKey: queryKeys.editions.config(configId),
+    queryFn: async (): Promise<EditionConfig> => {
+      const { data, error: err } = await client.GET("/api/editions/configs/{configId}", {
         params: { path: { configId } },
-        headers: hdrs,
-      }),
-      client.GET("/api/focuses", { headers: hdrs }),
-    ]);
+        headers,
+      });
+      if (err) throw new Error("Edition config not found");
+      return data as unknown as EditionConfig;
+    },
+    enabled: !!headers,
+  });
 
-    if (configRes.error) {
-      setError("Edition config not found");
-    } else {
-      const c = configRes.data as unknown as EditionConfig;
-      setConfig(c);
-      setName(c.name);
-      setIcon(c.icon);
-      setSchedule(c.schedule);
-      setLookbackHours(c.lookbackHours);
-      setExcludePriorEditions(c.excludePriorEditions);
-      setEnabled(c.enabled);
-      setSelectedFocuses(
-        c.focuses.map((f) => ({
-          focusId: f.focusId,
-          position: f.position,
-          budgetType: f.budgetType,
-          budgetValue: f.budgetValue,
-          lookbackHours: f.lookbackHours,
-          weight: f.weight,
-        })),
-      );
-    }
+  const focusesQuery = useQuery({
+    queryKey: queryKeys.focuses.all,
+    queryFn: async (): Promise<Focus[]> => {
+      const { data } = await client.GET("/api/focuses", { headers });
+      return (data ?? []) as Focus[];
+    },
+    enabled: !!headers,
+  });
 
-    if (focusesRes.data) {
-      setAllFocuses(focusesRes.data as Focus[]);
-    }
-
-    setLoading(false);
-  }, [auth, configId]);
-
+  // Populate form state when config data loads
   useEffect(() => {
-    void fetchData();
-  }, [fetchData]);
+    if (!configQuery.data) return;
+    const c = configQuery.data;
+    setName(c.name);
+    setIcon(c.icon);
+    setSchedule(c.schedule);
+    setLookbackHours(c.lookbackHours);
+    setExcludePriorEditions(c.excludePriorEditions);
+    setEnabled(c.enabled);
+    setSelectedFocuses(
+      c.focuses.map((f) => ({
+        focusId: f.focusId,
+        position: f.position,
+        budgetType: f.budgetType,
+        budgetValue: f.budgetValue,
+        lookbackHours: f.lookbackHours,
+        weight: f.weight,
+      })),
+    );
+  }, [configQuery.data]);
 
-  if (auth.status !== "authenticated") return null;
+  const updateMutation = useMutation({
+    mutationFn: async (body: Record<string, unknown>): Promise<void> => {
+      const { error: err } = await client.PATCH("/api/editions/configs/{configId}", {
+        params: { path: { configId } },
+        body,
+        headers,
+      });
+      if (err) throw new Error("Failed to update edition config");
+    },
+    onSuccess: (): void => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.editions.configs });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.editions.config(configId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.nav });
+      void navigate({ to: "/editions/$configId", params: { configId } });
+    },
+    onError: (err: Error): void => {
+      setError(err.message);
+    },
+  });
 
-  const headers = { Authorization: `Bearer ${auth.token}` };
+  if (!headers) return null;
+
+  const loading = configQuery.isLoading || focusesQuery.isLoading;
+  const config = configQuery.data ?? null;
+  const allFocuses = focusesQuery.data ?? [];
 
   if (loading) {
     return <div className="text-sm text-ink-tertiary py-12 text-center">Loading...</div>;
@@ -121,7 +138,7 @@ const EditEditionConfigPage = (): React.ReactNode => {
   if (!config) {
     return (
       <div className="py-12 text-center">
-        <div className="text-sm text-critical">{error ?? "Edition config not found"}</div>
+        <div className="text-sm text-critical">{error ?? configQuery.error?.message ?? "Edition config not found"}</div>
       </div>
     );
   }
@@ -164,10 +181,9 @@ const EditEditionConfigPage = (): React.ReactNode => {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
+  const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
     setError(null);
-    setSubmitting(true);
 
     const body: Record<string, unknown> = {};
 
@@ -204,24 +220,11 @@ const EditEditionConfigPage = (): React.ReactNode => {
     }
 
     if (Object.keys(body).length === 0) {
-      await navigate({ to: "/editions/$configId", params: { configId } });
+      void navigate({ to: "/editions/$configId", params: { configId } });
       return;
     }
 
-    const { error: err } = await client.PATCH("/api/editions/configs/{configId}", {
-      params: { path: { configId } },
-      body,
-      headers,
-    });
-
-    if (err) {
-      setError("Failed to update edition config");
-      setSubmitting(false);
-      return;
-    }
-
-    emitNavRefresh();
-    await navigate({ to: "/editions/$configId", params: { configId } });
+    updateMutation.mutate(body);
   };
 
   return (
@@ -432,8 +435,8 @@ const EditEditionConfigPage = (): React.ReactNode => {
         )}
 
         <div className="flex items-center gap-3">
-          <Button variant="primary" type="submit" disabled={submitting}>
-            {submitting ? "Saving..." : "Save changes"}
+          <Button variant="primary" type="submit" disabled={updateMutation.isPending}>
+            {updateMutation.isPending ? "Saving..." : "Save changes"}
           </Button>
           <Button
             variant="ghost"

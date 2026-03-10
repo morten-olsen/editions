@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { useAuth } from "../auth/auth.tsx";
+import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
 import { client } from "../api/api.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { Button } from "../components/button.tsx";
@@ -21,27 +21,18 @@ type Focus = {
 };
 
 const FocusesPage = (): React.ReactNode => {
-  const auth = useAuth();
-  const [focuses, setFocuses] = useState<Focus[]>([]);
-  const [loading, setLoading] = useState(true);
+  const headers = useAuthHeaders();
 
-  const fetchFocuses = useCallback(async (): Promise<void> => {
-    if (auth.status !== "authenticated") return;
-    setLoading(true);
-    const { data } = await client.GET("/api/focuses", {
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
-    if (data) {
-      setFocuses(data as Focus[]);
-    }
-    setLoading(false);
-  }, [auth]);
+  const { data: focuses = [], isLoading } = useQuery({
+    queryKey: queryKeys.focuses.all,
+    queryFn: async (): Promise<Focus[]> => {
+      const { data } = await client.GET("/api/focuses", { headers });
+      return (data as Focus[]) ?? [];
+    },
+    enabled: !!headers,
+  });
 
-  useEffect(() => {
-    void fetchFocuses();
-  }, [fetchFocuses]);
-
-  if (auth.status !== "authenticated") return null;
+  if (!headers) return null;
 
   return (
     <>
@@ -56,7 +47,7 @@ const FocusesPage = (): React.ReactNode => {
         }
       />
 
-      {!loading && focuses.length === 0 ? (
+      {!isLoading && focuses.length === 0 ? (
         <EmptyState
           title="No focuses yet"
           description="Focuses are topic areas that organize your articles. Create one to start filtering your feed by interest."

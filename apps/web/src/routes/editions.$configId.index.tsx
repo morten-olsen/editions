@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { useAuth } from "../auth/auth.tsx";
 import { client } from "../api/api.ts";
+import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
 import { Button } from "../components/button.tsx";
 import { EmptyState } from "../components/empty-state.tsx";
 
@@ -37,83 +38,104 @@ const CogIcon = (): React.ReactElement => (
 );
 
 const EditionConfigDetailPage = (): React.ReactNode => {
-  const auth = useAuth();
+  const headers = useAuthHeaders();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { configId } = Route.useParams();
-  const [config, setConfig] = useState<EditionConfig | null>(null);
-  const [editions, setEditions] = useState<EditionSummary[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [generating, setGenerating] = useState(false);
   const [readFilter, setReadFilter] = useState<"unread" | "all" | "read">("unread");
 
-  const loadData = useCallback(async (): Promise<void> => {
-    if (auth.status !== "authenticated") return;
-
-    const hdrs = { Authorization: `Bearer ${auth.token}` };
-    const [configRes, editionsRes] = await Promise.all([
-      client.GET("/api/editions/configs/{configId}", {
+  const configQuery = useQuery({
+    queryKey: queryKeys.editions.config(configId),
+    queryFn: async (): Promise<EditionConfig> => {
+      const { data, error: err } = await client.GET("/api/editions/configs/{configId}", {
         params: { path: { configId } },
-        headers: hdrs,
-      }),
-      client.GET("/api/editions/configs/{configId}/editions", {
+        headers,
+      });
+      if (err) throw new Error("Edition config not found");
+      return data as EditionConfig;
+    },
+    enabled: !!headers,
+  });
+
+  const editionsQuery = useQuery({
+    queryKey: queryKeys.editions.forConfig(configId),
+    queryFn: async (): Promise<EditionSummary[]> => {
+      const { data } = await client.GET("/api/editions/configs/{configId}/editions", {
         params: { path: { configId } },
-        headers: hdrs,
-      }),
-    ]);
+        headers,
+      });
+      return (data ?? []) as EditionSummary[];
+    },
+    enabled: !!headers,
+  });
 
-    if (configRes.error) {
-      setError("Edition config not found");
-    } else {
-      setConfig(configRes.data as EditionConfig);
-    }
+  const generateMutation = useMutation({
+    mutationFn: async (): Promise<{ id: string }> => {
+      const { data, error: err } = await client.POST("/api/editions/configs/{configId}/generate", {
+        params: { path: { configId } },
+        headers,
+      });
+      if (err) {
+        throw new Error("error" in err ? (err as { error: string }).error : "Failed to generate edition");
+      }
+      return data as { id: string };
+    },
+    onSuccess: (data): void => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.editions.forConfig(configId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.nav });
+      void navigate({
+        to: "/editions/$configId/issues/$editionId",
+        params: { configId, editionId: data.id },
+      });
+    },
+    onError: (err: Error): void => {
+      setError(err.message);
+    },
+  });
 
-    if (editionsRes.data) {
-      setEditions(editionsRes.data as EditionSummary[]);
-    }
+  const deleteMutation = useMutation({
+    mutationFn: async (editionId: string): Promise<string> => {
+      await client.DELETE("/api/editions/{editionId}", {
+        params: { path: { editionId } },
+        headers,
+      });
+      return editionId;
+    },
+    onMutate: async (editionId): Promise<{ previous: EditionSummary[] | undefined }> => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.editions.forConfig(configId) });
+      const previous = queryClient.getQueryData<EditionSummary[]>(queryKeys.editions.forConfig(configId));
+      queryClient.setQueryData<EditionSummary[]>(
+        queryKeys.editions.forConfig(configId),
+        (old) => old?.filter((e) => e.id !== editionId) ?? [],
+      );
+      return { previous };
+    },
+    onError: (_err, _editionId, context): void => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKeys.editions.forConfig(configId), context.previous);
+      }
+    },
+    onSettled: (): void => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.editions.forConfig(configId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.nav });
+    },
+  });
 
-    setLoading(false);
-  }, [auth, configId]);
+  if (!headers) return null;
 
-  useEffect(() => {
-    void loadData();
-  }, [loadData]);
+  const loading = configQuery.isLoading || editionsQuery.isLoading;
+  const config = configQuery.data ?? null;
+  const editions = editionsQuery.data ?? [];
 
-  if (auth.status !== "authenticated") return null;
-
-  const headers = { Authorization: `Bearer ${auth.token}` };
-
-  const handleGenerate = async (): Promise<void> => {
-    setGenerating(true);
+  const handleGenerate = (): void => {
     setError(null);
-
-    const { data, error: err } = await client.POST("/api/editions/configs/{configId}/generate", {
-      params: { path: { configId } },
-      headers,
-    });
-
-    if (err) {
-      setError("error" in err ? (err as { error: string }).error : "Failed to generate edition");
-      setGenerating(false);
-      return;
-    }
-
-    setGenerating(false);
-    const edition = data as { id: string };
-    await navigate({
-      to: "/editions/$configId/issues/$editionId",
-      params: { configId, editionId: edition.id },
-    });
+    generateMutation.mutate();
   };
 
-  const handleDeleteEdition = async (editionId: string, title: string): Promise<void> => {
+  const handleDeleteEdition = (editionId: string, title: string): void => {
     if (!confirm(`Delete "${title}"?`)) return;
-
-    await client.DELETE("/api/editions/{editionId}", {
-      params: { path: { editionId } },
-      headers,
-    });
-    setEditions((prev) => prev.filter((e) => e.id !== editionId));
+    deleteMutation.mutate(editionId);
   };
 
   if (loading) {
@@ -123,7 +145,7 @@ const EditionConfigDetailPage = (): React.ReactNode => {
   if (!config) {
     return (
       <div className="py-12 text-center">
-        <div className="text-sm text-critical">{error ?? "Edition config not found"}</div>
+        <div className="text-sm text-critical">{error ?? configQuery.error?.message ?? "Edition config not found"}</div>
       </div>
     );
   }
@@ -145,10 +167,10 @@ const EditionConfigDetailPage = (): React.ReactNode => {
           <Button
             variant="primary"
             size="sm"
-            disabled={generating}
-            onClick={() => void handleGenerate()}
+            disabled={generateMutation.isPending}
+            onClick={() => handleGenerate()}
           >
-            {generating ? "Generating..." : "Generate issue"}
+            {generateMutation.isPending ? "Generating..." : "Generate issue"}
           </Button>
           <Link
             to="/editions/$configId/edit"
@@ -191,10 +213,10 @@ const EditionConfigDetailPage = (): React.ReactNode => {
           action={
             <Button
               variant="primary"
-              disabled={generating}
-              onClick={() => void handleGenerate()}
+              disabled={generateMutation.isPending}
+              onClick={() => handleGenerate()}
             >
-              {generating ? "Generating..." : "Generate issue"}
+              {generateMutation.isPending ? "Generating..." : "Generate issue"}
             </Button>
           }
         />
@@ -242,7 +264,7 @@ const EditionConfigDetailPage = (): React.ReactNode => {
               </div>
               <button
                 type="button"
-                onClick={() => void handleDeleteEdition(edition.id, edition.title)}
+                onClick={() => handleDeleteEdition(edition.id, edition.title)}
                 className="text-xs text-ink-tertiary hover:text-critical transition-colors duration-fast cursor-pointer ml-4"
               >
                 Delete

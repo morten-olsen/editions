@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { useAuth } from "../auth/auth.tsx";
 import { client } from "../api/api.ts";
+import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { EmptyState } from "../components/empty-state.tsx";
 import { ArticleCard } from "../components/article-card.tsx";
@@ -33,80 +34,79 @@ type BookmarksPage = {
 const PAGE_SIZE = 30;
 
 const BookmarksIndexPage = (): React.ReactNode => {
-  const auth = useAuth();
-  const [page, setPage] = useState<BookmarksPage | null>(null);
-  const [loading, setLoading] = useState(true);
+  const headers = useAuthHeaders();
+  const queryClient = useQueryClient();
   const [offset, setOffset] = useState(0);
   const [saveUrl, setSaveUrl] = useState("");
-  const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  const loadBookmarks = useCallback(async (newOffset: number): Promise<void> => {
-    if (auth.status !== "authenticated") return;
+  const queryKey = [...queryKeys.bookmarks.all, offset] as const;
 
-    const { data } = await client.GET("/api/bookmarks", {
-      params: { query: { offset: newOffset, limit: PAGE_SIZE } },
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
+  const { data: page, isLoading } = useQuery<BookmarksPage>({
+    queryKey,
+    queryFn: async (): Promise<BookmarksPage> => {
+      const { data } = await client.GET("/api/bookmarks", {
+        params: { query: { offset, limit: PAGE_SIZE } },
+        headers,
+      });
+      return data as BookmarksPage;
+    },
+    enabled: !!headers,
+  });
 
-    if (data) {
-      setPage(data as BookmarksPage);
-    }
-    setLoading(false);
-  }, [auth]);
+  const saveMutation = useMutation({
+    mutationFn: async (url: string): Promise<void> => {
+      const { error: err } = await client.POST("/api/bookmarks/save", {
+        body: { url },
+        headers,
+      });
+      if (err) {
+        throw new Error(
+          "error" in err ? (err as { error: string }).error : "Failed to save article",
+        );
+      }
+    },
+    onSuccess: (): void => {
+      setSaveUrl("");
+      setSaveError(null);
+      setOffset(0);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.all });
+    },
+    onError: (err: Error): void => {
+      setSaveError(err.message);
+    },
+  });
 
-  useEffect(() => {
-    void loadBookmarks(0);
-  }, [loadBookmarks]);
+  const removeMutation = useMutation({
+    mutationFn: async (articleId: string): Promise<void> => {
+      await client.DELETE("/api/articles/{articleId}/bookmark", {
+        params: { path: { articleId } },
+        headers,
+      });
+    },
+    onMutate: async (articleId: string): Promise<void> => {
+      await queryClient.cancelQueries({ queryKey });
+      queryClient.setQueryData<BookmarksPage>(queryKey, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          bookmarks: old.bookmarks.filter((b) => b.articleId !== articleId),
+          total: old.total - 1,
+        };
+      });
+    },
+  });
 
-  if (auth.status !== "authenticated") return null;
-
-  const headers = { Authorization: `Bearer ${auth.token}` };
-
-  const handleSaveUrl = async (e: React.FormEvent): Promise<void> => {
+  const handleSaveUrl = (e: React.FormEvent): void => {
     e.preventDefault();
     const trimmed = saveUrl.trim();
     if (!trimmed) return;
-
-    setSaving(true);
     setSaveError(null);
-
-    const { error: err } = await client.POST("/api/bookmarks/save", {
-      body: { url: trimmed },
-      headers,
-    });
-
-    if (err) {
-      setSaveError("error" in err ? (err as { error: string }).error : "Failed to save article");
-      setSaving(false);
-      return;
-    }
-
-    setSaveUrl("");
-    setSaving(false);
-    void loadBookmarks(0);
-    setOffset(0);
-  };
-
-  const handleRemoveBookmark = async (articleId: string): Promise<void> => {
-    await client.DELETE("/api/articles/{articleId}/bookmark", {
-      params: { path: { articleId } },
-      headers,
-    });
-
-    setPage((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        bookmarks: prev.bookmarks.filter((b) => b.articleId !== articleId),
-        total: prev.total - 1,
-      };
-    });
+    saveMutation.mutate(trimmed);
   };
 
   const handlePageChange = (newOffset: number): void => {
     setOffset(newOffset);
-    void loadBookmarks(newOffset);
   };
 
   const totalPages = page ? Math.ceil(page.total / PAGE_SIZE) : 0;
@@ -125,8 +125,8 @@ const BookmarksIndexPage = (): React.ReactNode => {
           required
           className="flex-1 h-10 rounded-md border border-border bg-surface-raised px-3.5 text-sm text-ink placeholder:text-ink-faint outline-none transition-colors duration-fast ease-gentle focus:border-accent focus:ring-2 focus:ring-accent/20"
         />
-        <Button variant="primary" size="sm" type="submit" disabled={saving}>
-          {saving ? "Saving..." : "Save"}
+        <Button variant="primary" size="sm" type="submit" disabled={saveMutation.isPending}>
+          {saveMutation.isPending ? "Saving..." : "Save"}
         </Button>
       </form>
 
@@ -136,7 +136,7 @@ const BookmarksIndexPage = (): React.ReactNode => {
         </div>
       )}
 
-      {loading ? (
+      {isLoading ? (
         <div className="text-sm text-ink-tertiary py-12 text-center">Loading...</div>
       ) : !page || page.bookmarks.length === 0 ? (
         <EmptyState
@@ -159,7 +159,7 @@ const BookmarksIndexPage = (): React.ReactNode => {
                 imageUrl={bookmark.imageUrl}
                 href={`/sources/${bookmark.sourceId}/articles/${bookmark.articleId}`}
                 bookmarked
-                onBookmarkToggle={() => void handleRemoveBookmark(bookmark.articleId)}
+                onBookmarkToggle={() => removeMutation.mutate(bookmark.articleId)}
               />
             ))}
           </div>

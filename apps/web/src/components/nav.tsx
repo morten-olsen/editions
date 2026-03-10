@@ -4,6 +4,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useAuth } from "../auth/auth.tsx";
 import { client } from "../api/api.ts";
 import { EntityIcon } from "./entity-icon.tsx";
+import { navEvents } from "./nav-events.ts";
 
 type NavEditionConfig = {
   id: string;
@@ -89,6 +90,9 @@ const Nav = (): React.ReactElement => {
 
   useEffect(() => {
     void loadNav();
+    const handler = (): void => void loadNav();
+    navEvents.addEventListener("refresh", handler);
+    return () => navEvents.removeEventListener("refresh", handler);
   }, [loadNav]);
 
   const username = auth.status === "authenticated" ? auth.user.username : undefined;
@@ -114,7 +118,7 @@ const Nav = (): React.ReactElement => {
               params={{ configId: cfg.id }}
               className={linkClass(isActive(`/editions/${cfg.id}`))}
             >
-              <EntityIcon icon={cfg.icon} size={14} className="shrink-0" />
+              <EntityIcon icon={cfg.icon} fallback="newspaper" size={14} className="shrink-0" />
               <span className="truncate flex-1">{cfg.name}</span>
               {cfg.hasUnread && (
                 <span className="shrink-0 w-5 h-5 flex items-center justify-center">
@@ -152,7 +156,7 @@ const Nav = (): React.ReactElement => {
               params={{ focusId: focus.id }}
               className={linkClass(isActive(`/focuses/${focus.id}`))}
             >
-              <EntityIcon icon={focus.icon} size={14} className="shrink-0" />
+              <EntityIcon icon={focus.icon} fallback="target" size={14} className="shrink-0" />
               <span className="truncate">{focus.name}</span>
             </Link>
           ))}

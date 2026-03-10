@@ -1284,6 +1284,7 @@ export interface paths {
                             userId: string;
                             name: string;
                             description: string | (null);
+                            icon: string | (null);
                             minConfidence: number;
                             minReadingTimeSeconds: number | (null);
                             maxReadingTimeSeconds: number | (null);
@@ -1313,6 +1314,7 @@ export interface paths {
                     "application/json": {
                         name: string;
                         description?: string;
+                        icon?: string | (null);
                         minConfidence?: number;
                         minReadingTimeSeconds?: number | (null);
                         maxReadingTimeSeconds?: number | (null);
@@ -1338,6 +1340,7 @@ export interface paths {
                             userId: string;
                             name: string;
                             description: string | (null);
+                            icon: string | (null);
                             minConfidence: number;
                             minReadingTimeSeconds: number | (null);
                             maxReadingTimeSeconds: number | (null);
@@ -1389,6 +1392,7 @@ export interface paths {
                             userId: string;
                             name: string;
                             description: string | (null);
+                            icon: string | (null);
                             minConfidence: number;
                             minReadingTimeSeconds: number | (null);
                             maxReadingTimeSeconds: number | (null);
@@ -1465,6 +1469,7 @@ export interface paths {
                     "application/json": {
                         name?: string;
                         description?: string | (null);
+                        icon?: string | (null);
                         minConfidence?: number;
                         minReadingTimeSeconds?: number | (null);
                         maxReadingTimeSeconds?: number | (null);
@@ -1483,6 +1488,7 @@ export interface paths {
                             userId: string;
                             name: string;
                             description: string | (null);
+                            icon: string | (null);
                             minConfidence: number;
                             minReadingTimeSeconds: number | (null);
                             maxReadingTimeSeconds: number | (null);
@@ -1632,6 +1638,7 @@ export interface paths {
                             userId: string;
                             name: string;
                             description: string | (null);
+                            icon: string | (null);
                             minConfidence: number;
                             minReadingTimeSeconds: number | (null);
                             maxReadingTimeSeconds: number | (null);
@@ -1775,6 +1782,7 @@ export interface paths {
                             id: string;
                             userId: string;
                             name: string;
+                            icon: string | (null);
                             schedule: string;
                             lookbackHours: number;
                             excludePriorEditions: boolean;
@@ -1808,6 +1816,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
+                        icon?: string | (null);
                         schedule: string;
                         lookbackHours: number;
                         excludePriorEditions?: boolean;
@@ -1835,6 +1844,7 @@ export interface paths {
                             id: string;
                             userId: string;
                             name: string;
+                            icon: string | (null);
                             schedule: string;
                             lookbackHours: number;
                             excludePriorEditions: boolean;
@@ -1890,6 +1900,7 @@ export interface paths {
                             id: string;
                             userId: string;
                             name: string;
+                            icon: string | (null);
                             schedule: string;
                             lookbackHours: number;
                             excludePriorEditions: boolean;
@@ -1970,6 +1981,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name?: string;
+                        icon?: string | (null);
                         schedule?: string;
                         lookbackHours?: number;
                         excludePriorEditions?: boolean;
@@ -1997,6 +2009,7 @@ export interface paths {
                             id: string;
                             userId: string;
                             name: string;
+                            icon: string | (null);
                             schedule: string;
                             lookbackHours: number;
                             excludePriorEditions: boolean;
@@ -2504,6 +2517,8 @@ export interface paths {
                     limit?: number;
                     sort?: "top" | "recent";
                     status?: "unread" | "read" | "all";
+                    from?: string;
+                    to?: string;
                 };
                 header?: never;
                 path?: never;
@@ -2648,6 +2663,207 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settings/scoring": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            weights: {
+                                global: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                focus: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                edition: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                            };
+                            defaults: {
+                                global: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                focus: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                edition: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                            };
+                            isCustom: boolean;
+                        };
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        global: {
+                            alpha: number;
+                            beta: number;
+                            gamma: number;
+                        };
+                        focus: {
+                            alpha: number;
+                            beta: number;
+                            gamma: number;
+                        };
+                        edition: {
+                            alpha: number;
+                            beta: number;
+                            gamma: number;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            weights: {
+                                global: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                focus: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                edition: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                            };
+                            defaults: {
+                                global: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                focus: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                edition: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                            };
+                            isCustom: boolean;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            weights: {
+                                global: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                focus: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                edition: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                            };
+                            defaults: {
+                                global: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                focus: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                edition: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                            };
+                            isCustom: boolean;
+                        };
+                    };
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;

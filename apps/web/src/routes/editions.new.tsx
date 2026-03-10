@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { useAuth } from "../auth/auth.tsx";
 import { client } from "../api/api.ts";
+import { emitNavRefresh } from "../components/nav-events.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { Input } from "../components/input.tsx";
 import { Button } from "../components/button.tsx";
@@ -128,6 +129,7 @@ const NewEditionConfigPage = (): React.ReactNode => {
       return;
     }
 
+    emitNavRefresh();
     await navigate({ to: "/editions" });
   };
 

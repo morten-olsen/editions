@@ -18,7 +18,7 @@ The weights vary by feed type to match each context:
 | Focus | 0.4 | 0.4 | 0.2 | Balanced — confidence is meaningful, recency still significant |
 | Edition | 0.5 | 0.4 | 0.1 | Lookback window handles freshness; confidence drives selection |
 
-Weight presets are defined as `globalWeights`, `focusWeights`, `editionWeights` in `votes/votes.scoring.ts`.
+Weight presets are defined as `globalWeights`, `focusWeights`, `editionWeights` in `votes/votes.scoring.ts`. These are the defaults — users can customise all weights via **Settings > Scoring** (stored as JSON in `users.scoring_weights`).
 
 ### Confidence
 
@@ -159,6 +159,16 @@ Source: `editions/editions.ts`
 | Focus weights | no | no | yes |
 | Source distribution | none | none | weighted round-robin |
 | Budgeting | none | none | count or reading time |
+
+## User-customisable weights
+
+All scoring weights can be overridden per user via `GET/PUT/DELETE /api/settings/scoring`. Weights are stored as a JSON blob in `users.scoring_weights` (nullable — `null` means use defaults).
+
+The API returns both the active weights and the defaults, plus an `isCustom` flag. `DELETE` resets to defaults.
+
+The settings UI (Settings > Scoring tab) presents sliders for each feed type's three weights with per-feed and global reset options. Changes take effect on the next feed load.
+
+Source: `api/scoring.routes.ts`, `votes/votes.scoring.ts` (`parseUserScoringWeights`), `votes/votes.ts` (`loadUserScoringWeights`, `saveUserScoringWeights`).
 
 ## Future enhancements
 

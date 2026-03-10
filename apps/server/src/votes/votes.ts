@@ -4,8 +4,8 @@ import { DatabaseService } from "../database/database.ts";
 
 import type { ArticleVoteValue } from "../database/database.types.ts";
 import type { Services } from "../services/services.ts";
-import type { VoteContext, VotedArticle } from "./votes.scoring.ts";
-import { MAX_VOTE_CONTEXT_SIZE, emptyVoteContext, mergeVoteContexts, rankArticles } from "./votes.scoring.ts";
+import type { UserScoringWeights, VoteContext, VotedArticle } from "./votes.scoring.ts";
+import { MAX_VOTE_CONTEXT_SIZE, emptyVoteContext, mergeVoteContexts, parseUserScoringWeights, rankArticles } from "./votes.scoring.ts";
 
 // --- Errors ---
 
@@ -390,6 +390,40 @@ class VotesService {
     return result.numDeletedRows > 0n;
   };
 
+  loadUserScoringWeights = async (userId: string): Promise<UserScoringWeights> => {
+    const db = await this.#services.get(DatabaseService).getInstance();
+    const row = await db
+      .selectFrom("users")
+      .select("scoring_weights")
+      .where("id", "=", userId)
+      .executeTakeFirst();
+    return parseUserScoringWeights(row?.scoring_weights ?? null);
+  };
+
+  saveUserScoringWeights = async (userId: string, weights: UserScoringWeights): Promise<void> => {
+    const db = await this.#services.get(DatabaseService).getInstance();
+    await db
+      .updateTable("users")
+      .set({
+        scoring_weights: JSON.stringify(weights),
+        updated_at: new Date().toISOString(),
+      })
+      .where("id", "=", userId)
+      .execute();
+  };
+
+  resetUserScoringWeights = async (userId: string): Promise<void> => {
+    const db = await this.#services.get(DatabaseService).getInstance();
+    await db
+      .updateTable("users")
+      .set({
+        scoring_weights: null,
+        updated_at: new Date().toISOString(),
+      })
+      .where("id", "=", userId)
+      .execute();
+  };
+
   getVotesByArticleIds = async (
     userId: string,
     articleIds: string[],
@@ -445,5 +479,5 @@ export type { Vote, UpsertVoteParams, ArticleVotePair, ArticleVotesMap, ListVote
 export { VotesService, VoteError, ArticleNotFoundForVoteError };
 
 // Re-export scoring utilities for consumers
-export type { VoteContext, ScoringCandidate } from "./votes.scoring.ts";
-export { rankArticles, mergeVoteContexts, emptyVoteContext } from "./votes.scoring.ts";
+export type { VoteContext, ScoringCandidate, UserScoringWeights } from "./votes.scoring.ts";
+export { rankArticles, mergeVoteContexts, emptyVoteContext, defaultUserScoringWeights } from "./votes.scoring.ts";

@@ -135,7 +135,35 @@ const emptyVoteContext = (): VoteContext => ({
   votedArticles: [],
 });
 
-export type { VoteContext, VotedArticle, ScoringCandidate, ScoringWeights };
+// --- User scoring weights ---
+
+type UserScoringWeights = {
+  global: ScoringWeights;
+  focus: ScoringWeights;
+  edition: ScoringWeights;
+};
+
+const defaultUserScoringWeights: UserScoringWeights = {
+  global: globalWeights,
+  focus: focusWeights,
+  edition: editionWeights,
+};
+
+const parseUserScoringWeights = (json: string | null): UserScoringWeights => {
+  if (!json) return defaultUserScoringWeights;
+  try {
+    const parsed = JSON.parse(json) as Partial<UserScoringWeights>;
+    return {
+      global: { ...globalWeights, ...parsed.global },
+      focus: { ...focusWeights, ...parsed.focus },
+      edition: { ...editionWeights, ...parsed.edition },
+    };
+  } catch {
+    return defaultUserScoringWeights;
+  }
+};
+
+export type { VoteContext, VotedArticle, ScoringCandidate, ScoringWeights, UserScoringWeights };
 export {
   computeScore,
   rankArticles,
@@ -144,5 +172,7 @@ export {
   globalWeights,
   focusWeights,
   editionWeights,
+  defaultUserScoringWeights,
+  parseUserScoringWeights,
   MAX_VOTE_CONTEXT_SIZE,
 };

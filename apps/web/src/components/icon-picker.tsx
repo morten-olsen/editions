@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { EntityIcon, iconNames } from "./entity-icon.tsx";
 
@@ -7,67 +7,72 @@ type IconPickerProps = {
   onChange: (icon: string | null) => void;
 };
 
-const iconLabels: Record<string, string> = {
-  Newspaper: "Newspaper",
-  Globe: "Globe",
-  Code: "Code",
-  Cpu: "CPU",
-  Rocket: "Rocket",
-  FlaskConical: "Science",
-  Microscope: "Microscope",
-  BookOpen: "Book",
-  GraduationCap: "Education",
-  Briefcase: "Business",
-  TrendingUp: "Trending",
-  DollarSign: "Finance",
-  BarChart3: "Charts",
-  Heart: "Health",
-  Shield: "Security",
-  Scale: "Law",
-  Landmark: "Government",
-  Building2: "Building",
-  Users: "People",
-  MessageCircle: "Chat",
-  Pen: "Writing",
-  Camera: "Photo",
-  Film: "Film",
-  Music: "Music",
-  Palette: "Art",
-  Gamepad2: "Gaming",
-  Trophy: "Sports",
-  Dumbbell: "Fitness",
-  Leaf: "Nature",
-  Sun: "Sun",
-  Cloud: "Weather",
-  Plane: "Travel",
-  Car: "Auto",
-  Utensils: "Food",
-  Coffee: "Coffee",
-  ShoppingBag: "Shopping",
-  Hammer: "Build",
-  Wrench: "Tools",
-  Zap: "Energy",
-  Star: "Star",
-  Flame: "Fire",
-  Target: "Target",
-  Compass: "Compass",
-  Map: "Map",
-  Mountain: "Mountain",
-  Waves: "Ocean",
-  Dog: "Pets",
-  Lightbulb: "Ideas",
-};
+const curatedIcons = [
+  // Technology
+  "monitor", "laptop", "smartphone", "tablet", "cpu", "code", "terminal",
+  "globe", "wifi", "database", "server", "hard-drive", "cloud", "bug",
+  "git-branch", "circuit-board", "radio", "satellite", "bot", "computer",
+  "binary", "braces",
+  // Science & education
+  "flask-conical", "microscope", "atom", "dna", "test-tube", "book-open",
+  "book", "library", "graduation-cap", "school", "pen", "pencil",
+  // Business & finance
+  "briefcase", "trending-up", "dollar-sign", "bar-chart-3", "pie-chart",
+  "line-chart", "banknote", "wallet", "credit-card", "building-2",
+  "landmark", "store", "shopping-cart", "package", "truck",
+  // People & communication
+  "users", "user", "message-circle", "message-square", "mail", "at-sign",
+  "phone", "video", "megaphone", "bell",
+  // Media & creative
+  "camera", "film", "music", "headphones", "mic", "palette", "brush",
+  "image", "file-text", "newspaper", "tv",
+  // Health & wellness
+  "heart", "heart-pulse", "activity", "stethoscope", "pill", "apple",
+  "dumbbell",
+  // Nature & environment
+  "leaf", "tree-pine", "flower-2", "sun", "moon", "snowflake", "droplets",
+  "waves", "mountain", "flame", "wind",
+  // Travel & transport
+  "plane", "car", "train", "ship", "bike", "map-pin", "map", "compass",
+  "navigation",
+  // Food & drink
+  "utensils", "coffee", "wine", "cooking-pot", "sandwich", "ice-cream-cone",
+  // Gaming & sports
+  "gamepad-2", "trophy", "medal", "swords", "puzzle", "dice-5",
+  // Security & law
+  "shield", "shield-check", "lock", "key", "fingerprint", "eye", "scale",
+  "gavel",
+  // Tools
+  "hammer", "wrench", "settings", "cog", "sliders-horizontal", "ruler",
+  "scissors",
+  // Symbols
+  "zap", "star", "sparkles", "target", "crosshair", "lightbulb", "rocket",
+  "crown", "diamond", "gem", "flag", "bookmark", "tag", "hash", "link",
+  "infinity",
+  // Animals
+  "dog", "cat", "bird", "fish", "rabbit",
+  // Misc
+  "home", "calendar", "clock", "timer", "alarm-clock", "gift",
+  "party-popper", "handshake", "thumbs-up", "award",
+];
+
+const formatLabel = (name: string): string =>
+  name.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 
 const IconPicker = ({ value, onChange }: IconPickerProps): React.ReactElement => {
   const [search, setSearch] = useState("");
 
-  const filtered = search
-    ? iconNames.filter((name) => {
-        const label = iconLabels[name] ?? name;
-        return label.toLowerCase().includes(search.toLowerCase()) ||
-          name.toLowerCase().includes(search.toLowerCase());
-      })
-    : iconNames;
+  const filtered = useMemo(() => {
+    if (!search) return curatedIcons;
+    const q = search.toLowerCase();
+    const matches = iconNames.filter((name) => name.includes(q));
+    // Show curated matches first, then the rest
+    const curated = new Set(curatedIcons);
+    return [
+      ...matches.filter((n) => curated.has(n)),
+      ...matches.filter((n) => !curated.has(n)),
+    ];
+  }, [search]);
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -79,7 +84,7 @@ const IconPicker = ({ value, onChange }: IconPickerProps): React.ReactElement =>
       {value && (
         <div className="flex items-center gap-2 mb-1">
           <EntityIcon icon={value} size={18} className="text-accent" />
-          <span className="text-sm text-ink-secondary">{iconLabels[value] ?? value}</span>
+          <span className="text-sm text-ink-secondary">{formatLabel(value)}</span>
           <button
             type="button"
             onClick={() => onChange(null)}
@@ -92,7 +97,7 @@ const IconPicker = ({ value, onChange }: IconPickerProps): React.ReactElement =>
 
       <input
         type="text"
-        placeholder="Search icons..."
+        placeholder="Search all icons..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="w-full rounded-md border border-border bg-surface px-3 py-1.5 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-1 focus:ring-accent"
@@ -104,7 +109,7 @@ const IconPicker = ({ value, onChange }: IconPickerProps): React.ReactElement =>
             key={name}
             type="button"
             onClick={() => onChange(name)}
-            title={iconLabels[name] ?? name}
+            title={formatLabel(name)}
             className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors duration-fast cursor-pointer ${
               value === name
                 ? "bg-accent-subtle text-accent"
@@ -120,6 +125,12 @@ const IconPicker = ({ value, onChange }: IconPickerProps): React.ReactElement =>
           </div>
         )}
       </div>
+
+      {search && filtered.length > 0 && (
+        <p className="text-xs text-ink-faint">
+          {filtered.length} icon{filtered.length === 1 ? "" : "s"} found
+        </p>
+      )}
     </div>
   );
 };

@@ -6,7 +6,7 @@ import {
   VotesService,
   mergeVoteContexts,
 } from "../votes/votes.ts";
-import { computeScore, editionWeights } from "../votes/votes.scoring.ts";
+import { computeScore } from "../votes/votes.scoring.ts";
 
 import type { EditionBudgetType } from "../database/database.types.ts";
 import type { Services } from "../services/services.ts";
@@ -575,12 +575,13 @@ class EditionsService {
       focusDetails.set(fc.focusId, { minConfidence: focus.minConfidence, sourceWeights });
     }
 
-    // Load global vote context once for the user
+    // Load global vote context and user scoring weights once for the user
     const votesService = this.#services.get(VotesService);
-    const globalVoteContext = await votesService.loadVoteContext(userId, null);
-
-    // Load edition-config-scoped vote context
-    const editionVoteContext = await votesService.loadEditionVoteContext(userId, configId);
+    const [globalVoteContext, editionVoteContext, userWeights] = await Promise.all([
+      votesService.loadVoteContext(userId, null),
+      votesService.loadEditionVoteContext(userId, configId),
+      votesService.loadUserScoringWeights(userId),
+    ]);
 
     for (const focusConfig of sortedFocuses) {
       const focusInfo = focusDetails.get(focusConfig.focusId)!;
@@ -654,7 +655,7 @@ class EditionsService {
       });
       const scored = mapped.map((c) => ({
         item: c,
-        score: computeScore(c, voteContext, editionWeights) * (sourceWeights.get(c.source_id) ?? 1) * focusWeight,
+        score: computeScore(c, voteContext, userWeights.edition) * (sourceWeights.get(c.source_id) ?? 1) * focusWeight,
       }));
       scored.sort((a, b) => b.score - a.score);
       const scoredCandidates = scored.map((s) => s.item);

@@ -13,6 +13,7 @@ type UsersTable = {
   username: string;
   password_hash: string | null;
   role: UserRole;
+  scoring_weights: string | null; // JSON: UserScoringWeights
   created_at: Timestamp;
   updated_at: Timestamp;
 };

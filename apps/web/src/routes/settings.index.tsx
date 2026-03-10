@@ -275,7 +275,298 @@ const formatDate = (iso: string): string => {
   return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 };
 
-type SettingsTab = "tasks" | "votes";
+// --- Scoring types & section ---
+
+type ScoringWeightSet = {
+  alpha: number;
+  beta: number;
+  gamma: number;
+};
+
+type UserScoringWeights = {
+  global: ScoringWeightSet;
+  focus: ScoringWeightSet;
+  edition: ScoringWeightSet;
+};
+
+type ScoringResponse = {
+  weights: UserScoringWeights;
+  defaults: UserScoringWeights;
+  isCustom: boolean;
+};
+
+type FeedType = "global" | "focus" | "edition";
+
+type FeedConfig = {
+  label: string;
+  description: string;
+  explanation: string;
+};
+
+const FEED_CONFIG: Record<FeedType, FeedConfig> = {
+  global: {
+    label: "Global Feed",
+    description: "All articles across sources, without focus filtering.",
+    explanation: "The global feed has no focus context, so confidence is unused by default. Ranking relies on your vote history and recency. Raise recency to keep the feed fresh; raise votes to surface articles similar to ones you've liked.",
+  },
+  focus: {
+    label: "Focus Feeds",
+    description: "Articles within a specific focus topic.",
+    explanation: "Focus feeds use all three signals. Confidence measures how well an article matches the topic — raising it surfaces on-topic articles more strongly. Vote signal is scoped: votes cast within a focus teach it your preferences for that topic specifically, layered on top of your global votes.",
+  },
+  edition: {
+    label: "Editions",
+    description: "Curated, finite editions assembled from your focuses.",
+    explanation: "Editions already filter by a time window (lookback hours), so recency matters less here — confidence and votes drive selection. Editions also apply source budgeting and per-focus weights on top of this score, so these weights shape the ordering within each source's allocation.",
+  },
+};
+
+type WeightConfig = {
+  label: string;
+  short: string;
+  detail: string;
+};
+
+const WEIGHT_CONFIG: Record<keyof ScoringWeightSet, WeightConfig> = {
+  alpha: {
+    label: "Confidence (α)",
+    short: "Topic relevance",
+    detail: "How well the article matches the focus, from the classifier (0.0–1.0). Set to 0 to ignore topic fit entirely; raise it to strongly prefer on-topic articles.",
+  },
+  beta: {
+    label: "Votes (β)",
+    short: "Personalisation",
+    detail: "Your upvotes and downvotes, propagated to similar articles via semantic embeddings. Only the 15 most similar voted articles contribute — a few votes go a long way. Raise this to make ranking more personal; lower it for a more neutral feed.",
+  },
+  gamma: {
+    label: "Recency (γ)",
+    short: "Freshness",
+    detail: "Exponential decay with a 3-day half-life — an article published today scores 1.0, after 3 days it scores 0.5, after 6 days 0.25. Raise this to prioritise breaking news; lower it to surface older gems.",
+  },
+};
+
+const WeightSlider = ({
+  config,
+  value,
+  onChange,
+}: {
+  config: WeightConfig;
+  value: number;
+  onChange: (v: number) => void;
+}): React.ReactNode => (
+  <div className="flex flex-col gap-1.5">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-ink">{config.label}</span>
+        <span className="text-xs text-ink-faint">{config.short}</span>
+      </div>
+      <span className="text-xs text-ink-tertiary tabular-nums w-8 text-right">{value.toFixed(1)}</span>
+    </div>
+    <input
+      type="range"
+      min={0}
+      max={1}
+      step={0.1}
+      value={value}
+      onChange={(e) => onChange(parseFloat(e.target.value))}
+      className="w-full accent-accent h-1.5 cursor-pointer"
+    />
+    <p className="text-xs text-ink-faint leading-relaxed">{config.detail}</p>
+  </div>
+);
+
+const FeedWeightsCard = ({
+  feedType,
+  weights,
+  defaults,
+  onChange,
+}: {
+  feedType: FeedType;
+  weights: ScoringWeightSet;
+  defaults: ScoringWeightSet;
+  onChange: (w: ScoringWeightSet) => void;
+}): React.ReactNode => {
+  const feed = FEED_CONFIG[feedType];
+  const isDefault =
+    weights.alpha === defaults.alpha &&
+    weights.beta === defaults.beta &&
+    weights.gamma === defaults.gamma;
+
+  return (
+    <div className="rounded-lg border border-border p-4 flex flex-col gap-5">
+      <div>
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="text-sm font-medium text-ink">{feed.label}</h3>
+            <p className="text-xs text-ink-tertiary mt-0.5">{feed.description}</p>
+          </div>
+          {!isDefault && (
+            <button
+              type="button"
+              onClick={() => onChange({ ...defaults })}
+              className="text-xs text-ink-faint hover:text-accent transition-colors duration-fast cursor-pointer shrink-0"
+            >
+              Reset
+            </button>
+          )}
+        </div>
+        <p className="text-xs text-ink-secondary leading-relaxed mt-2">{feed.explanation}</p>
+      </div>
+      <Separator soft />
+      {(["alpha", "beta", "gamma"] as const)
+        .filter((key) => !(feedType === "global" && key === "alpha"))
+        .map((key) => (
+          <WeightSlider
+            key={key}
+            config={WEIGHT_CONFIG[key]}
+            value={weights[key]}
+            onChange={(v) => onChange({ ...weights, [key]: v })}
+          />
+        ))}
+    </div>
+  );
+};
+
+const ScoringSection = ({ token }: { token: string }): React.ReactNode => {
+  const [data, setData] = useState<ScoringResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [weights, setWeights] = useState<UserScoringWeights | null>(null);
+
+  useEffect(() => {
+    void (async (): Promise<void> => {
+      const res = await fetch("/api/settings/scoring", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const json = (await res.json()) as ScoringResponse;
+        setData(json);
+        setWeights(json.weights);
+      }
+      setLoading(false);
+    })();
+  }, [token]);
+
+  if (loading || !data || !weights) {
+    return <div className="text-sm text-ink-tertiary py-6 text-center">Loading...</div>;
+  }
+
+  const handleFeedChange = (feedType: FeedType, w: ScoringWeightSet): void => {
+    const updated = { ...weights, [feedType]: w };
+    setWeights(updated);
+    setDirty(true);
+  };
+
+  const handleSave = async (): Promise<void> => {
+    setSaving(true);
+    const res = await fetch("/api/settings/scoring", {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(weights),
+    });
+    if (res.ok) {
+      const json = (await res.json()) as ScoringResponse;
+      setData(json);
+      setWeights(json.weights);
+      setDirty(false);
+    }
+    setSaving(false);
+  };
+
+  const handleResetAll = async (): Promise<void> => {
+    setSaving(true);
+    const res = await fetch("/api/settings/scoring", {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) {
+      const json = (await res.json()) as ScoringResponse;
+      setData(json);
+      setWeights(json.weights);
+      setDirty(false);
+    }
+    setSaving(false);
+  };
+
+  return (
+    <div className="flex flex-col gap-6">
+      {/* Algorithm overview */}
+      <div className="flex flex-col gap-4">
+        <div className="text-sm text-ink-secondary leading-relaxed flex flex-col gap-2">
+          <p>
+            Every article in your feeds is scored using three signals, combined into a single number that determines its position:
+          </p>
+          <div className="bg-surface-sunken rounded-md px-4 py-3 font-mono text-xs text-ink text-center">
+            score = α &times; confidence + β &times; votes + γ &times; recency
+          </div>
+        </div>
+
+        <div className="grid gap-3 text-xs text-ink-secondary leading-relaxed">
+          <div className="flex gap-3">
+            <span className="shrink-0 font-mono text-ink w-16 text-right">confidence</span>
+            <span>How well the article matches a focus topic, determined by the on-device classifier (0.0 = unrelated, 1.0 = strong match). Only meaningful within focus feeds and editions.</span>
+          </div>
+          <div className="flex gap-3">
+            <span className="shrink-0 font-mono text-ink w-16 text-right">votes</span>
+            <span>A personalisation signal derived from your upvotes and downvotes. When you vote on an article, that signal propagates to semantically similar articles via embeddings — so a few votes shape the ranking of hundreds of articles. Only the 15 most similar voted articles contribute, weighted by how similar they are.</span>
+          </div>
+          <div className="flex gap-3">
+            <span className="shrink-0 font-mono text-ink w-16 text-right">recency</span>
+            <span>Freshness, as an exponential decay. An article published right now scores 1.0; after 3 days it scores 0.5; after a week, 0.125. Articles without a publish date get a neutral 0.5.</span>
+          </div>
+        </div>
+
+        <p className="text-sm text-ink-secondary leading-relaxed">
+          The Greek letters (α, β, γ) are the weights you control below. They determine how much each signal matters. Each feed type has its own set of weights because the context is different — for example, the global feed has no focus topic, so confidence is irrelevant there.
+        </p>
+        <p className="text-sm text-ink-secondary leading-relaxed">
+          The weights don't need to sum to 1. Higher values amplify a signal relative to the others; setting a weight to 0 disables that signal entirely.
+        </p>
+      </div>
+
+      <Separator />
+
+      <div className="grid gap-4">
+        {(["global", "focus", "edition"] as const).map((feedType) => (
+          <FeedWeightsCard
+            key={feedType}
+            feedType={feedType}
+            weights={weights[feedType]}
+            defaults={data.defaults[feedType]}
+            onChange={(w) => handleFeedChange(feedType, w)}
+          />
+        ))}
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Button
+          variant="primary"
+          size="sm"
+          disabled={!dirty || saving}
+          onClick={() => void handleSave()}
+        >
+          {saving ? "Saving..." : "Save"}
+        </Button>
+        {data.isCustom && (
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={saving}
+            onClick={() => void handleResetAll()}
+          >
+            Reset all to defaults
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+type SettingsTab = "tasks" | "votes" | "scoring";
 
 const SettingsPage = (): React.ReactNode => {
   const auth = useAuth();
@@ -358,6 +649,7 @@ const SettingsPage = (): React.ReactNode => {
   const tabs: { key: SettingsTab; label: string }[] = [
     { key: "tasks", label: "Tasks" },
     { key: "votes", label: "Votes" },
+    { key: "scoring", label: "Scoring" },
   ];
 
   return (
@@ -508,6 +800,14 @@ const SettingsPage = (): React.ReactNode => {
           )}
         </>
       )}
+        </>
+      )}
+
+      {/* Scoring tab */}
+      {activeTab === "scoring" && (
+        <>
+          <p className="text-sm text-ink-secondary mb-6">Customise how articles are ranked in each feed</p>
+          <ScoringSection token={auth.token} />
         </>
       )}
     </>

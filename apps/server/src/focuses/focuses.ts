@@ -6,7 +6,7 @@ import {
   mergeVoteContexts,
   rankArticles,
 } from "../votes/votes.ts";
-import { computeScore, focusWeights } from "../votes/votes.scoring.ts";
+import { computeScore } from "../votes/votes.scoring.ts";
 
 import type { FocusSourceMode } from "../database/database.types.ts";
 import type { ScoringCandidate } from "../votes/votes.ts";
@@ -431,11 +431,12 @@ class FocusesService {
       ])
       .execute();
 
-    // Load vote contexts for scoring
+    // Load vote contexts and user scoring weights for scoring
     const votesService = this.#services.get(VotesService);
-    const [focusContext, globalContext] = await Promise.all([
+    const [focusContext, globalContext, userWeights] = await Promise.all([
       votesService.loadVoteContext(userId, focusId),
       votesService.loadVoteContext(userId, null),
+      votesService.loadUserScoringWeights(userId),
     ]);
     const voteContext = mergeVoteContexts(globalContext, focusContext);
 
@@ -478,7 +479,7 @@ class FocusesService {
     // Score and rank (apply source weights to scores)
     const scored = candidates.map((c) => ({
       item: c,
-      score: computeScore(c, voteContext, focusWeights) * (sourceWeights.get(c.sourceId) ?? 1),
+      score: computeScore(c, voteContext, userWeights.focus) * (sourceWeights.get(c.sourceId) ?? 1),
     }));
     scored.sort((a, b) => b.score - a.score);
     const ranked = scored.map((s) => s.item);
@@ -511,7 +512,7 @@ class FocusesService {
           readAt: c.readAt,
           createdAt: c.createdAt,
           confidence: c.confidence,
-          score: computeScore(c, voteContext, focusWeights) * (sourceWeights.get(c.sourceId) ?? 1),
+          score: computeScore(c, voteContext, userWeights.focus) * (sourceWeights.get(c.sourceId) ?? 1),
           vote: votes?.focus ?? null,
           globalVote: votes?.global ?? null,
           sourceName: c.sourceName,

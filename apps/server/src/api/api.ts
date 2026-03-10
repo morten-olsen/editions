@@ -9,6 +9,7 @@ import { createFeedRoutes } from "./feed.routes.ts";
 import { createFocusesRoutes } from "./focuses.routes.ts";
 import { createSourcesRoutes } from "./sources.routes.ts";
 import { createTasksRoutes } from "./tasks.routes.ts";
+import { createScoringRoutes } from "./scoring.routes.ts";
 import { createVotesRoutes } from "./votes.routes.ts";
 
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
@@ -47,6 +48,7 @@ const registerRoutes = async (
       await api.register(createEditionsRoutes(services));
       await api.register(createFeedRoutes(services));
       await api.register(createTasksRoutes(services));
+      await api.register(createScoringRoutes(services));
       await api.register(createVotesRoutes(services));
     },
     { prefix: "/api" },

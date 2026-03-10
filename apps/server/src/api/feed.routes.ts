@@ -6,7 +6,7 @@ import {
   VotesService,
   rankArticles,
 } from "../votes/votes.ts";
-import { computeScore, globalWeights } from "../votes/votes.scoring.ts";
+import { computeScore } from "../votes/votes.scoring.ts";
 
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import type { Services } from "../services/services.ts";
@@ -174,7 +174,10 @@ const createFeedRoutes = (services: Services): FastifyPluginAsyncZod =>
           .execute();
 
         const votesService = services.get(VotesService);
-        const globalContext = await votesService.loadVoteContext(userId, null);
+        const [globalContext, userWeights] = await Promise.all([
+          votesService.loadVoteContext(userId, null),
+          votesService.loadUserScoringWeights(userId),
+        ]);
 
         const candidates = rows.map((row) => {
           const embeddingBuf = row.embedding as Buffer | null;
@@ -204,7 +207,7 @@ const createFeedRoutes = (services: Services): FastifyPluginAsyncZod =>
           };
         });
 
-        const ranked = rankArticles(candidates, globalContext, globalWeights);
+        const ranked = rankArticles(candidates, globalContext, userWeights.global);
         const page = ranked.slice(offset, offset + limit);
 
         const articleIds = page.map((c) => c.articleId);
@@ -229,7 +232,7 @@ const createFeedRoutes = (services: Services): FastifyPluginAsyncZod =>
               readingTimeSeconds: c.readingTimeSeconds,
               readAt: c.readAt,
               createdAt: c.createdAt,
-              score: computeScore(c, globalContext, globalWeights),
+              score: computeScore(c, globalContext, userWeights.global),
               vote: votes?.global ?? null,
               sourceName: c.sourceName,
             };

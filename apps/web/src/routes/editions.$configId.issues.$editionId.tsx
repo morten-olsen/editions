@@ -31,7 +31,11 @@ type EditionArticle = {
   publishedAt: string | null;
   consumptionTimeSeconds: number | null;
   content: string | null;
+  mediaUrl: string | null;
+  mediaType: string | null;
+  sourceType: string;
   readAt?: string | null;
+  progress: number;
   sourceName: string;
   focusId: string;
   focusName: string;
@@ -161,6 +165,11 @@ const MagazineView = ({ edition, sections, onExit, onMarkDone }: MagazineViewPro
           imageUrl={article.imageUrl}
           content={article.content}
           positionInSection={aIdx}
+          sourceType={article.sourceType}
+          mediaUrl={article.mediaUrl}
+          mediaType={article.mediaType}
+          progress={article.progress}
+          articleId={article.id}
         />,
       );
     });

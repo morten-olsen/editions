@@ -80,9 +80,11 @@ const envOverrides = (): Record<string, unknown> => {
   const overrides: Record<string, unknown> = {};
   const env = process.env;
 
-  if (env["EDITIONS_HOST"]) overrides["server"] = { ...((overrides["server"] as Record<string, unknown>) ?? {}), host: env["EDITIONS_HOST"] };
-  if (env["EDITIONS_PORT"]) {
-    const port = Number(env["EDITIONS_PORT"]);
+  const host = env["EDITIONS_HOST"] ?? env["HOST"];
+  if (host) overrides["server"] = { ...((overrides["server"] as Record<string, unknown>) ?? {}), host };
+  const portStr = env["EDITIONS_PORT"] ?? env["PORT"];
+  if (portStr) {
+    const port = Number(portStr);
     if (!Number.isNaN(port)) {
       overrides["server"] = { ...((overrides["server"] as Record<string, unknown>) ?? {}), port };
     }

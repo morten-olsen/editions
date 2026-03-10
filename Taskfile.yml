@@ -4,6 +4,11 @@ vars:
   SERVER_DIR: apps/server
   WEB_DIR: apps/web
   SMOKE_PORT: 3199
+  PORTLESS_PREFIX:
+    sh: |
+      if [ "$(git rev-parse --git-common-dir 2>/dev/null)" != "$(git rev-parse --git-dir 2>/dev/null)" ]; then
+        echo "$(git branch --show-current | tr '/' '-')."
+      fi
 
 tasks:
   default:
@@ -20,26 +25,21 @@ tasks:
     desc: Start server and web app in dev mode
     deps: [dev:server, dev:web]
 
-  kill-server:
-    desc: Kill any running server on port 3007
-    silent: true
-    cmds:
-      - lsof -ti :3007 | xargs kill -9 2>/dev/null || true
-
   dev:server:
     desc: Start the API server in dev mode with watch
     dir: "{{.SERVER_DIR}}"
-    deps: [kill-server]
     env:
       EDITIONS_JWT_SECRET: editions-local-dev-secret
     cmds:
-      - node --experimental-strip-types --watch src/server.ts
+      - portless editions-api node --experimental-strip-types --watch src/server.ts
 
   dev:web:
     desc: Start the web app in dev mode
     dir: "{{.WEB_DIR}}"
+    env:
+      VITE_API_TARGET: "http://{{.PORTLESS_PREFIX}}editions-api.localhost:1355"
     cmds:
-      - npx vite
+      - portless editions npx vite
 
   storybook:
     desc: Start Storybook dev server
@@ -50,11 +50,10 @@ tasks:
   start:
     desc: Start the server
     dir: "{{.SERVER_DIR}}"
-    deps: [kill-server]
     env:
       EDITIONS_JWT_SECRET: editions-local-dev-secret
     cmds:
-      - node --experimental-strip-types src/server.ts
+      - portless editions-api node --experimental-strip-types src/server.ts
 
   check:
     desc: Run TypeScript type checking

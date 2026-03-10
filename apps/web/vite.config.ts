@@ -6,9 +6,11 @@ import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 export default defineConfig({
   plugins: [TanStackRouterVite({ quoteStyle: "double" }), react(), tailwindcss()],
   server: {
+    port: process.env.PORT ? Number(process.env.PORT) : undefined,
+    host: process.env.HOST ?? undefined,
     proxy: {
       "/api": {
-        target: "http://localhost:3007",
+        target: process.env.VITE_API_TARGET ?? "http://localhost:3007",
         changeOrigin: true,
       },
     },

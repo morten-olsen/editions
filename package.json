@@ -16,6 +16,7 @@
     "test": "vitest run"
   },
   "devDependencies": {
+    "portless": "^0.5.2",
     "vitest": "^4.0.18"
   }
 }

@@ -1,11 +1,22 @@
 // --- Scoring weights ---
 
-const ALPHA = 0.5; // confidence weight
-const BETA = 0.4; // vote propagation weight
-const GAMMA = 0.1; // recency decay weight
-
 const RECENCY_HALF_LIFE_DAYS = 3;
 const MAX_VOTE_CONTEXT_SIZE = 200;
+
+// Top-k propagation: only the k most similar voted articles contribute
+const PROPAGATION_TOP_K = 15;
+const PROPAGATION_MIN_SIMILARITY = 0.3;
+
+// Per-feed-type weight presets
+type ScoringWeights = {
+  alpha: number; // confidence weight
+  beta: number; // vote propagation weight
+  gamma: number; // recency decay weight
+};
+
+const globalWeights: ScoringWeights = { alpha: 0, beta: 0.6, gamma: 0.4 };
+const focusWeights: ScoringWeights = { alpha: 0.4, beta: 0.4, gamma: 0.2 };
+const editionWeights: ScoringWeights = { alpha: 0.5, beta: 0.4, gamma: 0.1 };
 
 // --- Types ---
 
@@ -46,7 +57,11 @@ const recencyDecay = (publishedAt: string | null): number => {
 
 // --- Public functions ---
 
-const computeScore = (candidate: ScoringCandidate, context: VoteContext): number => {
+const computeScore = (
+  candidate: ScoringCandidate,
+  context: VoteContext,
+  weights: ScoringWeights = focusWeights,
+): number => {
   const directVote = context.votes.get(candidate.articleId);
 
   let voteSignal: number;
@@ -54,28 +69,45 @@ const computeScore = (candidate: ScoringCandidate, context: VoteContext): number
     // Direct vote replaces propagated score — no double-counting
     voteSignal = directVote;
   } else if (candidate.embedding && context.votedArticles.length > 0) {
-    // Propagate from similar voted articles
-    let sum = 0;
+    // Top-k propagation: only the most similar voted articles contribute,
+    // weighted by similarity so nearby votes matter more
+    const scored: { sim: number; value: 1 | -1 }[] = [];
     for (const voted of context.votedArticles) {
-      sum += voted.value * cosineSimilarity(candidate.embedding, voted.embedding);
+      const sim = cosineSimilarity(candidate.embedding, voted.embedding);
+      if (sim >= PROPAGATION_MIN_SIMILARITY) {
+        scored.push({ sim, value: voted.value });
+      }
     }
-    voteSignal = sum / context.votedArticles.length;
+    if (scored.length > 0) {
+      scored.sort((a, b) => b.sim - a.sim);
+      const topK = scored.slice(0, PROPAGATION_TOP_K);
+      let weightedSum = 0;
+      let simSum = 0;
+      for (const s of topK) {
+        weightedSum += s.value * s.sim;
+        simSum += s.sim;
+      }
+      voteSignal = weightedSum / simSum;
+    } else {
+      voteSignal = 0;
+    }
   } else {
     voteSignal = 0;
   }
 
   const recency = recencyDecay(candidate.publishedAt);
 
-  return ALPHA * candidate.confidence + BETA * voteSignal + GAMMA * recency;
+  return weights.alpha * candidate.confidence + weights.beta * voteSignal + weights.gamma * recency;
 };
 
 const rankArticles = <T extends ScoringCandidate>(
   candidates: T[],
   context: VoteContext,
+  weights: ScoringWeights = focusWeights,
 ): T[] => {
   const scored = candidates.map((c) => ({
     item: c,
-    score: computeScore(c, context),
+    score: computeScore(c, context, weights),
   }));
 
   scored.sort((a, b) => b.score - a.score);
@@ -103,11 +135,14 @@ const emptyVoteContext = (): VoteContext => ({
   votedArticles: [],
 });
 
-export type { VoteContext, VotedArticle, ScoringCandidate };
+export type { VoteContext, VotedArticle, ScoringCandidate, ScoringWeights };
 export {
   computeScore,
   rankArticles,
   mergeVoteContexts,
   emptyVoteContext,
+  globalWeights,
+  focusWeights,
+  editionWeights,
   MAX_VOTE_CONTEXT_SIZE,
 };

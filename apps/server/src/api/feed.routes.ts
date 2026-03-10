@@ -6,7 +6,7 @@ import {
   VotesService,
   rankArticles,
 } from "../votes/votes.ts";
-import { computeScore } from "../votes/votes.scoring.ts";
+import { computeScore, globalWeights } from "../votes/votes.scoring.ts";
 
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import type { Services } from "../services/services.ts";
@@ -42,6 +42,8 @@ const feedQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
   sort: z.enum(["top", "recent"]).default("top"),
   status: z.enum(["unread", "read", "all"]).default("all"),
+  from: z.string().optional(),
+  to: z.string().optional(),
 });
 
 // --- Routes ---
@@ -64,7 +66,7 @@ const createFeedRoutes = (services: Services): FastifyPluginAsyncZod =>
       handler: async (req, _reply) => {
         const db = await services.get(DatabaseService).getInstance();
         const userId = req.user.sub;
-        const { offset, limit, sort, status } = req.query;
+        const { offset, limit, sort, status, from, to } = req.query;
 
         const baseQuery = () => {
           let q = db
@@ -76,6 +78,13 @@ const createFeedRoutes = (services: Services): FastifyPluginAsyncZod =>
             q = q.where("articles.read_at", "is", null);
           } else if (status === "read") {
             q = q.where("articles.read_at", "is not", null);
+          }
+
+          if (from) {
+            q = q.where("articles.published_at", ">=", from);
+          }
+          if (to) {
+            q = q.where("articles.published_at", "<=", to);
           }
 
           return q;
@@ -195,7 +204,7 @@ const createFeedRoutes = (services: Services): FastifyPluginAsyncZod =>
           };
         });
 
-        const ranked = rankArticles(candidates, globalContext);
+        const ranked = rankArticles(candidates, globalContext, globalWeights);
         const page = ranked.slice(offset, offset + limit);
 
         const articleIds = page.map((c) => c.articleId);
@@ -220,7 +229,7 @@ const createFeedRoutes = (services: Services): FastifyPluginAsyncZod =>
               readingTimeSeconds: c.readingTimeSeconds,
               readAt: c.readAt,
               createdAt: c.createdAt,
-              score: computeScore(c, globalContext),
+              score: computeScore(c, globalContext, globalWeights),
               vote: votes?.global ?? null,
               sourceName: c.sourceName,
             };

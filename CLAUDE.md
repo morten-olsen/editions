@@ -14,6 +14,7 @@ This file is for **gotchas** — things that aren't obvious and required effort 
 - [docs/auth.md](docs/auth.md) — Authentication, users, roles, JWT, password hashing, auth middleware, configuration
 - [docs/testing.md](docs/testing.md) — Testing strategy, vitest workspace, test helpers, writing API-level tests
 - [docs/article-analysis.md](docs/article-analysis.md) — Article analysis pipeline: embeddings, focus classification, recovery, data model changes
+- [docs/feed-algorithms.md](docs/feed-algorithms.md) — Feed ranking algorithms: scoring formula, vote scoping, edition generation, source distribution
 - [docs/design-system.md](docs/design-system.md) — Design tokens, color palette, typography, spacing, motion, Storybook reference
 
 ## Coding Standards

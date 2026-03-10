@@ -6,7 +6,7 @@ import {
   VotesService,
   mergeVoteContexts,
 } from "../votes/votes.ts";
-import { computeScore } from "../votes/votes.scoring.ts";
+import { computeScore, editionWeights } from "../votes/votes.scoring.ts";
 
 import type { EditionBudgetType } from "../database/database.types.ts";
 import type { Services } from "../services/services.ts";
@@ -647,7 +647,7 @@ class EditionsService {
       });
       const scored = mapped.map((c) => ({
         item: c,
-        score: computeScore(c, voteContext) * (sourceWeights.get(c.source_id) ?? 1) * focusWeight,
+        score: computeScore(c, voteContext, editionWeights) * (sourceWeights.get(c.source_id) ?? 1) * focusWeight,
       }));
       scored.sort((a, b) => b.score - a.score);
       const scoredCandidates = scored.map((s) => s.item);

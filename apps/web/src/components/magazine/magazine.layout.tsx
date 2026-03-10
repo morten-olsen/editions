@@ -149,8 +149,16 @@ const useTouchNav = (
 
         const x = t.clientX;
         const width = window.innerWidth;
-        if (x < width * TAP_ZONE && page > 0) onPageChange(page - 1);
-        else if (x > width * (1 - TAP_ZONE) && page < total - 1) onPageChange(page + 1);
+        let navigated = false;
+        if (x < width * TAP_ZONE && page > 0) { onPageChange(page - 1); navigated = true; }
+        else if (x > width * (1 - TAP_ZONE) && page < total - 1) { onPageChange(page + 1); navigated = true; }
+
+        /* Swallow the click event that follows touchend so it doesn't activate
+           whatever element sits underneath (e.g. a ToC link). */
+        if (navigated) {
+          const suppress = (ev: Event): void => { ev.preventDefault(); ev.stopPropagation(); };
+          el.addEventListener("click", suppress, { capture: true, once: true });
+        }
       }
     };
 

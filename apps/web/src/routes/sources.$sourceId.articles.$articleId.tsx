@@ -185,7 +185,11 @@ const ArticlePage = (): React.ReactNode => {
     router.history.back();
   };
 
-  const hasContent = article.content !== null && article.content.length > 0;
+  // Podcasts use show notes from the feed (summary), not extracted page HTML
+  const isPodcast = article.sourceType === "podcast";
+  const displayContent = isPodcast ? null : article.content;
+  const displaySummary = isPodcast ? (article.summary ?? article.content) : article.summary;
+  const hasContent = displayContent !== null && displayContent.length > 0;
 
   const headerEl = (
     <header className="border-b border-border bg-surface">
@@ -280,11 +284,11 @@ const ArticlePage = (): React.ReactNode => {
             prose-a:text-accent prose-a:no-underline hover:prose-a:underline
             prose-blockquote:border-accent prose-blockquote:text-ink-secondary prose-blockquote:font-serif prose-blockquote:italic
             prose-img:rounded-lg"
-          dangerouslySetInnerHTML={{ __html: article.content! }}
+          dangerouslySetInnerHTML={{ __html: displayContent! }}
         />
-      ) : article.summary ? (
+      ) : displaySummary ? (
         <div className="font-serif text-lg leading-relaxed text-ink">
-          {article.summary}
+          {displaySummary}
         </div>
       ) : (
         <div className="py-12 text-center text-sm text-ink-tertiary">

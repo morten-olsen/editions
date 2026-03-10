@@ -1,8 +1,9 @@
 import * as React from "react";
 import { Link } from "@tanstack/react-router";
-import { motion, AnimatePresence, type Transition } from "motion/react";
+import { motion, type Transition } from "motion/react";
 
 import { BookmarkButton } from "./bookmark-button.tsx";
+import { Collapse } from "./animate.tsx";
 import { VoteControls } from "./vote-controls.tsx";
 import type { VoteValue } from "./vote-controls.tsx";
 
@@ -57,32 +58,6 @@ const Dot = (): React.ReactElement => (
 const ease = [0.25, 0.1, 0.25, 1] as const;
 
 const gentle: Transition = { duration: 0.35, ease };
-
-const collapse: Transition = { duration: 0.35, ease };
-
-/* ── Collapsible wrapper for elements that appear/disappear ─────── */
-
-const Collapsible = ({
-  show,
-  children,
-}: {
-  show: boolean;
-  children: React.ReactNode;
-}): React.ReactElement => (
-  <AnimatePresence initial={false}>
-    {show && (
-      <motion.div
-        initial={{ opacity: 0, height: 0 }}
-        animate={{ opacity: 1, height: "auto" }}
-        exit={{ opacity: 0, height: 0 }}
-        transition={collapse}
-        className="overflow-hidden"
-      >
-        {children}
-      </motion.div>
-    )}
-  </AnimatePresence>
-);
 
 /* ── Card ───────────────────────────────────────────────────────── */
 
@@ -170,7 +145,7 @@ const ArticleCard = ({
       {meta}
       {titleEl}
       {summaryEl}
-      <Collapsible show={!!hasImage && !muted}>
+      <Collapse show={!!hasImage && !muted}>
         <div className="flex flex-col sm:flex-row sm:gap-5">
           <div className="sm:hidden -mx-1 mb-2 aspect-[3/1] rounded-md overflow-hidden bg-surface-sunken">
             <img src={imageUrl!} alt="" className="w-full h-full object-cover" />
@@ -179,15 +154,15 @@ const ArticleCard = ({
             <img src={imageUrl!} alt="" className="w-full h-full object-cover" />
           </div>
         </div>
-      </Collapsible>
-      <Collapsible show={showDetails && !muted && !!author}>
+      </Collapse>
+      <Collapse show={showDetails && !muted && !!author}>
         <div className="text-xs text-ink-tertiary">
           By {author}
         </div>
-      </Collapsible>
-      <Collapsible show={!muted && !!actionBar}>
+      </Collapse>
+      <Collapse show={!muted && !!actionBar}>
         {actionBar}
-      </Collapsible>
+      </Collapse>
     </>
   );
 
@@ -218,4 +193,4 @@ const ArticleCard = ({
 };
 
 export type { ArticleCardProps };
-export { ArticleCard, formatTime, formatDate, Collapsible };
+export { ArticleCard, formatTime, formatDate };

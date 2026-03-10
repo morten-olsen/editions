@@ -11,6 +11,7 @@ The best interface is the one that disappears. Every token, component, and inter
 - **Proportional over prolific** — source budgeting prevents any single feed from dominating
 - **Focused** — when reading, the interface steps back; content is foreground
 - **Adaptive** — comfortable at any hour, on any device. Light and dark modes respect the reader's environment; layouts are mobile-first, scaling up gracefully
+- **Alive** — elements enter, settle, and depart with intention. Motion is subtle and purposeful — it makes the interface feel physical without drawing attention to itself
 
 ## Tokens
 
@@ -59,7 +60,55 @@ Warm, diffused shadows using ink color instead of pure black. Five levels: `xs` 
 
 ### Motion
 
-Two easing curves (`ease-gentle`, `ease-out-soft`). Four durations (`fast` 120ms, `normal` 200ms, `slow` 350ms, `slower` 500ms). Nothing exceeds 500ms.
+In the real world, things don't just appear — they enter. Motion gives the interface a sense of physicality: elements arrive, settle, and depart with intention. But motion in Editions is always **subordinate to content** — it should feel like breathing, not performing.
+
+#### Philosophy
+
+- **Enter, don't appear** — new content fades or slides in rather than popping into existence
+- **Calm over flashy** — motion should be barely noticed; if the user is thinking about the animation, it's too much
+- **Purposeful** — every animation communicates something: arrival, departure, connection, change
+- **Fast by default** — nothing exceeds 500ms; most interactions complete in 200ms or less
+- **Respect preferences** — honor `prefers-reduced-motion` by falling back to instant transitions
+
+#### Tokens
+
+Two easing curves:
+- `ease-gentle` — `cubic-bezier(0.25, 0.1, 0.25, 1)` — default for general transitions
+- `ease-out-soft` — `cubic-bezier(0, 0, 0.15, 1)` — for entering elements (decelerates into place)
+
+Four durations:
+- `fast` (120ms) — hover states, color changes, micro-interactions
+- `normal` (200ms) — default transitions, focus rings, button feedback
+- `slow` (350ms) — panel slides, layout shifts, content reveals
+- `slower` (500ms) — page transitions, modal entries — the upper bound
+
+#### Animation primitives (`components/animate.tsx`)
+
+Reusable `motion` components that encode the design system's animation values:
+
+| Primitive | Purpose | Default duration |
+|-----------|---------|-----------------|
+| `FadeIn` | Elements gently materialize | slow (350ms) |
+| `SlideIn` | Elements enter from a direction with fade | slow (350ms) |
+| `ScaleIn` | Subtle scale for popovers, cards, dialogs | normal (200ms) |
+| `Collapse` | Animate height for expand/collapse | slow (350ms) |
+| `Presence` | Animate mount and unmount (fade) | normal (200ms) |
+| `StaggerList` + `StaggerItem` | Children animate in sequence | 60ms stagger |
+
+All primitives accept `duration` (token name) and `delay` props. Use them instead of writing raw `motion.div` — they ensure consistent timing across the app.
+
+#### When to use motion vs CSS transitions
+
+- **CSS transitions** (`transition-colors duration-fast ease-gentle`) — hover states, focus rings, color changes. Simpler, no JS overhead.
+- **Motion primitives** — mount/unmount animations, layout changes, staggered lists, anything needing `AnimatePresence`. Use for entrance animations and coordinated sequences.
+
+#### Guidelines
+
+- Lists of items (articles, sources, focuses) should use `StaggerList` for their initial render
+- Page content should `SlideIn` from below with a subtle 8-12px offset
+- Modals and popovers use `ScaleIn` for a natural "approaching" feel
+- Collapsible sections use `Collapse` for smooth height transitions
+- Never animate text content itself (no typewriter effects, no letter-by-letter reveals)
 
 ## Fonts
 

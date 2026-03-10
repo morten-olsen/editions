@@ -19,7 +19,7 @@ type EditionArticle = {
   imageUrl: string | null;
   publishedAt: string | null;
   readingTimeSeconds: number | null;
-  readAt: string | null;
+  readAt?: string | null;
   sourceName: string;
   focusId: string;
   focusName: string;

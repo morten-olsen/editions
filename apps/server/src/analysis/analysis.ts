@@ -157,13 +157,36 @@ class AnalysisService {
     const db = await this.#services.get(DatabaseService).getInstance();
     const taskService = this.#services.get(TaskService);
 
+    // For podcasts, content comes from the feed itself — backfill extracted_at for any
+    // articles that are missing it (can happen if the source type was initially wrong).
+    const source = await db
+      .selectFrom("sources")
+      .select("type")
+      .where("id", "=", sourceId)
+      .executeTakeFirst();
+
+    const isPodcast = source?.type === "podcast";
+
+    if (isPodcast) {
+      await db
+        .updateTable("articles")
+        .set({ extracted_at: new Date().toISOString() })
+        .where("source_id", "=", sourceId)
+        .where("extracted_at", "is", null)
+        .execute();
+    }
+
     // Get all extracted articles for this source
-    const articles = await db
+    let articlesQuery = db
       .selectFrom("articles")
       .select("id")
-      .where("source_id", "=", sourceId)
-      .where("extracted_at", "is not", null)
-      .execute();
+      .where("source_id", "=", sourceId);
+
+    if (!isPodcast) {
+      articlesQuery = articlesQuery.where("extracted_at", "is not", null);
+    }
+
+    const articles = await articlesQuery.execute();
 
     if (articles.length === 0) return 0;
 
@@ -277,37 +300,6 @@ const handleAnalyseArticle = async (
   // Skip if already analysed
   if (article.analysed_at) return undefined;
 
-  // Podcast episodes use summary/show notes from the feed rather than extracted page content
-  const textSource = article.content ?? (article.source_type === "podcast" ? article.summary : null);
-
-  // Need text to analyse
-  if (!textSource) return undefined;
-
-  const plainText = stripHtml(textSource);
-  // Prepend title for better topic signal
-  const inputText = `${article.title}. ${plainText}`.slice(0, 2000);
-
-  // --- Embedding (runs in worker) ---
-  const embedding = await analysisService.embed(inputText);
-  const embeddingBuffer = Buffer.from(embedding.buffer);
-
-  // Store embedding (upsert)
-  await db
-    .insertInto("article_embeddings")
-    .values({
-      article_id: article.id,
-      embedding: embeddingBuffer,
-      model: DEFAULT_EMBEDDING_MODEL,
-    })
-    .onConflict((oc) =>
-      oc.column("article_id").doUpdateSet({
-        embedding: embeddingBuffer,
-        model: DEFAULT_EMBEDDING_MODEL,
-        created_at: new Date().toISOString(),
-      }),
-    )
-    .execute();
-
   // --- Focus classification ---
 
   // Find all focuses that reference this article's source
@@ -324,8 +316,9 @@ const handleAnalyseArticle = async (
     .execute();
 
   let focusMatches = 0;
+  let embeddingDimensions = 0;
 
-  // Handle "always" mode — direct assignment with confidence 1.0
+  // Handle "always" mode — direct assignment with confidence 1.0, no text needed
   const alwaysFocuses = focusLinks.filter((f) => f.mode === "always");
   for (const focus of alwaysFocuses) {
     await db
@@ -345,39 +338,71 @@ const handleAnalyseArticle = async (
     focusMatches++;
   }
 
-  // Handle "match" mode — zero-shot classification (runs in worker)
+  // Podcast episodes use summary/show notes from the feed rather than extracted page content
+  const textSource = article.content ?? (article.source_type === "podcast" ? article.summary : null);
+
   const matchFocuses = focusLinks.filter((f) => f.mode === "match");
-  if (matchFocuses.length > 0) {
-    // Build labels from focus name + description
-    const labels = matchFocuses.map((f) =>
-      f.description ? `${f.name}: ${f.description}` : f.name,
-    );
 
-    const scores = await analysisService.classify(inputText, labels);
+  if (textSource) {
+    const plainText = stripHtml(textSource);
+    // Prepend title for better topic signal
+    const inputText = `${article.title}. ${plainText}`.slice(0, 2000);
 
-    // Map scores back to focuses and insert above threshold
-    for (const { label, score } of scores) {
-      if (score < DEFAULT_CONFIDENCE_THRESHOLD) continue;
+    // --- Embedding (runs in worker) ---
+    const embedding = await analysisService.embed(inputText);
+    embeddingDimensions = embedding.length;
+    const embeddingBuffer = Buffer.from(embedding.buffer);
 
-      const focusIndex = labels.indexOf(label);
-      if (focusIndex === -1) continue;
+    // Store embedding (upsert)
+    await db
+      .insertInto("article_embeddings")
+      .values({
+        article_id: article.id,
+        embedding: embeddingBuffer,
+        model: DEFAULT_EMBEDDING_MODEL,
+      })
+      .onConflict((oc) =>
+        oc.column("article_id").doUpdateSet({
+          embedding: embeddingBuffer,
+          model: DEFAULT_EMBEDDING_MODEL,
+          created_at: new Date().toISOString(),
+        }),
+      )
+      .execute();
 
-      const focus = matchFocuses[focusIndex]!;
-      await db
-        .insertInto("article_focuses")
-        .values({
-          article_id: article.id,
-          focus_id: focus.focus_id,
-          confidence: Math.round(score * 1000) / 1000, // 3 decimal places
-        })
-        .onConflict((oc) =>
-          oc.columns(["article_id", "focus_id"]).doUpdateSet({
-            confidence: Math.round(score * 1000) / 1000,
-            assigned_at: new Date().toISOString(),
-          }),
-        )
-        .execute();
-      focusMatches++;
+    // Handle "match" mode — zero-shot classification (runs in worker)
+    if (matchFocuses.length > 0) {
+      // Build labels from focus name + description
+      const labels = matchFocuses.map((f) =>
+        f.description ? `${f.name}: ${f.description}` : f.name,
+      );
+
+      const scores = await analysisService.classify(inputText, labels);
+
+      // Map scores back to focuses and insert above threshold
+      for (const { label, score } of scores) {
+        if (score < DEFAULT_CONFIDENCE_THRESHOLD) continue;
+
+        const focusIndex = labels.indexOf(label);
+        if (focusIndex === -1) continue;
+
+        const focus = matchFocuses[focusIndex]!;
+        await db
+          .insertInto("article_focuses")
+          .values({
+            article_id: article.id,
+            focus_id: focus.focus_id,
+            confidence: Math.round(score * 1000) / 1000, // 3 decimal places
+          })
+          .onConflict((oc) =>
+            oc.columns(["article_id", "focus_id"]).doUpdateSet({
+              confidence: Math.round(score * 1000) / 1000,
+              assigned_at: new Date().toISOString(),
+            }),
+          )
+          .execute();
+        focusMatches++;
+      }
     }
   }
 
@@ -390,7 +415,7 @@ const handleAnalyseArticle = async (
 
   return {
     articleId: article.id,
-    embeddingDimensions: embedding.length,
+    embeddingDimensions,
     focusMatches,
   };
 };

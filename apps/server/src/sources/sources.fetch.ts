@@ -174,6 +174,20 @@ const extractImageUrl = (item: Record<string, unknown>): string | null => {
   if (itunesImage) {
     return toStringOrNull(itunesImage["@_href"]);
   }
+  // Megaphone and other feeds use media:thumbnail
+  const mediaThumbnail = item["media:thumbnail"] as Record<string, unknown> | undefined;
+  if (mediaThumbnail) {
+    return toStringOrNull(mediaThumbnail["@_url"]);
+  }
+  // media:content with image medium or type
+  const mediaContent = item["media:content"] as Record<string, unknown> | undefined;
+  if (mediaContent) {
+    const medium = String(mediaContent["@_medium"] ?? "");
+    const mediaType = String(mediaContent["@_type"] ?? "");
+    if (medium === "image" || mediaType.startsWith("image/")) {
+      return toStringOrNull(mediaContent["@_url"]);
+    }
+  }
   return null;
 };
 
@@ -269,6 +283,19 @@ const handleFetchSource = async (payload: FetchSourcePayload, services: Services
   for (const item of items) {
     const id = crypto.randomUUID();
 
+    // For podcasts, strip the episode image from content when it duplicates image_url.
+    // Podcast feeds (e.g. Darknet Diaries) often put the episode artwork as an <img>
+    // in content:encoded — the same image is already captured in image_url, so showing
+    // it in the content body would duplicate it.
+    let content = item.content;
+    if (isPodcast && item.imageUrl && content) {
+      const escapedUrl = item.imageUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const stripped = content
+        .replace(new RegExp(`<img[^>]*src=["']${escapedUrl}["'][^>]*/?>`, "gi"), "")
+        .trim();
+      content = stripped || null;
+    }
+
     const result = await db
       .insertInto("articles")
       .values({
@@ -279,7 +306,7 @@ const handleFetchSource = async (payload: FetchSourcePayload, services: Services
         title: item.title,
         author: item.author,
         summary: item.summary,
-        content: item.content,
+        content,
         image_url: item.imageUrl,
         published_at: item.publishedAt,
         media_url: item.mediaUrl,

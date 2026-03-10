@@ -93,6 +93,7 @@ type EditionArticle = {
   imageUrl: string | null;
   publishedAt: string | null;
   readingTimeSeconds: number | null;
+  readAt: string | null;
   sourceName: string;
   focusId: string;
   focusName: string;
@@ -415,6 +416,7 @@ class EditionsService {
         "articles.image_url",
         "articles.published_at",
         "articles.reading_time_seconds",
+        "articles.read_at",
         "sources.name as source_name",
         "edition_articles.focus_id",
         "focuses.name as focus_name",
@@ -444,6 +446,7 @@ class EditionsService {
         imageUrl: a.image_url,
         publishedAt: a.published_at,
         readingTimeSeconds: a.reading_time_seconds,
+        readAt: a.read_at,
         sourceName: a.source_name,
         focusId: a.focus_id,
         focusName: a.focus_name,

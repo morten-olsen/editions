@@ -69,6 +69,7 @@ const editionArticleSchema = z.object({
   imageUrl: z.string().nullable(),
   publishedAt: z.string().nullable(),
   readingTimeSeconds: z.number().nullable(),
+  readAt: z.string().nullable(),
   sourceName: z.string(),
   focusId: z.string(),
   focusName: z.string(),

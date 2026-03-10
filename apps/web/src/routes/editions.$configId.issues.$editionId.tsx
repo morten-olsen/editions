@@ -18,6 +18,7 @@ type EditionArticle = {
   imageUrl: string | null;
   publishedAt: string | null;
   readingTimeSeconds: number | null;
+  readAt: string | null;
   sourceName: string;
   focusId: string;
   focusName: string;
@@ -245,6 +246,7 @@ const EditionViewPage = (): React.ReactNode => {
                       imageUrl={article.imageUrl}
                       publishedAt={article.publishedAt}
                       readingTimeSeconds={article.readingTimeSeconds}
+                      read={!!article.readAt}
                       href={`/sources/${article.sourceId}/articles/${article.id}`}
                     />
                   ))}

@@ -335,6 +335,7 @@ const FocusDetailPage = (): React.ReactNode => {
                 readingTimeSeconds={article.readingTimeSeconds}
                 imageUrl={article.imageUrl}
                 href={`/sources/${article.sourceId}/articles/${article.id}`}
+                read={status === "all" ? !!article.readAt : false}
                 focusVote={article.vote}
                 onFocusVote={(v) => void handleFocusVote(article.id, v)}
                 vote={article.globalVote}

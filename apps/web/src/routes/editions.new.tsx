@@ -48,7 +48,22 @@ const NewEditionConfigPage = (): React.ReactNode => {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (body: Record<string, unknown>): Promise<void> => {
+    mutationFn: async (body: {
+      name: string;
+      icon?: string | null;
+      schedule: string;
+      lookbackHours: number;
+      excludePriorEditions?: boolean;
+      enabled?: boolean;
+      focuses: {
+        focusId: string;
+        position: number;
+        budgetType: "time" | "count";
+        budgetValue: number;
+        lookbackHours?: number | null;
+        weight?: number;
+      }[];
+    }): Promise<void> => {
       const { error: err } = await client.POST("/api/editions/configs", {
         body,
         headers,

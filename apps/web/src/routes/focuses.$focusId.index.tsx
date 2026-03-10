@@ -34,6 +34,7 @@ type FocusArticle = {
   vote: 1 | -1 | null;
   globalVote: 1 | -1 | null;
   sourceName: string;
+  sourceType: string;
 };
 
 type FocusArticlesPage = {
@@ -325,6 +326,7 @@ const FocusDetailPage = (): React.ReactNode => {
                   summary={article.summary}
                   publishedAt={article.publishedAt}
                   consumptionTimeSeconds={article.consumptionTimeSeconds}
+                  sourceType={article.sourceType}
                   imageUrl={article.imageUrl}
                   href={`/sources/${article.sourceId}/articles/${article.id}`}
                   read={status === "all" ? !!article.readAt : false}

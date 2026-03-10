@@ -29,6 +29,7 @@ type BookmarkWithArticle = {
   consumptionTimeSeconds: number | null;
   sourceId: string;
   sourceName: string;
+  sourceType: string;
 };
 
 type BookmarksPage = {
@@ -213,6 +214,7 @@ class BookmarksService {
         "articles.consumption_time_seconds",
         "articles.source_id",
         "sources.name as source_name",
+        "sources.type as source_type",
       ])
       .orderBy("bookmarks.created_at", "desc")
       .offset(offset)
@@ -233,6 +235,7 @@ class BookmarksService {
         consumptionTimeSeconds: row.consumption_time_seconds,
         sourceId: row.source_id,
         sourceName: row.source_name,
+        sourceType: row.source_type,
       })),
       total: Number(countResult.count),
       offset,

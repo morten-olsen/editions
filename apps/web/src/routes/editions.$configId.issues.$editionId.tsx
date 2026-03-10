@@ -478,6 +478,7 @@ const EditionViewPage = (): React.ReactNode => {
                       imageUrl={article.imageUrl}
                       publishedAt={article.publishedAt}
                       consumptionTimeSeconds={article.consumptionTimeSeconds}
+                      sourceType={article.sourceType}
                       read={!!article.readAt}
                       href={`/sources/${article.sourceId}/articles/${article.id}`}
                       focusVote={votes[article.id] ?? null}

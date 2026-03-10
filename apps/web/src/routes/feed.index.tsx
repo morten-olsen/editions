@@ -20,6 +20,7 @@ type FeedArticle = {
   imageUrl: string | null;
   publishedAt: string | null;
   consumptionTimeSeconds: number | null;
+  sourceType: string;
   readAt: string | null;
   score: number;
   vote: 1 | -1 | null;
@@ -248,6 +249,7 @@ const IndexPage = (): React.ReactNode => {
                 summary={article.summary}
                 publishedAt={article.publishedAt}
                 consumptionTimeSeconds={article.consumptionTimeSeconds}
+                sourceType={article.sourceType}
                 imageUrl={article.imageUrl}
                 href={`/sources/${article.sourceId}/articles/${article.id}`}
                 read={status === "all" ? !!article.readAt : false}

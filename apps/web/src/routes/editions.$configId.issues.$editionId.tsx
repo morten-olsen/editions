@@ -178,7 +178,7 @@ const MagazineView = ({ edition, sections, onExit, onMarkDone }: MagazineViewPro
   );
 
   return (
-    <div className="relative">
+    <div className="fixed inset-0 z-50 bg-surface">
       {/* Exit button — fixed top-left, above the magazine */}
       <button
         onClick={onExit}

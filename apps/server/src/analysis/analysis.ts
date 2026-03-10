@@ -259,8 +259,17 @@ const handleAnalyseArticle = async (
   // Load article with source info
   const article = await db
     .selectFrom("articles")
-    .select(["id", "source_id", "title", "content", "analysed_at"])
-    .where("id", "=", payload.articleId)
+    .innerJoin("sources", "sources.id", "articles.source_id")
+    .select([
+      "articles.id",
+      "articles.source_id",
+      "articles.title",
+      "articles.summary",
+      "articles.content",
+      "articles.analysed_at",
+      "sources.type as source_type",
+    ])
+    .where("articles.id", "=", payload.articleId)
     .executeTakeFirst();
 
   if (!article) return undefined;
@@ -268,10 +277,13 @@ const handleAnalyseArticle = async (
   // Skip if already analysed
   if (article.analysed_at) return undefined;
 
-  // Need content to analyse
-  if (!article.content) return undefined;
+  // Podcast episodes use summary/show notes from the feed rather than extracted page content
+  const textSource = article.content ?? (article.source_type === "podcast" ? article.summary : null);
 
-  const plainText = stripHtml(article.content);
+  // Need text to analyse
+  if (!textSource) return undefined;
+
+  const plainText = stripHtml(textSource);
   // Prepend title for better topic signal
   const inputText = `${article.title}. ${plainText}`.slice(0, 2000);
 

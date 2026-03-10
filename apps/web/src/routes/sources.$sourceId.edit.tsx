@@ -7,11 +7,13 @@ import { client } from "../api/api.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { Input } from "../components/input.tsx";
 import { Button } from "../components/button.tsx";
+import { Separator } from "../components/separator.tsx";
 
 type Source = {
   id: string;
   name: string;
   url: string;
+  type: string;
   direction: string;
 };
 
@@ -24,6 +26,7 @@ const EditSourcePage = (): React.ReactNode => {
   const [url, setUrl] = useState("");
   const [direction, setDirection] = useState("newest");
   const [error, setError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const sourceQuery = useQuery({
     queryKey: queryKeys.sources.detail(sourceId),
@@ -60,6 +63,24 @@ const EditSourcePage = (): React.ReactNode => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.sources.all });
       await queryClient.invalidateQueries({ queryKey: queryKeys.nav });
       await navigate({ to: "/sources/$sourceId", params: { sourceId } });
+    },
+    onError: (err: Error): void => {
+      setError(err.message);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (): Promise<void> => {
+      const { error: err } = await client.DELETE("/api/sources/{id}", {
+        params: { path: { id: sourceId } },
+        headers,
+      });
+      if (err) throw new Error("Failed to delete source");
+    },
+    onSuccess: async (): Promise<void> => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.sources.all });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.nav });
+      await navigate({ to: "/sources" });
     },
     onError: (err: Error): void => {
       setError(err.message);
@@ -147,6 +168,46 @@ const EditSourcePage = (): React.ReactNode => {
           </Button>
         </div>
       </form>
+
+      {source.type !== "bookmarks" && (
+        <>
+          <Separator soft className="my-8" />
+
+          <div className="max-w-md">
+            <h3 className="text-sm font-medium text-critical mb-1">Delete source</h3>
+            <p className="text-xs text-ink-tertiary mb-3">
+              This will permanently delete this source and all its articles. This action cannot be undone.
+            </p>
+            {confirmDelete ? (
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={deleteMutation.isPending}
+                  onClick={() => deleteMutation.mutate()}
+                >
+                  {deleteMutation.isPending ? "Deleting..." : "Yes, delete"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setConfirmDelete(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setConfirmDelete(true)}
+              >
+                Delete source
+              </Button>
+            )}
+          </div>
+        </>
+      )}
     </>
   );
 };

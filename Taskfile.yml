@@ -31,7 +31,7 @@ tasks:
     env:
       EDITIONS_JWT_SECRET: editions-local-dev-secret
     cmds:
-      - portless editions-api node --experimental-strip-types --watch src/server.ts
+      - portless {{.PORTLESS_PREFIX}}editions-api node --experimental-strip-types --watch src/server.ts
 
   dev:web:
     desc: Start the web app in dev mode
@@ -39,7 +39,7 @@ tasks:
     env:
       VITE_API_TARGET: "http://{{.PORTLESS_PREFIX}}editions-api.localhost:1355"
     cmds:
-      - portless editions npx vite
+      - portless {{.PORTLESS_PREFIX}}editions npx vite
 
   storybook:
     desc: Start Storybook dev server
@@ -53,7 +53,7 @@ tasks:
     env:
       EDITIONS_JWT_SECRET: editions-local-dev-secret
     cmds:
-      - portless editions-api node --experimental-strip-types src/server.ts
+      - portless {{.PORTLESS_PREFIX}}editions-api node --experimental-strip-types src/server.ts
 
   generate:api:
     desc: Regenerate OpenAPI types from running server

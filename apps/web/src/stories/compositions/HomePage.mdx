@@ -1,0 +1,214 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design System/Compositions/Home Page" />
+
+<div style={{ maxWidth: "72rem", margin: "0 auto", padding: "4rem 0", fontFamily: "var(--font-sans)" }}>
+
+<div style={{ color: "var(--color-ink-tertiary)", fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: "1.5rem" }}>Compositions</div>
+
+# Home page
+
+<div style={{ fontSize: "1.2rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginTop: "1rem", marginBottom: "4rem", maxWidth: "65ch" }}>
+  The home page is the reader's daily front page — where they arrive, where they see what's waiting, and where they feel done. It has two modes: a setup guide for new users and a reading list for configured ones. Both share a newspaper masthead that grounds the experience in time and ritual.
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", marginBottom: "4rem" }} />
+
+## Design principles
+
+<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem", marginBottom: "4rem" }}>
+  <div style={{ padding: "1.25rem", borderLeft: "2px solid var(--color-accent)", background: "var(--color-surface)" }}>
+    <div style={{ fontSize: "0.833rem", fontWeight: 600, color: "var(--color-ink)", marginBottom: "0.5rem" }}>Calm over anxious</div>
+    <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>No unread counts, no urgency signals. "3 editions waiting" is information, not pressure. The reading list states a fact, it doesn't demand action.</div>
+  </div>
+  <div style={{ padding: "1.25rem", borderLeft: "2px solid var(--color-accent)", background: "var(--color-surface)" }}>
+    <div style={{ fontSize: "0.833rem", fontWeight: 600, color: "var(--color-ink)", marginBottom: "0.5rem" }}>Finite over infinite</div>
+    <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>The "all read" state is the goal, not an absence. When you've read everything, the page celebrates completion with the same ~ end mark used in the magazine finale.</div>
+  </div>
+  <div style={{ padding: "1.25rem", borderLeft: "2px solid var(--color-accent)", background: "var(--color-surface)" }}>
+    <div style={{ fontSize: "0.833rem", fontWeight: 600, color: "var(--color-ink)", marginBottom: "0.5rem" }}>Newspaper ritual</div>
+    <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>The masthead with today's date creates a daily rhythm — like picking up the morning paper. The mono type, uppercase label, and thin rule echo print mastheads.</div>
+  </div>
+  <div style={{ padding: "1.25rem", borderLeft: "2px solid var(--color-accent)", background: "var(--color-surface)" }}>
+    <div style={{ fontSize: "0.833rem", fontWeight: 600, color: "var(--color-ink)", marginBottom: "0.5rem" }}>Friendly over technical</div>
+    <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>The setup guide speaks plainly. No jargon, no raw syntax. Steps explain what you'll get, not what you'll configure. The numbered steps use a familiar editorial pattern.</div>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## The masthead
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", background: "var(--color-surface)", padding: "1.25rem" }}>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "1rem", marginBottom: "0.75rem" }}>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.694rem", letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--color-ink-faint)" }}>Editions</span>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.694rem", letterSpacing: "0.04em", color: "var(--color-ink-faint)" }}>Wednesday, 11 March 2026</span>
+      </div>
+      <div style={{ height: "1px", background: "var(--color-border-strong)" }} />
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>Every visit to the home page starts with the masthead: the word "Editions" at left, today's date at right, separated by a strong rule. Both are set in monospace, small, and faint — structural, not decorative.</p>
+    <p style={{ margin: 0 }}>The date uses the long format (weekday, day, month, year) to reinforce the daily ritual. This is your newspaper, delivered today. The strong rule below the masthead creates a clear boundary between wayfinding and content.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Setup guide
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", background: "var(--color-surface)", padding: "1.25rem" }}>
+      <div style={{ fontFamily: "var(--font-serif)", fontSize: "1.4rem", letterSpacing: "-0.02em", color: "var(--color-ink)", marginBottom: "0.5rem" }}>Getting started</div>
+      <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginBottom: "1.25rem" }}>A finite, curated reading experience. Set up your sources, define your interests, and create your first edition.</div>
+
+      {[
+        { num: "01", title: "Add sources", done: true },
+        { num: "02", title: "Create focuses", done: false },
+        { num: "03", title: "Create an edition", done: false },
+      ].map((step, i) => (
+        <div key={i} style={{ padding: "0.75rem 0", borderTop: "1px solid var(--color-border)", display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
+          <div style={{ width: "1.25rem", flexShrink: 0, paddingTop: "0.125rem" }}>
+            {step.done ? (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" style={{ width: "0.875rem", height: "0.875rem", color: "var(--color-accent)" }}>
+                <path fillRule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clipRule="evenodd" />
+              </svg>
+            ) : (
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.833rem", color: "var(--color-ink-faint)" }}>{step.num}</span>
+            )}
+          </div>
+          <div>
+            <div style={{ fontFamily: "var(--font-serif)", fontSize: "1rem", fontWeight: 500, letterSpacing: "-0.02em", color: step.done ? "var(--color-ink-tertiary)" : "var(--color-ink)" }}>{step.title}</div>
+            {!step.done && (
+              <div style={{ fontSize: "0.75rem", color: "var(--color-ink-tertiary)", marginTop: "0.25rem" }}>Description of what this step does…</div>
+            )}
+          </div>
+        </div>
+      ))}
+      <div style={{ height: "1px", background: "var(--color-border)" }} />
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>New users see a three-step guide styled as an editorial column, not a generic onboarding wizard. The heading "Getting started" is in serif, and the introduction explains the value proposition in one plain sentence.</p>
+    <p style={{ margin: "0 0 0.75rem" }}>Steps are numbered in monospace (<strong style={{ fontFamily: "var(--font-mono)", color: "var(--color-ink)", fontSize: "0.8rem" }}>01</strong>, <strong style={{ fontFamily: "var(--font-mono)", color: "var(--color-ink)", fontSize: "0.8rem" }}>02</strong>, <strong style={{ fontFamily: "var(--font-mono)", color: "var(--color-ink)", fontSize: "0.8rem" }}>03</strong>) — a pattern borrowed from the magazine's section dividers. Completed steps show an accent-colored check mark and muted title, giving a satisfying sense of progress.</p>
+    <p style={{ margin: "0 0 0.75rem" }}>Each uncompleted step has a primary CTA button. The button text is action-specific ("Add your first source", not "Get started") to be clear about what clicking it will do.</p>
+    <p style={{ margin: 0 }}>Once the user has added at least one source, a subtle "Browse all articles →" link appears below the steps — an escape hatch for readers who want to explore before finishing setup.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Edition cards
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", background: "var(--color-surface)", padding: "1.25rem" }}>
+      {[
+        { config: "Morning Brief", date: "11 Mar", title: "The Week AI Went Mainstream", articles: 8, min: 14 },
+        { config: "Deep Reads", date: "10 Mar", title: "On Finite Feeds and Calm Software", articles: 12, min: 34 },
+      ].map((ed, i) => (
+        <div key={i} style={{ padding: "0.875rem 0", borderTop: i > 0 ? "1px solid var(--color-border)" : "1px solid var(--color-border)", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.75rem", cursor: "pointer" }}>
+          <div>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.694rem", letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--color-accent)", marginBottom: "0.375rem" }}>{ed.config} · {ed.date}</div>
+            <div style={{ fontFamily: "var(--font-serif)", fontSize: "1.2rem", fontWeight: 500, letterSpacing: "-0.02em", color: "var(--color-ink)", lineHeight: 1.3, marginBottom: "0.375rem" }}>{ed.title}</div>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.694rem", letterSpacing: "0.04em", color: "var(--color-ink-faint)" }}>{ed.articles} articles · {ed.min} min</div>
+          </div>
+          <div style={{ flexShrink: 0, alignSelf: "center", color: "var(--color-ink-faint)" }}>
+            <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M5.5 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </div>
+        </div>
+      ))}
+      <div style={{ height: "1px", background: "var(--color-border)" }} />
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>Each unread edition appears as a newspaper-style teaser. The layout has three layers of typography working together:</p>
+    <p style={{ margin: "0 0 0.75rem" }}><strong style={{ color: "var(--color-ink)" }}>Mono (wayfinding)</strong> — the edition config name and date in small uppercase monospace, in accent color. This tells you <em>which</em> edition and <em>when</em>. The same mono-for-navigation pattern appears throughout the magazine view.</p>
+    <p style={{ margin: "0 0 0.75rem" }}><strong style={{ color: "var(--color-ink)" }}>Serif (content)</strong> — the edition title in large serif. This is the headline — the thing you'll be reading. It uses the same font and weight as the magazine cover headline, creating visual continuity.</p>
+    <p style={{ margin: "0 0 0.75rem" }}><strong style={{ color: "var(--color-ink)" }}>Mono (metadata)</strong> — article count and reading time in small monospace, faint. A commitment, not a claim — the same pattern as the magazine finale's stats.</p>
+    <p style={{ margin: 0 }}>On hover, the top border turns accent and the title shifts to accent color. A small chevron arrow at the right nudges 2px rightward — a micro-interaction that signals navigability without demanding attention.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## The "all read" state
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", background: "var(--color-surface)", padding: "2rem 1.5rem", textAlign: "center" }}>
+      <div style={{ fontSize: "2.5rem", color: "var(--color-accent)", opacity: 0.2, marginBottom: "0.75rem", userSelect: "none" }}>~</div>
+      <div style={{ fontFamily: "var(--font-serif)", fontSize: "1.25rem", fontWeight: 500, letterSpacing: "-0.02em", color: "var(--color-ink)", marginBottom: "0.375rem" }}>All read</div>
+      <div style={{ fontSize: "0.833rem", color: "var(--color-ink-tertiary)", lineHeight: 1.625 }}>You're up to date. New editions will appear here when they're generated.</div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>This is the home page's most important state. When there's nothing left to read, the page doesn't feel empty — it feels <em>complete</em>. The design borrows from the magazine finale: the same <strong style={{ color: "var(--color-ink)" }}>~</strong> end mark that signals "you're done" at the end of an edition appears here too.</p>
+    <p style={{ margin: "0 0 0.75rem" }}>The tilde is a typographic convention from newspaper journalism — the "30" or "###" that historically marked the end of a piece. Here it appears in accent color at 20% opacity, large and centered. It's decorative, not informational.</p>
+    <p style={{ margin: 0 }}>The heading says "All read" — two words, factual, satisfied. Not "You're all caught up!" (too excited), not "No unread items" (too technical). The supporting text explains what happens next without creating urgency.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Quick links
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", background: "var(--color-surface)", padding: "1.25rem" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "1.25rem" }}>
+        {["Browse feed", "Bookmarks", "Morning Brief", "Deep Reads"].map((label) => (
+          <span key={label} style={{ fontFamily: "var(--font-mono)", fontSize: "0.694rem", letterSpacing: "0.04em", color: "var(--color-ink-tertiary)", cursor: "pointer" }}>{label}</span>
+        ))}
+      </div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>Below the reading list (or empty state), a row of quick links provides shortcuts to the feed, bookmarks, and each edition config. These are text-only — no icons, no borders, no boxes. Just small monospace labels that turn from tertiary to primary ink on hover.</p>
+    <p style={{ margin: 0 }}>The links are deliberately understated. The reading list is the main event; quick links are a convenience for power users who want to navigate without using the sidebar. Edition config links include an entity icon when available, maintaining the same visual language as the sidebar nav.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Typography map
+
+<div style={{ marginBottom: "4rem" }}>
+  <div style={{ display: "grid", gridTemplateColumns: "8rem 1fr 1fr 1fr", gap: "0", fontSize: "0.75rem" }}>
+    <div style={{ padding: "0.5rem 0.75rem", fontWeight: 600, color: "var(--color-ink)", borderBottom: "1px solid var(--color-border-strong)" }}>Element</div>
+    <div style={{ padding: "0.5rem 0.75rem", fontWeight: 600, color: "var(--color-ink)", borderBottom: "1px solid var(--color-border-strong)" }}>Font</div>
+    <div style={{ padding: "0.5rem 0.75rem", fontWeight: 600, color: "var(--color-ink)", borderBottom: "1px solid var(--color-border-strong)" }}>Size</div>
+    <div style={{ padding: "0.5rem 0.75rem", fontWeight: 600, color: "var(--color-ink)", borderBottom: "1px solid var(--color-border-strong)" }}>Color</div>
+
+    {[
+      ["Masthead label", "Mono", "xs + tracking-wide", "ink-faint"],
+      ["Masthead date", "Mono", "xs + tracking-wide", "ink-faint"],
+      ["Page heading", "Serif", "3xl + tracking-tight", "ink"],
+      ["Subtext", "Sans", "sm", "ink-tertiary"],
+      ["Step number", "Mono", "sm", "ink-faint"],
+      ["Step title", "Serif", "lg + tracking-tight", "ink"],
+      ["Step description", "Sans", "sm", "ink-tertiary"],
+      ["Card config/date", "Mono", "xs + tracking-wide", "accent"],
+      ["Card title", "Serif", "xl + tracking-tight", "ink"],
+      ["Card metadata", "Mono", "xs + tracking-wide", "ink-faint"],
+      ["Quick links", "Mono", "xs + tracking-wide", "ink-tertiary"],
+      ["End mark (~)", "Sans", "4xl", "accent/20"],
+    ].map(([el, font, size, color], i) => (
+      <div key={i} style={{ display: "contents" }}>
+        <div style={{ padding: "0.375rem 0.75rem", color: "var(--color-ink-secondary)", borderBottom: "1px solid var(--color-border)" }}>{el}</div>
+        <div style={{ padding: "0.375rem 0.75rem", fontFamily: font === "Mono" ? "var(--font-mono)" : font === "Serif" ? "var(--font-serif)" : "var(--font-sans)", color: "var(--color-ink-secondary)", borderBottom: "1px solid var(--color-border)" }}>{font}</div>
+        <div style={{ padding: "0.375rem 0.75rem", fontFamily: "var(--font-mono)", color: "var(--color-ink-secondary)", borderBottom: "1px solid var(--color-border)" }}>{size}</div>
+        <div style={{ padding: "0.375rem 0.75rem", fontFamily: "var(--font-mono)", color: "var(--color-ink-secondary)", borderBottom: "1px solid var(--color-border)" }}>{color}</div>
+      </div>
+    ))}
+  </div>
+</div>
+
+<div style={{ fontSize: "0.833rem", color: "var(--color-ink-tertiary)", marginBottom: "4rem", padding: "1rem 1.25rem", borderLeft: "2px solid var(--color-border)", lineHeight: 1.5 }}>
+  The home page uses the same three-font system as the magazine view: <strong style={{ fontFamily: "var(--font-serif)", color: "var(--color-ink-secondary)" }}>Newsreader</strong> for content headings, <strong style={{ fontFamily: "var(--font-mono)", color: "var(--color-ink-secondary)" }}>JetBrains Mono</strong> for wayfinding and metadata, and <strong style={{ fontFamily: "var(--font-sans)", color: "var(--color-ink-secondary)" }}>Inter</strong> for body text. This creates a visual language that carries through from the front page to the reading experience.
+</div>
+
+</div>

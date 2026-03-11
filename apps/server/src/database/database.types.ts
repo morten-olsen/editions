@@ -84,6 +84,7 @@ type ArticleFocusesTable = {
   article_id: string;
   focus_id: string;
   confidence: number;
+  method: string | null;
   assigned_at: Timestamp;
 };
 

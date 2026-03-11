@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 
 import { DatabaseService } from "../database/database.ts";
+import { TaskService } from "../tasks/tasks.ts";
 import {
   VotesService,
   mergeVoteContexts,
@@ -9,6 +10,7 @@ import {
 import { computeScore } from "../votes/votes.scoring.ts";
 
 import type { FocusSourceMode } from "../database/database.types.ts";
+import type { ReconcileFocusPayload } from "../analysis/analysis.ts";
 import type { ScoringCandidate } from "../votes/votes.ts";
 import type { Services } from "../services/services.ts";
 
@@ -78,6 +80,12 @@ class FocusesService {
   constructor(services: Services) {
     this.#services = services;
   }
+
+  #enqueueReconcileFocus = (focusId: string, userId?: string): void => {
+    this.#services
+      .get(TaskService)
+      .enqueue<ReconcileFocusPayload>("reconcile_focus", { focusId }, { userId });
+  };
 
   list = async (userId: string): Promise<Focus[]> => {
     const db = await this.#services.get(DatabaseService).getInstance();
@@ -197,6 +205,9 @@ class FocusesService {
           })),
         )
         .execute();
+
+      // Trigger classification of existing articles against the new focus
+      this.#enqueueReconcileFocus(id, params.userId);
     }
 
     return this.get(params.userId, id);
@@ -225,6 +236,16 @@ class FocusesService {
       .where("id", "=", id)
       .where("user_id", "=", userId)
       .execute();
+
+    // If name or description changed, reclassify all articles for this focus
+    if (params.name !== undefined || params.description !== undefined) {
+      await db
+        .deleteFrom("article_focuses")
+        .where("focus_id", "=", id)
+        .execute();
+
+      this.#enqueueReconcileFocus(id, userId);
+    }
 
     return this.get(userId, id);
   };
@@ -255,6 +276,12 @@ class FocusesService {
     // Replace all source associations
     await db.deleteFrom("focus_sources").where("focus_id", "=", focusId).execute();
 
+    // Clear existing classifications — source set changed, need full reclassification
+    await db
+      .deleteFrom("article_focuses")
+      .where("focus_id", "=", focusId)
+      .execute();
+
     if (sources.length > 0) {
       await db
         .insertInto("focus_sources")
@@ -267,6 +294,9 @@ class FocusesService {
           })),
         )
         .execute();
+
+      // Trigger reclassification against the new source set
+      this.#enqueueReconcileFocus(focusId, userId);
     }
 
     await db

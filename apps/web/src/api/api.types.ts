@@ -1876,6 +1876,7 @@ export interface paths {
                                 budgetType: "time" | "count";
                                 budgetValue: number;
                                 lookbackHours: number | (null);
+                                excludePriorEditions: boolean | (null);
                                 weight: number;
                             }[];
                             createdAt: string;
@@ -1909,6 +1910,7 @@ export interface paths {
                             budgetType: "time" | "count";
                             budgetValue: number;
                             lookbackHours?: number | (null);
+                            excludePriorEditions?: boolean | (null);
                             weight?: number;
                         }[];
                     };
@@ -1938,6 +1940,7 @@ export interface paths {
                                 budgetType: "time" | "count";
                                 budgetValue: number;
                                 lookbackHours: number | (null);
+                                excludePriorEditions: boolean | (null);
                                 weight: number;
                             }[];
                             createdAt: string;
@@ -1994,6 +1997,7 @@ export interface paths {
                                 budgetType: "time" | "count";
                                 budgetValue: number;
                                 lookbackHours: number | (null);
+                                excludePriorEditions: boolean | (null);
                                 weight: number;
                             }[];
                             createdAt: string;
@@ -2074,6 +2078,7 @@ export interface paths {
                             budgetType: "time" | "count";
                             budgetValue: number;
                             lookbackHours?: number | (null);
+                            excludePriorEditions?: boolean | (null);
                             weight?: number;
                         }[];
                     };
@@ -2103,6 +2108,7 @@ export interface paths {
                                 budgetType: "time" | "count";
                                 budgetValue: number;
                                 lookbackHours: number | (null);
+                                excludePriorEditions: boolean | (null);
                                 weight: number;
                             }[];
                             createdAt: string;
@@ -2589,6 +2595,73 @@ export interface paths {
                 };
             };
         };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/home": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            sourcesCount: number;
+                            focusesCount: number;
+                            configs: {
+                                id: string;
+                                name: string;
+                                icon: string | (null);
+                            }[];
+                            editions: {
+                                id: string;
+                                editionConfigId: string;
+                                title: string;
+                                totalReadingMinutes: number | (null);
+                                articleCount: number;
+                                publishedAt: string;
+                                configName: string;
+                                configIcon: string | (null);
+                                sections: {
+                                    focusName: string;
+                                    articleCount: number;
+                                }[];
+                                lead: {
+                                    title: string;
+                                    sourceName: string;
+                                    imageUrl: string | (null);
+                                    consumptionTimeSeconds: number | (null);
+                                } | (null);
+                                highlights: {
+                                    title: string;
+                                    sourceName: string;
+                                }[];
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;

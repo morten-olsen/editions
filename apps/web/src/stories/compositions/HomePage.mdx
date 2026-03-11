@@ -1,0 +1,215 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design System/Compositions/Home Page" />
+
+<div style={{ maxWidth: "72rem", margin: "0 auto", padding: "4rem 0", fontFamily: "var(--font-sans)" }}>
+
+<div style={{ color: "var(--color-ink-tertiary)", fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: "1.5rem" }}>Compositions</div>
+
+# Home page — the newsstand
+
+<div style={{ fontSize: "1.2rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginTop: "1rem", marginBottom: "4rem", maxWidth: "65ch" }}>
+  If the magazine view is settling into a favourite chair to read, the home page is browsing the newsstand — seeing what's waiting for you, picking up the one that catches your eye. Each unread edition is displayed as a magazine cover, with the lead story's image, section tags, and reading time creating the visual pull of a real storefront.
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", marginBottom: "4rem" }} />
+
+## Design principles
+
+<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem", marginBottom: "4rem" }}>
+  <div style={{ padding: "1.25rem", borderLeft: "2px solid var(--color-accent)", background: "var(--color-surface)" }}>
+    <div style={{ fontSize: "0.833rem", fontWeight: 600, color: "var(--color-ink)", marginBottom: "0.5rem" }}>Browse, don't manage</div>
+    <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>The home page is not a dashboard, not a list of tasks. It's a storefront: visually rich, inviting, designed to make you want to pick something up and read it.</div>
+  </div>
+  <div style={{ padding: "1.25rem", borderLeft: "2px solid var(--color-accent)", background: "var(--color-surface)" }}>
+    <div style={{ fontSize: "0.833rem", fontWeight: 600, color: "var(--color-ink)", marginBottom: "0.5rem" }}>Being done is the feature</div>
+    <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>The "all read" state uses the same ~ end mark as the magazine finale. Completion is celebrated, not treated as an empty state. The newsstand is simply closed for now.</div>
+  </div>
+  <div style={{ padding: "1.25rem", borderLeft: "2px solid var(--color-accent)", background: "var(--color-surface)" }}>
+    <div style={{ fontSize: "0.833rem", fontWeight: 600, color: "var(--color-ink)", marginBottom: "0.5rem" }}>Visual hierarchy</div>
+    <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>The most recent edition gets the full cover card treatment — image background, large headline, section tags. Older editions become compact teasers. A real newsstand puts the latest issue face-out.</div>
+  </div>
+  <div style={{ padding: "1.25rem", borderLeft: "2px solid var(--color-accent)", background: "var(--color-surface)" }}>
+    <div style={{ fontSize: "0.833rem", fontWeight: 600, color: "var(--color-ink)", marginBottom: "0.5rem" }}>Single request</div>
+    <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>The <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem" }}>GET /api/home</code> endpoint returns everything in one call: counts, configs, and edition previews with lead article data. No N+1 queries, no waterfalls.</div>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## The masthead
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", background: "var(--color-surface)", padding: "1.25rem" }}>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "1rem", marginBottom: "0.75rem" }}>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.694rem", letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--color-ink-faint)" }}>Editions</span>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.694rem", letterSpacing: "0.04em", color: "var(--color-ink-faint)" }}>Wednesday, 11 March 2026</span>
+      </div>
+      <div style={{ height: "1px", background: "var(--color-border-strong)" }} />
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>Every visit starts with the masthead: "Editions" at left, today's date at right, separated by a strong rule. Both are monospace, small, and faint — structural wayfinding.</p>
+    <p style={{ margin: 0 }}>The long date format (weekday, day, month, year) reinforces the daily ritual. This is your personal newspaper, delivered today.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Cover card
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ borderRadius: "0.5rem", overflow: "hidden", position: "relative", minHeight: "14rem" }}>
+      <div style={{ position: "absolute", inset: 0, background: "#1a1a1a" }}>
+        <img src="https://picsum.photos/seed/cover-card-docs/400/280" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.7 }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.4) 40%, rgba(0,0,0,0.8) 100%)" }} />
+      </div>
+      <div style={{ position: "relative", zIndex: 1, padding: "1.25rem", display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: "14rem", color: "white" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.694rem", letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(255,255,255,0.8)" }}>Morning Brief</span>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.694rem", letterSpacing: "0.04em", color: "rgba(255,255,255,0.5)" }}>11 Mar</span>
+        </div>
+        <div>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.694rem", letterSpacing: "0.04em", color: "rgba(255,255,255,0.6)", marginBottom: "0.375rem" }}>Ars Technica</div>
+          <div style={{ fontFamily: "var(--font-serif)", fontSize: "1.3rem", fontWeight: 500, letterSpacing: "-0.02em", lineHeight: 1.3, color: "white", marginBottom: "0.625rem" }}>The quiet revolution in reader design</div>
+          <div style={{ display: "flex", gap: "0.375rem", marginBottom: "0.5rem" }}>
+            {["Technology", "Science", "Global News"].map((s) => (
+              <span key={s} style={{ fontSize: "0.694rem", padding: "0.125rem 0.5rem", borderRadius: "9999px", background: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.8)" }}>{s}</span>
+            ))}
+          </div>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.694rem", letterSpacing: "0.04em", color: "rgba(255,255,255,0.5)" }}>8 articles · 14 min · 3 sections</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>The cover card is the visual centrepiece — a mini magazine cover for the most recent edition. The lead article's image fills the background with gradient overlays for text legibility, borrowing directly from the magazine cover's visual language.</p>
+    <p style={{ margin: "0 0 0.75rem" }}>The card uses the same three-font system as the magazine: <strong style={{ fontFamily: "var(--font-mono)", color: "var(--color-ink)", fontSize: "0.8rem" }}>mono</strong> for the config name, date, source, and stats (wayfinding); <strong style={{ fontFamily: "var(--font-serif)", color: "var(--color-ink)", fontSize: "0.8rem" }}>serif</strong> for the headline (content); section names as rounded pills.</p>
+    <p style={{ margin: "0 0 0.75rem" }}>When the lead article has no image, the card uses <code style={{ fontFamily: "var(--font-mono)", background: "var(--color-surface-sunken)", padding: "0.1rem 0.3rem", borderRadius: "0.2rem", fontSize: "0.8rem" }}>bg-surface-sunken</code> — a calm typographic treatment that feels intentional, not broken.</p>
+    <p style={{ margin: 0 }}>On hover, the background image subtly scales (1.03×) — a micro-interaction that signals interactivity without being dramatic.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Edition teasers
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", background: "var(--color-surface)", padding: "1.25rem" }}>
+      {[
+        { config: "Deep Reads", date: "10 Mar", title: "On finite feeds and calm software", articles: 12, min: 34, hasImage: false },
+        { config: "Morning Brief", date: "9 Mar", title: "Pacific trade agreement reaches final ratification", articles: 6, min: 11, hasImage: true },
+      ].map((ed, i) => (
+        <div key={i} style={{ padding: "0.75rem 0", borderTop: "1px solid var(--color-border)", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.75rem", cursor: "pointer" }}>
+          <div>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.694rem", letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--color-accent)", marginBottom: "0.25rem" }}>{ed.config} · {ed.date}</div>
+            <div style={{ fontFamily: "var(--font-serif)", fontSize: "1.1rem", fontWeight: 500, letterSpacing: "-0.02em", color: "var(--color-ink)", lineHeight: 1.3, marginBottom: "0.25rem" }}>{ed.title}</div>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.694rem", letterSpacing: "0.04em", color: "var(--color-ink-faint)" }}>{ed.articles} articles · {ed.min} min</div>
+          </div>
+          {ed.hasImage && (
+            <div style={{ flexShrink: 0, width: "4rem", height: "4rem", borderRadius: "0.375rem", overflow: "hidden", background: "var(--color-surface-sunken)" }}>
+              <img src="https://picsum.photos/seed/teaser-docs/120/120" alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            </div>
+          )}
+        </div>
+      ))}
+      <div style={{ height: "1px", background: "var(--color-border)" }} />
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>Older unread editions appear as compact teasers below the cover card. These follow the same typography pattern as the cover (mono config/date, serif title, mono stats) but in a horizontal list layout.</p>
+    <p style={{ margin: "0 0 0.75rem" }}>When the lead article has an image, a small thumbnail appears at the right — giving visual recognition without competing with the featured cover card above.</p>
+    <p style={{ margin: 0 }}>The progression from cover card to teasers mirrors a real newsstand: the latest issue is displayed cover-out, earlier issues are spine-out behind it.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## The "all read" state
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", background: "var(--color-surface)", padding: "2rem 1.5rem", textAlign: "center" }}>
+      <div style={{ fontSize: "2.5rem", color: "var(--color-accent)", opacity: 0.2, marginBottom: "0.75rem", userSelect: "none" }}>~</div>
+      <div style={{ fontFamily: "var(--font-serif)", fontSize: "1.25rem", fontWeight: 500, letterSpacing: "-0.02em", color: "var(--color-ink)", marginBottom: "0.375rem" }}>All read</div>
+      <div style={{ fontSize: "0.833rem", color: "var(--color-ink-tertiary)", lineHeight: 1.625 }}>You're up to date. New editions will appear here when they're generated.</div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>When all editions are read, the newsstand is closed — but the experience is satisfying, not empty. The <strong style={{ color: "var(--color-ink)" }}>~</strong> end mark (borrowed from the magazine finale) signals completion.</p>
+    <p style={{ margin: 0 }}>The heading says "All read" — factual, satisfied. The supporting text explains what happens next without creating urgency. This is the most important state in the product: the feeling of being done.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Data architecture
+
+<div style={{ marginBottom: "4rem" }}>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, maxWidth: "65ch" }}>
+    <p style={{ margin: "0 0 0.75rem" }}>The newsstand is powered by a single <code style={{ fontFamily: "var(--font-mono)", background: "var(--color-surface-sunken)", padding: "0.1rem 0.3rem", borderRadius: "0.2rem", fontSize: "0.8rem" }}>GET /api/home</code> endpoint that returns everything needed in one request:</p>
+  </div>
+
+  <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", lineHeight: 1.6, background: "var(--color-surface-sunken)", padding: "1.25rem", borderRadius: "0.5rem", color: "var(--color-ink-secondary)", marginBottom: "1rem", maxWidth: "40rem" }}>
+    <div>{"{"}</div>
+    <div style={{ paddingLeft: "1rem" }}>sourcesCount: number,</div>
+    <div style={{ paddingLeft: "1rem" }}>focusesCount: number,</div>
+    <div style={{ paddingLeft: "1rem" }}>configs: [{"{ id, name, icon }"}],</div>
+    <div style={{ paddingLeft: "1rem" }}>editions: [{"{"}</div>
+    <div style={{ paddingLeft: "2rem" }}>id, title, configName, configIcon,</div>
+    <div style={{ paddingLeft: "2rem" }}>articleCount, totalReadingMinutes,</div>
+    <div style={{ paddingLeft: "2rem" }}>sections: [{"{ focusName, articleCount }"}],</div>
+    <div style={{ paddingLeft: "2rem" }}>lead: {"{ title, sourceName, imageUrl }"},</div>
+    <div style={{ paddingLeft: "2rem" }}>highlights: [{"{ title, sourceName }"}]</div>
+    <div style={{ paddingLeft: "1rem" }}>{"}"}]</div>
+    <div>{"}"}</div>
+  </div>
+
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, maxWidth: "65ch" }}>
+    <p style={{ margin: "0 0 0.75rem" }}>The lead article is selected by scanning edition articles in position order for the first one with an image. If none have images, position 0 is used regardless. This maximises the chance of a visually rich cover card.</p>
+    <p style={{ margin: 0 }}>Article content (the heavy HTML body) is never fetched for the home page. The preview data — title, source name, image URL — is all that's needed for the newsstand cards.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Setup guide
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", background: "var(--color-surface)", padding: "1.25rem" }}>
+      <div style={{ fontFamily: "var(--font-serif)", fontSize: "1.4rem", letterSpacing: "-0.02em", color: "var(--color-ink)", marginBottom: "0.5rem" }}>Getting started</div>
+      <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginBottom: "1.25rem" }}>A finite, curated reading experience.</div>
+
+      {[
+        { num: "01", title: "Add sources", done: true },
+        { num: "02", title: "Create focuses", done: false },
+        { num: "03", title: "Create an edition", done: false },
+      ].map((step, i) => (
+        <div key={i} style={{ padding: "0.75rem 0", borderTop: "1px solid var(--color-border)", display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
+          <div style={{ width: "1.25rem", flexShrink: 0, paddingTop: "0.125rem" }}>
+            {step.done ? (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" style={{ width: "0.875rem", height: "0.875rem", color: "var(--color-accent)" }}>
+                <path fillRule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clipRule="evenodd" />
+              </svg>
+            ) : (
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.833rem", color: "var(--color-ink-faint)" }}>{step.num}</span>
+            )}
+          </div>
+          <div style={{ fontFamily: "var(--font-serif)", fontSize: "1rem", fontWeight: 500, letterSpacing: "-0.02em", color: step.done ? "var(--color-ink-tertiary)" : "var(--color-ink)" }}>{step.title}</div>
+        </div>
+      ))}
+      <div style={{ height: "1px", background: "var(--color-border)" }} />
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>New users see a three-step guide before the newsstand appears. Steps are numbered in monospace (<strong style={{ fontFamily: "var(--font-mono)", color: "var(--color-ink)", fontSize: "0.8rem" }}>01</strong>, <strong style={{ fontFamily: "var(--font-mono)", color: "var(--color-ink)", fontSize: "0.8rem" }}>02</strong>, <strong style={{ fontFamily: "var(--font-mono)", color: "var(--color-ink)", fontSize: "0.8rem" }}>03</strong>) — matching the magazine section divider pattern.</p>
+    <p style={{ margin: "0 0 0.75rem" }}>Completed steps show an accent check mark. Steps are sequential — only the next uncompleted step shows a CTA button. Future steps are dimmed (faint text, no button) until their prerequisites are met: sources before focuses, focuses before editions.</p>
+    <p style={{ margin: 0 }}>The setup guide is shown when any of the three prerequisites (sources, focuses, edition configs) are missing. Once all three exist, the newsstand takes over.</p>
+  </div>
+</div>
+
+</div>

@@ -5,6 +5,7 @@ import { createAuthRoutes } from "./auth.routes.ts";
 import { createConfigRoutes } from "./config.routes.ts";
 import { createBookmarksRoutes } from "./bookmarks.routes.ts";
 import { createEditionsRoutes } from "./editions.routes.ts";
+import { createHomeRoutes } from "./home.routes.ts";
 import { createFeedRoutes } from "./feed.routes.ts";
 import { createFocusesRoutes } from "./focuses.routes.ts";
 import { createSourcesRoutes } from "./sources.routes.ts";
@@ -46,6 +47,7 @@ const registerRoutes = async (
       await api.register(createSourcesRoutes(services));
       await api.register(createFocusesRoutes(services));
       await api.register(createEditionsRoutes(services));
+      await api.register(createHomeRoutes(services));
       await api.register(createFeedRoutes(services));
       await api.register(createTasksRoutes(services));
       await api.register(createScoringRoutes(services));

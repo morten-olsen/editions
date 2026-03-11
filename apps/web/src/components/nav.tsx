@@ -134,7 +134,8 @@ const Nav = (): React.ReactElement => {
       {/* Bookmarks */}
       <div className="mb-6">
         <Link to="/bookmarks" className={linkClass(isActive("/bookmarks"))}>
-          Bookmarks
+          <EntityIcon icon="bookmark" size={14} className="shrink-0" />
+          <span className="truncate">Bookmarks</span>
         </Link>
       </div>
 
@@ -148,7 +149,8 @@ const Nav = (): React.ReactElement => {
         </div>
         <div className="flex flex-col gap-0.5">
           <Link to="/feed" className={linkClass(currentPath.startsWith("/feed"))}>
-            All articles
+            <EntityIcon icon="layers" size={14} className="shrink-0" />
+            <span className="truncate">All articles</span>
           </Link>
           {focuses.map((focus) => (
             <Link
@@ -167,10 +169,12 @@ const Nav = (): React.ReactElement => {
       {/* Footer */}
       <div className="mt-auto flex flex-col gap-0.5">
         <Link to="/sources" className={linkClass(isActive("/sources"))}>
-          Sources
+          <EntityIcon icon="rss" size={14} className="shrink-0" />
+          <span className="truncate">Sources</span>
         </Link>
         <Link to="/settings" className={linkClass(isActive("/settings"))}>
-          Settings
+          <EntityIcon icon="settings" size={14} className="shrink-0" />
+          <span className="truncate">Settings</span>
         </Link>
 
         <div className="mt-3 pt-3 border-t border-border mx-3">

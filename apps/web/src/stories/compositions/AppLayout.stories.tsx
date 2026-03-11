@@ -6,6 +6,7 @@ import {
   createRouter,
   RouterProvider,
 } from "@tanstack/react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AppShell } from "../../components/app-shell.tsx";
 import { Nav } from "../../components/nav.tsx";
 import { PageHeader } from "../../components/page-header.tsx";
@@ -26,10 +27,16 @@ const router = createRouter({
   history: createMemoryHistory({ initialEntries: ["/"] }),
 });
 
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false, enabled: false } },
+});
+
 const withRouter = (Story: React.ComponentType): React.ReactElement => (
-  <AuthProvider>
-    <RouterProvider router={router} defaultComponent={() => <Story />} />
-  </AuthProvider>
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <RouterProvider router={router} defaultComponent={() => <Story />} />
+    </AuthProvider>
+  </QueryClientProvider>
 );
 
 const now = Date.now();

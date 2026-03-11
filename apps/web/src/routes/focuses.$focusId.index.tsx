@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
@@ -53,6 +53,19 @@ type SortMode = "top" | "recent";
 type TimeWindow = "today" | "week" | "all";
 type ReadStatus = "all" | "unread" | "read";
 
+const ANALYSIS_TASK_TYPES = new Set([
+  "reconcile_focus",
+  "reanalyse_source",
+  "reanalyse_all",
+  "analyse_article",
+]);
+
+type TaskEntry = {
+  id: string;
+  type: string;
+  status: "pending" | "running" | "completed" | "failed";
+};
+
 const PAGE_SIZE = 20;
 
 const CogIcon = (): React.ReactElement => (
@@ -72,6 +85,7 @@ const windowToRange = (window: TimeWindow): { from?: string; to?: string } => {
 
 const FocusDetailPage = (): React.ReactNode => {
   const headers = useAuthHeaders();
+  const queryClient = useQueryClient();
   const { focusId } = Route.useParams();
   const [offset, setOffset] = useState(0);
   const [sort, setSort] = useState<SortMode>("top");
@@ -134,6 +148,39 @@ const FocusDetailPage = (): React.ReactNode => {
 
   const articlesPage = articlesData?.page ?? null;
   const serverBookmarkedIds = articlesData?.bookmarkedIds ?? new Set<string>();
+
+  // When the feed is empty, check if analysis tasks are running.
+  // Poll every 2s while active; when tasks finish, refetch articles.
+  const isEmpty = !loadingArticles && (!articlesPage || articlesPage.articles.length === 0);
+
+  const { data: analysisRunning } = useQuery({
+    queryKey: ["tasks", "analysis-running"],
+    queryFn: async (): Promise<boolean> => {
+      const { data } = await client.GET("/api/tasks", { headers });
+      if (!data) return false;
+      const tasks = (data as { tasks: TaskEntry[] }).tasks;
+      return tasks.some(
+        (t) =>
+          ANALYSIS_TASK_TYPES.has(t.type) &&
+          (t.status === "pending" || t.status === "running"),
+      );
+    },
+    enabled: !!headers && isEmpty,
+    refetchInterval: (query) => (query.state.data ? 2000 : false),
+  });
+
+  // When analysis transitions from running → done, refetch articles
+  const wasRunning = useRef(false);
+  useEffect(() => {
+    if (analysisRunning) {
+      wasRunning.current = true;
+    } else if (wasRunning.current && analysisRunning === false) {
+      wasRunning.current = false;
+      void queryClient.invalidateQueries({
+        queryKey: ["focuses", focusId, "articles"],
+      });
+    }
+  }, [analysisRunning, queryClient, focusId]);
 
   if (!headers) return null;
 
@@ -312,16 +359,23 @@ const FocusDetailPage = (): React.ReactNode => {
 
       {/* Articles */}
       {!articlesPage || articlesPage.articles.length === 0 ? (
-        <EmptyState
-          title="No articles"
-          description={
-            sort === "top" && window === "all" && status === "unread"
-              ? "You're all caught up! Switch to \"All\" to browse past articles."
-              : sort === "top" && window === "all" && status === "all"
-                ? "No articles have been classified into this focus yet."
-                : "No articles match the current filters."
-          }
-        />
+        analysisRunning ? (
+          <EmptyState
+            title="Analysing articles"
+            description="Articles are being classified for this focus. This page will update automatically when ready."
+          />
+        ) : (
+          <EmptyState
+            title="No articles"
+            description={
+              sort === "top" && window === "all" && status === "unread"
+                ? "You're all caught up! Switch to \"All\" to browse past articles."
+                : sort === "top" && window === "all" && status === "all"
+                  ? "No articles have been classified into this focus yet."
+                  : "No articles match the current filters."
+            }
+          />
+        )
       ) : (
         <>
           <div className="divide-y divide-border" data-ai-id="focus-articles" data-ai-role="list" data-ai-label={`${articlesPage.total} articles`}>

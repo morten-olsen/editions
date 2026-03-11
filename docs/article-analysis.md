@@ -26,7 +26,7 @@ Articles track their progress through the pipeline via nullable timestamp column
 
 ### Why a single `analysed_at` rather than separate timestamps?
 
-Embedding and classification always run together as one atomic step — there's no use case for having one without the other. A single column keeps the state machine simple: `null` means pending, non-null means done.
+Embedding and classification run together in the reconciliation step. While embeddings can be skipped independently (e.g. when only reclassifying for a new focus), a single column keeps the state machine simple: `null` means pending, non-null means done.
 
 ## Feature extraction (embeddings)
 
@@ -40,7 +40,7 @@ Storing embeddings separately from articles keeps the articles table lean (embed
 
 **Input:** The extracted article text (HTML stripped), truncated to the model's token limit (~256 tokens for MiniLM). Title is prepended to give the model topic signal.
 
-## Focus classification (zero-shot)
+## Focus classification
 
 **Purpose:** Determine which of the user's focuses an article belongs to, with a confidence score.
 
@@ -48,31 +48,26 @@ Storing embeddings separately from articles keeps the articles table lean (embed
 - A **name** — the primary classification label
 - An optional **description** — additional context for the classifier (e.g. "News about Seattle and the Pacific Northwest")
 - **Source associations** with a mode:
-  - `always` — every article from that source is automatically assigned to this focus (confidence 1.0, no classifier needed)
-  - `match` — the classifier determines relevance
+  - `always` — every article from that source is automatically assigned to this focus (confidence 1.0, method "always", no classifier needed)
+  - `match` — the configured classifier strategy determines relevance
 
-**Classifier:** Zero-shot classification via `@huggingface/transformers` using a small NLI model. Candidate: `Xenova/bart-large-mnli` or `Xenova/bart-large-mnli`. The classifier takes the article text as the premise and each focus name+description as candidate labels.
+### Classifier strategies
 
-**Output:** Results are written to the existing `article_focuses` junction table — one row per (article, focus) pair with a confidence score (0.0–1.0). An article can match multiple focuses. This makes querying straightforward:
+Classification is pluggable via the `ClassifierStrategy` interface. Three strategies are available, configured via `analysis.classifier` in `editions.json`:
 
-```sql
--- All articles in a focus, ordered by confidence
-SELECT a.* FROM articles a
-JOIN article_focuses af ON af.article_id = a.id
-WHERE af.focus_id = ? AND af.confidence >= ?
-ORDER BY af.confidence DESC;
-```
+| Strategy | Config value | Method | Tradeoff |
+|----------|-------------|--------|----------|
+| **NLI** | `"nli"` | Zero-shot NLI via BART-MNLI | Most accurate, ~0.5s per article per focus set |
+| **Similarity** | `"similarity"` | Cosine similarity between article and focus embeddings | Sub-millisecond, ~85–90% agreement with NLI for well-defined topics |
+| **Hybrid** | `"hybrid"` | Similarity first, NLI refinement for ambiguous scores (0.1–0.65) | Near-instant for most articles, NLI quality where it matters |
 
-**Flow:**
-1. Resolve the article's source
-2. Find all focuses that reference this source (across all users who subscribe to that source)
-3. For `always` mode focuses → insert into `article_focuses` with confidence 1.0
-4. For `match` mode focuses → run zero-shot classification with focus name+description as candidate labels
-5. Insert a row into `article_focuses` for every focus that scores above the confidence threshold
+Each strategy returns `{ focusId, confidence, method }` — the `method` column in `article_focuses` tracks which classifier produced each assignment ("nli", "similarity", or "always").
 
-An article can (and often will) belong to multiple focuses — a climate policy article might match both "Climate" and "Politics".
+**Confidence scale caveat:** NLI and similarity scores have different distributions. Similarity scores tend to cluster in a narrower range than NLI. The `method` column enables future per-method calibration or scoring weight adjustments, but raw scores are stored as-is currently.
 
-**Threshold:** Articles below the confidence threshold are not assigned to the focus. The threshold should be configurable per-focus in the future, but a global default is fine to start.
+**Output:** Results are written to the `article_focuses` junction table — one row per (article, focus) pair with a confidence score (0.0–1.0) and method. An article can match multiple focuses.
+
+**Threshold:** All classification scores are saved to `article_focuses` regardless of value. Filtering is done at query time via the per-focus `minConfidence` setting (adjustable in the focus editor's "How closely articles must match" slider).
 
 ## Worker architecture
 
@@ -95,9 +90,9 @@ Models are downloaded on first run to a local cache directory (`~/.cache/hugging
 
 - **Server restart mid-analysis:** On startup, query for articles needing analysis and re-enqueue them. This is cheap — the query is indexed and the task queue handles dedup.
 - **Failed analysis:** If a model fails on a specific article (OOM, malformed text), the task fails but doesn't block the pipeline. The article stays with `analysed_at = null` and can be retried.
-- **New focuses added:** When a user creates a new focus and associates sources, existing articles from those sources need reclassification. This is a bulk re-analysis task — mark affected articles as `analysed_at = null` to trigger reprocessing. Note: embeddings don't need recomputing (they're content-dependent, not focus-dependent), but reclassification does. Setting `analysed_at = null` re-runs both — acceptable cost for simplicity.
+- **New focuses added:** When a user creates a new focus and associates sources, existing articles from those sources need reclassification. The reconciliation engine handles this efficiently — `reconcile()` with `focusIds` scope only classifies against the new focus, and `skipEmbedding: true` avoids recomputing embeddings.
 - **Focus updated/deleted:** Deleting a focus cascades to `article_focuses`. Updating a focus name/description should trigger reclassification of associated articles.
-- **Force re-analysis of a source:** An explicit action (API endpoint or internal method) sets `analysed_at = null` on all articles for a given source, then enqueues `analyse_article` tasks for each. Used when focuses change, when a user manually requests re-analysis, or for debugging.
+- **Force re-analysis of a source:** `AnalysisService.reanalyseSource()` clears existing classifications and resets `analysed_at`, then enqueues `analyse_article` tasks. `reanalyseAll()` does the same across all sources.
 
 ## Data model changes
 
@@ -122,15 +117,16 @@ Separate table for vector storage, designed for sqlite-vec compatibility.
 
 The `model` column lets us detect when the configured model changes and re-embed articles as needed.
 
-### Existing: article_focuses table (no changes needed)
+### Existing: article_focuses table
 
-Already supports multiple focuses per article with confidence scores:
+Supports multiple focuses per article with confidence scores and classification method tracking:
 
 | Column | Type | Notes |
 |--------|------|-------|
 | `article_id` | text FK → articles | |
 | `focus_id` | text FK → focuses | |
 | `confidence` | real | 0.0–1.0 |
+| `method` | text | Classifier that produced this assignment: "nli", "similarity", or "always" |
 | `assigned_at` | text | |
 
 Unique on `(article_id, focus_id)` — upserts on re-analysis.

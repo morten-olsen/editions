@@ -26,11 +26,16 @@ const schedulerSchema = z.object({
   fetchIntervalMinutes: z.number().min(1).default(60),
 });
 
+const analysisSchema = z.object({
+  classifier: z.enum(["nli", "similarity", "hybrid"]).default("hybrid"),
+});
+
 const configSchema = z.object({
   server: serverSchema.default({ host: "0.0.0.0", port: 3007 }),
   database: databaseSchema.default({ filename: "editions.db" }),
   auth: authSchema.default({ jwtSecret: "", allowSignups: true }),
   scheduler: schedulerSchema.default({ enabled: true, fetchIntervalMinutes: 60 }),
+  analysis: analysisSchema.default({ classifier: "hybrid" }),
 });
 
 type Config = z.infer<typeof configSchema>;

@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 
 import { DatabaseService } from "../database/database.ts";
+import { TaskService } from "../tasks/tasks.ts";
 import {
   VotesService,
   mergeVoteContexts,
@@ -9,6 +10,7 @@ import {
 import { computeScore } from "../votes/votes.scoring.ts";
 
 import type { FocusSourceMode } from "../database/database.types.ts";
+import type { ReconcileFocusPayload } from "../analysis/analysis.ts";
 import type { ScoringCandidate } from "../votes/votes.ts";
 import type { Services } from "../services/services.ts";
 
@@ -78,6 +80,12 @@ class FocusesService {
   constructor(services: Services) {
     this.#services = services;
   }
+
+  #enqueueReconcileFocus = (focusId: string, userId?: string, forceReclassify?: boolean): void => {
+    this.#services
+      .get(TaskService)
+      .enqueue<ReconcileFocusPayload>("reconcile_focus", { focusId, forceReclassify }, { userId });
+  };
 
   list = async (userId: string): Promise<Focus[]> => {
     const db = await this.#services.get(DatabaseService).getInstance();
@@ -197,6 +205,9 @@ class FocusesService {
           })),
         )
         .execute();
+
+      // Trigger classification of existing articles against the new focus
+      this.#enqueueReconcileFocus(id, params.userId);
     }
 
     return this.get(params.userId, id);
@@ -226,6 +237,13 @@ class FocusesService {
       .where("user_id", "=", userId)
       .execute();
 
+    // If name or description changed, reclassify all articles for this focus.
+    // Uses forceReclassify to upsert over existing scores rather than deleting
+    // first — the feed stays populated while reclassification runs in the background.
+    if (params.name !== undefined || params.description !== undefined) {
+      this.#enqueueReconcileFocus(id, userId, true);
+    }
+
     return this.get(userId, id);
   };
 
@@ -252,8 +270,42 @@ class FocusesService {
     // Verify ownership
     await this.get(userId, focusId);
 
+    // Determine which sources were removed so we only delete their classifications
+    const previousLinks = await db
+      .selectFrom("focus_sources")
+      .select("source_id")
+      .where("focus_id", "=", focusId)
+      .execute();
+
+    const previousSourceIds = new Set(previousLinks.map((l) => l.source_id));
+    const newSourceIds = new Set(sources.map((s) => s.sourceId));
+    const removedSourceIds = [...previousSourceIds].filter((id) => !newSourceIds.has(id));
+    const hasChanges = removedSourceIds.length > 0
+      || [...newSourceIds].some((id) => !previousSourceIds.has(id))
+      || sources.some((s) => {
+        const prev = previousLinks.find((l) => l.source_id === s.sourceId);
+        return prev === undefined;
+      });
+
     // Replace all source associations
     await db.deleteFrom("focus_sources").where("focus_id", "=", focusId).execute();
+
+    // Only delete classifications for articles from removed sources
+    if (removedSourceIds.length > 0) {
+      const removedArticleIds = await db
+        .selectFrom("articles")
+        .select("id")
+        .where("source_id", "in", removedSourceIds)
+        .execute();
+
+      if (removedArticleIds.length > 0) {
+        await db
+          .deleteFrom("article_focuses")
+          .where("focus_id", "=", focusId)
+          .where("article_id", "in", removedArticleIds.map((a) => a.id))
+          .execute();
+      }
+    }
 
     if (sources.length > 0) {
       await db
@@ -267,6 +319,11 @@ class FocusesService {
           })),
         )
         .execute();
+
+      // Reconcile will pick up articles from new sources that lack classifications
+      if (hasChanges) {
+        this.#enqueueReconcileFocus(focusId, userId);
+      }
     }
 
     await db

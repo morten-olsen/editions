@@ -1,3 +1,5 @@
+import { homedir } from "node:os";
+import path from "node:path";
 import { parentPort } from "node:worker_threads";
 
 import { pipeline, env } from "@huggingface/transformers";
@@ -56,9 +58,8 @@ type WorkerResponse = EmbedResponse | ClassifyResponse | ErrorResponse;
 // --- Lazy model loading ---
 
 env.allowLocalModels = true;
-if (process.env.HF_HOME) {
-  env.cacheDir = process.env.HF_HOME;
-}
+env.cacheDir = process.env.HF_HOME ?? path.join(homedir(), ".cache", "huggingface");
+
 
 let embeddingPipeline: Promise<FeatureExtractionPipeline> | null = null;
 let classifierPipeline: Promise<ZeroShotClassificationPipeline> | null = null;

@@ -3,17 +3,24 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Worker } from "node:worker_threads";
 
+import { ConfigService } from "../config/config.ts";
 import { DatabaseService } from "../database/database.ts";
 import { TaskService } from "../tasks/tasks.ts";
 import { destroySymbol } from "../services/services.ts";
+import {
+  reconcile,
+  createNliStrategy,
+  createSimilarityStrategy,
+  createHybridStrategy,
+} from "./analysis.reconcile.ts";
 
 import type { WorkerResponse } from "./analysis.worker.ts";
 import type { Services } from "../services/services.ts";
+import type { ClassifierStrategy, ReconcileResult } from "./analysis.reconcile.ts";
 
 // --- Constants ---
 
 const DEFAULT_EMBEDDING_MODEL = "Xenova/all-MiniLM-L6-v2";
-const DEFAULT_CONFIDENCE_THRESHOLD = 0.3;
 
 const WORKER_PATH = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -26,11 +33,18 @@ type AnalyseArticlePayload = {
   articleId: string;
 };
 
-type AnalysisResult = {
-  articleId: string;
-  embeddingDimensions: number;
-  focusMatches: number;
+type ReconcileFocusPayload = {
+  focusId: string;
+  forceReclassify?: boolean;
 };
+
+type ReanalyseSourcePayload = {
+  sourceId: string;
+};
+
+type ReanalyseAllPayload = Record<string, never>;
+
+type AnalysisResult = ReconcileResult;
 
 type PendingRequest = {
   resolve: (value: unknown) => void;
@@ -43,10 +57,32 @@ class AnalysisService {
   #services: Services;
   #worker: Worker | null = null;
   #pending = new Map<string, PendingRequest>();
+  #strategy: ClassifierStrategy;
 
   constructor(services: Services) {
     this.#services = services;
+    const { analysis } = services.get(ConfigService).config;
+    this.#strategy = this.#createStrategy(analysis.classifier);
   }
+
+  #createStrategy = (classifier: "nli" | "similarity" | "hybrid"): ClassifierStrategy => {
+    switch (classifier) {
+      case "nli":
+        return createNliStrategy(this.classify);
+      case "similarity":
+        return createSimilarityStrategy(this.embed);
+      case "hybrid":
+        return createHybridStrategy(this.embed, this.classify);
+    }
+  };
+
+  // --- Strategy configuration ---
+
+  setStrategy = (strategy: ClassifierStrategy): void => {
+    this.#strategy = strategy;
+  };
+
+  // --- Worker lifecycle ---
 
   #getWorker = (): Worker => {
     if (!this.#worker) {
@@ -65,7 +101,6 @@ class AnalysisService {
       });
 
       this.#worker.on("error", (err: Error) => {
-        // Reject all pending requests
         for (const [id, pending] of this.#pending) {
           pending.reject(err);
           this.#pending.delete(id);
@@ -74,7 +109,6 @@ class AnalysisService {
       });
 
       this.#worker.on("exit", () => {
-        // Reject any remaining pending requests
         for (const [id, pending] of this.#pending) {
           pending.reject(new Error("Analysis worker exited unexpectedly"));
           this.#pending.delete(id);
@@ -98,22 +132,14 @@ class AnalysisService {
     });
   };
 
-  /**
-   * Compute a normalised embedding for the given text.
-   * Returns a Float32Array suitable for storage as a blob.
-   * Runs in a worker thread to avoid blocking the event loop.
-   */
+  // --- Inference primitives ---
+
   embed = async (text: string): Promise<Float32Array> => {
     const response = await this.#request({ type: "embed", text });
     if (response.type !== "embed") throw new Error("Unexpected response type");
     return response.embedding;
   };
 
-  /**
-   * Classify text against candidate labels using zero-shot NLI.
-   * Returns an array of { label, score } sorted by score descending.
-   * Runs in a worker thread to avoid blocking the event loop.
-   */
   classify = async (
     text: string,
     labels: string[],
@@ -121,14 +147,83 @@ class AnalysisService {
     if (labels.length === 0) return [];
 
     const response = await this.#request({ type: "classify", text, labels });
-    if (response.type !== "classify") throw new Error("Unexpected response type");
+    if (response.type !== "classify")
+      throw new Error("Unexpected response type");
     return response.results;
   };
 
+  // --- Reconciliation (public API) ---
+
   /**
-   * Re-enqueue analysis for all extracted-but-unanalysed articles.
-   * Called on startup to recover from interrupted analysis.
+   * Analyse a batch of articles, bringing each to its ideal state:
+   *  1. Compute missing embeddings
+   *  2. Classify against all linked focuses that lack assignments
+   *  3. Mark articles as analysed
+   *
+   * Idempotent — re-running on already-analysed articles is a no-op
+   * for each individual step (embeddings and assignments are checked
+   * before processing).
    */
+  reconcile = async (
+    articleIds: string[],
+    options?: {
+      focusIds?: string[];
+      skipEmbedding?: boolean;
+      forceReclassify?: boolean;
+    },
+  ): Promise<ReconcileResult> => {
+    const db = await this.#services.get(DatabaseService).getInstance();
+    return reconcile(articleIds, db, this.embed, this.#strategy, {
+      embeddingModel: DEFAULT_EMBEDDING_MODEL,
+      ...options,
+    });
+  };
+
+  /**
+   * Classify all extracted articles from a focus's linked sources against
+   * that focus. Skips embedding (articles should already have them).
+   * Used when a focus is created or its name/description changes.
+   */
+  reconcileFocus = async (focusId: string, options?: { forceReclassify?: boolean }): Promise<ReconcileResult> => {
+    const db = await this.#services.get(DatabaseService).getInstance();
+
+    // Find all sources linked to this focus
+    const sourceLinks = await db
+      .selectFrom("focus_sources")
+      .select("source_id")
+      .where("focus_id", "=", focusId)
+      .execute();
+
+    if (sourceLinks.length === 0) {
+      return { articlesLoaded: 0, articlesEmbedded: 0, assignmentsCreated: 0 };
+    }
+
+    const sourceIds = sourceLinks.map((l) => l.source_id);
+
+    // Find all extracted articles from those sources
+    const articles = await db
+      .selectFrom("articles")
+      .select("id")
+      .where("source_id", "in", sourceIds)
+      .where("extracted_at", "is not", null)
+      .execute();
+
+    if (articles.length === 0) {
+      return { articlesLoaded: 0, articlesEmbedded: 0, assignmentsCreated: 0 };
+    }
+
+    const articleIds = articles.map((a) => a.id);
+
+    return reconcile(articleIds, db, this.embed, this.#strategy, {
+      embeddingModel: DEFAULT_EMBEDDING_MODEL,
+      focusIds: [focusId],
+      skipEmbedding: true,
+      forceReclassify: options?.forceReclassify,
+    });
+  };
+
+  // --- Recovery & bulk re-analysis ---
+
   recoverPendingAnalysis = async (): Promise<number> => {
     const db = await this.#services.get(DatabaseService).getInstance();
     const taskService = this.#services.get(TaskService);
@@ -149,100 +244,60 @@ class AnalysisService {
     return pending.length;
   };
 
-  /**
-   * Mark all articles for a source as needing re-analysis.
-   * Clears existing focus classifications and re-enqueues analysis tasks.
-   */
   reanalyseSource = async (sourceId: string, userId?: string): Promise<number> => {
     const db = await this.#services.get(DatabaseService).getInstance();
-    const taskService = this.#services.get(TaskService);
 
-    // Backfill extracted_at for articles that have feed content (content or summary)
-    // but were never marked as extracted. This handles podcast episodes stored before
-    // the podcast feature was added, or sources created with an incorrect type.
+    // Backfill extracted_at for articles that have feed content but were
+    // never marked as extracted (e.g. podcast episodes stored before the
+    // podcast feature, or sources created with an incorrect type).
     await db
       .updateTable("articles")
       .set({ extracted_at: new Date().toISOString() })
       .where("source_id", "=", sourceId)
       .where("extracted_at", "is", null)
-      .where((eb) => eb.or([
-        eb("content", "is not", null),
-        eb("summary", "is not", null),
-      ]))
+      .where((eb) =>
+        eb.or([
+          eb("content", "is not", null),
+          eb("summary", "is not", null),
+        ]),
+      )
       .execute();
 
-    // Get all extracted articles for this source
-    const articles = await db
+    const count = await db
       .selectFrom("articles")
-      .select("id")
+      .select(db.fn.countAll().as("count"))
       .where("source_id", "=", sourceId)
       .where("extracted_at", "is not", null)
-      .execute();
+      .executeTakeFirstOrThrow();
 
-    if (articles.length === 0) return 0;
+    if (Number(count.count) === 0) return 0;
 
-    const articleIds = articles.map((a) => a.id);
+    this.#services
+      .get(TaskService)
+      .enqueue<ReanalyseSourcePayload>("reanalyse_source", { sourceId }, { userId });
 
-    // Clear existing classifications for these articles
-    await db
-      .deleteFrom("article_focuses")
-      .where("article_id", "in", articleIds)
-      .execute();
-
-    // Reset analysed_at so they get picked up
-    await db
-      .updateTable("articles")
-      .set({ analysed_at: null })
-      .where("id", "in", articleIds)
-      .execute();
-
-    // Enqueue analysis tasks
-    for (const article of articles) {
-      taskService.enqueue<AnalyseArticlePayload>("analyse_article", {
-        articleId: article.id,
-      }, { userId });
-    }
-
-    return articles.length;
+    return Number(count.count);
   };
 
-  /**
-   * Re-analyse all extracted articles across all sources.
-   * Clears existing focus classifications and re-enqueues analysis tasks.
-   */
   reanalyseAll = async (userId?: string): Promise<number> => {
     const db = await this.#services.get(DatabaseService).getInstance();
-    const taskService = this.#services.get(TaskService);
 
-    const articles = await db
+    const count = await db
       .selectFrom("articles")
-      .select("id")
+      .select(db.fn.countAll().as("count"))
       .where("extracted_at", "is not", null)
-      .execute();
+      .executeTakeFirstOrThrow();
 
-    if (articles.length === 0) return 0;
+    if (Number(count.count) === 0) return 0;
 
-    const articleIds = articles.map((a) => a.id);
+    this.#services
+      .get(TaskService)
+      .enqueue<ReanalyseAllPayload>("reanalyse_all", {}, { userId });
 
-    await db
-      .deleteFrom("article_focuses")
-      .where("article_id", "in", articleIds)
-      .execute();
-
-    await db
-      .updateTable("articles")
-      .set({ analysed_at: null })
-      .where("id", "in", articleIds)
-      .execute();
-
-    for (const article of articles) {
-      taskService.enqueue<AnalyseArticlePayload>("analyse_article", {
-        articleId: article.id,
-      }, { userId });
-    }
-
-    return articles.length;
+    return Number(count.count);
   };
+
+  // --- Cleanup ---
 
   [destroySymbol] = async (): Promise<void> => {
     if (this.#worker) {
@@ -250,7 +305,6 @@ class AnalysisService {
       await this.#worker.terminate();
       this.#worker = null;
     }
-    // Reject any remaining pending requests
     for (const [id, pending] of this.#pending) {
       pending.reject(new Error("Analysis service destroyed"));
       this.#pending.delete(id);
@@ -260,163 +314,106 @@ class AnalysisService {
 
 // --- Task handler ---
 
-const stripHtml = (html: string): string =>
-  html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-
 const handleAnalyseArticle = async (
   payload: AnalyseArticlePayload,
   services: Services,
-): Promise<AnalysisResult | undefined> => {
+): Promise<ReconcileResult | undefined> => {
   const db = await services.get(DatabaseService).getInstance();
-  const analysisService = services.get(AnalysisService);
 
-  // Load article with source info
+  // Quick check — skip if already analysed
   const article = await db
     .selectFrom("articles")
-    .innerJoin("sources", "sources.id", "articles.source_id")
-    .select([
-      "articles.id",
-      "articles.source_id",
-      "articles.title",
-      "articles.summary",
-      "articles.content",
-      "articles.analysed_at",
-      "sources.type as source_type",
-    ])
-    .where("articles.id", "=", payload.articleId)
+    .select(["id", "analysed_at"])
+    .where("id", "=", payload.articleId)
     .executeTakeFirst();
 
-  if (!article) return undefined;
+  if (!article || article.analysed_at) return undefined;
 
-  // Skip if already analysed
-  if (article.analysed_at) return undefined;
+  return services.get(AnalysisService).reconcile([payload.articleId]);
+};
 
-  // --- Focus classification ---
+const handleReconcileFocus = async (
+  payload: ReconcileFocusPayload,
+  services: Services,
+): Promise<ReconcileResult> => {
+  return services.get(AnalysisService).reconcileFocus(payload.focusId, {
+    forceReclassify: payload.forceReclassify,
+  });
+};
 
-  // Find all focuses that reference this article's source
-  const focusLinks = await db
-    .selectFrom("focus_sources")
-    .innerJoin("focuses", "focuses.id", "focus_sources.focus_id")
-    .select([
-      "focus_sources.focus_id",
-      "focus_sources.mode",
-      "focuses.name",
-      "focuses.description",
-    ])
-    .where("focus_sources.source_id", "=", article.source_id)
+const handleReanalyseSource = async (
+  payload: ReanalyseSourcePayload,
+  services: Services,
+): Promise<ReconcileResult> => {
+  const db = await services.get(DatabaseService).getInstance();
+  const analysis = services.get(AnalysisService);
+
+  const articles = await db
+    .selectFrom("articles")
+    .select("id")
+    .where("source_id", "=", payload.sourceId)
+    .where("extracted_at", "is not", null)
     .execute();
 
-  let focusMatches = 0;
-  let embeddingDimensions = 0;
-
-  // Handle "always" mode — direct assignment with confidence 1.0, no text needed
-  const alwaysFocuses = focusLinks.filter((f) => f.mode === "always");
-  for (const focus of alwaysFocuses) {
-    await db
-      .insertInto("article_focuses")
-      .values({
-        article_id: article.id,
-        focus_id: focus.focus_id,
-        confidence: 1.0,
-      })
-      .onConflict((oc) =>
-        oc.columns(["article_id", "focus_id"]).doUpdateSet({
-          confidence: 1.0,
-          assigned_at: new Date().toISOString(),
-        }),
-      )
-      .execute();
-    focusMatches++;
+  if (articles.length === 0) {
+    return { articlesLoaded: 0, articlesEmbedded: 0, assignmentsCreated: 0 };
   }
 
-  // Podcast episodes use summary/show notes from the feed rather than extracted page content
-  const textSource = article.content ?? (article.source_type === "podcast" ? article.summary : null);
+  const articleIds = articles.map((a) => a.id);
 
-  const matchFocuses = focusLinks.filter((f) => f.mode === "match");
+  // Clear existing state
+  await db.deleteFrom("article_focuses").where("article_id", "in", articleIds).execute();
+  await db.updateTable("articles").set({ analysed_at: null }).where("id", "in", articleIds).execute();
 
-  if (textSource) {
-    const plainText = stripHtml(textSource);
-    // Prepend title for better topic signal
-    const inputText = `${article.title}. ${plainText}`.slice(0, 2000);
+  return analysis.reconcile(articleIds);
+};
 
-    // --- Embedding (runs in worker) ---
-    const embedding = await analysisService.embed(inputText);
-    embeddingDimensions = embedding.length;
-    const embeddingBuffer = Buffer.from(embedding.buffer);
+const handleReanalyseAll = async (
+  _payload: ReanalyseAllPayload,
+  services: Services,
+): Promise<ReconcileResult> => {
+  const db = await services.get(DatabaseService).getInstance();
+  const analysis = services.get(AnalysisService);
 
-    // Store embedding (upsert)
-    await db
-      .insertInto("article_embeddings")
-      .values({
-        article_id: article.id,
-        embedding: embeddingBuffer,
-        model: DEFAULT_EMBEDDING_MODEL,
-      })
-      .onConflict((oc) =>
-        oc.column("article_id").doUpdateSet({
-          embedding: embeddingBuffer,
-          model: DEFAULT_EMBEDDING_MODEL,
-          created_at: new Date().toISOString(),
-        }),
-      )
-      .execute();
-
-    // Handle "match" mode — zero-shot classification (runs in worker)
-    if (matchFocuses.length > 0) {
-      // Build labels from focus name + description
-      const labels = matchFocuses.map((f) =>
-        f.description ? `${f.name}: ${f.description}` : f.name,
-      );
-
-      const scores = await analysisService.classify(inputText, labels);
-
-      // Map scores back to focuses and insert above threshold
-      for (const { label, score } of scores) {
-        if (score < DEFAULT_CONFIDENCE_THRESHOLD) continue;
-
-        const focusIndex = labels.indexOf(label);
-        if (focusIndex === -1) continue;
-
-        const focus = matchFocuses[focusIndex]!;
-        await db
-          .insertInto("article_focuses")
-          .values({
-            article_id: article.id,
-            focus_id: focus.focus_id,
-            confidence: Math.round(score * 1000) / 1000, // 3 decimal places
-          })
-          .onConflict((oc) =>
-            oc.columns(["article_id", "focus_id"]).doUpdateSet({
-              confidence: Math.round(score * 1000) / 1000,
-              assigned_at: new Date().toISOString(),
-            }),
-          )
-          .execute();
-        focusMatches++;
-      }
-    }
-  }
-
-  // Mark article as analysed
-  await db
-    .updateTable("articles")
-    .set({ analysed_at: new Date().toISOString() })
-    .where("id", "=", article.id)
+  const articles = await db
+    .selectFrom("articles")
+    .select("id")
+    .where("extracted_at", "is not", null)
     .execute();
 
-  return {
-    articleId: article.id,
-    embeddingDimensions,
-    focusMatches,
-  };
+  if (articles.length === 0) {
+    return { articlesLoaded: 0, articlesEmbedded: 0, assignmentsCreated: 0 };
+  }
+
+  const articleIds = articles.map((a) => a.id);
+
+  await db.deleteFrom("article_focuses").where("article_id", "in", articleIds).execute();
+  await db.updateTable("articles").set({ analysed_at: null }).where("id", "in", articleIds).execute();
+
+  return analysis.reconcile(articleIds);
 };
 
 // --- Registration ---
 
 const registerAnalysisTaskHandlers = (services: Services): void => {
   const taskService = services.get(TaskService);
-  taskService.register<AnalyseArticlePayload>("analyse_article", handleAnalyseArticle);
+  taskService.register<AnalyseArticlePayload>(
+    "analyse_article",
+    handleAnalyseArticle,
+  );
+  taskService.register<ReconcileFocusPayload>(
+    "reconcile_focus",
+    handleReconcileFocus,
+  );
+  taskService.register<ReanalyseSourcePayload>(
+    "reanalyse_source",
+    handleReanalyseSource,
+  );
+  taskService.register<ReanalyseAllPayload>(
+    "reanalyse_all",
+    handleReanalyseAll,
+  );
 };
 
-export type { AnalyseArticlePayload, AnalysisResult };
+export type { AnalyseArticlePayload, ReconcileFocusPayload, AnalysisResult };
 export { AnalysisService, registerAnalysisTaskHandlers, DEFAULT_EMBEDDING_MODEL };

@@ -1,0 +1,91 @@
+@import "tailwindcss";
+@import "../../../web/src/design-tokens.css";
+@plugin "@tailwindcss/typography";
+@source "../../../web/src/components";
+
+@utility font-display {
+  font-family: "Bodoni Moda", serif;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    color-scheme: light dark;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    line-height: var(--leading-normal);
+  }
+
+  ::selection {
+    background-color: var(--color-accent-subtle);
+    color: var(--color-ink);
+  }
+}
+
+/* Scroll-triggered reveal animation */
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reveal {
+  opacity: 0;
+}
+
+.reveal.visible {
+  animation: reveal 0.7s cubic-bezier(0, 0, 0.15, 1) forwards;
+}
+
+/* Staggered children */
+.reveal.visible .stagger > * {
+  opacity: 0;
+  animation: reveal 0.6s cubic-bezier(0, 0, 0.15, 1) forwards;
+}
+
+.reveal.visible .stagger > *:nth-child(1) { animation-delay: 0.05s; }
+.reveal.visible .stagger > *:nth-child(2) { animation-delay: 0.12s; }
+.reveal.visible .stagger > *:nth-child(3) { animation-delay: 0.19s; }
+.reveal.visible .stagger > *:nth-child(4) { animation-delay: 0.26s; }
+.reveal.visible .stagger > *:nth-child(5) { animation-delay: 0.33s; }
+.reveal.visible .stagger > *:nth-child(6) { animation-delay: 0.40s; }
+
+/* Magazine showcase — constrain the app's viewport-based sizing to the container */
+.magazine-showcase {
+  --showcase-h: min(85vh, 700px);
+  height: var(--showcase-h);
+  position: relative;
+}
+
+.magazine-showcase > div {
+  height: 100% !important;
+}
+
+/* Replace viewport-based min-height with the showcase's explicit height */
+.magazine-showcase .min-h-screen {
+  min-height: var(--showcase-h) !important;
+}
+
+/* PageIndicator uses position:fixed — make it sticky so it stays at the
+   bottom of the scroll container instead of escaping or being clipped */
+.magazine-showcase .fixed {
+  position: sticky !important;
+}
+
+/* Page style preview thumbnails — constrain the full-size article into
+   the scaled container so all layouts render consistently */
+.page-preview .min-h-screen {
+  min-height: 100% !important;
+}

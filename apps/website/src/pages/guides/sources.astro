@@ -1,0 +1,140 @@
+---
+import GuidePage from "../../layouts/guide-page.astro";
+import ShowcaseFrame from "../../components/showcase-frame.astro";
+import { ShowcaseSourceList, ShowcaseArticleCards } from "../../components/guide-showcases.tsx";
+import { ShowcasePodcast } from "../../components/magazine-showcase.tsx";
+---
+
+<GuidePage
+  title="Sources"
+  subtitle="Where your articles come from. RSS feeds, podcasts, and more."
+  current="/guides/sources"
+  sectionNumber="02"
+  prev={{ href: "/guides/getting-started", label: "Getting started" }}
+  next={{ href: "/guides/focuses", label: "Focuses" }}
+>
+
+  <!-- What sources are -->
+  <section class="px-6 md:px-12 lg:px-20 pb-20">
+    <div class="max-w-wide mx-auto grid md:grid-cols-[1fr_20rem] gap-12 items-start">
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-4">What sources are</h2>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed mb-4">
+          A source is any content feed that Editions subscribes to and periodically fetches. When a source is fetched, its articles are extracted, analysed, and classified into your focuses.
+        </p>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed">
+          You can subscribe to RSS feeds from blogs, news outlets, and publications — plus podcast feeds that get a dedicated audio experience in the magazine view.
+        </p>
+      </div>
+      <ShowcaseFrame caption="Your source list">
+        <ShowcaseSourceList client:visible />
+      </ShowcaseFrame>
+    </div>
+  </section>
+
+  <!-- Source types -->
+  <section class="px-6 md:px-12 lg:px-20 py-20 bg-surface-sunken">
+    <div class="max-w-wide mx-auto">
+      <h2 class="font-serif text-xl tracking-tight text-ink mb-8">Source types</h2>
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="rounded-lg border border-border bg-surface p-6">
+          <div class="text-xs font-mono tracking-wide text-accent mb-3 uppercase">RSS / Atom</div>
+          <h3 class="font-serif text-lg text-ink mb-2">Blogs & news</h3>
+          <p class="text-sm text-ink-secondary leading-relaxed mb-4">
+            Standard web feeds from any publication. Most blogs and news sites have one — try appending <code class="text-xs font-mono bg-surface-sunken px-1.5 py-0.5 rounded">/feed</code> or <code class="text-xs font-mono bg-surface-sunken px-1.5 py-0.5 rounded">/rss</code> to the site URL.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            {["Ars Technica", "Nature", "The Guardian", "Your favourite blog"].map((s) => (
+              <span class="text-xs px-2.5 py-1 rounded-full border border-border text-ink-tertiary">{s}</span>
+            ))}
+          </div>
+        </div>
+        <div class="rounded-lg border border-border bg-surface p-6">
+          <div class="text-xs font-mono tracking-wide text-accent mb-3 uppercase">Podcasts</div>
+          <h3 class="font-serif text-lg text-ink mb-2">Audio feeds</h3>
+          <p class="text-sm text-ink-secondary leading-relaxed mb-4">
+            Podcast RSS feeds get special treatment — a dedicated layout in the magazine view with album art, waveform visualization, and inline playback.
+          </p>
+          <div class="rounded-lg border border-border bg-surface overflow-hidden">
+            <ShowcasePodcast client:visible />
+          </div>
+        </div>
+      </div>
+      <p class="text-xs text-ink-faint mt-6">
+        More source types — Mastodon, Bluesky, YouTube — are planned for future releases.
+      </p>
+    </div>
+  </section>
+
+  <!-- Adding a source -->
+  <section class="px-6 md:px-12 lg:px-20 py-20">
+    <div class="max-w-wide mx-auto grid md:grid-cols-2 gap-16">
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-6">Adding a source</h2>
+        <div class="grid gap-4">
+          {[
+            { step: "01", text: "Navigate to Sources in the sidebar" },
+            { step: "02", text: "Click the + button to create a new source" },
+            { step: "03", text: "Select the source type — RSS is most common" },
+            { step: "04", text: "Enter a name and the feed URL" },
+            { step: "05", text: "Choose article ordering — newest or oldest first" },
+            { step: "06", text: "Click Create, then Fetch to pull in articles" },
+          ].map((s) => (
+            <div class="flex gap-4 items-baseline">
+              <span class="text-sm font-mono text-accent/40">{s.step}</span>
+              <span class="font-serif text-sm text-ink-secondary">{s.text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-6">How fetching works</h2>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed mb-4">
+          Fetching is a background task. Editions downloads the RSS feed, extracts new articles with their full content, then runs the ML pipeline — generating embeddings and classifying each article into your focuses.
+        </p>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed">
+          The scheduler runs automatic fetches on an interval, so you don't need to manually fetch every time. You can also trigger a fetch from any source's detail page.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- What you get -->
+  <section class="px-6 md:px-12 lg:px-20 py-20 bg-surface-sunken">
+    <div class="max-w-wide mx-auto">
+      <div class="grid md:grid-cols-[20rem_1fr] gap-12 items-end">
+        <div>
+          <h2 class="font-serif text-xl tracking-tight text-ink mb-4">What you get</h2>
+          <p class="font-serif text-base text-ink-secondary leading-relaxed">
+            Once fetched, articles appear as rich cards with summaries, reading time, and voting controls. Upvote and downvote to teach the system your taste — votes propagate through semantic similarity.
+          </p>
+        </div>
+        <ShowcaseFrame caption="Article cards with vote controls, reading time, and source attribution">
+          <ShowcaseArticleCards client:visible />
+        </ShowcaseFrame>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tips -->
+  <section class="px-6 md:px-12 lg:px-20 py-20">
+    <div class="max-w-prose mx-auto">
+      <h2 class="font-serif text-xl tracking-tight text-ink mb-8">Tips</h2>
+      <div class="grid gap-6">
+        <div>
+          <h3 class="font-medium text-sm text-ink mb-1">Start small</h3>
+          <p class="font-serif text-sm text-ink-secondary leading-relaxed">3-5 sources is enough to get a feel for the system. You can always add more later.</p>
+        </div>
+        <div>
+          <h3 class="font-medium text-sm text-ink mb-1">Mix scales</h3>
+          <p class="font-serif text-sm text-ink-secondary leading-relaxed">Combine large publications with small independent blogs. Source budgeting in editions ensures small blogs get fair representation.</p>
+        </div>
+        <div>
+          <h3 class="font-medium text-sm text-ink mb-1">Check for RSS</h3>
+          <p class="font-serif text-sm text-ink-secondary leading-relaxed">Most blogs and news sites have RSS feeds. Look for an RSS icon, or try appending <code class="text-xs font-mono bg-surface-sunken px-1.5 py-0.5 rounded">/feed</code>, <code class="text-xs font-mono bg-surface-sunken px-1.5 py-0.5 rounded">/rss</code>, or <code class="text-xs font-mono bg-surface-sunken px-1.5 py-0.5 rounded">/atom.xml</code> to the site URL.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</GuidePage>

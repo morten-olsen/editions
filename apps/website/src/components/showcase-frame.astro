@@ -1,0 +1,32 @@
+---
+/**
+ * A decorative frame that wraps embedded app components on the website.
+ * Gives them a device-like border with rounded corners and a subtle shadow,
+ * so they look like screenshots of the real app rather than raw DOM dumps.
+ */
+type Props = {
+  class?: string;
+  /** Optional caption below the frame */
+  caption?: string;
+  /** Aspect ratio class, e.g. "aspect-video" or "aspect-[3/4]". Defaults to none (natural height). */
+  aspect?: string;
+};
+
+const { class: className = "", caption, aspect } = Astro.props;
+---
+
+<div class={`reveal ${className}`}>
+  <div
+    class:list={[
+      "rounded-xl border border-border bg-surface shadow-lg overflow-hidden",
+      aspect,
+    ]}
+  >
+    <slot />
+  </div>
+  {caption && (
+    <p class="mt-3 text-center text-xs font-mono tracking-wide text-ink-faint">
+      {caption}
+    </p>
+  )}
+</div>

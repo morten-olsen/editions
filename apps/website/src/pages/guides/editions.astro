@@ -1,0 +1,164 @@
+---
+import GuidePage from "../../layouts/guide-page.astro";
+import ShowcaseFrame from "../../components/showcase-frame.astro";
+import { InteractiveMagazine } from "../../components/interactive-magazine.tsx";
+import { ShowcaseEditionConfig, ShowcaseEditionSection } from "../../components/guide-showcases.tsx";
+---
+
+<GuidePage
+  title="Editions"
+  subtitle="Curated, finite magazines assembled from your focuses. The core experience."
+  current="/guides/editions"
+  sectionNumber="04"
+  prev={{ href: "/guides/focuses", label: "Focuses" }}
+  next={{ href: "/guides/feed-and-voting", label: "Feed & voting" }}
+>
+
+  <!-- What editions are -->
+  <section class="px-6 md:px-12 lg:px-20 pb-20">
+    <div class="max-w-wide mx-auto grid md:grid-cols-[1fr_20rem] gap-12 items-start">
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-4">What editions are</h2>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed mb-4">
+          An edition is a curated magazine — a finite collection of articles assembled from your focuses according to rules you define. Each edition has a beginning and an end. You read it, you're done.
+        </p>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed">
+          There are two concepts: the <strong class="text-ink font-medium">edition config</strong> (the magazine template — which focuses, how many articles, when to generate) and the <strong class="text-ink font-medium">generated edition</strong> (an actual issue, created from the config's rules at a point in time, immutable once generated).
+        </p>
+      </div>
+      <ShowcaseFrame caption="Edition config with focus budgets">
+        <ShowcaseEditionConfig client:visible />
+      </ShowcaseFrame>
+    </div>
+  </section>
+
+  <!-- Creating an edition config -->
+  <section class="px-6 md:px-12 lg:px-20 py-20 bg-surface-sunken">
+    <div class="max-w-wide mx-auto grid md:grid-cols-2 gap-16">
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-6">Creating an edition config</h2>
+        <div class="grid gap-4">
+          {[
+            { step: "01", text: "Navigate to Editions in the sidebar" },
+            { step: "02", text: "Click New Edition" },
+            { step: "03", text: "Name your magazine (e.g., \"Morning Briefing\", \"Weekend Reader\")" },
+            { step: "04", text: "Set a schedule — daily, weekly, or custom cron. Leave empty for manual" },
+            { step: "05", text: "Choose a lookback window — how far back to consider articles" },
+            { step: "06", text: "Add focuses with budgets and priorities" },
+            { step: "07", text: "Click Create" },
+          ].map((s) => (
+            <div class="flex gap-4 items-baseline">
+              <span class="text-sm font-mono text-accent/40">{s.step}</span>
+              <span class="font-serif text-sm text-ink-secondary">{s.text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-6">Config fields</h2>
+        <div class="grid gap-4">
+          {[
+            { field: "Name", desc: "The magazine title that appears on the cover" },
+            { field: "Schedule", desc: "When to auto-generate — leave empty for manual-only" },
+            { field: "Lookback", desc: "How far back to consider articles (e.g., last 7 days)" },
+            { field: "Exclude prior", desc: "Don't repeat articles from previous editions" },
+            { field: "Focus budget", desc: "Maximum articles or reading time per section" },
+            { field: "Priority", desc: "Ordering weight — higher priority sections appear first" },
+          ].map((r) => (
+            <div class="rounded-lg border border-border bg-surface p-4">
+              <div class="text-xs font-mono tracking-wide text-accent mb-1">{r.field}</div>
+              <p class="text-sm text-ink-secondary leading-relaxed">{r.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Source budgeting -->
+  <section class="px-6 md:px-12 lg:px-20 py-20">
+    <div class="max-w-wide mx-auto grid md:grid-cols-[1fr_20rem] gap-12 items-start">
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-4">Source budgeting</h2>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed mb-4">
+          This is where Editions differs from a simple filter. Within each section, source budgeting prevents any single prolific feed from dominating.
+        </p>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed mb-4">
+          If you have 10 sources but The Verge publishes 50 articles a day while an indie blog publishes one, the budget ensures the indie blog gets a proportional slot.
+        </p>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed">
+          The algorithm selects sources with probability proportional to weight, then takes the highest-scored article from each. The result: a diverse, fair selection that doesn't just echo the loudest voice.
+        </p>
+      </div>
+      <ShowcaseFrame caption="A generated edition section with articles from diverse sources">
+        <ShowcaseEditionSection client:visible />
+      </ShowcaseFrame>
+    </div>
+  </section>
+
+  <!-- The magazine experience -->
+  <section class="px-6 md:px-12 lg:px-20 py-20 bg-surface-sunken">
+    <div class="max-w-wide mx-auto">
+      <div class="text-center mb-10">
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-3">The magazine experience</h2>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed max-w-prose mx-auto">
+          The primary reading mode. A full-screen, paginated reader inspired by print magazines — with a cover, table of contents, section dividers, and article spreads in rotating layouts.
+        </p>
+      </div>
+      <ShowcaseFrame caption="Try it — use arrow keys, swipe, or the nav bar to navigate">
+        <InteractiveMagazine client:visible />
+      </ShowcaseFrame>
+    </div>
+  </section>
+
+  <!-- Magazine structure -->
+  <section class="px-6 md:px-12 lg:px-20 py-20">
+    <div class="max-w-wide mx-auto grid md:grid-cols-2 gap-16">
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-6">Magazine structure</h2>
+        <div class="grid gap-4">
+          {[
+            { label: "Cover", desc: "Lead story headline, edition metadata, and highlight teasers" },
+            { label: "Table of contents", desc: "Numbered sections with article lists and reading times" },
+            { label: "Section dividers", desc: "Full-page breaks between topics" },
+            { label: "Article spreads", desc: "Three rotating layouts — hero, editorial, compact — for visual rhythm" },
+            { label: "Finale", desc: "\"You're all caught up\" with article count and reading time summary" },
+          ].map((s, i) => (
+            <div class="flex gap-4 items-baseline">
+              <span class="text-sm font-mono text-accent/40">{String(i + 1).padStart(2, "0")}</span>
+              <div>
+                <span class="text-sm font-medium text-ink">{s.label}</span>
+                <span class="font-serif text-sm text-ink-secondary ml-2">{s.desc}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p class="font-serif text-sm text-ink-faint mt-6 leading-relaxed">
+          Navigation works with keyboard arrows, touch swipe, edge taps, or the bottom nav bar.
+        </p>
+      </div>
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-6">Tips</h2>
+        <div class="grid gap-5">
+          <div>
+            <h3 class="font-medium text-sm text-ink mb-1">Start with one config</h3>
+            <p class="font-serif text-sm text-ink-secondary leading-relaxed">A daily briefing with 2-3 focuses is a good starting point.</p>
+          </div>
+          <div>
+            <h3 class="font-medium text-sm text-ink mb-1">Use reading time budgets</h3>
+            <p class="font-serif text-sm text-ink-secondary leading-relaxed">"15 minutes of Technology" produces a more consistent experience than "5 articles".</p>
+          </div>
+          <div>
+            <h3 class="font-medium text-sm text-ink mb-1">Enable "exclude prior"</h3>
+            <p class="font-serif text-sm text-ink-secondary leading-relaxed">Avoids seeing the same article across multiple editions.</p>
+          </div>
+          <div>
+            <h3 class="font-medium text-sm text-ink mb-1">Schedule is optional</h3>
+            <p class="font-serif text-sm text-ink-secondary leading-relaxed">You can always generate manually when you want to sit down and read.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</GuidePage>

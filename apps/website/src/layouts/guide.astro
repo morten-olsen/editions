@@ -1,0 +1,110 @@
+---
+import Base from "./base.astro";
+import SiteNav from "../components/site-nav.astro";
+import "../styles/global.css";
+
+type Props = {
+  title: string;
+  description?: string;
+  current: string;
+  /** Section number displayed decoratively */
+  sectionNumber?: string;
+  /** Short subtitle below the title */
+  subtitle?: string;
+  /** Previous guide link */
+  prev?: { href: string; label: string };
+  /** Next guide link */
+  next?: { href: string; label: string };
+};
+
+const { title, description, current, sectionNumber, subtitle, prev, next } = Astro.props;
+---
+
+<Base title={`${title} — Editions`} description={description}>
+  <SiteNav current={current} />
+
+  <!-- Guide header -->
+  <header class="px-6 md:px-12 lg:px-20 pt-16 pb-12 md:pt-20 md:pb-16">
+    <div class="max-w-prose mx-auto">
+      {sectionNumber && (
+        <div class="text-[5rem] md:text-[7rem] font-mono leading-none text-accent/10 select-none mb-[-1rem]">
+          {sectionNumber}
+        </div>
+      )}
+      <h1 class="font-serif text-3xl md:text-4xl tracking-tight text-ink mb-3">
+        {title}
+      </h1>
+      {subtitle && (
+        <p class="text-lg text-ink-secondary leading-relaxed">
+          {subtitle}
+        </p>
+      )}
+      <div class="w-12 h-px bg-accent mt-8" />
+    </div>
+  </header>
+
+  <!-- Guide content -->
+  <main class="px-6 md:px-12 lg:px-20 pb-24">
+    <div class="max-w-prose mx-auto">
+      <div class="prose prose-neutral max-w-none
+        font-serif text-base leading-relaxed
+        prose-headings:font-sans prose-headings:tracking-tight prose-headings:text-ink prose-headings:font-medium
+        prose-h2:text-xl prose-h2:mt-16 prose-h2:mb-4 prose-h2:border-t prose-h2:border-border prose-h2:pt-8
+        prose-h3:text-base prose-h3:mt-8 prose-h3:mb-3
+        prose-p:text-ink-secondary prose-p:leading-relaxed
+        prose-a:text-accent prose-a:no-underline hover:prose-a:underline
+        prose-strong:text-ink prose-strong:font-medium
+        prose-code:text-sm prose-code:font-mono prose-code:bg-surface-sunken prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-ink-secondary prose-code:before:content-none prose-code:after:content-none
+        prose-pre:bg-surface-sunken prose-pre:border prose-pre:border-border prose-pre:rounded-lg prose-pre:text-sm
+        prose-li:text-ink-secondary
+        prose-blockquote:border-accent prose-blockquote:text-ink-secondary prose-blockquote:not-italic prose-blockquote:font-serif
+        prose-table:text-sm prose-th:font-mono prose-th:text-xs prose-th:tracking-wide prose-th:text-ink-tertiary prose-th:font-medium
+      ">
+        <slot />
+      </div>
+    </div>
+  </main>
+
+  <!-- Prev / Next navigation -->
+  {(prev || next) && (
+    <nav class="px-6 md:px-12 lg:px-20 pb-16">
+      <div class="max-w-prose mx-auto border-t border-border pt-8 flex justify-between gap-6">
+        {prev ? (
+          <a href={prev.href} class="group flex flex-col gap-1">
+            <span class="text-xs font-mono tracking-wide text-ink-faint group-hover:text-accent transition-colors duration-fast">
+              ← Previous
+            </span>
+            <span class="text-sm text-ink-secondary group-hover:text-ink transition-colors duration-fast">
+              {prev.label}
+            </span>
+          </a>
+        ) : <div />}
+        {next ? (
+          <a href={next.href} class="group flex flex-col gap-1 text-right">
+            <span class="text-xs font-mono tracking-wide text-ink-faint group-hover:text-accent transition-colors duration-fast">
+              Next →
+            </span>
+            <span class="text-sm text-ink-secondary group-hover:text-ink transition-colors duration-fast">
+              {next.label}
+            </span>
+          </a>
+        ) : <div />}
+      </div>
+    </nav>
+  )}
+
+  <!-- Footer -->
+  <footer class="py-12 px-6 md:px-12 lg:px-20 border-t border-border">
+    <div class="max-w-wide mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-baseline gap-2">
+        <span class="text-xs font-mono tracking-wide uppercase text-ink-faint">Editions</span>
+        <span class="text-xs text-ink-faint">·</span>
+        <span class="text-xs text-ink-faint">Alpha</span>
+      </div>
+      <div class="flex items-center gap-6 text-xs text-ink-tertiary">
+        <a href="https://github.com/morten-olsen/editions" class="hover:text-ink transition-colors duration-fast">GitHub</a>
+        <span class="text-ink-faint">AGPL-3.0</span>
+      </div>
+    </div>
+  </footer>
+</Base>

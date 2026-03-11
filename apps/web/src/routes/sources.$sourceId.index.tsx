@@ -192,7 +192,7 @@ const SourceDetailPage = (): React.ReactNode => {
         subtitle={source.url}
         actions={
           <div className="flex items-center gap-2">
-            <Link to="/sources/$sourceId/edit" params={{ sourceId }}>
+            <Link to="/sources/$sourceId/edit" params={{ sourceId }} data-ai-id="source-edit" data-ai-role="link" data-ai-label="Edit source">
               <Button variant="ghost" size="sm">Edit</Button>
             </Link>
             <Button
@@ -200,6 +200,10 @@ const SourceDetailPage = (): React.ReactNode => {
               size="sm"
               disabled={reanalyseMutation.isPending}
               onClick={handleReanalyse}
+              data-ai-id="source-reanalyse"
+              data-ai-role="button"
+              data-ai-label="Reanalyse articles"
+              data-ai-state={reanalyseMutation.isPending ? "loading" : "idle"}
             >
               {reanalyseMutation.isPending ? "Reanalysing..." : "Reanalyse"}
             </Button>
@@ -208,6 +212,10 @@ const SourceDetailPage = (): React.ReactNode => {
               size="sm"
               disabled={fetchMutation.isPending}
               onClick={handleFetch}
+              data-ai-id="source-fetch"
+              data-ai-role="button"
+              data-ai-label="Fetch articles"
+              data-ai-state={fetchMutation.isPending ? "loading" : "idle"}
             >
               {fetchMutation.isPending ? "Fetching..." : "Fetch now"}
             </Button>
@@ -217,19 +225,19 @@ const SourceDetailPage = (): React.ReactNode => {
 
       {/* Status messages */}
       {source.fetchError && (
-        <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-4">
+        <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-4" data-ai-id="source-fetch-error" data-ai-role="error" data-ai-error={source.fetchError}>
           {source.fetchError}
         </div>
       )}
       {fetchResult && (
-        <div className="text-sm text-ink-secondary mb-4">{fetchResult}</div>
+        <div className="text-sm text-ink-secondary mb-4" data-ai-id="source-fetch-result" data-ai-role="status" data-ai-label={fetchResult}>{fetchResult}</div>
       )}
       {reanalyseResult && (
-        <div className="text-sm text-ink-secondary mb-4">{reanalyseResult}</div>
+        <div className="text-sm text-ink-secondary mb-4" data-ai-id="source-reanalyse-result" data-ai-role="status" data-ai-label={reanalyseResult}>{reanalyseResult}</div>
       )}
 
       {/* Source meta */}
-      <div className="flex items-center gap-4 text-xs text-ink-tertiary mb-6">
+      <div className="flex items-center gap-4 text-xs text-ink-tertiary mb-6" data-ai-id="source-meta" data-ai-role="info" data-ai-label={`Last fetched: ${source.lastFetchedAt ? new Date(source.lastFetchedAt).toLocaleString() : "never"}, ${articlesPage?.total ?? 0} articles`}>
         {source.lastFetchedAt && (
           <span>Last fetched {new Date(source.lastFetchedAt).toLocaleString()}</span>
         )}
@@ -251,7 +259,7 @@ const SourceDetailPage = (): React.ReactNode => {
         />
       ) : (
         <>
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-border" data-ai-id="source-articles" data-ai-role="list" data-ai-label={`Articles (${articlesPage.total} total, showing ${articlesPage.articles.length})`}>
             {articlesPage.articles.map((article) => (
               <ArticleCard
                 key={article.id}
@@ -269,12 +277,15 @@ const SourceDetailPage = (): React.ReactNode => {
           </div>
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-6 pt-6 border-t border-border">
+            <div className="flex items-center justify-between mt-6 pt-6 border-t border-border" data-ai-id="source-pagination" data-ai-role="info" data-ai-label={`Page ${currentPage} of ${totalPages}`}>
               <Button
                 variant="ghost"
                 size="sm"
                 disabled={offset === 0}
                 onClick={() => handlePageChange(Math.max(0, offset - PAGE_SIZE))}
+                data-ai-id="source-prev-page"
+                data-ai-role="button"
+                data-ai-label="Previous page"
               >
                 Previous
               </Button>
@@ -286,6 +297,9 @@ const SourceDetailPage = (): React.ReactNode => {
                 size="sm"
                 disabled={offset + PAGE_SIZE >= articlesPage.total}
                 onClick={() => handlePageChange(offset + PAGE_SIZE)}
+                data-ai-id="source-next-page"
+                data-ai-role="button"
+                data-ai-label="Next page"
               >
                 Next
               </Button>

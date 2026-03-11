@@ -12,6 +12,7 @@ type SourceCardProps = {
 };
 
 const SourceCard = ({
+  id,
   name,
   url,
   lastFetchedAt,
@@ -19,7 +20,7 @@ const SourceCard = ({
   href,
 }: SourceCardProps): React.ReactElement => {
   const content = (
-    <div className="flex items-start justify-between gap-4 p-5 rounded-lg border border-border bg-surface-raised transition-all duration-fast ease-gentle hover:shadow-sm hover:border-border-strong">
+    <div className="flex items-start justify-between gap-4 p-5 rounded-lg border border-border bg-surface-raised transition-all duration-fast ease-gentle hover:shadow-sm hover:border-border-strong" data-ai-id={`source-${id}`} data-ai-role="card" data-ai-label={name} {...(fetchError ? { "data-ai-error": fetchError } : {})}>
       <div className="min-w-0">
         <div className="font-medium text-sm text-ink truncate">{name}</div>
         <div className="text-xs text-ink-tertiary truncate mt-0.5">{url}</div>

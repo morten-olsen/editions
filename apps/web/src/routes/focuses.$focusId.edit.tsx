@@ -207,18 +207,22 @@ const EditFocusPage = (): React.ReactNode => {
       <PageHeader title="Edit topic" />
 
       {error && (
-        <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6">
+        <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6" data-ai-id="edit-focus-error" data-ai-role="error" data-ai-error={error}>
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="max-w-lg flex flex-col gap-6">
+      <form onSubmit={handleSubmit} className="max-w-lg flex flex-col gap-6" data-ai-id="edit-focus-form" data-ai-role="form" data-ai-label="Edit focus form">
         <div className="flex flex-col gap-5">
           <Input
             label="Name"
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
+            data-ai-id="edit-focus-name"
+            data-ai-role="input"
+            data-ai-label="Focus name"
+            data-ai-value={name}
           />
           <Textarea
             label="Description"
@@ -226,6 +230,10 @@ const EditFocusPage = (): React.ReactNode => {
             rows={2}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            data-ai-id="edit-focus-description"
+            data-ai-role="input"
+            data-ai-label="Focus description"
+            data-ai-value={description}
           />
           <IconPicker value={icon} onChange={setIcon} />
 
@@ -287,7 +295,7 @@ const EditFocusPage = (): React.ReactNode => {
         <Separator soft />
 
         {/* Sources */}
-        <div>
+        <div data-ai-id="edit-focus-sources" data-ai-role="list" data-ai-label="Source selection">
           <div className="text-sm font-medium text-ink mb-0.5">Sources</div>
           <p className="text-xs text-ink-tertiary mb-4">
             Choose which sources feed this topic and how articles from each are selected.
@@ -307,6 +315,10 @@ const EditFocusPage = (): React.ReactNode => {
                   <div
                     key={source.id}
                     className={`rounded-md transition-colors duration-fast ${isSelected ? "bg-surface-sunken/50 p-3" : "px-3 py-2"}`}
+                    data-ai-id={`edit-focus-source-${source.id}`}
+                    data-ai-role="checkbox"
+                    data-ai-label={source.name}
+                    data-ai-state={isSelected ? "checked" : "unchecked"}
                   >
                     <div className="flex items-center justify-between">
                       <Checkbox
@@ -319,6 +331,10 @@ const EditFocusPage = (): React.ReactNode => {
                           value={selection.mode}
                           onChange={(e) => changeMode(source.id, e.target.value as "always" | "match")}
                           className={selectClasses}
+                          data-ai-id={`edit-focus-source-${source.id}-mode`}
+                          data-ai-role="input"
+                          data-ai-label={`${source.name} article selection mode`}
+                          data-ai-value={selection.mode}
                         >
                           <option value="always">All articles</option>
                           <option value="match">Matching only</option>
@@ -336,6 +352,10 @@ const EditFocusPage = (): React.ReactNode => {
                           value={selection.weight}
                           onChange={(e) => changeWeight(source.id, Number(e.target.value))}
                           className="flex-1 accent-accent"
+                          data-ai-id={`edit-focus-source-${source.id}-weight`}
+                          data-ai-role="input"
+                          data-ai-label={`${source.name} priority`}
+                          data-ai-value={String(selection.weight)}
                         />
                         <span className="text-xs font-medium text-ink-secondary tabular-nums w-12 text-right">
                           {priorityLabel(selection.weight)}
@@ -350,13 +370,16 @@ const EditFocusPage = (): React.ReactNode => {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button variant="primary" type="submit" disabled={updateFocus.isPending}>
+          <Button variant="primary" type="submit" disabled={updateFocus.isPending} data-ai-id="edit-focus-submit" data-ai-role="button" data-ai-label="Save changes" data-ai-state={updateFocus.isPending ? "loading" : "idle"}>
             {updateFocus.isPending ? "Saving…" : "Save changes"}
           </Button>
           <Button
             variant="ghost"
             type="button"
             onClick={() => void navigate({ to: "/focuses/$focusId", params: { focusId } })}
+            data-ai-id="edit-focus-cancel"
+            data-ai-role="button"
+            data-ai-label="Cancel"
           >
             Cancel
           </Button>

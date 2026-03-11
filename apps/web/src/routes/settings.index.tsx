@@ -2,11 +2,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { useAuth } from "../auth/auth.tsx";
+import { useAi } from "../ai/ai.ts";
 import { client } from "../api/api.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { Button } from "../components/button.tsx";
 import { EmptyState } from "../components/empty-state.tsx";
 import { Separator } from "../components/separator.tsx";
+import { Input } from "../components/input.tsx";
+
+import type { AiConfig } from "../ai/ai.ts";
 
 // --- Task types & helpers ---
 
@@ -346,10 +350,12 @@ const WEIGHT_CONFIG: Record<keyof ScoringWeightSet, WeightConfig> = {
 };
 
 const WeightSlider = ({
+  id,
   config,
   value,
   onChange,
 }: {
+  id: string;
   config: WeightConfig;
   value: number;
   onChange: (v: number) => void;
@@ -370,6 +376,10 @@ const WeightSlider = ({
       value={value}
       onChange={(e) => onChange(parseFloat(e.target.value))}
       className="w-full accent-accent h-1.5 cursor-pointer"
+      data-ai-id={id}
+      data-ai-role="input"
+      data-ai-label={`${config.label} weight`}
+      data-ai-value={value.toFixed(1)}
     />
     <p className="text-xs text-ink-faint leading-relaxed">{config.detail}</p>
   </div>
@@ -393,7 +403,7 @@ const FeedWeightsCard = ({
     weights.gamma === defaults.gamma;
 
   return (
-    <div className="rounded-lg border border-border p-4 flex flex-col gap-5">
+    <div className="rounded-lg border border-border p-4 flex flex-col gap-5" data-ai-id={`scoring-${feedType}`} data-ai-role="section" data-ai-label={feed.label}>
       <div>
         <div className="flex items-start justify-between">
           <div>
@@ -405,6 +415,9 @@ const FeedWeightsCard = ({
               type="button"
               onClick={() => onChange({ ...defaults })}
               className="text-xs text-ink-faint hover:text-accent transition-colors duration-fast cursor-pointer shrink-0"
+              data-ai-id={`scoring-${feedType}-reset`}
+              data-ai-role="button"
+              data-ai-label={`Reset ${feed.label} to defaults`}
             >
               Reset
             </button>
@@ -418,6 +431,7 @@ const FeedWeightsCard = ({
         .map((key) => (
           <WeightSlider
             key={key}
+            id={`scoring-${feedType}-${key}`}
             config={WEIGHT_CONFIG[key]}
             value={weights[key]}
             onChange={(v) => onChange({ ...weights, [key]: v })}
@@ -548,6 +562,10 @@ const ScoringSection = ({ token }: { token: string }): React.ReactNode => {
           size="sm"
           disabled={!dirty || saving}
           onClick={() => void handleSave()}
+          data-ai-id="settings-scoring-save"
+          data-ai-role="button"
+          data-ai-label="Save scoring weights"
+          data-ai-state={saving ? "loading" : "idle"}
         >
           {saving ? "Saving..." : "Save"}
         </Button>
@@ -557,6 +575,9 @@ const ScoringSection = ({ token }: { token: string }): React.ReactNode => {
             size="sm"
             disabled={saving}
             onClick={() => void handleResetAll()}
+            data-ai-id="settings-scoring-reset"
+            data-ai-role="button"
+            data-ai-label="Reset all to defaults"
           >
             Reset all to defaults
           </Button>
@@ -566,7 +587,125 @@ const ScoringSection = ({ token }: { token: string }): React.ReactNode => {
   );
 };
 
-type SettingsTab = "tasks" | "votes" | "scoring";
+/* ── AI Assistant section ─────────────────────────────── */
+
+const AiSection = (): React.ReactNode => {
+  const { config, setConfig, removeConfig, isEnabled } = useAi();
+  const [endpoint, setEndpoint] = useState(config?.endpoint ?? "");
+  const [apiKey, setApiKey] = useState(config?.apiKey ?? "");
+  const [model, setModel] = useState(config?.model ?? "");
+  const [dirty, setDirty] = useState(false);
+
+  const handleSave = (): void => {
+    if (!endpoint.trim() || !apiKey.trim() || !model.trim()) return;
+    const newConfig: AiConfig = {
+      endpoint: endpoint.trim(),
+      apiKey: apiKey.trim(),
+      model: model.trim(),
+    };
+    setConfig(newConfig);
+    setDirty(false);
+  };
+
+  const handleRemove = (): void => {
+    removeConfig();
+    setEndpoint("");
+    setApiKey("");
+    setModel("");
+    setDirty(false);
+  };
+
+  const handleChange = (field: "endpoint" | "apiKey" | "model", value: string): void => {
+    if (field === "endpoint") setEndpoint(value);
+    if (field === "apiKey") setApiKey(value);
+    if (field === "model") setModel(value);
+    setDirty(true);
+  };
+
+  return (
+    <div className="flex flex-col gap-6" data-ai-id="settings-assistant" data-ai-role="section" data-ai-label="Assistant configuration">
+      <div className="text-sm text-ink-secondary leading-relaxed flex flex-col gap-2">
+        <p>
+          Connect an OpenAI-compatible AI provider to enable the AI assistant. The assistant can help you set up sources, focuses, and editions through natural conversation.
+        </p>
+        <p className="text-xs text-ink-tertiary">
+          Your API key is stored locally in your browser and only sent to your configured provider.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-4">
+        <Input
+          label="API Endpoint"
+          description="The base URL of your OpenAI-compatible API"
+          placeholder="https://api.openai.com/v1"
+          value={endpoint}
+          onChange={(e) => handleChange("endpoint", e.target.value)}
+          data-ai-id="settings-ai-endpoint"
+          data-ai-role="input"
+          data-ai-label="API Endpoint"
+          data-ai-value={endpoint}
+        />
+        <Input
+          label="API Key"
+          type="password"
+          description="Your API key for authentication"
+          placeholder="sk-..."
+          value={apiKey}
+          onChange={(e) => handleChange("apiKey", e.target.value)}
+          data-ai-id="settings-ai-key"
+          data-ai-role="input"
+          data-ai-label="API Key"
+          data-ai-value={apiKey ? "••••••" : ""}
+        />
+        <Input
+          label="Model"
+          description="The model identifier to use"
+          placeholder="gpt-4o"
+          value={model}
+          onChange={(e) => handleChange("model", e.target.value)}
+          data-ai-id="settings-ai-model"
+          data-ai-role="input"
+          data-ai-label="Model"
+          data-ai-value={model}
+        />
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Button
+          variant="primary"
+          size="sm"
+          disabled={!dirty || !endpoint.trim() || !apiKey.trim() || !model.trim()}
+          onClick={handleSave}
+          data-ai-id="settings-ai-save"
+          data-ai-role="button"
+          data-ai-label={isEnabled ? "Update assistant" : "Enable assistant"}
+        >
+          {isEnabled ? "Update" : "Enable assistant"}
+        </Button>
+        {isEnabled && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRemove}
+            data-ai-id="settings-ai-disable"
+            data-ai-role="button"
+            data-ai-label="Disable assistant"
+          >
+            Disable assistant
+          </Button>
+        )}
+      </div>
+
+      {isEnabled && (
+        <div className="rounded-md bg-positive-subtle px-3.5 py-2.5 text-xs text-positive" data-ai-id="settings-ai-status" data-ai-role="status" data-ai-label="Assistant is enabled">
+          Assistant is enabled. Look for the sparkle icon in the sidebar.
+        </div>
+      )}
+    </div>
+  );
+};
+
+type SettingsTab = "tasks" | "votes" | "scoring" | "assistant";
 
 const SettingsPage = (): React.ReactNode => {
   const auth = useAuth();
@@ -646,10 +785,11 @@ const SettingsPage = (): React.ReactNode => {
   const totalPages = votesPage ? Math.ceil(votesPage.total / PAGE_SIZE) : 0;
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
 
-  const tabs: { key: SettingsTab; label: string }[] = [
+  const tabs: { key: SettingsTab; label: string; badge?: string }[] = [
     { key: "tasks", label: "Tasks" },
     { key: "votes", label: "Votes" },
     { key: "scoring", label: "Scoring" },
+    { key: "assistant", label: "Assistant", badge: "alpha" },
   ];
 
   return (
@@ -657,15 +797,20 @@ const SettingsPage = (): React.ReactNode => {
       <PageHeader title="Settings" />
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-border mb-6">
+      <div className="flex gap-1 border-b border-border mb-6" data-ai-id="settings-tabs" data-ai-role="section" data-ai-label="Settings tabs">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             type="button"
             onClick={() => setActiveTab(tab.key)}
             className={`relative flex h-10 items-center justify-center px-4 text-sm font-medium outline-none select-none transition-colors duration-fast cursor-pointer ${activeTab === tab.key ? "text-ink after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-accent" : "text-ink-tertiary hover:text-ink-secondary"}`}
+            data-ai-id={`settings-tab-${tab.key}`}
+            data-ai-role="button"
+            data-ai-label={tab.label}
+            data-ai-state={activeTab === tab.key ? "selected" : "idle"}
           >
             {tab.label}
+            {tab.badge && <span className="ml-1.5 text-[10px] font-medium text-accent/60 uppercase tracking-wider">{tab.badge}</span>}
           </button>
         ))}
       </div>
@@ -808,6 +953,14 @@ const SettingsPage = (): React.ReactNode => {
         <>
           <p className="text-sm text-ink-secondary mb-6">Customise how articles are ranked in each feed</p>
           <ScoringSection token={auth.token} />
+        </>
+      )}
+
+      {/* Assistant tab */}
+      {activeTab === "assistant" && (
+        <>
+          <p className="text-sm text-ink-secondary mb-6">Configure an AI assistant to help you set up Editions</p>
+          <AiSection />
         </>
       )}
     </>

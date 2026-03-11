@@ -117,7 +117,7 @@ const BookmarksIndexPage = (): React.ReactNode => {
     <>
       <PageHeader title="Bookmarks" serif />
 
-      <form onSubmit={handleSaveUrl} className="flex gap-2 mb-6">
+      <form onSubmit={handleSaveUrl} className="flex gap-2 mb-6" data-ai-id="bookmark-save-form" data-ai-role="form" data-ai-label="Save article by URL">
         <input
           type="url"
           placeholder="Paste a URL to save an article..."
@@ -125,14 +125,18 @@ const BookmarksIndexPage = (): React.ReactNode => {
           onChange={(e) => setSaveUrl(e.target.value)}
           required
           className="flex-1 h-10 rounded-md border border-border bg-surface-raised px-3.5 text-sm text-ink placeholder:text-ink-faint outline-none transition-colors duration-fast ease-gentle focus:border-accent focus:ring-2 focus:ring-accent/20"
+          data-ai-id="bookmark-save-url"
+          data-ai-role="input"
+          data-ai-label="Article URL"
+          data-ai-value={saveUrl}
         />
-        <Button variant="primary" size="sm" type="submit" disabled={saveMutation.isPending}>
+        <Button variant="primary" size="sm" type="submit" disabled={saveMutation.isPending} data-ai-id="bookmark-save-submit" data-ai-role="button" data-ai-label="Save bookmark" data-ai-state={saveMutation.isPending ? "loading" : "idle"}>
           {saveMutation.isPending ? "Saving..." : "Save"}
         </Button>
       </form>
 
       {saveError && (
-        <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-4">
+        <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-4" data-ai-id="bookmark-save-error" data-ai-role="error" data-ai-error={saveError}>
           {saveError}
         </div>
       )}
@@ -146,7 +150,7 @@ const BookmarksIndexPage = (): React.ReactNode => {
         />
       ) : (
         <>
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-border" data-ai-id="bookmark-list" data-ai-role="list" data-ai-label={`${page.total} bookmarks`}>
             {page.bookmarks.map((bookmark) => (
               <ArticleCard
                 key={bookmark.id}
@@ -171,12 +175,15 @@ const BookmarksIndexPage = (): React.ReactNode => {
           </div>
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-border" data-ai-id="bookmark-pagination" data-ai-role="info" data-ai-label={`Page ${currentPage} of ${totalPages}`}>
               <Button
                 variant="ghost"
                 size="sm"
                 disabled={offset === 0}
                 onClick={() => handlePageChange(Math.max(0, offset - PAGE_SIZE))}
+                data-ai-id="bookmark-prev-page"
+                data-ai-role="button"
+                data-ai-label="Previous page"
               >
                 Previous
               </Button>
@@ -188,6 +195,9 @@ const BookmarksIndexPage = (): React.ReactNode => {
                 size="sm"
                 disabled={offset + PAGE_SIZE >= page.total}
                 onClick={() => handlePageChange(offset + PAGE_SIZE)}
+                data-ai-id="bookmark-next-page"
+                data-ai-role="button"
+                data-ai-label="Next page"
               >
                 Next
               </Button>

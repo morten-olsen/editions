@@ -143,12 +143,12 @@ const NewFocusPage = (): React.ReactNode => {
       <PageHeader title="New topic" subtitle="A topic that shapes what appears in your editions" />
 
       {error && (
-        <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6">
+        <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6" data-ai-id="focus-form-error" data-ai-role="error" data-ai-error={error}>
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="max-w-lg flex flex-col gap-6">
+      <form onSubmit={handleSubmit} className="max-w-lg flex flex-col gap-6" data-ai-id="focus-form" data-ai-role="form" data-ai-label="New focus form">
         <div className="flex flex-col gap-5">
           <Input
             label="Name"
@@ -156,6 +156,10 @@ const NewFocusPage = (): React.ReactNode => {
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
+            data-ai-id="focus-name"
+            data-ai-role="input"
+            data-ai-label="Focus name"
+            data-ai-value={name}
           />
           <Textarea
             label="Description"
@@ -164,6 +168,10 @@ const NewFocusPage = (): React.ReactNode => {
             rows={2}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            data-ai-id="focus-description"
+            data-ai-role="input"
+            data-ai-label="Focus description"
+            data-ai-value={description}
           />
           <IconPicker value={icon} onChange={setIcon} />
 
@@ -225,7 +233,7 @@ const NewFocusPage = (): React.ReactNode => {
         <Separator soft />
 
         {/* Sources */}
-        <div>
+        <div data-ai-id="focus-sources" data-ai-role="list" data-ai-label="Source selection">
           <div className="text-sm font-medium text-ink mb-0.5">Sources</div>
           <p className="text-xs text-ink-tertiary mb-4">
             Choose which sources feed this topic and how articles from each are selected.
@@ -245,6 +253,10 @@ const NewFocusPage = (): React.ReactNode => {
                   <div
                     key={source.id}
                     className={`rounded-md transition-colors duration-fast ${isSelected ? "bg-surface-sunken/50 p-3" : "px-3 py-2"}`}
+                    data-ai-id={`focus-source-${source.id}`}
+                    data-ai-role="checkbox"
+                    data-ai-label={source.name}
+                    data-ai-state={isSelected ? "checked" : "unchecked"}
                   >
                     <div className="flex items-center justify-between">
                       <Checkbox
@@ -257,6 +269,10 @@ const NewFocusPage = (): React.ReactNode => {
                           value={selection.mode}
                           onChange={(e) => changeMode(source.id, e.target.value as "always" | "match")}
                           className={selectClasses}
+                          data-ai-id={`focus-source-${source.id}-mode`}
+                          data-ai-role="input"
+                          data-ai-label={`${source.name} article selection mode`}
+                          data-ai-value={selection.mode}
                         >
                           <option value="always">All articles</option>
                           <option value="match">Matching only</option>
@@ -274,6 +290,10 @@ const NewFocusPage = (): React.ReactNode => {
                           value={selection.weight}
                           onChange={(e) => changeWeight(source.id, Number(e.target.value))}
                           className="flex-1 accent-accent"
+                          data-ai-id={`focus-source-${source.id}-weight`}
+                          data-ai-role="input"
+                          data-ai-label={`${source.name} priority`}
+                          data-ai-value={String(selection.weight)}
                         />
                         <span className="text-xs font-medium text-ink-secondary tabular-nums w-12 text-right">
                           {priorityLabel(selection.weight)}
@@ -288,13 +308,16 @@ const NewFocusPage = (): React.ReactNode => {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button variant="primary" type="submit" disabled={createFocus.isPending}>
+          <Button variant="primary" type="submit" disabled={createFocus.isPending} data-ai-id="focus-submit" data-ai-role="button" data-ai-label="Create topic" data-ai-state={createFocus.isPending ? "loading" : "idle"}>
             {createFocus.isPending ? "Creating…" : "Create topic"}
           </Button>
           <Button
             variant="ghost"
             type="button"
             onClick={() => void navigate({ to: "/focuses" })}
+            data-ai-id="focus-cancel"
+            data-ai-role="button"
+            data-ai-label="Cancel"
           >
             Cancel
           </Button>

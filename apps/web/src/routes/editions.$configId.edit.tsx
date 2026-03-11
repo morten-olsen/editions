@@ -261,18 +261,22 @@ const EditEditionConfigPage = (): React.ReactNode => {
       <PageHeader title="Edit edition" />
 
       {error && (
-        <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6">
+        <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6" data-ai-id="edit-edition-error" data-ai-role="error" data-ai-error={error}>
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="max-w-lg flex flex-col gap-6">
+      <form onSubmit={handleSubmit} className="max-w-lg flex flex-col gap-6" data-ai-id="edit-edition-form" data-ai-role="form" data-ai-label="Edit edition form">
         <div className="flex flex-col gap-5">
           <Input
             label="Name"
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
+            data-ai-id="edit-edition-name"
+            data-ai-role="input"
+            data-ai-label="Edition name"
+            data-ai-value={name}
           />
           <IconPicker value={icon} onChange={setIcon} />
 
@@ -289,6 +293,10 @@ const EditEditionConfigPage = (): React.ReactNode => {
                 if (e.target.value !== "__custom__") setSchedule(e.target.value);
               }}
               className={`w-full ${selectClasses}`}
+              data-ai-id="edit-edition-schedule"
+              data-ai-role="select"
+              data-ai-label="Delivery schedule"
+              data-ai-value={schedule}
             >
               {SCHEDULE_PRESETS.map((p) => (
                 <option key={p.value} value={p.value}>{p.label}</option>
@@ -302,6 +310,10 @@ const EditEditionConfigPage = (): React.ReactNode => {
                   className="font-mono"
                   placeholder="0 7 * * *"
                   required
+                  data-ai-id="edit-edition-schedule-custom"
+                  data-ai-role="input"
+                  data-ai-label="Custom cron expression"
+                  data-ai-value={schedule}
                 />
                 <p className="text-xs text-ink-tertiary">
                   Cron expression — e.g. <code className="font-mono bg-surface-sunken px-1 rounded">0 7 * * *</code> means daily at 7am
@@ -321,6 +333,10 @@ const EditEditionConfigPage = (): React.ReactNode => {
               value={lookbackHours}
               onChange={(e) => setLookbackHours(Number(e.target.value))}
               className={`w-full ${selectClasses}`}
+              data-ai-id="edit-edition-lookback"
+              data-ai-role="select"
+              data-ai-label="How far back to look"
+              data-ai-value={String(lookbackHours)}
             >
               <option value={1}>Last hour</option>
               <option value={24}>Last 24 hours</option>
@@ -335,12 +351,20 @@ const EditEditionConfigPage = (): React.ReactNode => {
             description="Articles that appeared in a previous issue of this digest won't be included again"
             checked={excludePriorEditions}
             onCheckedChange={(checked) => setExcludePriorEditions(checked === true)}
+            data-ai-id="edit-edition-exclude-prior"
+            data-ai-role="checkbox"
+            data-ai-label="Don't repeat articles across editions"
+            data-ai-state={excludePriorEditions ? "checked" : "unchecked"}
           />
           <Checkbox
             label="Active"
             description="When off, this edition won't be generated automatically"
             checked={enabled}
             onCheckedChange={(checked) => setEnabled(checked === true)}
+            data-ai-id="edit-edition-enabled"
+            data-ai-role="checkbox"
+            data-ai-label="Active"
+            data-ai-state={enabled ? "checked" : "unchecked"}
           />
         </div>
 
@@ -506,14 +530,14 @@ const EditEditionConfigPage = (): React.ReactNode => {
 
         {/* Available focuses to add */}
         {allFocuses.filter((f) => !selectedIds.has(f.id)).length > 0 && (
-          <div>
+          <div data-ai-id="edit-edition-available-topics" data-ai-role="list" data-ai-label="Available topics">
             <div className="text-sm font-medium text-ink mb-0.5">Available topics</div>
             <p className="text-xs text-ink-tertiary mb-3">Add topics to include them as sections in your edition</p>
             <div className="flex flex-col gap-2">
               {allFocuses
                 .filter((f) => !selectedIds.has(f.id))
                 .map((focus) => (
-                  <div key={focus.id} className="flex items-center justify-between py-2">
+                  <div key={focus.id} className="flex items-center justify-between py-2" data-ai-id={`edit-edition-topic-${focus.id}`} data-ai-role="section" data-ai-label={focus.name}>
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-medium text-ink">{focus.name}</div>
                       {focus.description && (
@@ -525,6 +549,9 @@ const EditEditionConfigPage = (): React.ReactNode => {
                       size="sm"
                       type="button"
                       onClick={() => toggleFocus(focus.id)}
+                      data-ai-id={`edit-edition-add-topic-${focus.id}`}
+                      data-ai-role="button"
+                      data-ai-label={`Add ${focus.name}`}
                     >
                       Add
                     </Button>
@@ -535,13 +562,16 @@ const EditEditionConfigPage = (): React.ReactNode => {
         )}
 
         <div className="flex items-center gap-3">
-          <Button variant="primary" type="submit" disabled={updateMutation.isPending}>
+          <Button variant="primary" type="submit" disabled={updateMutation.isPending} data-ai-id="edit-edition-submit" data-ai-role="button" data-ai-label="Save changes" data-ai-state={updateMutation.isPending ? "loading" : "idle"}>
             {updateMutation.isPending ? "Saving…" : "Save changes"}
           </Button>
           <Button
             variant="ghost"
             type="button"
             onClick={() => void navigate({ to: "/editions/$configId", params: { configId } })}
+            data-ai-id="edit-edition-cancel"
+            data-ai-role="button"
+            data-ai-label="Cancel"
           >
             Cancel
           </Button>

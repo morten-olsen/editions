@@ -5,6 +5,7 @@ import { useAuth } from "../auth/auth.tsx";
 import { client } from "../api/api.ts";
 import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
 import { EntityIcon } from "./entity-icon.tsx";
+import { AiToggleButton } from "../ai/ai.ts";
 
 type NavEditionConfig = {
   id: string;
@@ -93,7 +94,7 @@ const Nav = (): React.ReactElement => {
   const logout = auth.status === "authenticated" ? auth.logout : undefined;
 
   return (
-    <nav className="flex flex-col h-full w-56 border-r border-border bg-surface py-6 px-3">
+    <nav className="flex flex-col h-full w-56 border-r border-border bg-surface py-6 px-3" data-ai-id="nav" data-ai-role="nav" data-ai-label="Sidebar navigation">
       {/* Home link */}
       <div className="mb-4">
         <Link to="/" className={linkClass(currentPath === "/")}>
@@ -104,7 +105,7 @@ const Nav = (): React.ReactElement => {
       {/* Edition configs header + add */}
       <div className={sectionHeadClass}>
         <div className={sectionLabelClass}>Your editions</div>
-        <Link to="/editions/new" className={addButtonClass} aria-label="New edition">
+        <Link to="/editions/new" className={addButtonClass} aria-label="New edition" data-ai-id="new-edition-btn" data-ai-role="button" data-ai-label="New edition">
           <PlusIcon />
         </Link>
       </div>
@@ -118,6 +119,9 @@ const Nav = (): React.ReactElement => {
               to="/editions/$configId"
               params={{ configId: cfg.id }}
               className={linkClass(isActive(`/editions/${cfg.id}`))}
+              data-ai-id={`edition-${cfg.id}`}
+              data-ai-role="link"
+              data-ai-label={cfg.name}
             >
               <EntityIcon icon={cfg.icon} fallback="newspaper" size={14} className="shrink-0" />
               <span className="truncate flex-1">{cfg.name}</span>
@@ -133,7 +137,7 @@ const Nav = (): React.ReactElement => {
 
       {/* Bookmarks */}
       <div className="mb-6">
-        <Link to="/bookmarks" className={linkClass(isActive("/bookmarks"))}>
+        <Link to="/bookmarks" className={linkClass(isActive("/bookmarks"))} data-ai-id="nav-bookmarks" data-ai-role="link" data-ai-label="Bookmarks">
           <EntityIcon icon="bookmark" size={14} className="shrink-0" />
           <span className="truncate">Bookmarks</span>
         </Link>
@@ -143,12 +147,12 @@ const Nav = (): React.ReactElement => {
       <div className="mb-6">
         <div className={sectionHeadClass}>
           <div className={sectionLabelClass}>Browse</div>
-          <Link to="/focuses/new" className={addButtonClass} aria-label="New focus">
+          <Link to="/focuses/new" className={addButtonClass} aria-label="New focus" data-ai-id="new-focus-btn" data-ai-role="button" data-ai-label="New focus">
             <PlusIcon />
           </Link>
         </div>
         <div className="flex flex-col gap-0.5">
-          <Link to="/feed" className={linkClass(currentPath.startsWith("/feed"))}>
+          <Link to="/feed" className={linkClass(currentPath.startsWith("/feed"))} data-ai-id="nav-feed" data-ai-role="link" data-ai-label="All articles">
             <EntityIcon icon="layers" size={14} className="shrink-0" />
             <span className="truncate">All articles</span>
           </Link>
@@ -158,6 +162,9 @@ const Nav = (): React.ReactElement => {
               to="/focuses/$focusId"
               params={{ focusId: focus.id }}
               className={linkClass(isActive(`/focuses/${focus.id}`))}
+              data-ai-id={`focus-${focus.id}`}
+              data-ai-role="link"
+              data-ai-label={focus.name}
             >
               <EntityIcon icon={focus.icon} fallback="target" size={14} className="shrink-0" />
               <span className="truncate">{focus.name}</span>
@@ -168,7 +175,7 @@ const Nav = (): React.ReactElement => {
 
       {/* Footer */}
       <div className="mt-auto flex flex-col gap-0.5">
-        <Link to="/sources" className={linkClass(isActive("/sources"))}>
+        <Link to="/sources" className={linkClass(isActive("/sources"))} data-ai-id="nav-sources" data-ai-role="link" data-ai-label="Sources">
           <EntityIcon icon="rss" size={14} className="shrink-0" />
           <span className="truncate">Sources</span>
         </Link>
@@ -176,6 +183,7 @@ const Nav = (): React.ReactElement => {
           <EntityIcon icon="settings" size={14} className="shrink-0" />
           <span className="truncate">Settings</span>
         </Link>
+        <AiToggleButton />
 
         <div className="mt-3 pt-3 border-t border-border mx-3">
           {username && (

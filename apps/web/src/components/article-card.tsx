@@ -69,6 +69,7 @@ const gentle: Transition = { duration: 0.35, ease };
 const MotionLink = motion.create(Link);
 
 const ArticleCard = ({
+  id,
   title,
   sourceName,
   author,
@@ -87,6 +88,8 @@ const ArticleCard = ({
   bookmarked,
   onBookmarkToggle,
 }: ArticleCardProps): React.ReactElement => {
+  const aiId = `article-${id}`;
+  const aiLabel = [title, sourceName, publishedAt ? formatDate(publishedAt) : null].filter(Boolean).join(" · ");
   const hasVoting = onVote !== undefined || onFocusVote !== undefined;
   const hasBookmark = onBookmarkToggle !== undefined;
   const muted = read;
@@ -187,6 +190,9 @@ const ArticleCard = ({
         animate={{ opacity: muted ? 0.55 : 1, paddingTop: muted ? 8 : 16, paddingBottom: muted ? 8 : 16 }}
         transition={gentle}
         className={wrapperClass}
+        data-ai-id={aiId}
+        data-ai-role="link"
+        data-ai-label={aiLabel}
       >
         {content}
       </MotionLink>
@@ -198,6 +204,9 @@ const ArticleCard = ({
       animate={{ opacity: muted ? 0.55 : 1, paddingTop: muted ? 8 : 16, paddingBottom: muted ? 8 : 16 }}
       transition={gentle}
       className={wrapperClass}
+      data-ai-id={aiId}
+      data-ai-role="section"
+      data-ai-label={aiLabel}
     >
       {content}
     </motion.div>

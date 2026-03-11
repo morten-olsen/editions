@@ -223,6 +223,7 @@ Background scheduler runs every 60 seconds:
 - **Scoring weights** — customize ranking algorithm weights per context (global/focus/edition)
 - View active weights and defaults
 - Reset to defaults
+- **AI Assistant** — BYO OpenAI-compatible provider configuration (endpoint, API key, model). See [docs/ai-assistant.md](docs/ai-assistant.md)
 
 ---
 

@@ -236,7 +236,7 @@ const FocusDetailPage = (): React.ReactNode => {
   return (
     <>
       {/* Header: name + cog */}
-      <div className="flex items-center justify-between gap-4 mb-8">
+      <div className="flex items-center justify-between gap-4 mb-8" data-ai-id="focus-header" data-ai-role="heading" data-ai-label={focus.name}>
         <div className="min-w-0">
           <h1 className="text-2xl font-serif font-medium tracking-tight text-ink">
             {focus.name}
@@ -252,13 +252,16 @@ const FocusDetailPage = (): React.ReactNode => {
           params={{ focusId }}
           className="shrink-0 p-2 rounded-md text-ink-tertiary hover:text-ink hover:bg-surface-sunken transition-colors duration-fast"
           aria-label="Edit focus settings"
+          data-ai-id="focus-edit-btn"
+          data-ai-role="button"
+          data-ai-label="Edit focus settings"
         >
           <CogIcon />
         </Link>
       </div>
 
       {/* Filter bar */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-center gap-4 mb-6" data-ai-id="focus-filters" data-ai-role="section" data-ai-label="Focus filters">
         <div className="flex gap-1 border-b border-border">
           {(["top", "recent"] as const).map((s) => (
             <button
@@ -266,6 +269,10 @@ const FocusDetailPage = (): React.ReactNode => {
               type="button"
               onClick={() => handleFilterChange(s)}
               className={`relative flex h-10 items-center justify-center px-4 text-sm font-medium outline-none select-none transition-colors duration-fast cursor-pointer ${sort === s ? "text-ink after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-accent" : "text-ink-tertiary hover:text-ink-secondary"}`}
+              data-ai-id={`focus-sort-${s}`}
+              data-ai-role="button"
+              data-ai-label={s === "top" ? "Sort by top" : "Sort by recent"}
+              data-ai-state={sort === s ? "selected" : "idle"}
             >
               {s === "top" ? "Top" : "Recent"}
             </button>
@@ -277,6 +284,10 @@ const FocusDetailPage = (): React.ReactNode => {
             value={window}
             onChange={(e) => handleFilterChange(undefined, e.target.value as TimeWindow)}
             className="h-8 rounded-md border border-border bg-surface px-2.5 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-accent cursor-pointer"
+            data-ai-id="focus-time-window"
+            data-ai-role="select"
+            data-ai-label="Time window"
+            data-ai-value={window}
           >
             <option value="all">All time</option>
             <option value="week">This week</option>
@@ -287,6 +298,10 @@ const FocusDetailPage = (): React.ReactNode => {
             value={status}
             onChange={(e) => handleFilterChange(undefined, undefined, e.target.value as ReadStatus)}
             className="h-8 rounded-md border border-border bg-surface px-2.5 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-accent cursor-pointer"
+            data-ai-id="focus-read-status"
+            data-ai-role="select"
+            data-ai-label="Read status"
+            data-ai-value={status}
           >
             <option value="all">All</option>
             <option value="unread">Unread</option>
@@ -309,7 +324,7 @@ const FocusDetailPage = (): React.ReactNode => {
         />
       ) : (
         <>
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-border" data-ai-id="focus-articles" data-ai-role="list" data-ai-label={`${articlesPage.total} articles`}>
             {articlesPage.articles.map((article) => {
               const overrides = voteOverrides[article.id];
               const focusVote = overrides?.vote !== undefined ? overrides.vote : article.vote;
@@ -346,12 +361,15 @@ const FocusDetailPage = (): React.ReactNode => {
           </div>
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-border" data-ai-id="focus-pagination" data-ai-role="info" data-ai-label={`Page ${currentPage} of ${totalPages}`}>
               <Button
                 variant="ghost"
                 size="sm"
                 disabled={offset === 0}
                 onClick={() => handlePageChange(Math.max(0, offset - PAGE_SIZE))}
+                data-ai-id="focus-prev-page"
+                data-ai-role="button"
+                data-ai-label="Previous page"
               >
                 Previous
               </Button>
@@ -363,6 +381,9 @@ const FocusDetailPage = (): React.ReactNode => {
                 size="sm"
                 disabled={offset + PAGE_SIZE >= articlesPage.total}
                 onClick={() => handlePageChange(offset + PAGE_SIZE)}
+                data-ai-id="focus-next-page"
+                data-ai-role="button"
+                data-ai-label="Next page"
               >
                 Next
               </Button>

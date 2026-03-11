@@ -54,7 +54,7 @@ const SourcesPage = (): React.ReactNode => {
             >
               {reanalyseMutation.isPending ? "Reanalysing..." : "Reanalyse all"}
             </Button>
-            <Link to="/sources/new">
+            <Link to="/sources/new" data-ai-id="add-source-btn" data-ai-role="button" data-ai-label="Add source">
               <Button variant="primary" size="sm">Add source</Button>
             </Link>
           </div>
@@ -72,7 +72,7 @@ const SourcesPage = (): React.ReactNode => {
           }
         />
       ) : (
-        <div className="grid gap-3">
+        <div className="grid gap-3" data-ai-id="sources-list" data-ai-role="list" data-ai-label="Sources">
           {sources.map((source) => (
             <SourceCard
               key={source.id}

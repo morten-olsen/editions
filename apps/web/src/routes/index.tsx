@@ -150,7 +150,7 @@ const SetupGuide = ({ data }: { data: HomeData }): React.ReactElement => {
     <SlideIn from="up" distance={12}>
       <Masthead />
 
-      <div className="mb-8">
+      <div className="mb-8" data-ai-id="setup-guide" data-ai-role="page" data-ai-label="Getting started">
         <h1 className="font-serif text-3xl font-medium tracking-tight text-ink mb-3">
           Getting started
         </h1>

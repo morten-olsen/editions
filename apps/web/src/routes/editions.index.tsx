@@ -77,7 +77,7 @@ const EditionsPage = (): React.ReactNode => {
         title="Editions"
         subtitle={loading ? "Loading..." : `${configs.length} edition configurations`}
         actions={
-          <Link to="/editions/new">
+          <Link to="/editions/new" data-ai-id="edition-new" data-ai-role="link" data-ai-label="New edition">
             <Button variant="primary" size="sm">New edition</Button>
           </Link>
         }
@@ -94,17 +94,23 @@ const EditionsPage = (): React.ReactNode => {
           }
         />
       ) : (
-        <div className="grid gap-3">
+        <div className="grid gap-3" data-ai-id="edition-list" data-ai-role="list" data-ai-label={`${configs.length} edition configurations`}>
           {configs.map((config) => (
             <div
               key={config.id}
               className="flex items-center justify-between py-4 border-b border-border last:border-b-0"
+              data-ai-id={`edition-config-${config.id}`}
+              data-ai-role="section"
+              data-ai-label={config.name}
             >
               <div className="min-w-0 flex-1">
                 <Link
                   to="/editions/$configId"
                   params={{ configId: config.id }}
                   className="font-serif text-lg font-medium tracking-tight text-ink hover:text-accent transition-colors duration-fast"
+                  data-ai-id={`edition-config-${config.id}-link`}
+                  data-ai-role="link"
+                  data-ai-label={config.name}
                 >
                   {config.name}
                 </Link>
@@ -128,6 +134,9 @@ const EditionsPage = (): React.ReactNode => {
                 type="button"
                 onClick={() => handleDelete(config.id, config.name)}
                 className="text-xs text-ink-tertiary hover:text-critical transition-colors duration-fast cursor-pointer ml-4"
+                data-ai-id={`edition-config-${config.id}-delete`}
+                data-ai-role="button"
+                data-ai-label={`Delete ${config.name}`}
               >
                 {deletingId === config.id ? "Deleting..." : "Delete"}
               </button>

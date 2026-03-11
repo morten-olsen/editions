@@ -4,9 +4,21 @@ import { useAuth } from "../auth/auth.tsx";
 import { PageTransition } from "../components/animate.tsx";
 import { AppShell } from "../components/app-shell.tsx";
 import { Nav } from "../components/nav.tsx";
+import { AiProvider, AiChatDrawer, AiCursor, useAi } from "../ai/ai.ts";
 
 type RouterContext = {
   auth: ReturnType<typeof useAuth>;
+};
+
+const AiOverlay = (): React.ReactNode => {
+  const { cursorVisible, cursorTargetId, isEnabled } = useAi();
+  if (!isEnabled) return null;
+  return (
+    <>
+      <AiChatDrawer />
+      <AiCursor visible={cursorVisible} targetId={cursorTargetId} />
+    </>
+  );
 };
 
 const publicRoutes = ["/login"];
@@ -37,11 +49,14 @@ const RootComponent = (): React.ReactNode => {
   }
 
   return (
-    <AppShell nav={<Nav />}>
-      <PageTransition locationKey={routerState.location.pathname}>
-        <Outlet />
-      </PageTransition>
-    </AppShell>
+    <AiProvider>
+      <AppShell nav={<Nav />}>
+        <PageTransition locationKey={routerState.location.pathname}>
+          <Outlet />
+        </PageTransition>
+        <AiOverlay />
+      </AppShell>
+    </AiProvider>
   );
 };
 

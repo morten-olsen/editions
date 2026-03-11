@@ -125,17 +125,21 @@ const EditSourcePage = (): React.ReactNode => {
       <PageHeader title="Edit source" />
 
       {error && (
-        <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6">
+        <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6" data-ai-id="edit-source-error" data-ai-role="error" data-ai-error={error}>
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="max-w-md flex flex-col gap-5">
+      <form onSubmit={handleSubmit} className="max-w-md flex flex-col gap-5" data-ai-id="edit-source-form" data-ai-role="form" data-ai-label="Edit source form">
         <Input
           label="Name"
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
+          data-ai-id="edit-source-name"
+          data-ai-role="input"
+          data-ai-label="Source name"
+          data-ai-value={name}
         />
         <Input
           label="Feed URL"
@@ -143,6 +147,10 @@ const EditSourcePage = (): React.ReactNode => {
           required
           value={url}
           onChange={(e) => setUrl(e.target.value)}
+          data-ai-id="edit-source-url"
+          data-ai-role="input"
+          data-ai-label="Feed URL"
+          data-ai-value={url}
         />
         <div>
           <label className="block text-sm font-medium text-ink mb-1.5">Direction</label>
@@ -150,19 +158,26 @@ const EditSourcePage = (): React.ReactNode => {
             value={direction}
             onChange={(e) => setDirection(e.target.value)}
             className="h-10 w-full rounded-md border border-border bg-surface px-3 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent cursor-pointer"
+            data-ai-id="edit-source-direction"
+            data-ai-role="select"
+            data-ai-label="Direction"
+            data-ai-value={direction}
           >
             <option value="newest">Newest first</option>
             <option value="oldest">Oldest first (series)</option>
           </select>
         </div>
         <div className="flex items-center gap-3 mt-2">
-          <Button variant="primary" type="submit" disabled={updateMutation.isPending}>
+          <Button variant="primary" type="submit" disabled={updateMutation.isPending} data-ai-id="edit-source-submit" data-ai-role="button" data-ai-label="Save changes" data-ai-state={updateMutation.isPending ? "loading" : "idle"}>
             {updateMutation.isPending ? "Saving..." : "Save changes"}
           </Button>
           <Button
             variant="ghost"
             type="button"
             onClick={() => void navigate({ to: "/sources/$sourceId", params: { sourceId } })}
+            data-ai-id="edit-source-cancel"
+            data-ai-role="button"
+            data-ai-label="Cancel"
           >
             Cancel
           </Button>
@@ -173,7 +188,7 @@ const EditSourcePage = (): React.ReactNode => {
         <>
           <Separator soft className="my-8" />
 
-          <div className="max-w-md">
+          <div className="max-w-md" data-ai-id="edit-source-delete-section" data-ai-role="section" data-ai-label="Delete source">
             <h3 className="text-sm font-medium text-critical mb-1">Delete source</h3>
             <p className="text-xs text-ink-tertiary mb-3">
               This will permanently delete this source and all its articles. This action cannot be undone.
@@ -185,6 +200,10 @@ const EditSourcePage = (): React.ReactNode => {
                   size="sm"
                   disabled={deleteMutation.isPending}
                   onClick={() => deleteMutation.mutate()}
+                  data-ai-id="edit-source-confirm-delete"
+                  data-ai-role="button"
+                  data-ai-label="Confirm delete"
+                  data-ai-state={deleteMutation.isPending ? "loading" : "idle"}
                 >
                   {deleteMutation.isPending ? "Deleting..." : "Yes, delete"}
                 </Button>
@@ -192,6 +211,9 @@ const EditSourcePage = (): React.ReactNode => {
                   variant="ghost"
                   size="sm"
                   onClick={() => setConfirmDelete(false)}
+                  data-ai-id="edit-source-cancel-delete"
+                  data-ai-role="button"
+                  data-ai-label="Cancel delete"
                 >
                   Cancel
                 </Button>
@@ -201,6 +223,9 @@ const EditSourcePage = (): React.ReactNode => {
                 variant="destructive"
                 size="sm"
                 onClick={() => setConfirmDelete(true)}
+                data-ai-id="edit-source-delete"
+                data-ai-role="button"
+                data-ai-label="Delete source"
               >
                 Delete source
               </Button>

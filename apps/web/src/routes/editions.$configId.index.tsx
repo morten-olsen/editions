@@ -159,7 +159,7 @@ const EditionConfigDetailPage = (): React.ReactNode => {
   return (
     <>
       {/* Header: name + cog */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8" data-ai-id="edition-header" data-ai-role="heading" data-ai-label={config.name}>
         <h1 className="text-2xl font-serif font-medium tracking-tight text-ink">
           {config.name}
         </h1>
@@ -169,6 +169,10 @@ const EditionConfigDetailPage = (): React.ReactNode => {
             size="sm"
             disabled={generateMutation.isPending}
             onClick={() => handleGenerate()}
+            data-ai-id="edition-generate"
+            data-ai-role="button"
+            data-ai-label="Generate issue"
+            data-ai-state={generateMutation.isPending ? "loading" : "idle"}
           >
             {generateMutation.isPending ? "Generating..." : "Generate issue"}
           </Button>
@@ -177,6 +181,9 @@ const EditionConfigDetailPage = (): React.ReactNode => {
             params={{ configId }}
             className="p-2 rounded-md text-ink-tertiary hover:text-ink hover:bg-surface-sunken transition-colors duration-fast"
             aria-label="Edit edition settings"
+            data-ai-id="edition-edit"
+            data-ai-role="link"
+            data-ai-label="Edit edition settings"
           >
             <CogIcon />
           </Link>
@@ -184,7 +191,7 @@ const EditionConfigDetailPage = (): React.ReactNode => {
       </div>
 
       {error && (
-        <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6">
+        <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6" data-ai-id="edition-error" data-ai-role="error" data-ai-error={error}>
           {error}
         </div>
       )}
@@ -225,11 +232,14 @@ const EditionConfigDetailPage = (): React.ReactNode => {
           {readFilter === "unread" ? "All caught up!" : "No read issues yet."}
         </div>
       ) : (
-        <div className="divide-y divide-border">
+        <div className="divide-y divide-border" data-ai-id="edition-issues" data-ai-role="list" data-ai-label={`${filtered.length} issues`}>
           {filtered.map((edition) => (
             <div
               key={edition.id}
               className="flex items-center justify-between py-4"
+              data-ai-id={`edition-issue-${edition.id}`}
+              data-ai-role="section"
+              data-ai-label={edition.title}
             >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
@@ -240,6 +250,9 @@ const EditionConfigDetailPage = (): React.ReactNode => {
                     to="/editions/$configId/issues/$editionId"
                     params={{ configId, editionId: edition.id }}
                     className={`font-serif font-medium hover:text-accent transition-colors duration-fast ${edition.readAt ? "text-ink-secondary" : "text-ink"}`}
+                    data-ai-id={`edition-issue-${edition.id}-link`}
+                    data-ai-role="link"
+                    data-ai-label={edition.title}
                   >
                     {edition.title}
                   </Link>

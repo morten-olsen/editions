@@ -24,6 +24,7 @@ type EditionConfigFocus = {
   budgetType: "time" | "count";
   budgetValue: number;
   lookbackHours: number | null;
+  excludePriorEditions: boolean | null;
   weight: number;
 };
 
@@ -44,7 +45,30 @@ type FocusConfig = {
   budgetType: "time" | "count";
   budgetValue: number;
   lookbackHours: number | null;
+  excludePriorEditions: boolean | null;
   weight: number;
+};
+
+const SCHEDULE_PRESETS = [
+  { label: "Daily at 7am", value: "0 7 * * *" },
+  { label: "Daily at 8am", value: "0 8 * * *" },
+  { label: "Daily at noon", value: "0 12 * * *" },
+  { label: "Weekdays at 7am", value: "0 7 * * 1-5" },
+  { label: "Weekdays at 8am", value: "0 8 * * 1-5" },
+  { label: "Every Monday at 8am", value: "0 8 * * 1" },
+  { label: "Every Friday at 5pm", value: "0 17 * * 5" },
+  { label: "Custom…", value: "__custom__" },
+] as const;
+
+const selectClasses =
+  "rounded-md border border-border bg-surface-raised px-2.5 py-2 text-sm text-ink focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20";
+
+const priorityLabel = (w: number): string => {
+  if (w <= 0.1) return "Off";
+  if (w < 0.75) return "Low";
+  if (w <= 1.25) return "Normal";
+  if (w <= 2.1) return "High";
+  return "Top";
 };
 
 const EditEditionConfigPage = (): React.ReactNode => {
@@ -100,6 +124,7 @@ const EditEditionConfigPage = (): React.ReactNode => {
         budgetType: f.budgetType,
         budgetValue: f.budgetValue,
         lookbackHours: f.lookbackHours,
+        excludePriorEditions: f.excludePriorEditions,
         weight: f.weight,
       })),
     );
@@ -132,7 +157,7 @@ const EditEditionConfigPage = (): React.ReactNode => {
   const allFocuses = focusesQuery.data ?? [];
 
   if (loading) {
-    return <div className="text-sm text-ink-tertiary py-12 text-center">Loading...</div>;
+    return <div className="text-sm text-ink-tertiary py-12 text-center">Loading…</div>;
   }
 
   if (!config) {
@@ -144,6 +169,8 @@ const EditEditionConfigPage = (): React.ReactNode => {
   }
 
   const selectedIds = new Set(selectedFocuses.map((f) => f.focusId));
+  const isPresetSchedule = SCHEDULE_PRESETS.some((p) => p.value !== "__custom__" && p.value === schedule);
+  const scheduleSelectValue = isPresetSchedule ? schedule : "__custom__";
 
   const toggleFocus = (focusId: string): void => {
     setSelectedFocuses((prev) => {
@@ -151,15 +178,15 @@ const EditEditionConfigPage = (): React.ReactNode => {
       if (existing) return prev.filter((f) => f.focusId !== focusId);
       return [
         ...prev,
-        { focusId, position: prev.length, budgetType: "count" as const, budgetValue: 5, lookbackHours: null, weight: 1 },
+        { focusId, position: prev.length, budgetType: "count" as const, budgetValue: 5, lookbackHours: null, excludePriorEditions: null, weight: 1 },
       ];
     });
   };
 
   const updateFocusField = (
     focusId: string,
-    field: "budgetType" | "budgetValue" | "lookbackHours" | "weight",
-    value: string | number | null,
+    field: "budgetType" | "budgetValue" | "lookbackHours" | "excludePriorEditions" | "weight",
+    value: string | number | boolean | null,
   ): void => {
     setSelectedFocuses((prev) =>
       prev.map((f) => (f.focusId === focusId ? { ...f, [field]: value } : f)),
@@ -204,6 +231,7 @@ const EditEditionConfigPage = (): React.ReactNode => {
           budgetType: f.budgetType,
           budgetValue: f.budgetValue,
           lookbackHours: f.lookbackHours,
+          excludePriorEditions: f.excludePriorEditions,
           weight: f.weight,
         })),
       );
@@ -215,6 +243,7 @@ const EditEditionConfigPage = (): React.ReactNode => {
         budgetType: f.budgetType,
         budgetValue: f.budgetValue,
         lookbackHours: f.lookbackHours,
+        excludePriorEditions: f.excludePriorEditions,
         weight: f.weight,
       }));
     }
@@ -246,38 +275,70 @@ const EditEditionConfigPage = (): React.ReactNode => {
             onChange={(e) => setName(e.target.value)}
           />
           <IconPicker value={icon} onChange={setIcon} />
-          <Input
-            label="Schedule"
-            description="Cron expression"
-            required
-            value={schedule}
-            onChange={(e) => setSchedule(e.target.value)}
-            className="font-mono"
-          />
-          <div>
-            <label htmlFor="lookback" className="block text-sm font-medium text-ink mb-1.5">
-              Lookback window
+
+          {/* Schedule */}
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="schedule-preset" className="text-sm font-medium text-ink">
+              Delivery schedule
             </label>
+            <p className="text-xs text-ink-tertiary -mt-0.5">When this edition is automatically generated</p>
+            <select
+              id="schedule-preset"
+              value={scheduleSelectValue}
+              onChange={(e) => {
+                if (e.target.value !== "__custom__") setSchedule(e.target.value);
+              }}
+              className={`w-full ${selectClasses}`}
+            >
+              {SCHEDULE_PRESETS.map((p) => (
+                <option key={p.value} value={p.value}>{p.label}</option>
+              ))}
+            </select>
+            {!isPresetSchedule && (
+              <div className="flex flex-col gap-1.5 mt-1">
+                <Input
+                  value={schedule}
+                  onChange={(e) => setSchedule(e.target.value)}
+                  className="font-mono"
+                  placeholder="0 7 * * *"
+                  required
+                />
+                <p className="text-xs text-ink-tertiary">
+                  Cron expression — e.g. <code className="font-mono bg-surface-sunken px-1 rounded">0 7 * * *</code> means daily at 7am
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Lookback */}
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="lookback" className="text-sm font-medium text-ink">
+              How far back to look
+            </label>
+            <p className="text-xs text-ink-tertiary -mt-0.5">How old an article can be to appear in this edition</p>
             <select
               id="lookback"
               value={lookbackHours}
               onChange={(e) => setLookbackHours(Number(e.target.value))}
-              className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent"
+              className={`w-full ${selectClasses}`}
             >
-              <option value={1}>1 hour</option>
-              <option value={24}>24 hours</option>
-              <option value={168}>1 week</option>
-              <option value={730}>1 month</option>
-              <option value={8760}>1 year</option>
+              <option value={1}>Last hour</option>
+              <option value={24}>Last 24 hours</option>
+              <option value={168}>Last week</option>
+              <option value={730}>Last month</option>
+              <option value={8760}>Last year</option>
             </select>
           </div>
+
           <Checkbox
-            label="Exclude articles from prior editions"
+            label="Don't repeat articles across editions"
+            description="Articles that appeared in a previous issue of this digest won't be included again"
             checked={excludePriorEditions}
             onCheckedChange={(checked) => setExcludePriorEditions(checked === true)}
           />
           <Checkbox
-            label="Enabled"
+            label="Active"
+            description="When off, this edition won't be generated automatically"
             checked={enabled}
             onCheckedChange={(checked) => setEnabled(checked === true)}
           />
@@ -287,12 +348,14 @@ const EditEditionConfigPage = (): React.ReactNode => {
 
         {/* Selected focuses */}
         <div>
-          <div className="text-xs text-ink-tertiary tracking-wide uppercase mb-3">
-            Sections {selectedFocuses.length > 0 && `(${selectedFocuses.length})`}
+          <div className="text-sm font-medium text-ink mb-0.5">
+            Topics {selectedFocuses.length > 0 && <span className="text-ink-tertiary font-normal">({selectedFocuses.length})</span>}
           </div>
+          <p className="text-xs text-ink-tertiary mb-4">Each topic becomes a section in your edition. Use the arrows ↑↓ to reorder.</p>
           {selectedFocuses.length === 0 ? (
-            <div className="text-sm text-ink-tertiary py-4">
-              No sections added yet. Add focuses below.
+            <div className="rounded-lg border border-dashed border-border py-6 text-center">
+              <p className="text-sm text-ink-tertiary">No topics added yet.</p>
+              <p className="text-xs text-ink-faint mt-1">Choose from the list below to get started.</p>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -313,6 +376,7 @@ const EditEditionConfigPage = (): React.ReactNode => {
                           onClick={() => moveFocus(focusConfig.focusId, -1)}
                           disabled={idx === 0}
                           className="rounded px-1.5 py-0.5 text-xs text-ink-tertiary hover:bg-surface-sunken disabled:opacity-30 cursor-pointer"
+                          aria-label="Move up"
                         >
                           &uarr;
                         </button>
@@ -321,6 +385,7 @@ const EditEditionConfigPage = (): React.ReactNode => {
                           onClick={() => moveFocus(focusConfig.focusId, 1)}
                           disabled={idx === selectedFocuses.length - 1}
                           className="rounded px-1.5 py-0.5 text-xs text-ink-tertiary hover:bg-surface-sunken disabled:opacity-30 cursor-pointer"
+                          aria-label="Move down"
                         >
                           &darr;
                         </button>
@@ -328,6 +393,7 @@ const EditEditionConfigPage = (): React.ReactNode => {
                           type="button"
                           onClick={() => toggleFocus(focusConfig.focusId)}
                           className="ml-1 rounded px-1.5 py-0.5 text-xs text-ink-tertiary hover:text-critical cursor-pointer"
+                          aria-label="Remove"
                         >
                           &times;
                         </button>
@@ -335,31 +401,34 @@ const EditEditionConfigPage = (): React.ReactNode => {
                     </div>
                     <div className="flex flex-col gap-4 pl-8">
                       {/* Budget */}
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs text-ink-tertiary w-16 shrink-0">Budget</span>
-                        <input
-                          type="number"
-                          min={1}
-                          value={focusConfig.budgetValue}
-                          onChange={(e) =>
-                            updateFocusField(focusConfig.focusId, "budgetValue", Number(e.target.value))
-                          }
-                          className="w-16 rounded-md border border-border bg-surface-raised px-2.5 py-1.5 text-sm text-ink focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
-                        />
-                        <select
-                          value={focusConfig.budgetType}
-                          onChange={(e) =>
-                            updateFocusField(focusConfig.focusId, "budgetType", e.target.value)
-                          }
-                          className="rounded-md border border-border bg-surface-raised px-2.5 py-1.5 text-sm text-ink-secondary focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
-                        >
-                          <option value="count">articles</option>
-                          <option value="time">minutes</option>
-                        </select>
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-xs text-ink-tertiary">Include up to</span>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min={1}
+                            value={focusConfig.budgetValue}
+                            onChange={(e) =>
+                              updateFocusField(focusConfig.focusId, "budgetValue", Number(e.target.value))
+                            }
+                            className="w-16 rounded-md border border-border bg-surface-raised px-2.5 py-1.5 text-sm text-ink focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+                          />
+                          <select
+                            value={focusConfig.budgetType}
+                            onChange={(e) =>
+                              updateFocusField(focusConfig.focusId, "budgetType", e.target.value)
+                            }
+                            className={selectClasses}
+                          >
+                            <option value="count">articles</option>
+                            <option value="time">minutes of reading</option>
+                          </select>
+                        </div>
                       </div>
+
                       {/* Lookback override */}
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs text-ink-tertiary w-16 shrink-0">Lookback</span>
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-xs text-ink-tertiary">Age limit</span>
                         <select
                           value={focusConfig.lookbackHours === null ? "" : String(focusConfig.lookbackHours)}
                           onChange={(e) =>
@@ -369,33 +438,63 @@ const EditEditionConfigPage = (): React.ReactNode => {
                               e.target.value === "" ? null : Number(e.target.value),
                             )
                           }
-                          className="rounded-md border border-border bg-surface-raised px-2.5 py-1.5 text-sm text-ink-secondary focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+                          className={selectClasses}
                         >
-                          <option value="">Use default</option>
-                          <option value="1">1 hour</option>
-                          <option value="24">24 hours</option>
-                          <option value="168">1 week</option>
-                          <option value="730">1 month</option>
-                          <option value="8760">1 year</option>
+                          <option value="">Same as edition default</option>
+                          <option value="1">Last hour only</option>
+                          <option value="24">Last 24 hours</option>
+                          <option value="168">Last week</option>
+                          <option value="730">Last month</option>
+                          <option value="8760">Last year</option>
                         </select>
                       </div>
-                      {/* Priority */}
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs text-ink-tertiary w-16 shrink-0">Priority</span>
-                        <input
-                          type="range"
-                          min={0}
-                          max={3}
-                          step={0.1}
-                          value={focusConfig.weight}
-                          onChange={(e) =>
-                            updateFocusField(focusConfig.focusId, "weight", Number(e.target.value))
+
+                      {/* Past edition articles */}
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-xs text-ink-tertiary">Past issue articles</span>
+                        <select
+                          value={
+                            focusConfig.excludePriorEditions === null
+                              ? ""
+                              : focusConfig.excludePriorEditions
+                              ? "true"
+                              : "false"
                           }
-                          className="flex-1 accent-accent"
-                        />
-                        <span className="text-xs text-ink-secondary tabular-nums w-6 text-right">
-                          {focusConfig.weight.toFixed(1)}
-                        </span>
+                          onChange={(e) =>
+                            updateFocusField(
+                              focusConfig.focusId,
+                              "excludePriorEditions",
+                              e.target.value === "" ? null : e.target.value === "true",
+                            )
+                          }
+                          className={selectClasses}
+                        >
+                          <option value="">Use edition setting</option>
+                          <option value="true">Skip — don&apos;t repeat past articles</option>
+                          <option value="false">Allow — past articles can reappear</option>
+                        </select>
+                      </div>
+
+                      {/* Priority */}
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-xs text-ink-tertiary">Priority</span>
+                        <p className="text-xs text-ink-faint -mt-1">How much to favour this topic when selecting articles</p>
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="range"
+                            min={0}
+                            max={3}
+                            step={0.1}
+                            value={focusConfig.weight}
+                            onChange={(e) =>
+                              updateFocusField(focusConfig.focusId, "weight", Number(e.target.value))
+                            }
+                            className="flex-1 accent-accent"
+                          />
+                          <span className="text-xs font-medium text-ink-secondary tabular-nums w-12 text-right">
+                            {priorityLabel(focusConfig.weight)}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -405,10 +504,11 @@ const EditEditionConfigPage = (): React.ReactNode => {
           )}
         </div>
 
-        {/* Available focuses */}
+        {/* Available focuses to add */}
         {allFocuses.filter((f) => !selectedIds.has(f.id)).length > 0 && (
           <div>
-            <div className="text-xs text-ink-tertiary tracking-wide uppercase mb-3">Add focuses</div>
+            <div className="text-sm font-medium text-ink mb-0.5">Available topics</div>
+            <p className="text-xs text-ink-tertiary mb-3">Add topics to include them as sections in your edition</p>
             <div className="flex flex-col gap-2">
               {allFocuses
                 .filter((f) => !selectedIds.has(f.id))
@@ -436,7 +536,7 @@ const EditEditionConfigPage = (): React.ReactNode => {
 
         <div className="flex items-center gap-3">
           <Button variant="primary" type="submit" disabled={updateMutation.isPending}>
-            {updateMutation.isPending ? "Saving..." : "Save changes"}
+            {updateMutation.isPending ? "Saving…" : "Save changes"}
           </Button>
           <Button
             variant="ghost"

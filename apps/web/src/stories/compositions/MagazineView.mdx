@@ -1,0 +1,431 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import { Button } from "../../components/button.tsx";
+
+<Meta title="Design System/Compositions/Magazine View" />
+
+<div style={{ maxWidth: "72rem", margin: "0 auto", padding: "4rem 0", fontFamily: "var(--font-sans)" }}>
+
+<div style={{ color: "var(--color-ink-tertiary)", fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: "1.5rem" }}>Compositions</div>
+
+# Magazine view
+
+<div style={{ fontSize: "1.2rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginTop: "1rem", marginBottom: "4rem", maxWidth: "65ch" }}>
+  The magazine view is the primary reading experience for editions. Each page takes the full viewport — there is no infinite scroll, no "load more". Reading an edition is like reading an issue of a magazine: it has a cover, a table of contents, sections, and an ending. Being done is the feature.
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", marginBottom: "4rem" }} />
+
+## The page model
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", overflow: "hidden", background: "var(--color-surface)" }}>
+      <div style={{ borderBottom: "1px solid var(--color-border)", padding: "0.5rem 0.75rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span style={{ fontSize: "0.65rem", fontFamily: "var(--font-mono)", color: "var(--color-ink-tertiary)" }}>Cover</span>
+        <span style={{ fontSize: "0.65rem", fontFamily: "var(--font-mono)", color: "var(--color-ink-faint)" }}>01 / 14</span>
+      </div>
+      <div style={{ padding: "0.75rem", display: "flex", flexDirection: "column", gap: "0.375rem" }}>
+        {["Cover", "Contents", "01 Technology", "Article", "Article", "Article", "02 Science", "Article", "03 Global News", "Article", "Article", "…", "Finale"].map((label, i) => (
+          <div key={i} style={{ fontSize: "0.7rem", padding: "0.2rem 0.5rem", borderRadius: "0.25rem", background: i === 0 ? "var(--color-accent)" : "transparent", color: i === 0 ? "var(--color-accent-ink)" : label.startsWith("0") ? "var(--color-ink)" : label === "…" ? "var(--color-ink-faint)" : "var(--color-ink-secondary)", fontFamily: label.startsWith("0") || label === "…" ? "var(--font-mono)" : "var(--font-sans)", fontWeight: label.startsWith("0") ? 500 : "normal" }}>{label}</div>
+        ))}
+      </div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>Every edition maps to a fixed sequence of pages: cover, table of contents, then for each topic a section divider followed by its articles, and finally a finale. The order is deterministic — you always know where you are.</p>
+    <p style={{ margin: 0 }}>Pages are navigated one at a time. There is no pagination within a page (article body scrolls within the page). The bottom navigation bar shows the current position as a monospaced fraction: <strong style={{ color: "var(--color-ink)", fontFamily: "var(--font-mono)", fontSize: "0.8rem" }}>03 / 14</strong>.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Cover page
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ borderRadius: "0.5rem", overflow: "hidden", background: "#111", color: "white", padding: "1.25rem", display: "flex", flexDirection: "column", gap: "0", minHeight: "16rem", position: "relative" }}>
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.8) 100%)", borderRadius: "0.5rem" }} />
+      <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", paddingBottom: "0.75rem", borderBottom: "1px solid rgba(255,255,255,0.2)", marginBottom: "1.5rem" }}>
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "baseline" }}>
+          <span style={{ fontSize: "0.6rem", fontFamily: "var(--font-mono)", color: "rgba(255,255,255,0.9)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Editions</span>
+          <span style={{ fontSize: "0.6rem", color: "rgba(255,255,255,0.4)" }}>/</span>
+          <span style={{ fontSize: "0.6rem", color: "rgba(255,255,255,0.7)", letterSpacing: "0.04em", textTransform: "uppercase" }}>Morning Briefing</span>
+        </div>
+        <span style={{ fontSize: "0.6rem", fontFamily: "var(--font-mono)", color: "rgba(255,255,255,0.5)" }}>Tue, 11 Mar 2026</span>
+      </div>
+      <div style={{ position: "relative", zIndex: 1, flex: 1 }}>
+        <div style={{ fontSize: "0.6rem", fontFamily: "var(--font-mono)", color: "rgba(255,255,255,0.7)", marginBottom: "0.5rem" }}>Ars Technica</div>
+        <div style={{ fontSize: "1.4rem", fontFamily: "var(--font-serif)", lineHeight: 1.1, color: "white", marginBottom: "0.75rem" }}>The quiet revolution in reader design</div>
+        <div style={{ fontSize: "0.6rem", color: "rgba(255,255,255,0.6)" }}>8 min read</div>
+        <div style={{ marginTop: "0.75rem" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", fontSize: "0.65rem", fontWeight: 500, padding: "0.35rem 0.75rem", borderRadius: "9999px", background: "rgba(255,255,255,0.15)", color: "white", border: "1px solid rgba(255,255,255,0.2)" }}>Start reading →</div>
+        </div>
+      </div>
+      <div style={{ position: "relative", zIndex: 1, paddingTop: "0.75rem", borderTop: "1px solid rgba(255,255,255,0.2)", marginTop: "1rem", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+        <div style={{ display: "flex", gap: "0.75rem" }}>
+          <div style={{ maxWidth: "6rem" }}>
+            <div style={{ fontSize: "0.55rem", color: "rgba(255,255,255,0.5)", fontFamily: "var(--font-mono)", marginBottom: "0.25rem" }}>Nature</div>
+            <div style={{ fontSize: "0.6rem", fontFamily: "var(--font-serif)", color: "rgba(255,255,255,0.85)", lineHeight: 1.3 }}>JWST captures the universe's first galaxies</div>
+          </div>
+          <div style={{ maxWidth: "6rem" }}>
+            <div style={{ fontSize: "0.55rem", color: "rgba(255,255,255,0.5)", fontFamily: "var(--font-mono)", marginBottom: "0.25rem" }}>The Guardian</div>
+            <div style={{ fontSize: "0.6rem", fontFamily: "var(--font-serif)", color: "rgba(255,255,255,0.85)", lineHeight: 1.3 }}>Europe's new data sovereignty framework</div>
+          </div>
+        </div>
+        <div style={{ fontSize: "0.55rem", fontFamily: "var(--font-mono)", color: "rgba(255,255,255,0.4)", textAlign: "right" }}>8 articles<br />3 sections<br />14 min</div>
+      </div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>The cover sets the mood for the edition. The lead article — the first article of the first section — dominates the page. Its image becomes the full-bleed background, with gradient overlays preserving legibility of the white-on-image text.</p>
+    <p style={{ margin: "0 0 0.75rem" }}>Two highlight teasers at the bottom preview the other sections, giving a sense of what's coming. The edition stats (article count, section count, total minutes) are shown in monospace at the bottom right — a commitment rather than a claim. The "Start reading" button navigates to page 2 (the TOC).</p>
+    <p style={{ margin: 0 }}>When the lead article has no image, the cover uses surface color and the accent palette instead of the dark overlay treatment. The layout remains the same — just calmer.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Table of contents — the page
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", padding: "1.25rem", background: "var(--color-surface)" }}>
+      <div style={{ fontSize: "0.6rem", fontFamily: "var(--font-mono)", color: "var(--color-accent)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "0.375rem" }}>Contents</div>
+      <div style={{ fontSize: "1.1rem", fontFamily: "var(--font-serif)", color: "var(--color-ink)", marginBottom: "1.25rem" }}>Morning Briefing</div>
+      {[
+        { num: "01", name: "Technology", page: "02", articles: [{ title: "The quiet revolution in reader design", source: "Ars Technica", time: "8m" }, { title: "TypeScript 6.0 introduces pattern matching", source: "Hacker News", time: "3m" }] },
+        { num: "02", name: "Science", page: "07", articles: [{ title: "JWST captures the universe's first galaxies", source: "Nature", time: "6m" }] },
+        { num: "03", name: "Global News", page: "09", articles: [{ title: "Europe's new data sovereignty framework", source: "The Guardian", time: "4m" }] },
+      ].map(s => (
+        <div key={s.num} style={{ marginBottom: "1rem" }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", paddingBottom: "0.375rem", borderBottom: "1px solid var(--color-border)", marginBottom: "0.5rem" }}>
+            <span style={{ fontSize: "0.9rem", fontFamily: "var(--font-mono)", color: "var(--color-accent)" }}>{s.num}</span>
+            <span style={{ fontSize: "0.875rem", fontFamily: "var(--font-serif)", color: "var(--color-ink)" }}>{s.name}</span>
+            <span style={{ marginLeft: "auto", fontSize: "0.6rem", fontFamily: "var(--font-mono)", color: "var(--color-ink-faint)" }}>p. {s.page}</span>
+          </div>
+          <div style={{ paddingLeft: "0.75rem", borderLeft: "1px solid var(--color-border)", display: "flex", flexDirection: "column", gap: "0.375rem" }}>
+            {s.articles.map(a => (
+              <div key={a.title} style={{ display: "flex", alignItems: "baseline", gap: "0.375rem" }}>
+                <span style={{ fontSize: "0.7rem", fontFamily: "var(--font-serif)", color: "var(--color-ink-secondary)", lineHeight: 1.3, flex: 1 }}>{a.title}</span>
+                <span style={{ fontSize: "0.6rem", fontFamily: "var(--font-mono)", color: "var(--color-ink-faint)", whiteSpace: "nowrap" }}>{a.source} · {a.time}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>The table of contents is page 2 — immediately after the cover. It orients the reader: here are the sections, here are the articles, here's roughly how long each takes. Clicking any article jumps directly to that page.</p>
+    <p style={{ margin: "0 0 0.75rem" }}>Section headers use the monospace number + serif name pattern that recurs throughout the magazine. Dotted leaders (the faint dashed line between title and metadata) are a deliberate typographic reference to print table of contents pages.</p>
+    <p style={{ margin: 0 }}>Source name and reading time appear in monospace at the right — small, unobtrusive, but there if you want to scan for something quick or plan your reading time.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Section divider
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", background: "var(--color-surface)", padding: "2rem 1.5rem", textAlign: "center", position: "relative", overflow: "hidden" }}>
+      <div style={{ fontSize: "5rem", fontFamily: "var(--font-mono)", lineHeight: 1, color: "var(--color-accent)", opacity: 0.12, position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", userSelect: "none", zIndex: 0 }}>01</div>
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <div style={{ fontSize: "1.75rem", fontFamily: "var(--font-serif)", letterSpacing: "-0.02em", color: "var(--color-ink)", marginBottom: "0.5rem" }}>Technology</div>
+        <div style={{ fontSize: "0.65rem", fontFamily: "var(--font-mono)", color: "var(--color-ink-tertiary)", letterSpacing: "0.05em", marginBottom: "1rem" }}>4 articles · 8 min</div>
+        <div style={{ width: "3rem", height: "1px", background: "var(--color-accent)", margin: "0 auto" }} />
+      </div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>Section dividers are palette-cleansers between topics. They give the reader a moment to transition — like the chapter break in a book, or the section header in a magazine. They also tell you what's coming: the section name, how many articles, and how long it will take.</p>
+    <p style={{ margin: 0 }}>The oversized section number in the background (very faint, in accent color) creates depth and visual interest without competing with the text. The decorative accent rule below the metadata echoes the cover's structural lines.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Article layouts
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "2rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ fontSize: "0.75rem", color: "var(--color-ink-tertiary)", marginBottom: "0.5rem" }}>Position 0 in section — Hero</div>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", background: "var(--color-surface)", padding: "1rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", alignItems: "center" }}>
+        <div>
+          <div style={{ fontSize: "0.6rem", fontFamily: "var(--font-mono)", color: "var(--color-accent)", marginBottom: "0.375rem" }}>Ars Technica · 11 Mar</div>
+          <div style={{ fontSize: "1rem", fontFamily: "var(--font-serif)", lineHeight: 1.2, color: "var(--color-ink)", marginBottom: "0.5rem" }}>The quiet revolution in reader design</div>
+          <div style={{ fontSize: "0.6rem", color: "var(--color-ink-tertiary)" }}>8 min read</div>
+        </div>
+        <div style={{ aspectRatio: "4/3", borderRadius: "0.375rem", background: "var(--color-surface-sunken)", overflow: "hidden" }}>
+          <img src="https://picsum.photos/seed/reader-mag/320/240" alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    The <strong style={{ color: "var(--color-ink)" }}>Hero layout</strong> is used for the first article in each section (position 0). It's a two-column grid: text on the left, image on the right. On small screens the image appears above. This is the most visually prominent layout — appropriate for the lead story in each section. The title is largest here.
+  </div>
+</div>
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "2rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ fontSize: "0.75rem", color: "var(--color-ink-tertiary)", marginBottom: "0.5rem" }}>Position 1 in section — Editorial</div>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", background: "var(--color-surface)", padding: "1rem", textAlign: "center" }}>
+      <div style={{ fontSize: "0.6rem", fontFamily: "var(--font-mono)", color: "var(--color-accent)", marginBottom: "0.5rem" }}>Hacker News</div>
+      <div style={{ fontSize: "1.05rem", fontFamily: "var(--font-serif)", lineHeight: 1.2, color: "var(--color-ink)", marginBottom: "0.5rem" }}>TypeScript 6.0 introduces pattern matching</div>
+      <div style={{ width: "2rem", height: "1px", background: "var(--color-border-strong)", margin: "0 auto 0.5rem" }} />
+      <div style={{ fontSize: "0.7rem", fontFamily: "var(--font-serif)", color: "var(--color-ink-secondary)", lineHeight: 1.4 }}>The long-awaited pattern matching RFC lands in TypeScript, bringing exhaustive checks and destructuring to a new level.</div>
+      <div style={{ fontSize: "0.6rem", color: "var(--color-ink-tertiary)", marginTop: "0.5rem" }}>3 min read</div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    The <strong style={{ color: "var(--color-ink)" }}>Editorial layout</strong> is used for the second article (position 1). Everything is centered — source badge, title, decorative rule, summary. The typographic focus suits shorter or more literary pieces. It doesn't depend on having an image, so it works equally well for text-only articles.
+  </div>
+</div>
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ fontSize: "0.75rem", color: "var(--color-ink-tertiary)", marginBottom: "0.5rem" }}>Position 2 in section — Compact</div>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", background: "var(--color-surface)", padding: "1rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "3rem 1fr", gap: "0.75rem", alignItems: "start" }}>
+        <div style={{ aspectRatio: "1", borderRadius: "0.25rem", background: "var(--color-surface-sunken)", overflow: "hidden" }}>
+          <img src="https://picsum.photos/seed/sqlite-mag/120/120" alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        </div>
+        <div>
+          <div style={{ fontSize: "0.6rem", fontFamily: "var(--font-mono)", color: "var(--color-accent)", marginBottom: "0.3rem" }}>Hacker News</div>
+          <div style={{ fontSize: "0.85rem", fontFamily: "var(--font-serif)", lineHeight: 1.2, color: "var(--color-ink)", marginBottom: "0.35rem" }}>Why SQLite is the database you didn't know you needed</div>
+          <div style={{ fontSize: "0.6rem", color: "var(--color-ink-tertiary)" }}>12 min read</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    The <strong style={{ color: "var(--color-ink)" }}>Compact layout</strong> is used for the third article (position 2) and cycles back from there. The image goes into a square sidebar, making the text the star. When there is no image, the sidebar becomes a source card with an accent top border. It's a useful counterpoint to the hero — more restrained.
+  </div>
+</div>
+
+<div style={{ fontSize: "0.833rem", color: "var(--color-ink-tertiary)", marginBottom: "4rem", padding: "1rem 1.25rem", borderLeft: "2px solid var(--color-border)", lineHeight: 1.5 }}>
+  Layouts alternate by position within each section (0 → Hero, 1 → Editorial, 2 → Compact, 3 → Hero again…). This creates visual rhythm across the edition — like a magazine editor varying spreads so no two pages feel the same. The cycle resets at each section divider.
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Podcast layout
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", background: "var(--color-surface)", padding: "1.25rem", textAlign: "center" }}>
+      <div style={{ fontSize: "0.6rem", fontFamily: "var(--font-mono)", color: "var(--color-accent)", marginBottom: "0.75rem", letterSpacing: "0.05em" }}>PODCAST · Software Unscripted</div>
+      <div style={{ width: "7rem", height: "7rem", borderRadius: "0.5rem", overflow: "hidden", background: "var(--color-surface-sunken)", margin: "0 auto 0.75rem", boxShadow: "0 4px 16px rgba(0,0,0,0.12)" }}>
+        <img src="https://picsum.photos/seed/podcast-cover/280/280" alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      </div>
+      <div style={{ fontSize: "0.95rem", fontFamily: "var(--font-serif)", lineHeight: 1.2, color: "var(--color-ink)", marginBottom: "0.75rem" }}>Building finite feeds: architecture for calm software</div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "2px", height: "2rem", marginBottom: "0.625rem" }}>
+        {[8,12,18,14,20,16,10,22,14,18,12,8,16,20,14,10,18,14,8,12,18,16,10].map((h, i) => (
+          <div key={i} style={{ width: "2px", borderRadius: "9999px", background: "var(--color-accent)", opacity: 0.25, height: `${h}px` }} />
+        ))}
+      </div>
+      <div style={{ fontSize: "0.65rem", color: "var(--color-ink-tertiary)" }}>45 min listen</div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>Podcast episodes always use the <strong style={{ color: "var(--color-ink)" }}>Podcast layout</strong>, regardless of their position in the section. The layout doesn't rotate — podcasts need their own visual language that signals "this is audio, not reading".</p>
+    <p style={{ margin: "0 0 0.75rem" }}>Square album art is displayed at moderate scale (w-48 md:w-64), centered, with a subtle shadow. Below it sits either a live audio player (when a media URL is available) or a decorative waveform ornament with the listen time in large numerals.</p>
+    <p style={{ margin: 0 }}>When show notes are present, they flow below the player just as an article body would. The "PODCAST" label in monospace uppercase is the only label in the magazine that identifies a content type explicitly — because the distinction matters to the reader before they commit.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Article body
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", background: "var(--color-surface)", padding: "1.25rem" }}>
+      <div style={{ width: "1px", height: "1.5rem", background: "var(--color-border-strong)", margin: "0 auto 1rem" }} />
+      <div style={{ fontFamily: "var(--font-serif)", fontSize: "0.875rem", lineHeight: 1.7, color: "var(--color-ink-secondary)" }}>
+        <p style={{ margin: "0 0 0.75rem", color: "var(--color-ink)" }}>
+          <span style={{ float: "left", fontSize: "2.8rem", fontFamily: "var(--font-serif)", fontWeight: 700, lineHeight: 1, marginRight: "0.25rem", marginTop: "0.125rem", color: "var(--color-ink)" }}>F</span>
+          or the better part of a decade, the dominant paradigm in digital reading has been the infinite scroll.
+        </p>
+        <p style={{ margin: "0 0 0.75rem" }}>The problem isn't technical — it's attentional. When everything arrives in a single undifferentiated stream, nothing feels important.</p>
+        <blockquote style={{ borderLeft: "2px solid var(--color-accent)", paddingLeft: "0.875rem", margin: "0.875rem 0", fontStyle: "normal", color: "var(--color-ink-secondary)" }}>
+          We're not building a feed. We're building something closer to a daily newspaper.
+        </blockquote>
+      </div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>The prose column uses <code style={{ fontFamily: "var(--font-mono)", background: "var(--color-surface-sunken)", padding: "0.1rem 0.3rem", borderRadius: "0.2rem", fontSize: "0.8rem" }}>max-w-prose</code> to keep line length comfortable regardless of screen width. A thin hairline rule above the body serves as a visual transition from the article header to the content.</p>
+    <p style={{ margin: "0 0 0.75rem" }}>The <strong style={{ color: "var(--color-ink)" }}>drop cap</strong> on the first paragraph's first letter is a typographic tradition — it signals "begin reading here" in a way that nothing else does. The letter floats left, sized to span roughly 2–3 lines.</p>
+    <p style={{ margin: 0 }}>Blockquotes use the accent color as a left border — consistent with the accent palette that runs through the whole magazine. They are <em>not</em> italicised, because the emphasis is structural, not stylistic.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Relevance votes
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", background: "var(--color-surface)", padding: "1.25rem" }}>
+      <div style={{ paddingTop: "1rem", borderTop: "1px solid var(--color-border)", display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem" }}>
+        <span style={{ fontSize: "0.75rem", color: "var(--color-ink-tertiary)" }}>Relevance</span>
+        <div style={{ display: "flex", gap: "0.375rem" }}>
+          <div style={{ padding: "0.375rem 0.75rem", borderRadius: "9999px", border: "1px solid var(--color-border)", background: "var(--color-surface-raised)", fontSize: "0.75rem", color: "var(--color-ink-tertiary)", cursor: "pointer" }}>👍</div>
+          <div style={{ padding: "0.375rem 0.75rem", borderRadius: "9999px", border: "1px solid var(--color-border)", background: "var(--color-surface-raised)", fontSize: "0.75rem", color: "var(--color-ink-tertiary)", cursor: "pointer" }}>👎</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>Relevance voting appears at the end of each article, separated by a thin border. The question is always "Relevance" — not quality, not enjoyment, but whether the article belonged in this topic for you.</p>
+    <p style={{ margin: 0 }}>Votes are scoped to the edition so they influence future generations: the algorithm learns which articles were well-matched to which focuses. The control is only shown when the article is associated with a focus and the voting callback is provided. It never appears on standalone article views.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Next article prompt
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", background: "var(--color-surface)", padding: "1.25rem" }}>
+      <div style={{ marginTop: "1rem", textAlign: "center" }}>
+        <div style={{ width: "1px", height: "1.5rem", background: "var(--color-border)", margin: "0 auto 1rem" }} />
+        <div style={{ fontSize: "0.7rem", fontFamily: "var(--font-mono)", letterSpacing: "0.03em", color: "var(--color-ink-tertiary)", cursor: "pointer" }}>Continue to next article →</div>
+      </div>
+      <div style={{ marginTop: "1.5rem", textAlign: "center" }}>
+        <div style={{ width: "1px", height: "1.5rem", background: "var(--color-border)", margin: "0 auto 1rem" }} />
+        <div style={{ fontSize: "0.7rem", fontFamily: "var(--font-mono)", letterSpacing: "0.03em", color: "var(--color-ink-faint)" }}>End of edition</div>
+      </div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>At the bottom of every article body is a gentle prompt. When more pages follow, it reads "Continue to next article →". On the final article, it reads "End of edition". Both are in monospace, small, and subdued.</p>
+    <p style={{ margin: 0 }}>The key word is <em>gentle</em>. There is no autoplay, no countdown, no "up next" card pushing itself into view. You scroll to the bottom and see one small line. You choose whether to continue. The navigation is yours.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Navigation bar
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", background: "var(--color-surface)", overflow: "hidden" }}>
+      <div style={{ height: "4rem", background: "var(--color-surface-sunken)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <span style={{ fontSize: "0.7rem", color: "var(--color-ink-faint)" }}>page content</span>
+      </div>
+      <div style={{ padding: "0.625rem 1rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "1.25rem", background: "linear-gradient(to top, var(--color-surface) 0%, rgba(255,255,255,0) 100%)" }}>
+        <div style={{ fontSize: "0.65rem", color: "var(--color-ink-tertiary)", cursor: "pointer" }}>☰</div>
+        <div style={{ fontSize: "0.65rem", fontFamily: "var(--font-mono)", color: "var(--color-ink-tertiary)", letterSpacing: "0.05em" }}>Prev</div>
+        <div style={{ fontSize: "0.7rem", fontFamily: "var(--font-mono)", color: "var(--color-ink-tertiary)", letterSpacing: "0.04em" }}>03 / 14</div>
+        <div style={{ fontSize: "0.65rem", fontFamily: "var(--font-mono)", color: "var(--color-ink-tertiary)", letterSpacing: "0.05em" }}>Next</div>
+      </div>
+    </div>
+    <div style={{ fontSize: "0.75rem", color: "var(--color-ink-faint)", marginTop: "0.5rem", textAlign: "center" }}>Bottom nav with TOC toggle</div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>The navigation bar is fixed to the bottom of the screen, visible on all pages except the cover (page 0 has no nav — the cover is its own world). It fades in from the page background via a vertical gradient, never feeling like a hard edge.</p>
+    <p style={{ margin: "0 0 0.75rem" }}>Prev and Next are text buttons in monospace. The page counter — <strong style={{ color: "var(--color-ink)", fontFamily: "var(--font-mono)", fontSize: "0.8rem" }}>03 / 14</strong> — uses <code style={{ fontFamily: "var(--font-mono)", background: "var(--color-surface-sunken)", padding: "0.1rem 0.3rem", borderRadius: "0.2rem", fontSize: "0.8rem" }}>tabular-nums</code> so it doesn't shift width as you progress. Both Prev and Next disable gracefully at the edges.</p>
+    <p style={{ margin: 0 }}>The list icon on the left opens the TOC panel. It turns accent-colored when the panel is open so the state is always clear.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Table of contents — the panel
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.75rem", background: "var(--color-surface)", boxShadow: "0 8px 32px rgba(0,0,0,0.12)", padding: "1rem" }}>
+      <div style={{ fontSize: "0.55rem", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--color-ink-faint)", marginBottom: "0.75rem" }}>Contents</div>
+      {[
+        { num: "01", name: "Technology", page: "02", articles: ["The quiet revolution in reader design", "TypeScript 6.0 introduces pattern matching"] },
+        { num: "02", name: "Science", page: "07", articles: ["JWST captures the universe's first galaxies"] },
+      ].map(s => (
+        <div key={s.num} style={{ marginBottom: "0.875rem" }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", marginBottom: "0.375rem" }}>
+            <span style={{ fontSize: "0.75rem", fontFamily: "var(--font-serif)", fontWeight: 500, color: "var(--color-ink)", cursor: "pointer" }}>{s.name}</span>
+            <span style={{ flex: 1, borderBottom: "1px dotted var(--color-border)", minWidth: "1rem", transform: "translateY(-2px)" }} />
+            <span style={{ fontSize: "0.6rem", fontFamily: "var(--font-mono)", color: "var(--color-ink-faint)" }}>p. {s.page}</span>
+          </div>
+          <div style={{ paddingLeft: "0.75rem", borderLeft: "1px solid var(--color-border)", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+            {s.articles.map(a => (
+              <div key={a} style={{ display: "flex", alignItems: "baseline", gap: "0.375rem" }}>
+                <span style={{ fontSize: "0.65rem", fontFamily: "var(--font-serif)", color: "var(--color-ink-secondary)", lineHeight: 1.3 }}>{a}</span>
+                <span style={{ flex: 1, borderBottom: "1px dotted rgba(0,0,0,0.1)", minWidth: "1rem", transform: "translateY(-2px)" }} />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>The TOC panel is a second way to access the table of contents — available at any point while reading, not just on page 2. It slides up from below the navigation bar when the list icon is tapped, and closes when tapped again or when you navigate away.</p>
+    <p style={{ margin: 0 }}>The panel is a rounded card with a shadow, scrollable if the edition has many sections. Clicking any section name navigates to the section divider; clicking an article title navigates directly to the article. The dotted leaders and monospace page numbers are the same typographic pattern as the TOC page itself.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Page transitions & input
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", background: "var(--color-surface)", padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
+        <div style={{ fontSize: "0.65rem", fontFamily: "var(--font-mono)", color: "var(--color-ink-tertiary)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Desktop</div>
+        <div style={{ fontSize: "0.75rem", color: "var(--color-ink-secondary)", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+          <div>← → Arrow keys — previous / next page</div>
+          <div>↑ ↓ Arrow keys — scroll within page</div>
+        </div>
+      </div>
+      <div style={{ height: "1px", background: "var(--color-border)" }} />
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
+        <div style={{ fontSize: "0.65rem", fontFamily: "var(--font-mono)", color: "var(--color-ink-tertiary)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Touch</div>
+        <div style={{ fontSize: "0.75rem", color: "var(--color-ink-secondary)", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+          <div>Swipe left / right — previous / next page</div>
+          <div>Tap left / right edge — previous / next page</div>
+          <div>Tap center — no navigation</div>
+        </div>
+      </div>
+      <div style={{ height: "1px", background: "var(--color-border)" }} />
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
+        <div style={{ fontSize: "0.65rem", fontFamily: "var(--font-mono)", color: "var(--color-ink-tertiary)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Animation</div>
+        <div style={{ fontSize: "0.75rem", color: "var(--color-ink-secondary)" }}>Slide (x: ±30px) + scale (0.99→1), 550ms, direction-aware</div>
+      </div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>Page transitions use <strong style={{ color: "var(--color-ink)" }}>direction-aware</strong> animation: going forward slides left, going back slides right. The outgoing page exits to the opposite direction. Scale drops slightly (0.99) on exit, creating a sense of depth without being theatrical. Total duration is 550ms.</p>
+    <p style={{ margin: "0 0 0.75rem" }}>On touch devices, a horizontal swipe of 50px or more (mostly horizontal — not a vertical scroll) turns the page. Tapping the leftmost or rightmost 25% of the screen also turns the page, which suits the natural reading posture of holding a phone with both hands.</p>
+    <p style={{ margin: 0 }}>On desktop, ← and → turn pages. ↑ and ↓ scroll within the current page's content — they are not intercepted. This means long articles scroll naturally without fighting the keyboard.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Finale
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", background: "var(--color-surface)", padding: "2rem 1.5rem", textAlign: "center" }}>
+      <div style={{ fontSize: "2.5rem", color: "var(--color-accent)", opacity: 0.2, marginBottom: "0.75rem", userSelect: "none" }}>~</div>
+      <div style={{ fontSize: "1.25rem", fontFamily: "var(--font-serif)", color: "var(--color-ink)", marginBottom: "0.375rem" }}>You're all caught up</div>
+      <div style={{ fontSize: "0.75rem", color: "var(--color-ink-tertiary)", marginBottom: "1.25rem" }}>8 articles · 14 minutes well spent</div>
+      <div style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", fontSize: "0.8rem", fontWeight: 500, padding: "0.5rem 1.25rem", borderRadius: "9999px", background: "var(--color-accent)", color: "var(--color-accent-ink)", cursor: "pointer" }}>Mark as read</div>
+      <div style={{ fontSize: "0.6rem", fontFamily: "var(--font-mono)", color: "var(--color-ink-faint)", marginTop: "1rem" }}>End of Morning Briefing</div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>The finale is the last page of every edition. It confirms completion — "You're all caught up" — with the total article count and reading time. The <strong style={{ color: "var(--color-ink)" }}>~</strong> ornament (a typographic end mark, like the <em>30</em> used in newspaper journalism to signal the end of a piece) marks the ending without fanfare.</p>
+    <p style={{ margin: "0 0 0.75rem" }}>The "Mark as read" button records that this edition was completed. It's only shown when the callback is provided — in the full route, this marks the edition and returns to the edition list. The finale is <em>not</em> a call to open another edition or scroll to related content. It's just done.</p>
+    <p style={{ margin: 0 }}>This is the most important page in the magazine. The feeling of finishing — of having read something bounded and whole — is what separates editions from infinite feeds.</p>
+  </div>
+</div>
+
+</div>

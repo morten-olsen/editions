@@ -114,6 +114,7 @@ type EditionConfigFocusesTable = {
   budget_type: EditionBudgetType;
   budget_value: number;
   lookback_hours: number | null;
+  exclude_prior_editions: number | null; // null = inherit edition default; 1 = always exclude; 0 = never exclude
   weight: ColumnType<number, number | undefined, number>;
 };
 

@@ -12,6 +12,7 @@ The best interface is the one that disappears. Every token, component, and inter
 - **Focused** — when reading, the interface steps back; content is foreground
 - **Adaptive** — comfortable at any hour, on any device. Light and dark modes respect the reader's environment; layouts are mobile-first, scaling up gracefully
 - **Alive** — elements enter, settle, and depart with intention. Motion is subtle and purposeful — it makes the interface feel physical without drawing attention to itself
+- **Friendly over technical** — speak plainly. No jargon, no raw syntax exposed to users. When something could be "a cron expression" or "daily at 7am", choose the latter. Help text should explain what something does in one plain sentence, not what it is. Users should always feel informed, not bewildered.
 
 ## Tokens
 

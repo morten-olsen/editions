@@ -3,6 +3,7 @@ import { Checkbox as BaseCheckbox } from "@base-ui/react/checkbox";
 
 type CheckboxProps = React.ComponentProps<typeof BaseCheckbox.Root> & {
   label?: string;
+  description?: string;
 };
 
 const CheckIcon = (): React.ReactElement => (
@@ -19,12 +20,13 @@ const CheckIcon = (): React.ReactElement => (
 
 const Checkbox = ({
   label,
+  description,
   className = "",
   ...props
 }: CheckboxProps): React.ReactElement => {
   const control = (
     <BaseCheckbox.Root
-      className={`flex size-5 items-center justify-center rounded border border-border bg-surface-raised transition-colors duration-fast ease-gentle outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface data-[checked]:bg-accent data-[checked]:border-accent data-[checked]:text-accent-ink cursor-pointer ${className}`}
+      className={`flex size-5 shrink-0 items-center justify-center rounded border border-border bg-surface-raised transition-colors duration-fast ease-gentle outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface data-[checked]:bg-accent data-[checked]:border-accent data-[checked]:text-accent-ink cursor-pointer ${className}`}
       {...props}
     >
       <BaseCheckbox.Indicator className="flex data-[unchecked]:hidden">
@@ -36,9 +38,14 @@ const Checkbox = ({
   if (!label) return control;
 
   return (
-    <label className="flex items-center gap-2.5 text-sm text-ink cursor-pointer select-none">
-      {control}
-      {label}
+    <label className={`flex gap-2.5 cursor-pointer select-none ${description ? "items-start" : "items-center"}`}>
+      {description ? <div className="mt-0.5">{control}</div> : control}
+      <div>
+        <span className="text-sm text-ink">{label}</span>
+        {description && (
+          <p className="text-xs text-ink-tertiary mt-0.5">{description}</p>
+        )}
+      </div>
     </label>
   );
 };

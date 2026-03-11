@@ -43,6 +43,7 @@ type EditionConfigFocus = {
   budgetType: EditionBudgetType;
   budgetValue: number;
   lookbackHours: number | null;
+  excludePriorEditions: boolean | null; // null = inherit edition config setting
   weight: number;
 };
 
@@ -77,6 +78,7 @@ type CreateEditionConfigFocusParams = {
   budgetType: EditionBudgetType;
   budgetValue: number;
   lookbackHours?: number | null;
+  excludePriorEditions?: boolean | null;
   weight?: number;
 };
 
@@ -166,6 +168,7 @@ class EditionsService {
               "edition_config_focuses.budget_type",
               "edition_config_focuses.budget_value",
               "edition_config_focuses.lookback_hours",
+              "edition_config_focuses.exclude_prior_editions",
               "edition_config_focuses.weight",
               "focuses.name as focus_name",
             ])
@@ -184,6 +187,7 @@ class EditionsService {
         budgetType: link.budget_type as EditionBudgetType,
         budgetValue: link.budget_value,
         lookbackHours: link.lookback_hours,
+        excludePriorEditions: link.exclude_prior_editions === null ? null : link.exclude_prior_editions === 1,
         weight: link.weight,
       });
       focusesByConfig.set(link.edition_config_id, arr);
@@ -227,6 +231,7 @@ class EditionsService {
         "edition_config_focuses.budget_type",
         "edition_config_focuses.budget_value",
         "edition_config_focuses.lookback_hours",
+        "edition_config_focuses.exclude_prior_editions",
         "edition_config_focuses.weight",
         "focuses.name as focus_name",
       ])
@@ -250,6 +255,7 @@ class EditionsService {
         budgetType: link.budget_type as EditionBudgetType,
         budgetValue: link.budget_value,
         lookbackHours: link.lookback_hours,
+        excludePriorEditions: link.exclude_prior_editions === null ? null : link.exclude_prior_editions === 1,
         weight: link.weight,
       })),
       createdAt: row.created_at,
@@ -341,6 +347,7 @@ class EditionsService {
               budget_type: f.budgetType,
               budget_value: f.budgetValue,
               lookback_hours: f.lookbackHours ?? null,
+              exclude_prior_editions: f.excludePriorEditions === undefined || f.excludePriorEditions === null ? null : f.excludePriorEditions ? 1 : 0,
               weight: f.weight ?? 1,
             })),
           )
@@ -561,10 +568,16 @@ class EditionsService {
       throw new EditionError("Edition config has no focuses");
     }
 
-    // Collect IDs of articles already in prior editions of this config (if configured)
+    // Collect IDs of articles already in prior editions of this config.
+    // The set is built if the edition config has excludePriorEditions enabled,
+    // OR if any focus overrides it to true — so the set is ready for any focus that needs it.
     const excludedArticleIds = new Set<string>();
 
-    if (config.excludePriorEditions) {
+    const needsExcludedSet =
+      config.excludePriorEditions ||
+      config.focuses.some((f) => f.excludePriorEditions === true);
+
+    if (needsExcludedSet) {
       const priorArticles = await db
         .selectFrom("edition_articles")
         .innerJoin("editions", "editions.id", "edition_articles.edition_id")
@@ -702,9 +715,11 @@ class EditionsService {
       scored.sort((a, b) => b.score - a.score);
       const scoredCandidates = scored.map((s) => s.item);
 
-      // Filter out already claimed or excluded articles
+      // Filter out already claimed articles and, if applicable, articles from prior editions.
+      // Per-focus override: null = inherit edition config, true = always exclude, false = never exclude.
+      const effectiveExclude = focusConfig.excludePriorEditions ?? config.excludePriorEditions;
       const eligible = scoredCandidates.filter(
-        (c) => !claimedArticleIds.has(c.id) && !excludedArticleIds.has(c.id),
+        (c) => !claimedArticleIds.has(c.id) && (!effectiveExclude || !excludedArticleIds.has(c.id)),
       );
 
       // Group by source for weighted round-robin

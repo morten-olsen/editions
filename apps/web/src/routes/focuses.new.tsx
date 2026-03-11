@@ -24,6 +24,25 @@ type SourceSelection = {
   weight: number;
 };
 
+const selectClasses =
+  "rounded-md border border-border bg-surface px-2 py-1 text-xs text-ink-secondary focus:outline-none focus:ring-1 focus:ring-accent";
+
+const priorityLabel = (w: number): string => {
+  if (w <= 0.1) return "Off";
+  if (w < 0.75) return "Low";
+  if (w <= 1.25) return "Normal";
+  if (w <= 2.1) return "High";
+  return "Top";
+};
+
+const confidenceHint = (v: number): string => {
+  if (v === 0) return "All articles";
+  if (v <= 30) return "Loose match";
+  if (v <= 60) return "Moderate";
+  if (v <= 80) return "Strong match";
+  return "Exact match";
+};
+
 const NewFocusPage = (): React.ReactNode => {
   const headers = useAuthHeaders();
   const navigate = useNavigate();
@@ -88,7 +107,7 @@ const NewFocusPage = (): React.ReactNode => {
   if (!headers) return null;
 
   if (loadingSources) {
-    return <div className="text-sm text-ink-tertiary py-12 text-center">Loading...</div>;
+    return <div className="text-sm text-ink-tertiary py-12 text-center">Loading…</div>;
   }
 
   const toggleSource = (sourceId: string): void => {
@@ -121,7 +140,7 @@ const NewFocusPage = (): React.ReactNode => {
 
   return (
     <>
-      <PageHeader title="New focus" subtitle="Define a topic area for classifying articles" />
+      <PageHeader title="New topic" subtitle="A topic that shapes what appears in your editions" />
 
       {error && (
         <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6">
@@ -140,19 +159,21 @@ const NewFocusPage = (): React.ReactNode => {
           />
           <Textarea
             label="Description"
-            description="Optional — helps guide the AI classifier"
-            placeholder="News about software, startups, and tech industry"
+            description="Helps the app recognise which articles belong here — the more specific, the better."
+            placeholder="News about software, startups, and the tech industry"
             rows={2}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
           <IconPicker value={icon} onChange={setIcon} />
+
+          {/* Match strength */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-ink">
-              Minimum confidence
+              How closely articles must match
             </label>
             <p className="text-xs text-ink-tertiary -mt-0.5">
-              Only show articles that match with at least this confidence. 0% includes everything.
+              Raise this to only include articles that are clearly a strong match. At 0%, anything potentially relevant is included.
             </p>
             <div className="flex items-center gap-3">
               <input
@@ -164,17 +185,19 @@ const NewFocusPage = (): React.ReactNode => {
                 onChange={(e) => setMinConfidence(Number(e.target.value))}
                 className="flex-1 accent-accent"
               />
-              <span className="text-sm text-ink-secondary tabular-nums w-10 text-right">
-                {minConfidence}%
+              <span className="text-sm text-ink-secondary tabular-nums w-24 text-right">
+                {minConfidence === 0 ? "All articles" : `${minConfidence}% — ${confidenceHint(minConfidence)}`}
               </span>
             </div>
           </div>
+
+          {/* Reading time */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-ink">
               Reading time
             </label>
             <p className="text-xs text-ink-tertiary -mt-0.5">
-              Optional — only include articles within this reading time range.
+              Only include articles within this length. Leave blank for any length.
             </p>
             <div className="flex items-center gap-3">
               <Input
@@ -201,12 +224,16 @@ const NewFocusPage = (): React.ReactNode => {
 
         <Separator soft />
 
-        {/* Source selection */}
+        {/* Sources */}
         <div>
-          <div className="text-xs text-ink-tertiary tracking-wide uppercase mb-3">Sources</div>
+          <div className="text-sm font-medium text-ink mb-0.5">Sources</div>
+          <p className="text-xs text-ink-tertiary mb-4">
+            Choose which sources feed this topic and how articles from each are selected.
+          </p>
           {allSources.length === 0 ? (
-            <div className="text-sm text-ink-tertiary py-4">
-              No sources yet. You can add sources later.
+            <div className="rounded-lg border border-dashed border-border py-6 text-center">
+              <p className="text-sm text-ink-tertiary">No sources yet.</p>
+              <p className="text-xs text-ink-faint mt-1">You can add sources later.</p>
             </div>
           ) : (
             <div className="flex flex-col gap-1">
@@ -229,10 +256,10 @@ const NewFocusPage = (): React.ReactNode => {
                         <select
                           value={selection.mode}
                           onChange={(e) => changeMode(source.id, e.target.value as "always" | "match")}
-                          className="rounded-md border border-border bg-surface px-2 py-1 text-xs text-ink-secondary focus:outline-none focus:ring-1 focus:ring-accent"
+                          className={selectClasses}
                         >
-                          <option value="always">Always include</option>
-                          <option value="match">If match</option>
+                          <option value="always">All articles</option>
+                          <option value="match">Matching only</option>
                         </select>
                       )}
                     </div>
@@ -248,8 +275,8 @@ const NewFocusPage = (): React.ReactNode => {
                           onChange={(e) => changeWeight(source.id, Number(e.target.value))}
                           className="flex-1 accent-accent"
                         />
-                        <span className="text-xs text-ink-secondary tabular-nums w-6 text-right">
-                          {selection.weight.toFixed(1)}
+                        <span className="text-xs font-medium text-ink-secondary tabular-nums w-12 text-right">
+                          {priorityLabel(selection.weight)}
                         </span>
                       </div>
                     )}
@@ -262,7 +289,7 @@ const NewFocusPage = (): React.ReactNode => {
 
         <div className="flex items-center gap-3">
           <Button variant="primary" type="submit" disabled={createFocus.isPending}>
-            {createFocus.isPending ? "Creating..." : "Create focus"}
+            {createFocus.isPending ? "Creating…" : "Create topic"}
           </Button>
           <Button
             variant="ghost"

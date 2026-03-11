@@ -1,0 +1,257 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import { Input } from "../../components/input.tsx";
+import { Textarea } from "../../components/textarea.tsx";
+import { Checkbox } from "../../components/checkbox.tsx";
+import { Separator } from "../../components/separator.tsx";
+import { Button } from "../../components/button.tsx";
+
+<Meta title="Design System/Compositions/Focus Edit" />
+
+<div style={{ maxWidth: "72rem", margin: "0 auto", padding: "4rem 0", fontFamily: "var(--font-sans)" }}>
+
+<div style={{ color: "var(--color-ink-tertiary)", fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: "1.5rem" }}>Compositions</div>
+
+# Topic editor
+
+<div style={{ fontSize: "1.2rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginTop: "1rem", marginBottom: "4rem", maxWidth: "65ch" }}>
+  A topic defines a subject area — Technology, Science, Global News — and teaches the app which articles belong there. The editor is shared between creating new topics and editing existing ones.
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", marginBottom: "4rem" }} />
+
+## Name
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <Input label="Name" placeholder="Technology" />
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    What this topic is called. It appears in the sidebar, on the edition editor, and as the section heading when reading. Keep it short and meaningful — "Technology", "Climate", "Long Reads".
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Description
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "2rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <Textarea
+      label="Description"
+      description="Helps the app recognise which articles belong here — the more specific, the better."
+      placeholder="News about software, startups, and the tech industry"
+      rows={2}
+    />
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>An optional description of what this topic covers. The app uses it when classifying articles — a precise description leads to more accurate results than a vague one.</p>
+    <p style={{ margin: 0 }}><strong style={{ color: "var(--color-ink)" }}>Good:</strong> "News about software engineering, open source projects, and developer tools" <br /><strong style={{ color: "var(--color-ink)" }}>Less useful:</strong> "Tech stuff"</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## How closely articles must match
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "2rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
+      <label style={{ fontSize: "0.875rem", fontWeight: 500, color: "var(--color-ink)" }}>How closely articles must match</label>
+      <p style={{ fontSize: "0.75rem", color: "var(--color-ink-tertiary)", margin: 0 }}>Raise this to only include articles that are clearly a strong match. At 0%, anything potentially relevant is included.</p>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginTop: "0.25rem" }}>
+        <input type="range" min={0} max={100} step={5} defaultValue={0} style={{ flex: 1, accentColor: "var(--color-accent)" }} />
+        <span style={{ fontSize: "0.875rem", color: "var(--color-ink-secondary)", width: "6rem", textAlign: "right", fontVariantNumeric: "tabular-nums" }}>All articles</span>
+      </div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    The app analyses every article to estimate how well it fits this topic. This slider sets the minimum score an article must reach before it's included. At 0% everything potentially relevant appears; raise it to tighten the filter.
+  </div>
+</div>
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
+      {[
+        [0, "All articles"],
+        [30, "30% — Loose match"],
+        [60, "60% — Moderate"],
+        [80, "80% — Strong match"],
+        [100, "100% — Exact match"],
+      ].map(([val, label]) => (
+        <div key={val} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <input type="range" min={0} max={100} step={5} value={val} readOnly style={{ flex: 1, accentColor: "var(--color-accent)" }} />
+          <span style={{ fontSize: "0.75rem", color: "var(--color-ink-secondary)", width: "9rem", textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{label}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>The label updates as you drag, giving you a plain-language reading of what each setting means rather than a raw number.</p>
+    <p style={{ margin: 0 }}>Start at 0% and raise it if you're seeing too many off-topic articles. For broad topics like "Technology", a loose match is often fine. For narrow topics like "Climate Policy", a stronger threshold keeps things focused.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Reading time
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
+      <label style={{ fontSize: "0.875rem", fontWeight: 500, color: "var(--color-ink)" }}>Reading time</label>
+      <p style={{ fontSize: "0.75rem", color: "var(--color-ink-tertiary)", margin: 0 }}>Only include articles within this length. Leave blank for any length.</p>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginTop: "0.25rem" }}>
+        <input type="number" placeholder="Min" style={{ flex: 1, borderRadius: "0.375rem", border: "1px solid var(--color-border)", background: "var(--color-surface-raised)", padding: "0.5rem 0.625rem", fontSize: "0.875rem", color: "var(--color-ink)", outline: "none" }} />
+        <span style={{ fontSize: "0.75rem", color: "var(--color-ink-tertiary)" }}>to</span>
+        <input type="number" placeholder="Max" style={{ flex: 1, borderRadius: "0.375rem", border: "1px solid var(--color-border)", background: "var(--color-surface-raised)", padding: "0.5rem 0.625rem", fontSize: "0.875rem", color: "var(--color-ink)", outline: "none" }} />
+        <span style={{ fontSize: "0.75rem", color: "var(--color-ink-tertiary)", whiteSpace: "nowrap" }}>minutes</span>
+      </div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    Optional filters for article length. Useful when a topic has a specific reading style — a "Quick Reads" topic might cap at 3 minutes, while a "Long Form" topic might require a minimum of 10. Both fields are independent; set either, neither, or both.
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Sources
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div>
+      <div style={{ fontSize: "0.875rem", fontWeight: 500, color: "var(--color-ink)", marginBottom: "0.125rem" }}>Sources</div>
+      <p style={{ fontSize: "0.75rem", color: "var(--color-ink-tertiary)", marginTop: 0, marginBottom: "1rem" }}>Choose which sources feed this topic and how articles from each are selected.</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+        {["Ars Technica", "Hacker News", "The Verge", "Reuters"].map((name) => (
+          <div key={name} style={{ padding: "0.5rem 0.75rem", borderRadius: "0.375rem" }}>
+            <Checkbox label={name} />
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    Every article in the app comes from a source. Checking a source here makes it eligible to contribute articles to this topic. Unchecked sources are ignored entirely. You can adjust selection mode and priority for each checked source independently.
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Source selection mode
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+      <div style={{ background: "var(--color-surface-sunken)", borderRadius: "0.375rem", padding: "0.75rem" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+          <Checkbox label="Ars Technica" defaultChecked />
+          <select defaultValue="always" style={{ borderRadius: "0.375rem", border: "1px solid var(--color-border)", background: "var(--color-surface)", padding: "0.25rem 0.5rem", fontSize: "0.75rem", color: "var(--color-ink-secondary)", outline: "none" }}>
+            <option value="always">All articles</option>
+            <option value="match">Matching only</option>
+          </select>
+        </div>
+      </div>
+      <div style={{ background: "var(--color-surface-sunken)", borderRadius: "0.375rem", padding: "0.75rem" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+          <Checkbox label="Reuters" defaultChecked />
+          <select defaultValue="match" style={{ borderRadius: "0.375rem", border: "1px solid var(--color-border)", background: "var(--color-surface)", padding: "0.25rem 0.5rem", fontSize: "0.75rem", color: "var(--color-ink-secondary)", outline: "none" }}>
+            <option value="always">All articles</option>
+            <option value="match">Matching only</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 1rem" }}>Controls which articles from a source are considered for this topic:</p>
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+      <div>
+        <strong style={{ color: "var(--color-ink)" }}>All articles</strong> — every article from this source is a candidate, regardless of whether the classifier thinks it matches. Good for dedicated sources that publish exclusively about this topic (e.g. a specialist newsletter).
+      </div>
+      <div>
+        <strong style={{ color: "var(--color-ink)" }}>Matching only</strong> — only articles the classifier identifies as relevant are included. Use this for general-purpose sources like Reuters or the BBC, where only some articles belong to this topic.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Source priority
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "2rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ background: "var(--color-surface-sunken)", borderRadius: "0.375rem", padding: "0.75rem" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.625rem" }}>
+        <Checkbox label="Ars Technica" defaultChecked />
+        <select defaultValue="always" style={{ borderRadius: "0.375rem", border: "1px solid var(--color-border)", background: "var(--color-surface)", padding: "0.25rem 0.5rem", fontSize: "0.75rem", color: "var(--color-ink-secondary)", outline: "none" }}>
+          <option value="always">All articles</option>
+        </select>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", paddingLeft: "1.75rem" }}>
+        <span style={{ fontSize: "0.75rem", color: "var(--color-ink-tertiary)", flexShrink: 0 }}>Priority</span>
+        <input type="range" min={0} max={3} step={0.1} defaultValue={2} style={{ flex: 1, accentColor: "var(--color-accent)" }} />
+        <span style={{ fontSize: "0.75rem", fontWeight: 500, color: "var(--color-ink-secondary)", width: "3rem", textAlign: "right" }}>High</span>
+      </div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    How much to favour articles from this source when filling the topic's article budget. At <strong style={{ color: "var(--color-ink)" }}>Normal</strong>, all sources compete equally. Raise to <strong style={{ color: "var(--color-ink)" }}>High</strong> or <strong style={{ color: "var(--color-ink)" }}>Top</strong> to consistently surface this source's best articles first. Set to <strong style={{ color: "var(--color-ink)" }}>Off</strong> to temporarily silence a source without removing it.
+  </div>
+</div>
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem", paddingLeft: "1.75rem" }}>
+      {[["Off", 0], ["Low", 0.5], ["Normal", 1], ["High", 2], ["Top", 3]].map(([label, val]) => (
+        <div key={label} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <input type="range" min={0} max={3} step={0.1} value={val} readOnly style={{ flex: 1, accentColor: "var(--color-accent)" }} />
+          <span style={{ fontSize: "0.75rem", fontWeight: 500, color: "var(--color-ink-secondary)", width: "3rem", textAlign: "right" }}>{label}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    The same five levels used throughout the app. The slider label updates as you drag — no need to interpret a raw number.
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Empty sources state
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div>
+      <div style={{ fontSize: "0.875rem", fontWeight: 500, color: "var(--color-ink)", marginBottom: "0.125rem" }}>Sources</div>
+      <p style={{ fontSize: "0.75rem", color: "var(--color-ink-tertiary)", marginTop: 0, marginBottom: "1rem" }}>Choose which sources feed this topic and how articles from each are selected.</p>
+      <div style={{ borderRadius: "0.5rem", border: "1px dashed var(--color-border)", padding: "1.5rem", textAlign: "center" }}>
+        <p style={{ fontSize: "0.875rem", color: "var(--color-ink-tertiary)", margin: 0 }}>No sources yet.</p>
+        <p style={{ fontSize: "0.75rem", color: "var(--color-ink-faint)", marginTop: "0.25rem", marginBottom: 0 }}>You can add sources later.</p>
+      </div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    Shown when no sources have been created yet. The dashed border signals the area is waiting to be filled; the message reassures that the topic can still be created and wired up to sources later.
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Form actions
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ display: "flex", gap: "0.75rem" }}>
+      <Button variant="primary" type="button">Create topic</Button>
+      <Button variant="ghost" type="button">Cancel</Button>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    On create the primary button reads "Create topic"; on edit it reads "Save changes". Cancel returns to the topic detail view without saving. If nothing has changed on the edit form, Save navigates away without making an API call.
+  </div>
+</div>
+
+</div>

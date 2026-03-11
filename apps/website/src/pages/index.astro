@@ -1,0 +1,512 @@
+---
+import Base from "../layouts/base.astro";
+import SiteNav from "../components/site-nav.astro";
+import ShowcaseFrame from "../components/showcase-frame.astro";
+import {
+  ShowcaseArticleHero,
+  ShowcasePodcast,
+  ShowcaseSection,
+  ShowcaseFinale,
+  ShowcaseVotes,
+} from "../components/magazine-showcase.tsx";
+import { InteractiveMagazine } from "../components/interactive-magazine.tsx";
+import "../styles/global.css";
+---
+
+<Base title="Editions — Your news, in magazine form">
+  <SiteNav current="home" />
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACT I — THE HOOK
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="min-h-[90vh] flex flex-col justify-end px-6 md:px-12 lg:px-20 pb-20 pt-32">
+    <div class="max-w-wide mx-auto w-full">
+
+      <!-- Cover line -->
+      <div class="flex items-center gap-4 mb-10 md:mb-14">
+        <div class="w-8 h-px bg-accent" />
+        <span class="text-[10px] font-mono tracking-[0.3em] uppercase text-accent">Issue No. 01</span>
+      </div>
+
+      <!-- Title block — Bodoni for cover impact, Newsreader for the quiet line -->
+      <h1 class="mb-12 md:mb-16">
+        <span class="block text-[2.5rem] md:text-[4.5rem] lg:text-[6.5rem] leading-[0.85] tracking-tight text-ink-secondary font-serif">
+          Your news,
+        </span>
+        <span class="block text-[3.5rem] md:text-[6rem] lg:text-[9rem] leading-[0.8] font-display font-black italic text-ink" style="letter-spacing: -0.03em;">
+          in magazine form.
+        </span>
+      </h1>
+
+      <!-- Horizontal rule — the Wired stripe -->
+      <div class="h-[3px] bg-accent w-full mb-10 md:mb-14" />
+
+      <!-- Bottom grid — magazine cover metadata feel -->
+      <div class="grid md:grid-cols-[2fr_1fr_1fr] gap-8 md:gap-6">
+        <p class="font-serif text-base md:text-lg text-ink-secondary leading-relaxed">
+          A self-hosted reader that assembles your RSS feeds into finite, curated magazines — shaped by your interests, designed to end.
+        </p>
+        <div class="hidden md:block">
+          <div class="text-[10px] font-mono tracking-[0.2em] uppercase text-ink-faint mb-3">Inside</div>
+          <div class="grid gap-1.5 text-sm text-ink-tertiary">
+            <span>Sources & feeds</span>
+            <span>On-device ML</span>
+            <span>Semantic voting</span>
+            <span>Magazine layouts</span>
+          </div>
+        </div>
+        <div class="hidden md:block">
+          <div class="text-[10px] font-mono tracking-[0.2em] uppercase text-ink-faint mb-3">Philosophy</div>
+          <div class="grid gap-1.5 text-sm text-ink-tertiary">
+            <span>Calm over anxious</span>
+            <span>Finite over infinite</span>
+            <span>Private by default</span>
+            <span>You read it, you're done</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACT II — THE PROBLEM
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="py-24 md:py-32 px-6 md:px-12 lg:px-20 bg-surface-sunken">
+    <div class="max-w-wide mx-auto">
+      <div class="reveal mb-16">
+        <span class="text-xs font-mono tracking-wide uppercase text-accent mb-4 block">The problem</span>
+        <h2 class="font-serif text-3xl md:text-4xl tracking-tight text-ink max-w-prose">
+          News reading today is broken in exactly two ways.
+        </h2>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-12 md:gap-16">
+        <div class="reveal">
+          <div class="text-[4rem] font-mono leading-none text-accent/15 select-none mb-2">01</div>
+          <h3 class="font-serif text-xl tracking-tight text-ink mb-3">The firehose</h3>
+          <p class="text-sm text-ink-secondary leading-relaxed">
+            Most RSS readers dump everything into a single chronological stream. A prolific publication buries a small specialized blog. You feel overwhelmed, behind, and guilty about an ever-growing unread count.
+          </p>
+        </div>
+        <div class="reveal">
+          <div class="text-[4rem] font-mono leading-none text-accent/15 select-none mb-2">02</div>
+          <h3 class="font-serif text-xl tracking-tight text-ink mb-3">The algorithm</h3>
+          <p class="text-sm text-ink-secondary leading-relaxed">
+            Engagement-optimized ranking maximizes time-on-screen, not informed readers. You never feel done because there is always more. The infinite scroll is a feature for the platform, not for you.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACT III — THE FEELING
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="py-24 md:py-32 px-6 md:px-12 lg:px-20">
+    <div class="max-w-wide mx-auto">
+      <div class="reveal max-w-prose mx-auto text-center">
+        <span class="text-xs font-mono tracking-wide uppercase text-accent mb-4 block">The feeling</span>
+        <h2 class="font-serif text-3xl md:text-5xl tracking-tight text-ink mb-8 leading-tight">
+          Remember magazines?
+        </h2>
+        <p class="text-lg text-ink-secondary leading-relaxed mb-6">
+          You'd pick one up, read it, reach the last page, and put it down. You felt <em class="font-serif">informed</em>, not <em class="font-serif">anxious</em>. Nobody had engineered it to make you feel behind, or angry, or unable to stop scrolling.
+        </p>
+        <p class="text-lg text-ink-secondary leading-relaxed">
+          Reading an Edition should feel like settling into a favourite chair with a good magazine — quiet, deliberate, finite.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACT IV — INTERACTIVE MAGAZINE DEMO
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="py-24 md:py-32 px-6 md:px-12 lg:px-20 bg-surface-sunken">
+    <div class="max-w-wide mx-auto">
+      <div class="reveal mb-12">
+        <span class="text-xs font-mono tracking-wide uppercase text-accent mb-4 block">The experience</span>
+        <h2 class="font-serif text-3xl md:text-4xl tracking-tight text-ink max-w-prose">
+          A magazine, not a feed.
+        </h2>
+        <p class="text-sm text-ink-secondary leading-relaxed max-w-prose mt-4">
+          Every edition has a cover, a table of contents, sections, and an ending. Navigate this demo with arrow keys, swipe, or the controls below.
+        </p>
+      </div>
+
+      <ShowcaseFrame caption="Use ← → arrow keys, swipe, or click Prev / Next to explore">
+        <InteractiveMagazine client:visible />
+      </ShowcaseFrame>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACT IV-B — MAGAZINE ELEMENTS
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="py-24 md:py-32 px-6 md:px-12 lg:px-20">
+    <div class="max-w-wide mx-auto grid gap-20 md:gap-28">
+      <!-- Section divider -->
+      <div class="reveal grid md:grid-cols-[1fr_20rem] gap-8 md:gap-12 items-end">
+        <ShowcaseFrame>
+          <ShowcaseSection client:visible />
+        </ShowcaseFrame>
+        <p class="font-serif text-lg text-ink-secondary leading-relaxed">
+          Section dividers signal a new topic — a visual breath before the next batch of reading.
+        </p>
+      </div>
+
+      <!-- Article spread -->
+      <div class="reveal grid md:grid-cols-[20rem_1fr] gap-8 md:gap-12 items-end">
+        <p class="font-serif text-lg text-ink-secondary leading-relaxed md:order-1">
+          Article layouts rotate between hero, editorial, and compact — so every page feels curated, not templated.
+        </p>
+        <div class="md:order-2">
+          <ShowcaseFrame>
+            <ShowcaseArticleHero client:visible />
+          </ShowcaseFrame>
+        </div>
+      </div>
+
+      <!-- Podcast -->
+      <div class="reveal grid md:grid-cols-[1fr_20rem] gap-8 md:gap-12 items-end">
+        <ShowcaseFrame>
+          <ShowcasePodcast client:visible />
+        </ShowcaseFrame>
+        <p class="font-serif text-lg text-ink-secondary leading-relaxed">
+          Podcast episodes get their own layout — album art, a waveform, and prominent listen time.
+        </p>
+      </div>
+
+      <!-- Finale -->
+      <div class="reveal max-w-xl mx-auto w-full text-center">
+        <ShowcaseFrame>
+          <ShowcaseFinale client:visible />
+        </ShowcaseFrame>
+        <p class="font-serif text-lg text-ink-secondary leading-relaxed mt-6">
+          And then it ends. That's the whole point.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACT V — HOW IT WORKS
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="py-24 md:py-32 px-6 md:px-12 lg:px-20">
+    <div class="max-w-wide mx-auto">
+      <div class="reveal mb-16">
+        <span class="text-xs font-mono tracking-wide uppercase text-accent mb-4 block">How it works</span>
+        <h2 class="font-serif text-3xl md:text-4xl tracking-tight text-ink max-w-prose">
+          Three steps to calm.
+        </h2>
+      </div>
+
+      <div class="reveal">
+        <div class="stagger grid gap-16 md:gap-20">
+          <!-- Step 1 -->
+          <div class="grid md:grid-cols-[4rem_1fr] gap-6 items-start">
+            <div class="text-3xl font-mono text-accent/30 leading-none">01</div>
+            <div>
+              <h3 class="font-serif text-xl tracking-tight text-ink mb-3">Subscribe to sources</h3>
+              <p class="text-sm text-ink-secondary leading-relaxed max-w-prose mb-4">
+                Add RSS feeds for your favorite blogs and news outlets. Subscribe to podcasts too — they get a dedicated layout in the magazine view with album art and a waveform player.
+              </p>
+              <div class="flex flex-wrap gap-2">
+                {[
+                  { icon: "📰", label: "RSS feeds" },
+                  { icon: "🎙️", label: "Podcasts" },
+                ].map((s) => (
+                  <span class="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-border bg-surface text-ink-secondary">
+                    <span>{s.icon}</span> {s.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="grid md:grid-cols-[4rem_1fr] gap-6 items-start">
+            <div class="text-3xl font-mono text-accent/30 leading-none">02</div>
+            <div>
+              <h3 class="font-serif text-xl tracking-tight text-ink mb-3">Define your focuses</h3>
+              <p class="text-sm text-ink-secondary leading-relaxed max-w-prose mb-4">
+                Create topic areas — "Technology", "Climate", "Local News", whatever you care about. An on-device ML model reads every incoming article and classifies it into your focuses automatically. Nothing phones home.
+              </p>
+              <div class="flex flex-wrap gap-2">
+                {["Technology", "Climate", "Local News", "Science", "Culture"].map((focus) => (
+                  <span class="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-border bg-surface text-ink-secondary">
+                    {focus}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="grid md:grid-cols-[4rem_1fr] gap-6 items-start">
+            <div class="text-3xl font-mono text-accent/30 leading-none">03</div>
+            <div>
+              <h3 class="font-serif text-xl tracking-tight text-ink mb-3">Build your magazine</h3>
+              <p class="text-sm text-ink-secondary leading-relaxed max-w-prose mb-4">
+                Create edition configs — magazine templates with rules. Each section draws from a focus with its own budget. Source budgeting ensures no single prolific feed dominates.
+              </p>
+              <div class="rounded-lg border border-border bg-surface overflow-hidden text-sm">
+                <table class="w-full">
+                  <thead>
+                    <tr class="border-b border-border bg-surface-sunken">
+                      <th class="text-left px-4 py-2.5 text-xs font-mono font-medium tracking-wide text-ink-tertiary">Section</th>
+                      <th class="text-left px-4 py-2.5 text-xs font-mono font-medium tracking-wide text-ink-tertiary">Focus</th>
+                      <th class="text-left px-4 py-2.5 text-xs font-mono font-medium tracking-wide text-ink-tertiary">Budget</th>
+                    </tr>
+                  </thead>
+                  <tbody class="text-ink-secondary">
+                    <tr class="border-b border-border">
+                      <td class="px-4 py-2.5 font-serif">Quick hits</td>
+                      <td class="px-4 py-2.5">Tech News</td>
+                      <td class="px-4 py-2.5 font-mono text-xs text-ink-faint">5 articles, under 5 min each</td>
+                    </tr>
+                    <tr class="border-b border-border">
+                      <td class="px-4 py-2.5 font-serif">Deep dive</td>
+                      <td class="px-4 py-2.5">Tech Policy</td>
+                      <td class="px-4 py-2.5 font-mono text-xs text-ink-faint">20 minutes reading time</td>
+                    </tr>
+                    <tr>
+                      <td class="px-4 py-2.5 font-serif">Indie voices</td>
+                      <td class="px-4 py-2.5">Favorite Blogs</td>
+                      <td class="px-4 py-2.5 font-mono text-xs text-ink-faint">up to 10 articles</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACT VI — THE INTELLIGENCE
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="py-24 md:py-32 px-6 md:px-12 lg:px-20 bg-surface-sunken">
+    <div class="max-w-wide mx-auto">
+      <div class="reveal mb-16">
+        <span class="text-xs font-mono tracking-wide uppercase text-accent mb-4 block">Intelligence</span>
+        <h2 class="font-serif text-3xl md:text-4xl tracking-tight text-ink max-w-prose">
+          Smart ranking. Zero cloud.
+        </h2>
+        <p class="text-sm text-ink-secondary leading-relaxed max-w-prose mt-4">
+          An on-device ML model classifies articles, generates embeddings, and learns from your votes. All of it runs in a worker thread on your server. Nothing phones home.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8 mb-20">
+        <div class="reveal rounded-lg border border-border bg-surface p-6">
+          <div class="text-xs font-mono tracking-wide uppercase text-accent mb-3">Classification</div>
+          <h3 class="font-serif text-lg tracking-tight text-ink mb-2">Zero-shot NLI</h3>
+          <p class="text-sm text-ink-secondary leading-relaxed">
+            Every article is classified into your focuses using a local language model. No training data needed — just describe your topics in plain English.
+          </p>
+        </div>
+        <div class="reveal rounded-lg border border-border bg-surface p-6">
+          <div class="text-xs font-mono tracking-wide uppercase text-accent mb-3">Embeddings</div>
+          <h3 class="font-serif text-lg tracking-tight text-ink mb-2">Semantic understanding</h3>
+          <p class="text-sm text-ink-secondary leading-relaxed">
+            Each article gets a 384-dimensional embedding vector, generated locally by MiniLM. This lets the system understand what articles are <em class="font-serif">about</em>, not just what words they contain.
+          </p>
+        </div>
+        <div class="reveal rounded-lg border border-border bg-surface p-6">
+          <div class="text-xs font-mono tracking-wide uppercase text-accent mb-3">Budgeting</div>
+          <h3 class="font-serif text-lg tracking-tight text-ink mb-2">Fair representation</h3>
+          <p class="text-sm text-ink-secondary leading-relaxed">
+            Source budgeting ensures no single prolific feed dominates. That small independent blog gets a fair slot next to The Verge.
+          </p>
+        </div>
+      </div>
+
+      <!-- Voting — the learning system -->
+      <div class="reveal">
+        <div class="grid md:grid-cols-[1fr_20rem] gap-12 items-start">
+          <div>
+            <h3 class="font-serif text-2xl md:text-3xl tracking-tight text-ink mb-6">
+              It learns what you like.
+            </h3>
+            <p class="font-serif text-base text-ink-secondary leading-relaxed mb-6">
+              Upvote an article you enjoyed. Downvote one that missed the mark. That's it — two buttons, and the system starts learning. Your votes don't just affect the article you voted on. They propagate through semantic similarity to shape the ranking of hundreds of articles you haven't even seen yet.
+            </p>
+            <div class="grid gap-4">
+              {[
+                { scope: "In the feed", effect: "votes teach the system what kind of articles you want to read — quality, depth, tone" },
+                { scope: "In a focus", effect: "votes refine topic relevance — \"this belongs here\" vs \"this doesn't, even if the classifier thinks so\"" },
+                { scope: "In an edition", effect: "votes improve future curation — which articles are well-chosen for this magazine format" },
+              ].map((v) => (
+                <div class="flex gap-4 items-baseline">
+                  <span class="text-xs font-mono text-accent shrink-0 w-28">{v.scope}</span>
+                  <span class="font-serif text-sm text-ink-secondary">{v.effect}</span>
+                </div>
+              ))}
+            </div>
+            <p class="font-serif text-sm text-ink-faint mt-6 leading-relaxed italic">
+              A few votes on climate policy articles will shift the ranking of every similar piece across your feeds, focuses, and future editions.
+            </p>
+          </div>
+          <div class="rounded-lg border border-border bg-surface p-6">
+            <div class="text-xs font-mono tracking-wide uppercase text-accent mb-4">Your feedback loop</div>
+            <ShowcaseVotes client:visible />
+            <div class="border-t border-border mt-4 pt-4 grid gap-3">
+              {[
+                { label: "Vote", desc: "on a few articles" },
+                { label: "Signal propagates", desc: "via embeddings" },
+                { label: "Rankings shift", desc: "across all feeds" },
+                { label: "Editions improve", desc: "over time" },
+              ].map((step, i) => (
+                <div class="flex items-center gap-3">
+                  <span class="text-xs font-mono text-accent/40 w-5">{String(i + 1).padStart(2, "0")}</span>
+                  <span class="text-sm text-ink">{step.label}</span>
+                  <span class="flex-1 border-b border-dotted border-ink-faint/30 translate-y-[-1px]" />
+                  <span class="text-xs font-mono text-ink-faint">{step.desc}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACT VII — DESIGN PRINCIPLES
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="py-24 md:py-32 px-6 md:px-12 lg:px-20">
+    <div class="max-w-wide mx-auto">
+      <div class="reveal mb-16 max-w-prose mx-auto text-center">
+        <span class="text-xs font-mono tracking-wide uppercase text-accent mb-4 block">Principles</span>
+        <h2 class="font-serif text-3xl md:text-4xl tracking-tight text-ink">
+          Built for readers, not engagement.
+        </h2>
+      </div>
+
+      <div class="reveal">
+        <div class="stagger grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div class="text-center">
+            <div class="font-serif text-2xl text-ink mb-2">Calm</div>
+            <p class="text-xs text-ink-secondary leading-relaxed">No unread counts. No urgency signals. No red badges.</p>
+          </div>
+          <div class="text-center">
+            <div class="font-serif text-2xl text-ink mb-2">Finite</div>
+            <p class="text-xs text-ink-secondary leading-relaxed">Every surface has a natural end. Being done is the feature.</p>
+          </div>
+          <div class="text-center">
+            <div class="font-serif text-2xl text-ink mb-2">Private</div>
+            <p class="text-xs text-ink-secondary leading-relaxed">Everything runs on your server. No data leaves. No analytics.</p>
+          </div>
+          <div class="text-center">
+            <div class="font-serif text-2xl text-ink mb-2">Yours</div>
+            <p class="text-xs text-ink-secondary leading-relaxed">One SQLite file. Back it up, move it, delete it — you're in control.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACT VIII — THE STACK
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="py-24 md:py-32 px-6 md:px-12 lg:px-20 bg-surface-sunken">
+    <div class="max-w-wide mx-auto">
+      <div class="reveal mb-12">
+        <span class="text-xs font-mono tracking-wide uppercase text-accent mb-4 block">The stack</span>
+        <h2 class="font-serif text-3xl md:text-4xl tracking-tight text-ink max-w-prose">Nothing exotic.</h2>
+        <p class="text-sm text-ink-secondary leading-relaxed max-w-prose mt-4">
+          One process, one database file, one Docker container. No external services, no cloud dependencies, no PhD required.
+        </p>
+      </div>
+      <div class="reveal grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="rounded-lg border border-border bg-surface p-5">
+          <div class="text-xs font-mono tracking-wide text-accent mb-2">Server</div>
+          <div class="text-sm text-ink">Node.js + Fastify + SQLite</div>
+        </div>
+        <div class="rounded-lg border border-border bg-surface p-5">
+          <div class="text-xs font-mono tracking-wide text-accent mb-2">Frontend</div>
+          <div class="text-sm text-ink">React + Vite + Tailwind CSS</div>
+        </div>
+        <div class="rounded-lg border border-border bg-surface p-5">
+          <div class="text-xs font-mono tracking-wide text-accent mb-2">ML</div>
+          <div class="text-sm text-ink">Transformers.js — runs locally</div>
+        </div>
+        <div class="rounded-lg border border-border bg-surface p-5">
+          <div class="text-xs font-mono tracking-wide text-accent mb-2">Deploy</div>
+          <div class="text-sm text-ink">Single Docker container</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACT IX — GET STARTED
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="py-24 md:py-32 px-6 md:px-12 lg:px-20">
+    <div class="max-w-wide mx-auto">
+      <div class="reveal max-w-prose mx-auto">
+        <span class="text-xs font-mono tracking-wide uppercase text-accent mb-4 block text-center">Get started</span>
+        <h2 class="font-serif text-3xl md:text-4xl tracking-tight text-ink text-center mb-8">
+          60 seconds to your first edition.
+        </h2>
+
+        <div class="rounded-lg border border-border bg-surface-sunken overflow-hidden">
+          <div class="flex items-center gap-2 px-4 py-2.5 border-b border-border bg-surface">
+            <span class="text-xs font-mono text-ink-tertiary">docker-compose.yml</span>
+          </div>
+          <pre class="px-4 py-4 text-sm font-mono text-ink-secondary leading-relaxed overflow-x-auto"><code>{`services:
+  editions:
+    image: ghcr.io/morten-olsen/editions:latest
+    ports:
+      - "3007:3007"
+    volumes:
+      - editions-data:/data
+    environment:
+      - EDITIONS_JWT_SECRET=change-me
+    restart: unless-stopped
+
+volumes:
+  editions-data:`}</code></pre>
+        </div>
+
+        <div class="mt-6 text-center">
+          <code class="text-sm font-mono text-ink-secondary bg-surface-sunken px-3 py-1.5 rounded-md">docker compose up -d</code>
+        </div>
+
+        <p class="text-sm text-ink-secondary leading-relaxed text-center mt-8 mb-8">
+          Open <code class="font-mono text-xs bg-surface-sunken px-1.5 py-0.5 rounded">localhost:3007</code> and register — the first account becomes admin.
+        </p>
+
+        <div class="text-center">
+          <a
+            href="/guides/getting-started"
+            class="inline-flex items-center gap-2 text-sm font-medium px-6 py-3 rounded-full bg-accent text-accent-ink hover:bg-accent-hover transition-colors duration-normal"
+          >
+            Read the full setup guide <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       FOOTER
+       ════════════════════════════════════════════════════════════════ -->
+  <footer class="py-16 px-6 md:px-12 lg:px-20 border-t border-border">
+    <div class="max-w-wide mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-baseline gap-2">
+        <span class="text-xs font-mono tracking-wide uppercase text-ink-faint">Editions</span>
+        <span class="text-xs text-ink-faint">·</span>
+        <span class="text-xs text-ink-faint">Alpha</span>
+      </div>
+      <div class="flex items-center gap-6 text-xs text-ink-tertiary">
+        <a href="https://github.com/morten-olsen/editions" class="hover:text-ink transition-colors duration-fast">GitHub</a>
+        <span class="text-ink-faint">AGPL-3.0</span>
+      </div>
+    </div>
+  </footer>
+</Base>

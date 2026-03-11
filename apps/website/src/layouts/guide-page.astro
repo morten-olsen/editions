@@ -1,0 +1,89 @@
+---
+import Base from "./base.astro";
+import SiteNav from "../components/site-nav.astro";
+import "../styles/global.css";
+
+type Props = {
+  title: string;
+  description?: string;
+  current: string;
+  sectionNumber?: string;
+  subtitle?: string;
+  prev?: { href: string; label: string };
+  next?: { href: string; label: string };
+};
+
+const { title, description, current, sectionNumber, subtitle, prev, next } = Astro.props;
+---
+
+<Base title={`${title} — Editions`} description={description}>
+  <SiteNav current={current} />
+
+  <!-- Guide header -->
+  <header class="px-6 md:px-12 lg:px-20 pt-16 pb-12 md:pt-20 md:pb-16">
+    <div class="max-w-wide mx-auto">
+      {sectionNumber && (
+        <div class="text-[5rem] md:text-[7rem] font-mono leading-none text-accent/10 select-none mb-[-1rem]">
+          {sectionNumber}
+        </div>
+      )}
+      <h1 class="font-serif text-3xl md:text-4xl tracking-tight text-ink mb-3">
+        {title}
+      </h1>
+      {subtitle && (
+        <p class="text-lg text-ink-secondary leading-relaxed max-w-prose">
+          {subtitle}
+        </p>
+      )}
+      <div class="w-12 h-px bg-accent mt-8" />
+    </div>
+  </header>
+
+  <!-- Guide content — full-width, sections manage their own widths -->
+  <main>
+    <slot />
+  </main>
+
+  <!-- Prev / Next navigation -->
+  {(prev || next) && (
+    <nav class="px-6 md:px-12 lg:px-20 py-16">
+      <div class="max-w-wide mx-auto border-t border-border pt-8 flex justify-between gap-6">
+        {prev ? (
+          <a href={prev.href} class="group flex flex-col gap-1">
+            <span class="text-xs font-mono tracking-wide text-ink-faint group-hover:text-accent transition-colors duration-fast">
+              ← Previous
+            </span>
+            <span class="text-sm text-ink-secondary group-hover:text-ink transition-colors duration-fast">
+              {prev.label}
+            </span>
+          </a>
+        ) : <div />}
+        {next ? (
+          <a href={next.href} class="group flex flex-col gap-1 text-right">
+            <span class="text-xs font-mono tracking-wide text-ink-faint group-hover:text-accent transition-colors duration-fast">
+              Next →
+            </span>
+            <span class="text-sm text-ink-secondary group-hover:text-ink transition-colors duration-fast">
+              {next.label}
+            </span>
+          </a>
+        ) : <div />}
+      </div>
+    </nav>
+  )}
+
+  <!-- Footer -->
+  <footer class="py-12 px-6 md:px-12 lg:px-20 border-t border-border">
+    <div class="max-w-wide mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-baseline gap-2">
+        <span class="text-xs font-mono tracking-wide uppercase text-ink-faint">Editions</span>
+        <span class="text-xs text-ink-faint">·</span>
+        <span class="text-xs text-ink-faint">Alpha</span>
+      </div>
+      <div class="flex items-center gap-6 text-xs text-ink-tertiary">
+        <a href="https://github.com/morten-olsen/editions" class="hover:text-ink transition-colors duration-fast">GitHub</a>
+        <span class="text-ink-faint">AGPL-3.0</span>
+      </div>
+    </div>
+  </footer>
+</Base>

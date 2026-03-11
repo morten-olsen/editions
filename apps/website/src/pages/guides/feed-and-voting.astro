@@ -1,0 +1,194 @@
+---
+import GuidePage from "../../layouts/guide-page.astro";
+import ShowcaseFrame from "../../components/showcase-frame.astro";
+import { ShowcaseVotes } from "../../components/magazine-showcase.tsx";
+import { ShowcaseFocusVoting } from "../../components/guide-showcases.tsx";
+---
+
+<GuidePage
+  title="Feed & voting"
+  subtitle="A ranked stream for between editions, and the voting system that learns your taste."
+  current="/guides/feed-and-voting"
+  sectionNumber="05"
+  prev={{ href: "/guides/editions", label: "Editions" }}
+>
+
+  <!-- The feed -->
+  <section class="px-6 md:px-12 lg:px-20 pb-20">
+    <div class="max-w-wide mx-auto grid md:grid-cols-2 gap-16">
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-4">The feed</h2>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed mb-4">
+          The feed is a ranked stream of all your articles across every source. Think of it as snacking between sit-down meals — quick catch-up, killing time, scanning for something interesting.
+        </p>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed">
+          Navigate to <strong class="text-ink font-medium">All articles</strong> in the sidebar to access it. Each focus also has its own feed, scoped to that topic.
+        </p>
+      </div>
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-6">Sort & filter</h2>
+        <div class="grid gap-4">
+          <div class="rounded-lg border border-border bg-surface p-5">
+            <div class="text-xs font-mono tracking-wide text-accent mb-2 uppercase">Sort modes</div>
+            <div class="grid gap-2 mt-2">
+              <div class="flex gap-3 items-baseline">
+                <span class="text-sm font-mono text-accent/60 shrink-0">Top</span>
+                <span class="font-serif text-sm text-ink-secondary">Ranked by votes, recency, and topic confidence</span>
+              </div>
+              <div class="flex gap-3 items-baseline">
+                <span class="text-sm font-mono text-accent/60 shrink-0">Recent</span>
+                <span class="font-serif text-sm text-ink-secondary">Simple chronological order, newest first</span>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-lg border border-border bg-surface p-5">
+            <div class="text-xs font-mono tracking-wide text-accent mb-2 uppercase">Filters</div>
+            <div class="grid gap-2 mt-2">
+              <div class="flex gap-3 items-baseline">
+                <span class="text-sm font-mono text-accent/60 shrink-0">Time</span>
+                <span class="font-serif text-sm text-ink-secondary">All time, this week, or today</span>
+              </div>
+              <div class="flex gap-3 items-baseline">
+                <span class="text-sm font-mono text-accent/60 shrink-0">Status</span>
+                <span class="font-serif text-sm text-ink-secondary">All articles, only unread, or only read</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- The scoring formula -->
+  <section class="px-6 md:px-12 lg:px-20 py-20 bg-surface-sunken">
+    <div class="max-w-wide mx-auto">
+      <h2 class="font-serif text-xl tracking-tight text-ink mb-8">The scoring formula</h2>
+      <div class="grid md:grid-cols-[1fr_20rem] gap-12 items-start">
+        <div>
+          <div class="rounded-lg border border-border bg-surface p-5 mb-8">
+            <code class="text-sm font-mono text-ink">score = α × confidence + β × voteSignal + γ × recency</code>
+          </div>
+          <div class="grid gap-4">
+            {[
+              { factor: "Confidence (α)", desc: "How well the article matches the topic (0.0–1.0). Only used in focus feeds and editions" },
+              { factor: "Vote signal (β)", desc: "Personalisation from your upvotes and downvotes, propagated via semantic similarity" },
+              { factor: "Recency (γ)", desc: "Freshness — exponential decay with a 3-day half-life" },
+            ].map((r) => (
+              <div class="flex gap-4 items-baseline">
+                <span class="text-xs font-mono text-accent shrink-0 w-36">{r.factor}</span>
+                <span class="font-serif text-sm text-ink-secondary">{r.desc}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div class="text-xs font-mono tracking-wide text-ink-faint mb-4 uppercase">Weight presets</div>
+          <div class="grid gap-3">
+            {[
+              { context: "Global feed", weights: "0.0 / 0.6 / 0.4" },
+              { context: "Focus feed", weights: "0.4 / 0.4 / 0.2" },
+              { context: "Edition gen", weights: "0.5 / 0.4 / 0.1" },
+            ].map((w) => (
+              <div class="rounded-lg border border-border bg-surface p-4 flex items-center justify-between">
+                <span class="font-serif text-sm text-ink">{w.context}</span>
+                <span class="text-xs font-mono text-ink-tertiary">{w.weights}</span>
+              </div>
+            ))}
+          </div>
+          <p class="font-serif text-xs text-ink-faint mt-4 leading-relaxed">
+            α / β / γ — customisable in Settings → Scoring. Weights are relative, they don't need to sum to 1.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Voting -->
+  <section class="px-6 md:px-12 lg:px-20 py-20">
+    <div class="max-w-wide mx-auto grid md:grid-cols-[1fr_20rem] gap-12 items-start">
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-4">Voting</h2>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed mb-6">
+          Voting is how you teach Editions your taste. <strong class="text-ink font-medium">Upvote</strong> means "more like this" — similar articles will rank higher. <strong class="text-ink font-medium">Downvote</strong> means "less like this" — similar articles will rank lower.
+        </p>
+        <h3 class="font-serif text-lg text-ink mb-4">Vote scopes</h3>
+        <div class="grid gap-3">
+          {[
+            { where: "Main feed", scope: "Global", meaning: "Is this a good article in general?" },
+            { where: "Focus feed", scope: "Focus", meaning: "Does this belong in this topic?" },
+            { where: "Edition reader", scope: "Edition", meaning: "Was this well-chosen for this magazine?" },
+          ].map((v) => (
+            <div class="rounded-lg border border-border bg-surface p-4">
+              <div class="flex items-baseline justify-between mb-1">
+                <span class="text-sm font-medium text-ink">{v.where}</span>
+                <span class="text-xs font-mono text-accent/60">{v.scope}</span>
+              </div>
+              <p class="font-serif text-sm text-ink-secondary">{v.meaning}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+      <ShowcaseFrame caption="Upvote or downvote to teach the system">
+        <ShowcaseFocusVoting client:visible />
+      </ShowcaseFrame>
+    </div>
+  </section>
+
+  <!-- Semantic propagation -->
+  <section class="px-6 md:px-12 lg:px-20 py-20 bg-surface-sunken">
+    <div class="max-w-wide mx-auto grid md:grid-cols-2 gap-16">
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-4">Semantic propagation</h2>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed mb-4">
+          This is the clever part. When you vote on an article, the signal propagates to semantically similar articles through embeddings.
+        </p>
+        <div class="grid gap-4 mt-6">
+          {[
+            { step: "01", text: "Each article has a 384-dimensional embedding vector, generated by MiniLM running locally" },
+            { step: "02", text: "Articles without direct votes look at the 15 most similar voted articles (above 0.3 cosine similarity)" },
+            { step: "03", text: "The weighted average of those votes becomes the article's vote signal" },
+          ].map((s) => (
+            <div class="flex gap-4 items-baseline">
+              <span class="text-sm font-mono text-accent/40">{s.step}</span>
+              <span class="font-serif text-sm text-ink-secondary">{s.text}</span>
+            </div>
+          ))}
+        </div>
+        <p class="font-serif text-sm text-ink-faint mt-6 leading-relaxed italic">
+          In practice: a few votes on climate policy articles will shift the ranking of hundreds of similar pieces you haven't even seen yet.
+        </p>
+      </div>
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-6">Bookmarks & tuning</h2>
+        <div class="grid gap-6">
+          <div>
+            <h3 class="font-medium text-sm text-ink mb-1">Bookmarks</h3>
+            <p class="font-serif text-sm text-ink-secondary leading-relaxed">
+              Save any article for later by bookmarking it. You can also save articles by URL — Editions will extract the content automatically.
+            </p>
+          </div>
+          <div>
+            <h3 class="font-medium text-sm text-ink mb-1">Customising scoring weights</h3>
+            <p class="font-serif text-sm text-ink-secondary leading-relaxed mb-3">
+              Navigate to <strong class="text-ink font-medium">Settings → Scoring</strong> to adjust the ranking weights:
+            </p>
+            <div class="grid gap-2">
+              {[
+                "Raise recency to keep feeds fresh and time-sensitive",
+                "Raise votes to make ranking more personal",
+                "Raise confidence in focus feeds for strongly on-topic results",
+                "Reset to defaults if you want to start over",
+              ].map((tip) => (
+                <div class="flex gap-3 items-baseline">
+                  <span class="text-accent/40 text-xs">●</span>
+                  <span class="font-serif text-sm text-ink-secondary">{tip}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</GuidePage>

@@ -1,0 +1,152 @@
+---
+import GuidePage from "../../layouts/guide-page.astro";
+---
+
+<GuidePage
+  title="Getting started"
+  subtitle="From zero to your first magazine in five minutes."
+  current="/guides/getting-started"
+  sectionNumber="01"
+  next={{ href: "/guides/sources", label: "Sources" }}
+>
+
+  <!-- What you'll need -->
+  <section class="px-6 md:px-12 lg:px-20 pb-20">
+    <div class="max-w-wide mx-auto grid md:grid-cols-2 gap-16">
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-6">What you'll need</h2>
+        <div class="grid gap-4">
+          {[
+            { icon: "◻", label: "Docker", desc: "Docker or Docker Desktop installed on your machine or server" },
+            { icon: "◻", label: "A few minutes", desc: "To configure your first sources and topics" },
+            { icon: "◻", label: "RSS feed URLs", desc: "For the sites you want to read" },
+          ].map((item) => (
+            <div class="flex gap-4 items-start">
+              <span class="text-accent/40 text-lg leading-none mt-0.5">{item.icon}</span>
+              <div>
+                <span class="text-sm font-medium text-ink">{item.label}</span>
+                <p class="font-serif text-sm text-ink-secondary leading-relaxed mt-0.5">{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-6">Install with Docker Compose</h2>
+        <div class="rounded-lg border border-border bg-surface-sunken overflow-hidden">
+          <div class="px-4 py-2 border-b border-border bg-surface flex items-center gap-2">
+            <span class="text-[10px] font-mono tracking-wide text-ink-faint uppercase">docker-compose.yml</span>
+          </div>
+          <pre class="p-4 text-xs font-mono text-ink-secondary leading-relaxed overflow-x-auto"><code>{`services:
+  editions:
+    image: ghcr.io/morten-olsen/editions:latest
+    ports:
+      - "3007:3007"
+    volumes:
+      - editions-data:/data
+    environment:
+      - EDITIONS_JWT_SECRET=change-me
+    restart: unless-stopped
+
+volumes:
+  editions-data:`}</code></pre>
+        </div>
+        <div class="mt-4 rounded-lg border border-border bg-surface-sunken overflow-hidden">
+          <pre class="px-4 py-3 text-xs font-mono text-ink-secondary"><code>docker compose up -d</code></pre>
+        </div>
+        <p class="font-serif text-sm text-ink-faint mt-3">
+          Then open <code class="text-xs font-mono bg-surface-sunken px-1.5 py-0.5 rounded">http://localhost:3007</code> in your browser.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Create your account -->
+  <section class="px-6 md:px-12 lg:px-20 py-20 bg-surface-sunken">
+    <div class="max-w-wide mx-auto">
+      <div class="max-w-prose">
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-4">Create your account</h2>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed mb-4">
+          The first person to register automatically becomes the admin. After creating your account, you can disable public registration by setting <code class="text-xs font-mono bg-surface px-1.5 py-0.5 rounded">EDITIONS_ALLOW_SIGNUPS=false</code> in your environment.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- The setup flow -->
+  <section class="px-6 md:px-12 lg:px-20 py-20">
+    <div class="max-w-wide mx-auto">
+      <h2 class="font-serif text-xl tracking-tight text-ink mb-10">The setup flow</h2>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="rounded-lg border border-border bg-surface p-6">
+          <div class="text-[3rem] font-mono leading-none text-accent/15 select-none mb-4">01</div>
+          <h3 class="font-serif text-lg text-ink mb-3">Add sources</h3>
+          <p class="text-sm text-ink-secondary leading-relaxed mb-4">
+            Navigate to <strong class="text-ink font-medium">Sources</strong> and add RSS feeds for the publications you read. Each source needs a name and a feed URL.
+          </p>
+          <p class="text-sm text-ink-secondary leading-relaxed">
+            After adding a source, click <strong class="text-ink font-medium">Fetch</strong> to pull in articles.
+          </p>
+          <p class="font-serif text-xs text-ink-faint mt-4 leading-relaxed">
+            Start with 3-5 sources you actually read. You can always add more later.
+          </p>
+        </div>
+        <div class="rounded-lg border border-border bg-surface p-6">
+          <div class="text-[3rem] font-mono leading-none text-accent/15 select-none mb-4">02</div>
+          <h3 class="font-serif text-lg text-ink mb-3">Create focuses</h3>
+          <p class="text-sm text-ink-secondary leading-relaxed mb-4">
+            Navigate to <strong class="text-ink font-medium">Focuses</strong> and create topic areas — "Technology", "Climate", "Science", whatever you care about.
+          </p>
+          <p class="text-sm text-ink-secondary leading-relaxed">
+            The on-device ML model will automatically classify incoming articles into your focuses. Be descriptive — "Machine Learning Research" works better than "AI".
+          </p>
+        </div>
+        <div class="rounded-lg border border-border bg-surface p-6">
+          <div class="text-[3rem] font-mono leading-none text-accent/15 select-none mb-4">03</div>
+          <h3 class="font-serif text-lg text-ink mb-3">Build your first edition</h3>
+          <p class="text-sm text-ink-secondary leading-relaxed mb-4">
+            Navigate to <strong class="text-ink font-medium">Editions</strong> and create an edition config — your magazine template.
+          </p>
+          <p class="text-sm text-ink-secondary leading-relaxed">
+            Add focuses, set an article budget for each section, and click <strong class="text-ink font-medium">Generate</strong> to create your first edition.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Read your first edition -->
+  <section class="px-6 md:px-12 lg:px-20 py-20 bg-surface-sunken">
+    <div class="max-w-wide mx-auto grid md:grid-cols-[1fr_1fr] gap-16">
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-4">Read your first edition</h2>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed mb-4">
+          Open the generated edition. You can read it as a vertical scroll (newspaper view) or switch to the magazine view — a full-screen, paginated experience with a cover, table of contents, and an ending.
+        </p>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed">
+          When you reach the finale page, you're done. That's the whole point.
+        </p>
+      </div>
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-6">What happens next</h2>
+        <div class="grid gap-4">
+          {[
+            { label: "Scheduled fetching", desc: "Sources are fetched automatically on an interval" },
+            { label: "Automatic classification", desc: "New articles are classified into your focuses as they arrive" },
+            { label: "Scheduled editions", desc: "If you set a cron schedule, editions are generated automatically" },
+            { label: "Voting", desc: "Upvote and downvote articles to teach the system your taste" },
+          ].map((item) => (
+            <div class="flex gap-4 items-baseline">
+              <span class="text-accent/60 text-xs">●</span>
+              <div>
+                <span class="text-sm font-medium text-ink">{item.label}</span>
+                <span class="font-serif text-sm text-ink-secondary ml-2">{item.desc}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+</GuidePage>

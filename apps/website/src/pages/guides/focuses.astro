@@ -1,0 +1,181 @@
+---
+import GuidePage from "../../layouts/guide-page.astro";
+import ShowcaseFrame from "../../components/showcase-frame.astro";
+import { ShowcaseFocusBadges, ShowcaseClassification, ShowcaseFocusVoting } from "../../components/guide-showcases.tsx";
+---
+
+<GuidePage
+  title="Focuses"
+  subtitle="Topic areas that automatically classify your articles using on-device AI."
+  current="/guides/focuses"
+  sectionNumber="03"
+  prev={{ href: "/guides/sources", label: "Sources" }}
+  next={{ href: "/guides/editions", label: "Editions" }}
+>
+
+  <!-- What focuses are -->
+  <section class="px-6 md:px-12 lg:px-20 pb-20">
+    <div class="max-w-wide mx-auto grid md:grid-cols-[1fr_20rem] gap-12 items-start">
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-4">What focuses are</h2>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed mb-4">
+          A focus is a topic area you care about. When you create a focus, Editions uses a zero-shot classification model running entirely on your server to score how well each article matches that topic.
+        </p>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed">
+          No training data is needed. No data leaves your machine. Just describe what you're interested in.
+        </p>
+      </div>
+      <ShowcaseFrame caption="Plain-language topic descriptions">
+        <ShowcaseFocusBadges client:visible />
+      </ShowcaseFrame>
+    </div>
+  </section>
+
+  <!-- How classification works -->
+  <section class="px-6 md:px-12 lg:px-20 py-20 bg-surface-sunken">
+    <div class="max-w-wide mx-auto grid md:grid-cols-[20rem_1fr] gap-12 items-start">
+      <ShowcaseFrame caption="Each article is scored against every focus">
+        <ShowcaseClassification client:visible />
+      </ShowcaseFrame>
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-4">How classification works</h2>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed mb-4">
+          When an article is analysed, the classifier evaluates it against all your focuses and assigns a confidence score (0.0 to 1.0) for each one. Articles above a focus's minimum confidence threshold appear in that focus's feed.
+        </p>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed mb-4">
+          The classifier uses a natural language inference model (bart-large-mnli), so the focus name acts as a natural language description. Descriptive names work better:
+        </p>
+        <div class="grid gap-2 mt-4">
+          {[
+            { name: "\"AI\"", quality: "Broad — matches airline industry, artificial intelligence, anything" },
+            { name: "\"Artificial Intelligence\"", quality: "Better — more specific signal" },
+            { name: "\"Machine Learning Research\"", quality: "Best — narrow, well-defined topic" },
+          ].map((row) => (
+            <div class="flex gap-4 items-baseline">
+              <code class="text-xs font-mono text-accent shrink-0 w-48">{row.name}</code>
+              <span class="font-serif text-sm text-ink-secondary">{row.quality}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+    <div class="max-w-wide mx-auto mt-8">
+      <p class="text-xs text-ink-faint">
+        Articles can belong to multiple focuses simultaneously. A climate technology article might appear in both "Climate" and "Technology".
+      </p>
+    </div>
+  </section>
+
+  <!-- Creating a focus -->
+  <section class="px-6 md:px-12 lg:px-20 py-20">
+    <div class="max-w-wide mx-auto grid md:grid-cols-2 gap-16">
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-6">Creating a focus</h2>
+        <div class="grid gap-4">
+          {[
+            { step: "01", text: "Navigate to Focuses in the sidebar" },
+            { step: "02", text: "Click the + button" },
+            { step: "03", text: "Enter a name — be descriptive (see tips above)" },
+            { step: "04", text: "Optionally add a description for extra classifier context" },
+            { step: "05", text: "Set the minimum confidence threshold — default (0%) works to start" },
+            { step: "06", text: "Optionally restrict to specific sources" },
+            { step: "07", text: "Click Create" },
+          ].map((s) => (
+            <div class="flex gap-4 items-baseline">
+              <span class="text-sm font-mono text-accent/40">{s.step}</span>
+              <span class="font-serif text-sm text-ink-secondary">{s.text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-6">Source associations</h2>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed mb-6">
+          When linking sources to a focus, each source has a mode:
+        </p>
+        <div class="grid gap-4">
+          <div class="rounded-lg border border-border bg-surface p-5">
+            <div class="text-xs font-mono tracking-wide text-accent mb-2 uppercase">Match</div>
+            <p class="text-sm text-ink-secondary leading-relaxed">
+              Default mode. Uses the classifier and applies the confidence threshold.
+            </p>
+          </div>
+          <div class="rounded-lg border border-border bg-surface p-5">
+            <div class="text-xs font-mono tracking-wide text-accent mb-2 uppercase">Always</div>
+            <p class="text-sm text-ink-secondary leading-relaxed">
+              Every article from this source gets confidence 1.0, skipping the classifier. Useful when a source is perfectly on-topic.
+            </p>
+          </div>
+        </div>
+        <p class="font-serif text-sm text-ink-faint mt-4 leading-relaxed">
+          Each source also has a weight within the focus, which influences ranking.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Voting in focus feeds -->
+  <section class="px-6 md:px-12 lg:px-20 py-20 bg-surface-sunken">
+    <div class="max-w-wide mx-auto grid md:grid-cols-[1fr_20rem] gap-12 items-start">
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-4">Voting in focus feeds</h2>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed mb-4">
+          Votes mean different things depending on context. In a focus feed, a vote is about <em>relevance to that topic</em> — not general article quality.
+        </p>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed">
+          Votes propagate through semantic similarity — a few votes on climate policy articles will shift the ranking of hundreds of similar pieces you haven't even seen yet.
+        </p>
+      </div>
+      <ShowcaseFrame caption="Global votes rate quality — focus votes rate relevance">
+        <ShowcaseFocusVoting client:visible />
+      </ShowcaseFrame>
+    </div>
+  </section>
+
+  <!-- The focus feed -->
+  <section class="px-6 md:px-12 lg:px-20 py-20">
+    <div class="max-w-wide mx-auto grid md:grid-cols-2 gap-16">
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-6">The focus feed</h2>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed mb-4">
+          Each focus has its own article feed, sorted by:
+        </p>
+        <div class="grid gap-3">
+          <div class="flex gap-4 items-baseline">
+            <span class="text-sm font-mono text-accent/60">Top</span>
+            <span class="font-serif text-sm text-ink-secondary">Ranked by confidence, votes, and recency</span>
+          </div>
+          <div class="flex gap-4 items-baseline">
+            <span class="text-sm font-mono text-accent/60">Recent</span>
+            <span class="font-serif text-sm text-ink-secondary">Chronological by publish date</span>
+          </div>
+        </div>
+        <p class="font-serif text-sm text-ink-faint mt-4 leading-relaxed">
+          Filter by time window and read status, just like the main feed.
+        </p>
+      </div>
+      <div>
+        <h2 class="font-serif text-xl tracking-tight text-ink mb-6">Tips</h2>
+        <div class="grid gap-5">
+          <div>
+            <h3 class="font-medium text-sm text-ink mb-1">Start with 3-5 broad focuses</h3>
+            <p class="font-serif text-sm text-ink-secondary leading-relaxed">You can always get more specific later.</p>
+          </div>
+          <div>
+            <h3 class="font-medium text-sm text-ink mb-1">Use the description field</h3>
+            <p class="font-serif text-sm text-ink-secondary leading-relaxed">"Articles about renewable energy, electric vehicles, carbon capture, and climate policy" gives the classifier much more to work with than just "Climate".</p>
+          </div>
+          <div>
+            <h3 class="font-medium text-sm text-ink mb-1">Don't worry about overlap</h3>
+            <p class="font-serif text-sm text-ink-secondary leading-relaxed">Articles in multiple focuses is a feature, not a bug. A tech policy article should appear in both "Technology" and "Politics".</p>
+          </div>
+          <div>
+            <h3 class="font-medium text-sm text-ink mb-1">Re-analyse after adding focuses</h3>
+            <p class="font-serif text-sm text-ink-secondary leading-relaxed">Existing articles won't be classified against new focuses until they're re-analysed.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</GuidePage>

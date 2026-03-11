@@ -3,6 +3,7 @@ version: "3"
 vars:
   SERVER_DIR: apps/server
   WEB_DIR: apps/web
+  WEBSITE_DIR: apps/website
   SMOKE_PORT: 3199
   PORTLESS_PREFIX:
     sh: |
@@ -40,6 +41,12 @@ tasks:
       VITE_API_TARGET: "http://{{.PORTLESS_PREFIX}}editions-api.localhost:1355"
     cmds:
       - portless {{.PORTLESS_PREFIX}}editions npx vite
+
+  dev:website:
+    desc: Start the website in dev mode
+    dir: "{{.WEBSITE_DIR}}"
+    cmds:
+      - portless {{.PORTLESS_PREFIX}}editions-website sh -c 'npx astro dev --port $PORT --host 0.0.0.0'
 
   storybook:
     desc: Start Storybook dev server

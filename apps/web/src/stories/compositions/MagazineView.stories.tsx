@@ -7,6 +7,7 @@ import {
   MagazineSection,
   MagazineArticle,
   MagazineFinale,
+  type TocEntry,
 } from "../../components/magazine/magazine.tsx";
 
 /* ── Sample article content (extracted HTML) ──────────────────────── */
@@ -298,7 +299,7 @@ const sampleEdition = {
 const buildPages = (
   edition: typeof sampleEdition,
   onNavigate: (page: number) => void,
-): React.ReactElement[] => {
+): { pages: React.ReactElement[]; toc: TocEntry[] } => {
   const pages: React.ReactElement[] = [];
 
   // Track page numbers for TOC
@@ -312,6 +313,15 @@ const buildPages = (
       startPage,
     };
   });
+
+  const toc: TocEntry[] = tocSections.map((s) => ({
+    sectionName: s.focusName,
+    sectionPage: s.startPage,
+    articles: s.articles.map((a, aIdx) => ({
+      title: a.title,
+      page: s.startPage + aIdx + 1,
+    })),
+  }));
 
   // Cover
   pages.push(
@@ -377,7 +387,7 @@ const buildPages = (
     />,
   );
 
-  return pages;
+  return { pages, toc };
 };
 
 /* ── Stories ───────────────────────────────────────────────────────── */
@@ -393,9 +403,9 @@ type Story = StoryObj;
 const FullMagazine: Story = {
   render: () => {
     const [page, setPage] = useState(0);
-    const pages = buildPages(sampleEdition, setPage);
+    const { pages, toc } = buildPages(sampleEdition, setPage);
     return (
-      <MagazineLayout page={page} onPageChange={setPage}>
+      <MagazineLayout page={page} onPageChange={setPage} toc={toc}>
         {pages}
       </MagazineLayout>
     );

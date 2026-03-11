@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -16,6 +16,7 @@ import {
   MagazineSection,
   MagazineArticle,
   MagazineFinale,
+  type TocEntry,
 } from "../components/magazine/magazine.tsx";
 
 /* ── Types ────────────────────────────────────────────────────────── */
@@ -91,12 +92,14 @@ type MagazineViewProps = {
   sections: FocusSection[];
   votes: Record<string, VoteValue>;
   onVote: (articleId: string, value: VoteValue) => void;
+  onMarkArticleViewed: (sourceId: string, articleId: string) => void;
   onExit: () => void;
   onMarkDone: () => void;
 };
 
-const MagazineView = ({ edition, sections, votes, onVote, onExit, onMarkDone }: MagazineViewProps): React.ReactElement => {
+const MagazineView = ({ edition, sections, votes, onVote, onMarkArticleViewed, onExit, onMarkDone }: MagazineViewProps): React.ReactElement => {
   const [page, setPage] = useState(0);
+  const pageRef = useRef(page);
 
   const pages: React.ReactElement[] = [];
 
@@ -107,6 +110,37 @@ const MagazineView = ({ edition, sections, votes, onVote, onExit, onMarkDone }: 
     pageIdx += 1 + s.articles.length;
     return { focusName: s.focusName, articles: s.articles, startPage };
   });
+
+  const toc: TocEntry[] = tocSections.map((s) => ({
+    sectionName: s.focusName,
+    sectionPage: s.startPage,
+    articles: s.articles.map((a, aIdx) => ({
+      title: a.title,
+      page: s.startPage + aIdx + 1,
+    })),
+  }));
+
+  // Build a lookup from page index to article (for marking as viewed on navigation)
+  const pageArticleMap = useRef<Map<number, { sourceId: string; articleId: string }>>(new Map());
+  pageArticleMap.current.clear();
+  let articlePageIdx = 2;
+  sections.forEach((section) => {
+    articlePageIdx += 1; // section divider
+    section.articles.forEach((article) => {
+      pageArticleMap.current.set(articlePageIdx, { sourceId: article.sourceId, articleId: article.id });
+      articlePageIdx += 1;
+    });
+  });
+
+  // Intercept all page changes — mark the current page's article as viewed before advancing
+  const handlePageChange = useCallback((newPage: number): void => {
+    const articleInfo = pageArticleMap.current.get(pageRef.current);
+    if (articleInfo && newPage !== pageRef.current) {
+      onMarkArticleViewed(articleInfo.sourceId, articleInfo.articleId);
+    }
+    pageRef.current = newPage;
+    setPage(newPage);
+  }, [onMarkArticleViewed]);
 
   // Cover
   const leadArticle = edition.articles[0] ?? { title: edition.title, sourceName: "" };
@@ -134,7 +168,7 @@ const MagazineView = ({ edition, sections, votes, onVote, onExit, onMarkDone }: 
       key="toc"
       editionTitle={edition.title}
       sections={tocSections}
-      onNavigate={setPage}
+      onNavigate={handlePageChange}
     />,
   );
 
@@ -201,7 +235,7 @@ const MagazineView = ({ edition, sections, votes, onVote, onExit, onMarkDone }: 
       >
         ← Exit magazine
       </button>
-      <MagazineLayout page={page} onPageChange={setPage}>
+      <MagazineLayout page={page} onPageChange={handlePageChange} toc={toc}>
         {pages}
       </MagazineLayout>
     </div>
@@ -305,6 +339,14 @@ const EditionViewPage = (): React.ReactNode => {
     }
   };
 
+  const handleMarkArticleViewed = async (sourceId: string, articleId: string): Promise<void> => {
+    await client.PUT("/api/sources/{id}/articles/{articleId}/read", {
+      params: { path: { id: sourceId, articleId } },
+      body: { read: true },
+      headers,
+    });
+  };
+
   const handleExitMagazine = useCallback((): void => setView("list"), []);
 
   if (!headers || isLoading) {
@@ -339,6 +381,7 @@ const EditionViewPage = (): React.ReactNode => {
         sections={sections}
         votes={votes}
         onVote={(articleId, value) => void handleEditionVote(articleId, value)}
+        onMarkArticleViewed={(sourceId, articleId) => void handleMarkArticleViewed(sourceId, articleId)}
         onExit={handleExitMagazine}
         onMarkDone={() => void handleMarkDoneAndBack()}
       />

@@ -65,7 +65,7 @@ const ArticleBody = ({ content, delay = 0.4 }: ArticleBodyProps): React.ReactEle
   >
     <div className="w-px h-8 bg-border-strong mx-auto mb-10" />
     <div
-      className="prose prose-neutral max-w-none font-serif text-base leading-relaxed text-ink
+      className="prose prose-neutral max-w-none font-serif text-lg leading-relaxed text-ink
         prose-headings:font-serif prose-headings:tracking-tight prose-headings:text-ink
         prose-p:text-ink-secondary prose-p:leading-relaxed
         prose-a:text-accent prose-a:no-underline hover:prose-a:underline
@@ -251,7 +251,7 @@ const HeroLayout = (props: MagazineArticleProps): React.ReactElement => {
             {title}
           </motion.h2>
 
-          {summary && (
+          {summary && !hasContent && (
             <motion.p
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -342,13 +342,13 @@ const EditorialLayout = (props: MagazineArticleProps): React.ReactElement => {
           </motion.div>
         )}
 
-        {/* Summary as opening paragraph */}
-        {summary && (
+        {/* Summary as opening paragraph — only when no full content to avoid repetition */}
+        {summary && !hasContent && (
           <motion.p
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: easeOut, delay: 0.3 }}
-            className={`font-serif text-lg leading-relaxed text-ink-secondary mb-6 ${hasContent ? "" : "text-center"}`}
+            className="font-serif text-lg leading-relaxed text-ink-secondary mb-6 text-center"
           >
             {summary}
           </motion.p>
@@ -440,7 +440,7 @@ const CompactLayout = (props: MagazineArticleProps): React.ReactElement => {
               {title}
             </motion.h2>
 
-            {summary && (
+            {summary && !hasContent && (
               <motion.p
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -548,13 +548,13 @@ const PodcastLayout = (props: MagazineArticleProps): React.ReactElement => {
           </>
         )}
 
-        {/* Summary / episode description */}
-        {summary && (
+        {/* Summary / episode description — only when no show notes to avoid repetition */}
+        {summary && !hasContent && (
           <motion.p
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: easeOut, delay: mediaUrl ? 0.35 : 0.4 }}
-            className={`font-serif text-lg leading-relaxed text-ink-secondary mb-6 ${hasContent ? "" : "text-center"}`}
+            className="font-serif text-lg leading-relaxed text-ink-secondary mb-6 text-center"
           >
             {summary}
           </motion.p>

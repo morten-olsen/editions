@@ -6,7 +6,7 @@
  * and article spreads with alternating layout variants.
  */
 
-export type { MagazineLayoutProps, MagazinePageProps, MagazineNavContext } from "./magazine.layout.tsx";
+export type { MagazineLayoutProps, MagazinePageProps, MagazineNavContext, TocEntry } from "./magazine.layout.tsx";
 export { MagazineLayout, MagazinePage, useMagazineNav } from "./magazine.layout.tsx";
 
 export type { MagazineCoverProps, CoverArticle } from "./magazine.cover.tsx";

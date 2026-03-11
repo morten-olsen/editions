@@ -1,13 +1,22 @@
 import * as React from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { List } from "lucide-react";
 
 /* ── Types ────────────────────────────────────────────────────────── */
+
+type TocEntry = {
+  sectionName: string;
+  sectionPage: number;
+  articles: { title: string; page: number }[];
+};
 
 type MagazineLayoutProps = {
   children: React.ReactNode[];
   /** Current page index (0-based) */
   page: number;
   onPageChange: (page: number) => void;
+  /** Optional table of contents for the bottom-nav ToC panel */
+  toc?: TocEntry[];
 };
 
 type MagazineNavContext = {
@@ -58,33 +67,124 @@ type PageIndicatorProps = {
   current: number;
   total: number;
   onPageChange: (page: number) => void;
+  toc?: TocEntry[];
 };
 
 const PageIndicator = ({
   current,
   total,
   onPageChange,
-}: PageIndicatorProps): React.ReactElement => (
-  <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center gap-6 py-4 bg-linear-to-t from-surface via-surface/80 to-transparent">
-    <button
-      onClick={() => onPageChange(Math.max(0, current - 1))}
-      disabled={current === 0}
-      className="text-xs font-mono tracking-wide text-ink-tertiary hover:text-ink disabled:opacity-30 transition-colors duration-fast"
-    >
-      Prev
-    </button>
-    <span className="text-xs font-mono tracking-wide text-ink-tertiary tabular-nums">
-      {String(current + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
-    </span>
-    <button
-      onClick={() => onPageChange(Math.min(total - 1, current + 1))}
-      disabled={current === total - 1}
-      className="text-xs font-mono tracking-wide text-ink-tertiary hover:text-ink disabled:opacity-30 transition-colors duration-fast"
-    >
-      Next
-    </button>
-  </div>
-);
+  toc,
+}: PageIndicatorProps): React.ReactElement => {
+  const [tocOpen, setTocOpen] = React.useState(false);
+
+  const handleNavigate = (page: number): void => {
+    onPageChange(page);
+    setTocOpen(false);
+  };
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-50">
+      {/* ToC overlay panel */}
+      <AnimatePresence>
+        {tocOpen && toc && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              key="toc-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[-1]"
+              onClick={() => setTocOpen(false)}
+            />
+            {/* Panel */}
+            <motion.div
+              key="toc-panel"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 12 }}
+              transition={{ duration: 0.25, ease: easeOut }}
+              className="mx-4 mb-2 rounded-xl bg-surface border border-border shadow-xl max-h-[55vh] overflow-y-auto"
+            >
+              <div className="px-5 py-4">
+                <div className="text-[10px] font-mono tracking-widest text-ink-faint uppercase mb-4">
+                  Contents
+                </div>
+                <div className="grid gap-5">
+                  {toc.map((section) => (
+                    <div key={section.sectionName}>
+                      <button
+                        onClick={() => handleNavigate(section.sectionPage)}
+                        className="flex items-baseline gap-3 w-full text-left mb-2 group"
+                      >
+                        <span className="font-serif text-sm font-medium text-ink group-hover:text-accent transition-colors duration-fast">
+                          {section.sectionName}
+                        </span>
+                        <span className="flex-1 border-b border-dotted border-border min-w-4 translate-y-[-2px]" />
+                        <span className="text-[10px] font-mono text-ink-faint shrink-0">
+                          p. {String(section.sectionPage + 1).padStart(2, "0")}
+                        </span>
+                      </button>
+                      <div className="grid gap-1.5 pl-3 border-l border-border">
+                        {section.articles.map((article) => (
+                          <button
+                            key={article.page}
+                            onClick={() => handleNavigate(article.page)}
+                            className="flex items-baseline gap-2 w-full text-left group"
+                          >
+                            <span className="font-serif text-xs text-ink-secondary group-hover:text-accent transition-colors duration-fast leading-snug">
+                              {article.title}
+                            </span>
+                            <span className="flex-1 border-b border-dotted border-border/50 min-w-4 translate-y-[-2px]" />
+                            <span className="text-[10px] font-mono text-ink-faint shrink-0">
+                              {String(article.page + 1).padStart(2, "0")}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Bottom nav bar */}
+      <div className="flex items-center justify-center gap-6 py-4 bg-linear-to-t from-surface via-surface/80 to-transparent">
+        {toc && (
+          <button
+            onClick={() => setTocOpen((o) => !o)}
+            aria-label="Table of contents"
+            className={`transition-colors duration-fast ${tocOpen ? "text-accent" : "text-ink-tertiary hover:text-ink"}`}
+          >
+            <List size={14} strokeWidth={1.75} />
+          </button>
+        )}
+        <button
+          onClick={() => onPageChange(Math.max(0, current - 1))}
+          disabled={current === 0}
+          className="text-xs font-mono tracking-wide text-ink-tertiary hover:text-ink disabled:opacity-30 transition-colors duration-fast"
+        >
+          Prev
+        </button>
+        <span className="text-xs font-mono tracking-wide text-ink-tertiary tabular-nums">
+          {String(current + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+        </span>
+        <button
+          onClick={() => onPageChange(Math.min(total - 1, current + 1))}
+          disabled={current === total - 1}
+          className="text-xs font-mono tracking-wide text-ink-tertiary hover:text-ink disabled:opacity-30 transition-colors duration-fast"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+};
 
 /* ── Touch / swipe helpers ────────────────────────────────────────── */
 
@@ -177,6 +277,7 @@ const MagazineLayout = ({
   children,
   page,
   onPageChange,
+  toc,
 }: MagazineLayoutProps): React.ReactElement => {
   const pages = React.Children.toArray(children);
   const total = pages.length;
@@ -234,7 +335,7 @@ const MagazineLayout = ({
             {pages[page]}
           </motion.div>
         </AnimatePresence>
-        <PageIndicator current={page} total={total} onPageChange={onPageChange} />
+        {page > 0 && <PageIndicator current={page} total={total} onPageChange={onPageChange} toc={toc} />}
       </div>
     </MagazineNavCtx.Provider>
   );
@@ -242,5 +343,5 @@ const MagazineLayout = ({
 
 /* ── Exports ──────────────────────────────────────────────────────── */
 
-export type { MagazineLayoutProps, MagazinePageProps, PageIndicatorProps, MagazineNavContext };
+export type { MagazineLayoutProps, MagazinePageProps, PageIndicatorProps, MagazineNavContext, TocEntry };
 export { MagazineLayout, MagazinePage, PageIndicator, useMagazineNav };

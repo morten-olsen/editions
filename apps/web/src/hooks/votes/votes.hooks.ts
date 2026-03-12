@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from 'react';
 
-import { useAuth } from "../../auth/auth.tsx";
-import { client } from "../../api/api.ts";
-import { usePagination } from "../utilities/use-pagination.ts";
-
-import type { UsePaginationResult } from "../utilities/use-pagination.ts";
+import { useAuth } from '../../auth/auth.tsx';
+import { client } from '../../api/api.ts';
+import { usePagination } from '../utilities/use-pagination.ts';
+import type { UsePaginationResult } from '../utilities/use-pagination.ts';
 
 type VoteWithArticle = {
   id: string;
@@ -26,8 +25,8 @@ type VotesPage = {
   limit: number;
 };
 
-type ScopeFilter = "all" | "global" | "focus";
-type ValueFilter = "all" | "up" | "down";
+type ScopeFilter = 'all' | 'global' | 'focus';
+type ValueFilter = 'all' | 'up' | 'down';
 
 type UseVotesResult = {
   votesPage: VotesPage | null;
@@ -47,83 +46,107 @@ const formatDate = (iso: string): string => {
   const diffMs = now.getTime() - date.getTime();
   const diffHours = diffMs / (1000 * 60 * 60);
 
-  if (diffHours < 1) return "Just now";
-  if (diffHours < 24) return `${Math.floor(diffHours)}h ago`;
-  if (diffHours < 48) return "Yesterday";
-  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  if (diffHours < 1) {
+    return 'Just now';
+  }
+  if (diffHours < 24) {
+    return `${Math.floor(diffHours)}h ago`;
+  }
+  if (diffHours < 48) {
+    return 'Yesterday';
+  }
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 };
 
 const useVotes = (): UseVotesResult => {
   const auth = useAuth();
   const [votesPage, setVotesPage] = useState<VotesPage | null>(null);
   const [loading, setLoading] = useState(true);
-  const [scopeFilter, setScopeFilter] = useState<ScopeFilter>("all");
-  const [valueFilter, setValueFilter] = useState<ValueFilter>("all");
+  const [scopeFilter, setScopeFilter] = useState<ScopeFilter>('all');
+  const [valueFilter, setValueFilter] = useState<ValueFilter>('all');
 
   const pagination = usePagination({
     pageSize: PAGE_SIZE,
     total: votesPage?.total ?? 0,
   });
 
-  const loadVotes = useCallback(async (
-    newOffset: number,
-    scope: ScopeFilter,
-    value: ValueFilter,
-  ): Promise<void> => {
-    if (auth.status !== "authenticated") return;
+  const loadVotes = useCallback(
+    async (newOffset: number, scope: ScopeFilter, value: ValueFilter): Promise<void> => {
+      if (auth.status !== 'authenticated') {
+        return;
+      }
 
-    const query: Record<string, unknown> = {
-      offset: newOffset,
-      limit: PAGE_SIZE,
-    };
-    if (scope !== "all") query.scope = scope;
-    if (value === "up") query.value = 1;
-    if (value === "down") query.value = -1;
+      const query: Record<string, unknown> = {
+        offset: newOffset,
+        limit: PAGE_SIZE,
+      };
+      if (scope !== 'all') {
+        query.scope = scope;
+      }
+      if (value === 'up') {
+        query.value = 1;
+      }
+      if (value === 'down') {
+        query.value = -1;
+      }
 
-    const { data } = await client.GET("/api/votes", {
-      params: { query: query as never },
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
+      const { data } = await client.GET('/api/votes', {
+        params: { query: query as never },
+        headers: { Authorization: `Bearer ${auth.token}` },
+      });
 
-    if (data) {
-      setVotesPage(data as VotesPage);
-    }
-    setLoading(false);
-  }, [auth]);
+      if (data) {
+        setVotesPage(data as VotesPage);
+      }
+      setLoading(false);
+    },
+    [auth],
+  );
 
   useEffect(() => {
     pagination.reset();
     void loadVotes(0, scopeFilter, valueFilter);
   }, [loadVotes, scopeFilter, valueFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const changeFilter = useCallback((
-    scope?: ScopeFilter,
-    value?: ValueFilter,
-  ): void => {
-    if (scope !== undefined) setScopeFilter(scope);
-    if (value !== undefined) setValueFilter(value);
-    pagination.reset();
-    setLoading(true);
-    void loadVotes(0, scope ?? scopeFilter, value ?? valueFilter);
-  }, [loadVotes, pagination, scopeFilter, valueFilter]);
+  const changeFilter = useCallback(
+    (scope?: ScopeFilter, value?: ValueFilter): void => {
+      if (scope !== undefined) {
+        setScopeFilter(scope);
+      }
+      if (value !== undefined) {
+        setValueFilter(value);
+      }
+      pagination.reset();
+      setLoading(true);
+      void loadVotes(0, scope ?? scopeFilter, value ?? valueFilter);
+    },
+    [loadVotes, pagination, scopeFilter, valueFilter],
+  );
 
-  const removeVote = useCallback(async (vote: VoteWithArticle): Promise<void> => {
-    if (auth.status !== "authenticated") return;
+  const removeVote = useCallback(
+    async (vote: VoteWithArticle): Promise<void> => {
+      if (auth.status !== 'authenticated') {
+        return;
+      }
 
-    await client.DELETE("/api/votes/{voteId}", {
-      params: { path: { voteId: vote.id } },
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
+      await client.DELETE('/api/votes/{voteId}', {
+        params: { path: { voteId: vote.id } },
+        headers: { Authorization: `Bearer ${auth.token}` },
+      });
 
-    setVotesPage((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        votes: prev.votes.filter((v) => v.id !== vote.id),
-        total: prev.total - 1,
-      };
-    });
-  }, [auth]);
+      setVotesPage((prev) => {
+        if (!prev) {
+          return prev;
+        }
+        return {
+          ...prev,
+          votes: prev.votes.filter((v) => v.id !== vote.id),
+          total: prev.total - 1,
+        };
+      });
+    },
+    [auth],
+  );
 
   return {
     votesPage,

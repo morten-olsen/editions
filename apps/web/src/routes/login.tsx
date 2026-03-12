@@ -1,8 +1,8 @@
-import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from '@tanstack/react-router';
 
-import { useLoginForm } from "../hooks/auth/auth.hooks.ts";
-import { Input } from "../components/input.tsx";
-import { Button } from "../components/button.tsx";
+import { useLoginForm } from '../hooks/auth/auth.hooks.ts';
+import { Input } from '../components/input.tsx';
+import { Button } from '../components/button.tsx';
 
 const LoginPage = (): React.ReactNode => {
   const {
@@ -27,12 +27,8 @@ const LoginPage = (): React.ReactNode => {
     <div className="min-h-dvh bg-surface flex items-center justify-center">
       <div className="w-full max-w-sm px-6">
         <div className="text-center mb-10">
-          <div className="font-serif text-3xl tracking-tight text-ink mb-2">
-            Editions
-          </div>
-          <div className="text-sm text-ink-tertiary">
-            {mode === "login" ? "Welcome back" : "Create your account"}
-          </div>
+          <div className="font-serif text-3xl tracking-tight text-ink mb-2">Editions</div>
+          <div className="text-sm text-ink-tertiary">{mode === 'login' ? 'Welcome back' : 'Create your account'}</div>
         </div>
 
         {error && (
@@ -59,7 +55,7 @@ const LoginPage = (): React.ReactNode => {
             onChange={(e) => setPassword(e.target.value)}
           />
           <Button variant="primary" type="submit" disabled={submitting} className="w-full mt-2">
-            {submitting ? "..." : mode === "login" ? "Sign in" : "Create account"}
+            {submitting ? '...' : mode === 'login' ? 'Sign in' : 'Create account'}
           </Button>
         </form>
 
@@ -70,9 +66,7 @@ const LoginPage = (): React.ReactNode => {
               onClick={toggleMode}
               className="text-sm text-ink-tertiary hover:text-accent transition-colors duration-fast cursor-pointer"
             >
-              {mode === "login"
-                ? "Need an account? Register"
-                : "Already have an account? Sign in"}
+              {mode === 'login' ? 'Need an account? Register' : 'Already have an account? Sign in'}
             </button>
           </div>
         )}
@@ -81,7 +75,7 @@ const LoginPage = (): React.ReactNode => {
   );
 };
 
-const Route = createFileRoute("/login")({
+const Route = createFileRoute('/login')({
   component: LoginPage,
 });
 

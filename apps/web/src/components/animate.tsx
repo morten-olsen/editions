@@ -1,5 +1,5 @@
-import * as React from "react";
-import { motion, AnimatePresence, type Transition, type Variants } from "motion/react";
+import * as React from 'react';
+import { motion, AnimatePresence, type Transition, type Variants } from 'motion/react';
 
 /* ── Shared transitions (match design tokens) ────────────────────── */
 
@@ -23,12 +23,7 @@ type FadeInProps = {
   className?: string;
 };
 
-const FadeIn = ({
-  children,
-  duration = "slow",
-  delay = 0,
-  className,
-}: FadeInProps): React.ReactElement => (
+const FadeIn = ({ children, duration = 'slow', delay = 0, className }: FadeInProps): React.ReactElement => (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
@@ -41,7 +36,7 @@ const FadeIn = ({
 
 /* ── SlideIn ──────────────────────────────────────────────────────── */
 
-type SlideDirection = "up" | "down" | "left" | "right";
+type SlideDirection = 'up' | 'down' | 'left' | 'right';
 
 type SlideInProps = {
   children: React.ReactNode;
@@ -61,9 +56,9 @@ const offsets: Record<SlideDirection, { x: number; y: number }> = {
 
 const SlideIn = ({
   children,
-  from = "up",
+  from = 'up',
   distance = 12,
-  duration = "slow",
+  duration = 'slow',
   delay = 0,
   className,
 }: SlideInProps): React.ReactElement => {
@@ -89,12 +84,7 @@ type ScaleInProps = {
   className?: string;
 };
 
-const ScaleIn = ({
-  children,
-  duration = "normal",
-  delay = 0,
-  className,
-}: ScaleInProps): React.ReactElement => (
+const ScaleIn = ({ children, duration = 'normal', delay = 0, className }: ScaleInProps): React.ReactElement => (
   <motion.div
     initial={{ opacity: 0, scale: 0.95 }}
     animate={{ opacity: 1, scale: 1 }}
@@ -113,16 +103,12 @@ type CollapseProps = {
   duration?: keyof typeof transitions;
 };
 
-const Collapse = ({
-  show,
-  children,
-  duration = "slow",
-}: CollapseProps): React.ReactElement => (
+const Collapse = ({ show, children, duration = 'slow' }: CollapseProps): React.ReactElement => (
   <AnimatePresence initial={false}>
     {show && (
       <motion.div
         initial={{ opacity: 0, height: 0 }}
-        animate={{ opacity: 1, height: "auto" }}
+        animate={{ opacity: 1, height: 'auto' }}
         exit={{ opacity: 0, height: 0 }}
         transition={transitions[duration]}
         className="overflow-hidden"
@@ -142,12 +128,7 @@ type PresenceProps = {
   className?: string;
 };
 
-const Presence = ({
-  show,
-  children,
-  duration = "normal",
-  className,
-}: PresenceProps): React.ReactElement => (
+const Presence = ({ show, children, duration = 'normal', className }: PresenceProps): React.ReactElement => (
   <AnimatePresence>
     {show && (
       <motion.div
@@ -180,11 +161,7 @@ const staggerItemVariants: Variants = {
   },
 };
 
-const StaggerList = ({
-  children,
-  stagger = 0.06,
-  className,
-}: StaggerListProps): React.ReactElement => {
+const StaggerList = ({ children, stagger = 0.06, className }: StaggerListProps): React.ReactElement => {
   const container: Variants = {
     hidden: {},
     show: {
@@ -193,12 +170,7 @@ const StaggerList = ({
   };
 
   return (
-    <motion.div
-      variants={container}
-      initial="hidden"
-      animate="show"
-      className={className}
-    >
+    <motion.div variants={container} initial="hidden" animate="show" className={className}>
       {children}
     </motion.div>
   );
@@ -223,10 +195,7 @@ type PageTransitionProps = {
   children: React.ReactNode;
 };
 
-const PageTransition = ({
-  locationKey,
-  children,
-}: PageTransitionProps): React.ReactElement => (
+const PageTransition = ({ locationKey, children }: PageTransitionProps): React.ReactElement => (
   <motion.div
     key={locationKey}
     initial={{ opacity: 0, y: 4 }}
@@ -252,14 +221,4 @@ export type {
   StaggerListProps,
   PageTransitionProps,
 };
-export {
-  transitions,
-  FadeIn,
-  SlideIn,
-  ScaleIn,
-  Collapse,
-  Presence,
-  StaggerList,
-  StaggerItem,
-  PageTransition,
-};
+export { transitions, FadeIn, SlideIn, ScaleIn, Collapse, Presence, StaggerList, StaggerItem, PageTransition };

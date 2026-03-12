@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef } from 'react';
 
 const useFormPopulation = <T>(data: T | undefined, populate: (data: T) => void): void => {
   const populated = useRef(false);

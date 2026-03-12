@@ -3,7 +3,7 @@
  * Import from this file, not from submodules.
  * ──────────────────────────────────────────────────────── */
 
-export { AiProvider, useAi } from "./ai.provider.tsx";
-export { AiChatDrawer, AiToggleButton } from "./ai.chat.tsx";
-export { AiCursor } from "./ai.cursor.tsx";
-export type { AiConfig } from "./ai.types.ts";
+export { AiProvider, useAi } from './ai.provider.tsx';
+export { AiChatDrawer, AiToggleButton } from './ai.chat.tsx';
+export { AiCursor } from './ai.cursor.tsx';
+export type { AiConfig } from './ai.types.ts';

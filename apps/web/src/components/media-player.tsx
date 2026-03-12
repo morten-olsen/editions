@@ -1,10 +1,11 @@
-import * as React from "react";
-import { motion } from "motion/react";
-import { client } from "../api/api.ts";
+import * as React from 'react';
+import { motion } from 'motion/react';
+
+import { client } from '../api/api.ts';
 
 /* ── Playback progress persistence ───────────────────────────────── */
 
-const PROGRESS_PREFIX = "editions:media-progress:";
+const PROGRESS_PREFIX = 'editions:media-progress:';
 const SAVE_INTERVAL_MS = 3000;
 
 /**
@@ -29,7 +30,9 @@ const usePlaybackProgress = (
 
   React.useEffect(() => {
     const el = mediaRef.current;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
 
     const restore = (): void => {
       const saved = localStorage.getItem(localKey);
@@ -45,55 +48,79 @@ const usePlaybackProgress = (
       }
     };
 
-    el.addEventListener("loadedmetadata", restore, { once: true });
-    if (el.readyState >= 1) restore();
+    el.addEventListener('loadedmetadata', restore, { once: true });
+    if (el.readyState >= 1) {
+      restore();
+    }
 
-    return () => el.removeEventListener("loadedmetadata", restore);
+    return () => el.removeEventListener('loadedmetadata', restore);
   }, [localKey, mediaRef, initialProgress]);
 
   React.useEffect(() => {
     const el = mediaRef.current;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
 
     const save = (): void => {
       const now = Date.now();
-      if (now - lastSave.current < SAVE_INTERVAL_MS) return;
+      if (now - lastSave.current < SAVE_INTERVAL_MS) {
+        return;
+      }
       lastSave.current = now;
 
-      try { localStorage.setItem(localKey, String(el.currentTime)); } catch { /* ignore */ }
+      try {
+        localStorage.setItem(localKey, String(el.currentTime));
+      } catch {
+        /* ignore */
+      }
 
       if (articleId && el.duration > 0) {
         const ratio = Math.min(1, el.currentTime / el.duration);
-        client.PATCH("/api/articles/{articleId}/progress", {
-          params: { path: { articleId } },
-          body: { progress: ratio },
-        }).catch(() => {});
+        client
+          .PATCH('/api/articles/{articleId}/progress', {
+            params: { path: { articleId } },
+            body: { progress: ratio },
+          })
+          .catch(() => {});
       }
     };
 
     const onEnded = (): void => {
-      try { localStorage.removeItem(localKey); } catch { /* ignore */ }
+      try {
+        localStorage.removeItem(localKey);
+      } catch {
+        /* ignore */
+      }
       if (articleId) {
-        client.PATCH("/api/articles/{articleId}/progress", {
-          params: { path: { articleId } },
-          body: { progress: 1 },
-        }).catch(() => {});
+        client
+          .PATCH('/api/articles/{articleId}/progress', {
+            params: { path: { articleId } },
+            body: { progress: 1 },
+          })
+          .catch(() => {});
       }
     };
 
-    el.addEventListener("timeupdate", save);
-    el.addEventListener("ended", onEnded);
+    el.addEventListener('timeupdate', save);
+    el.addEventListener('ended', onEnded);
     return () => {
-      el.removeEventListener("timeupdate", save);
-      el.removeEventListener("ended", onEnded);
+      el.removeEventListener('timeupdate', save);
+      el.removeEventListener('ended', onEnded);
       if (el.currentTime > 0 && !el.ended) {
-        try { localStorage.setItem(localKey, String(el.currentTime)); } catch { /* ignore */ }
+        try {
+          localStorage.setItem(localKey, String(el.currentTime));
+        } catch {
+          /* ignore */
+        }
         if (articleId && el.duration > 0) {
           const ratio = Math.min(1, el.currentTime / el.duration);
-          client.PATCH("/api/articles/{articleId}/progress", {
-            params: { path: { articleId } },
-            body: { progress: ratio },
-          }).catch(() => {});
+          client
+            .PATCH('/api/articles/{articleId}/progress', {
+              params: { path: { articleId } },
+              body: { progress: ratio },
+            })
+            .catch(() => {});
         }
       }
     };
@@ -108,7 +135,7 @@ const formatTimestamp = (seconds: number): string => {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = Math.floor(seconds % 60);
-  const pad = (n: number): string => String(n).padStart(2, "0");
+  const pad = (n: number): string => String(n).padStart(2, '0');
   return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 };
 
@@ -150,7 +177,9 @@ const AudioPlayer = ({ src, articleId, initialProgress, delay = 0.35 }: AudioPla
 
   const toggle = (): void => {
     const el = audioRef.current;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
     if (playing) {
       el.pause();
     } else {
@@ -164,18 +193,24 @@ const AudioPlayer = ({ src, articleId, initialProgress, delay = 0.35 }: AudioPla
 
   const ratioFromEvent = (e: { clientX: number }): number => {
     const rect = waveRef.current?.getBoundingClientRect();
-    if (!rect) return 0;
+    if (!rect) {
+      return 0;
+    }
     return Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
   };
 
   const seekTo = (ratio: number): void => {
     const el = audioRef.current;
-    if (!el || !duration) return;
+    if (!el || !duration) {
+      return;
+    }
     el.currentTime = ratio * duration;
   };
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>): void => {
-    if (!duration) return;
+    if (!duration) {
+      return;
+    }
     setDragging(true);
     e.currentTarget.setPointerCapture(e.pointerId);
     const ratio = ratioFromEvent(e);
@@ -185,7 +220,9 @@ const AudioPlayer = ({ src, articleId, initialProgress, delay = 0.35 }: AudioPla
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>): void => {
     const ratio = ratioFromEvent(e);
     setHoverRatio(ratio);
-    if (dragging) seekTo(ratio);
+    if (dragging) {
+      seekTo(ratio);
+    }
   };
 
   const handlePointerUp = (): void => {
@@ -220,7 +257,7 @@ const AudioPlayer = ({ src, articleId, initialProgress, delay = 0.35 }: AudioPla
           className="shrink-0 w-14 h-14 rounded-full bg-accent text-accent-ink flex items-center justify-center
             hover:bg-accent-hover hover:scale-105 active:scale-95
             transition-all duration-normal cursor-pointer shadow-md"
-          aria-label={playing ? "Pause" : "Play"}
+          aria-label={playing ? 'Pause' : 'Play'}
         >
           {playing ? (
             <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" aria-hidden="true">
@@ -241,7 +278,11 @@ const AudioPlayer = ({ src, articleId, initialProgress, delay = 0.35 }: AudioPla
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
-            onPointerLeave={() => { if (!dragging) setHoverRatio(null); }}
+            onPointerLeave={() => {
+              if (!dragging) {
+                setHoverRatio(null);
+              }
+            }}
             className="relative flex items-center justify-center gap-[2px] h-12 cursor-pointer select-none touch-none"
             role="slider"
             aria-label="Seek"
@@ -251,11 +292,10 @@ const AudioPlayer = ({ src, articleId, initialProgress, delay = 0.35 }: AudioPla
           >
             {waveformHeights.map((h, i) => {
               const played = i <= activeBar && duration > 0;
-              const inHoverZone = hoverBar !== null && duration > 0 && (
-                hoverBar >= activeBar
-                  ? i > activeBar && i <= hoverBar
-                  : i > hoverBar && i <= activeBar
-              );
+              const inHoverZone =
+                hoverBar !== null &&
+                duration > 0 &&
+                (hoverBar >= activeBar ? i > activeBar && i <= hoverBar : i > hoverBar && i <= activeBar);
 
               return (
                 <div
@@ -263,11 +303,11 @@ const AudioPlayer = ({ src, articleId, initialProgress, delay = 0.35 }: AudioPla
                   className={`w-[3px] rounded-full transition-colors duration-fast ${
                     played
                       ? inHoverZone
-                        ? "bg-accent/40"
-                        : "bg-accent"
+                        ? 'bg-accent/40'
+                        : 'bg-accent'
                       : inHoverZone
-                        ? "bg-accent/55"
-                        : "bg-accent/15"
+                        ? 'bg-accent/55'
+                        : 'bg-accent/15'
                   }`}
                   style={{ height: h }}
                 />
@@ -279,7 +319,7 @@ const AudioPlayer = ({ src, articleId, initialProgress, delay = 0.35 }: AudioPla
               <div
                 className={`absolute top-1/2 -translate-y-1/2 rounded-full bg-accent shadow-sm pointer-events-none
                   ring-2 ring-surface transition-[left,width,height,opacity] duration-fast
-                  ${isHovering || dragging ? "w-4 h-4 opacity-100" : "w-2.5 h-2.5 opacity-70"}`}
+                  ${isHovering || dragging ? 'w-4 h-4 opacity-100' : 'w-2.5 h-2.5 opacity-70'}`}
                 style={{ left: `${progress * 100}%` }}
               />
             )}
@@ -298,7 +338,7 @@ const AudioPlayer = ({ src, articleId, initialProgress, delay = 0.35 }: AudioPla
           {/* Timestamps */}
           <div className="flex justify-between text-xs font-mono tracking-wide text-ink-faint mt-1">
             <span>{formatTimestamp(currentTime)}</span>
-            <span>{duration > 0 ? formatTimestamp(duration) : "—"}</span>
+            <span>{duration > 0 ? formatTimestamp(duration) : '—'}</span>
           </div>
         </div>
       </div>
@@ -341,10 +381,18 @@ type MediaPlayerProps = {
   delay?: number;
 };
 
-const MediaPlayer = ({ mediaUrl, mediaType, articleId, initialProgress, delay = 0.35 }: MediaPlayerProps): React.ReactElement =>
-  mediaType?.startsWith("video/")
-    ? <VideoPlayer src={mediaUrl} articleId={articleId} initialProgress={initialProgress} delay={delay} />
-    : <AudioPlayer src={mediaUrl} articleId={articleId} initialProgress={initialProgress} delay={delay} />;
+const MediaPlayer = ({
+  mediaUrl,
+  mediaType,
+  articleId,
+  initialProgress,
+  delay = 0.35,
+}: MediaPlayerProps): React.ReactElement =>
+  mediaType?.startsWith('video/') ? (
+    <VideoPlayer src={mediaUrl} articleId={articleId} initialProgress={initialProgress} delay={delay} />
+  ) : (
+    <AudioPlayer src={mediaUrl} articleId={articleId} initialProgress={initialProgress} delay={delay} />
+  );
 
 /* ── Exports ─────────────────────────────────────────────────────── */
 

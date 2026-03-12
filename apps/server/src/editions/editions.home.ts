@@ -1,6 +1,5 @@
-import { DatabaseService } from "../database/database.ts";
-
-import type { Services } from "../services/services.ts";
+import { DatabaseService } from '../database/database.ts';
+import type { Services } from '../services/services.ts';
 
 // --- Types ---
 
@@ -63,42 +62,42 @@ class HomeService {
     // Phase 1: parallel lightweight queries
     const [sourcesCount, focusesCount, configs, editionRows] = await Promise.all([
       db
-        .selectFrom("sources")
-        .select(db.fn.countAll<number>().as("count"))
-        .where("user_id", "=", userId)
+        .selectFrom('sources')
+        .select(db.fn.countAll<number>().as('count'))
+        .where('user_id', '=', userId)
         .executeTakeFirstOrThrow()
         .then((r) => r.count),
 
       db
-        .selectFrom("focuses")
-        .select(db.fn.countAll<number>().as("count"))
-        .where("user_id", "=", userId)
+        .selectFrom('focuses')
+        .select(db.fn.countAll<number>().as('count'))
+        .where('user_id', '=', userId)
         .executeTakeFirstOrThrow()
         .then((r) => r.count),
 
       db
-        .selectFrom("edition_configs")
-        .select(["id", "name", "icon"])
-        .where("user_id", "=", userId)
-        .orderBy("created_at", "desc")
+        .selectFrom('edition_configs')
+        .select(['id', 'name', 'icon'])
+        .where('user_id', '=', userId)
+        .orderBy('created_at', 'desc')
         .execute(),
 
       db
-        .selectFrom("editions")
-        .innerJoin("edition_configs", "edition_configs.id", "editions.edition_config_id")
+        .selectFrom('editions')
+        .innerJoin('edition_configs', 'edition_configs.id', 'editions.edition_config_id')
         .select([
-          "editions.id",
-          "editions.edition_config_id",
-          "editions.title",
-          "editions.total_reading_minutes",
-          "editions.article_count",
-          "editions.published_at",
-          "edition_configs.name as config_name",
-          "edition_configs.icon as config_icon",
+          'editions.id',
+          'editions.edition_config_id',
+          'editions.title',
+          'editions.total_reading_minutes',
+          'editions.article_count',
+          'editions.published_at',
+          'edition_configs.name as config_name',
+          'edition_configs.icon as config_icon',
         ])
-        .where("edition_configs.user_id", "=", userId)
-        .where("editions.read_at", "is", null)
-        .orderBy("editions.published_at", "desc")
+        .where('edition_configs.user_id', '=', userId)
+        .where('editions.read_at', 'is', null)
+        .orderBy('editions.published_at', 'desc')
         .execute(),
     ]);
 
@@ -128,23 +127,23 @@ class HomeService {
     const editionIds = editionRows.map((r) => r.id);
 
     const articleRows = await db
-      .selectFrom("edition_articles")
-      .innerJoin("articles", "articles.id", "edition_articles.article_id")
-      .innerJoin("sources", "sources.id", "articles.source_id")
-      .innerJoin("focuses", "focuses.id", "edition_articles.focus_id")
+      .selectFrom('edition_articles')
+      .innerJoin('articles', 'articles.id', 'edition_articles.article_id')
+      .innerJoin('sources', 'sources.id', 'articles.source_id')
+      .innerJoin('focuses', 'focuses.id', 'edition_articles.focus_id')
       .select([
-        "edition_articles.edition_id",
-        "edition_articles.focus_id",
-        "edition_articles.position",
-        "focuses.name as focus_name",
-        "articles.title",
-        "articles.image_url",
-        "articles.consumption_time_seconds",
-        "sources.name as source_name",
+        'edition_articles.edition_id',
+        'edition_articles.focus_id',
+        'edition_articles.position',
+        'focuses.name as focus_name',
+        'articles.title',
+        'articles.image_url',
+        'articles.consumption_time_seconds',
+        'sources.name as source_name',
       ])
-      .where("edition_articles.edition_id", "in", editionIds)
-      .orderBy("edition_articles.edition_id", "asc")
-      .orderBy("edition_articles.position", "asc")
+      .where('edition_articles.edition_id', 'in', editionIds)
+      .orderBy('edition_articles.edition_id', 'asc')
+      .orderBy('edition_articles.position', 'asc')
       .execute();
 
     // Group articles by edition
@@ -214,12 +213,5 @@ class HomeService {
   };
 }
 
-export type {
-  HomeConfig,
-  HomeEditionSection,
-  HomeEditionLead,
-  HomeEditionHighlight,
-  HomeEdition,
-  HomeData,
-};
+export type { HomeConfig, HomeEditionSection, HomeEditionLead, HomeEditionHighlight, HomeEdition, HomeData };
 export { HomeService };

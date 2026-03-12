@@ -4,14 +4,14 @@
  * agent. Prevents the agent from acting on stale state.
  * ──────────────────────────────────────────────────────── */
 
-import type { QueryClient } from "@tanstack/react-query";
+import type { QueryClient } from '@tanstack/react-query';
 
 const SETTLE_TIMEOUT_MS = 10_000;
 const POLL_INTERVAL_MS = 100;
 
 const hasPendingMutations = (queryClient: QueryClient): boolean => {
   const cache = queryClient.getMutationCache();
-  return cache.getAll().some((m) => m.state.status === "pending");
+  return cache.getAll().some((m) => m.state.status === 'pending');
 };
 
 const hasLoadingElements = (): boolean => {

@@ -1,11 +1,10 @@
-import { z } from "zod/v4";
+import { z } from 'zod/v4';
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
-import { createAuthHook } from "../auth/auth.middleware.ts";
-import { DatabaseService } from "../database/database.ts";
-import { VotesService, defaultUserScoringWeights } from "../votes/votes.ts";
-
-import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
-import type { Services } from "../services/services.ts";
+import { createAuthHook } from '../auth/auth.middleware.ts';
+import { DatabaseService } from '../database/database.ts';
+import { VotesService, defaultUserScoringWeights } from '../votes/votes.ts';
+import type { Services } from '../services/services.ts';
 
 // --- Schemas ---
 
@@ -29,13 +28,14 @@ const scoringResponseSchema = z.object({
 
 // --- Routes ---
 
-const createScoringRoutes = (services: Services): FastifyPluginAsyncZod =>
+const createScoringRoutes =
+  (services: Services): FastifyPluginAsyncZod =>
   async (fastify) => {
     const authenticate = createAuthHook(services);
 
     fastify.route({
-      method: "GET",
-      url: "/settings/scoring",
+      method: 'GET',
+      url: '/settings/scoring',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -46,9 +46,9 @@ const createScoringRoutes = (services: Services): FastifyPluginAsyncZod =>
       handler: async (req, _reply) => {
         const db = await services.get(DatabaseService).getInstance();
         const row = await db
-          .selectFrom("users")
-          .select("scoring_weights")
-          .where("id", "=", req.user.sub)
+          .selectFrom('users')
+          .select('scoring_weights')
+          .where('id', '=', req.user.sub)
           .executeTakeFirst();
 
         const votesService = services.get(VotesService);
@@ -63,8 +63,8 @@ const createScoringRoutes = (services: Services): FastifyPluginAsyncZod =>
     });
 
     fastify.route({
-      method: "PUT",
-      url: "/settings/scoring",
+      method: 'PUT',
+      url: '/settings/scoring',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -85,8 +85,8 @@ const createScoringRoutes = (services: Services): FastifyPluginAsyncZod =>
     });
 
     fastify.route({
-      method: "DELETE",
-      url: "/settings/scoring",
+      method: 'DELETE',
+      url: '/settings/scoring',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],

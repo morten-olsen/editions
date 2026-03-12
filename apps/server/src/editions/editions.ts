@@ -1,38 +1,34 @@
-import crypto from "node:crypto";
+import crypto from 'node:crypto';
 
-import { sql } from "kysely";
+import { sql } from 'kysely';
 
-import { DatabaseService } from "../database/database.ts";
-import { FocusesService } from "../focuses/focuses.ts";
-import {
-  VotesService,
-  mergeVoteContexts,
-} from "../votes/votes.ts";
-import { computeScore } from "../votes/votes.scoring.ts";
-
-import type { EditionBudgetType } from "../database/database.types.ts";
-import type { Services } from "../services/services.ts";
+import { DatabaseService } from '../database/database.ts';
+import { FocusesService } from '../focuses/focuses.ts';
+import { VotesService, mergeVoteContexts } from '../votes/votes.ts';
+import { computeScore } from '../votes/votes.scoring.ts';
+import type { EditionBudgetType } from '../database/database.types.ts';
+import type { Services } from '../services/services.ts';
 
 // --- Errors ---
 
 class EditionError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "EditionError";
+    this.name = 'EditionError';
   }
 }
 
 class EditionConfigNotFoundError extends EditionError {
   constructor(id: string) {
     super(`Edition config not found: ${id}`);
-    this.name = "EditionConfigNotFoundError";
+    this.name = 'EditionConfigNotFoundError';
   }
 }
 
 class EditionNotFoundError extends EditionError {
   constructor(id: string) {
     super(`Edition not found: ${id}`);
-    this.name = "EditionNotFoundError";
+    this.name = 'EditionNotFoundError';
   }
 }
 
@@ -151,31 +147,31 @@ class EditionsService {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     const rows = await db
-      .selectFrom("edition_configs")
+      .selectFrom('edition_configs')
       .selectAll()
-      .where("user_id", "=", userId)
-      .orderBy("created_at", "desc")
+      .where('user_id', '=', userId)
+      .orderBy('created_at', 'desc')
       .execute();
 
     const configIds = rows.map((r) => r.id);
     const focusLinks =
       configIds.length > 0
         ? await db
-            .selectFrom("edition_config_focuses")
-            .innerJoin("focuses", "focuses.id", "edition_config_focuses.focus_id")
+            .selectFrom('edition_config_focuses')
+            .innerJoin('focuses', 'focuses.id', 'edition_config_focuses.focus_id')
             .select([
-              "edition_config_focuses.edition_config_id",
-              "edition_config_focuses.focus_id",
-              "edition_config_focuses.position",
-              "edition_config_focuses.budget_type",
-              "edition_config_focuses.budget_value",
-              "edition_config_focuses.lookback_hours",
-              "edition_config_focuses.exclude_prior_editions",
-              "edition_config_focuses.weight",
-              "focuses.name as focus_name",
+              'edition_config_focuses.edition_config_id',
+              'edition_config_focuses.focus_id',
+              'edition_config_focuses.position',
+              'edition_config_focuses.budget_type',
+              'edition_config_focuses.budget_value',
+              'edition_config_focuses.lookback_hours',
+              'edition_config_focuses.exclude_prior_editions',
+              'edition_config_focuses.weight',
+              'focuses.name as focus_name',
             ])
-            .where("edition_config_id", "in", configIds)
-            .orderBy("edition_config_focuses.position", "asc")
+            .where('edition_config_id', 'in', configIds)
+            .orderBy('edition_config_focuses.position', 'asc')
             .execute()
         : [];
 
@@ -214,10 +210,10 @@ class EditionsService {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     const row = await db
-      .selectFrom("edition_configs")
+      .selectFrom('edition_configs')
       .selectAll()
-      .where("id", "=", id)
-      .where("user_id", "=", userId)
+      .where('id', '=', id)
+      .where('user_id', '=', userId)
       .executeTakeFirst();
 
     if (!row) {
@@ -225,20 +221,20 @@ class EditionsService {
     }
 
     const focusLinks = await db
-      .selectFrom("edition_config_focuses")
-      .innerJoin("focuses", "focuses.id", "edition_config_focuses.focus_id")
+      .selectFrom('edition_config_focuses')
+      .innerJoin('focuses', 'focuses.id', 'edition_config_focuses.focus_id')
       .select([
-        "edition_config_focuses.focus_id",
-        "edition_config_focuses.position",
-        "edition_config_focuses.budget_type",
-        "edition_config_focuses.budget_value",
-        "edition_config_focuses.lookback_hours",
-        "edition_config_focuses.exclude_prior_editions",
-        "edition_config_focuses.weight",
-        "focuses.name as focus_name",
+        'edition_config_focuses.focus_id',
+        'edition_config_focuses.position',
+        'edition_config_focuses.budget_type',
+        'edition_config_focuses.budget_value',
+        'edition_config_focuses.lookback_hours',
+        'edition_config_focuses.exclude_prior_editions',
+        'edition_config_focuses.weight',
+        'focuses.name as focus_name',
       ])
-      .where("edition_config_id", "=", id)
-      .orderBy("edition_config_focuses.position", "asc")
+      .where('edition_config_id', '=', id)
+      .orderBy('edition_config_focuses.position', 'asc')
       .execute();
 
     return {
@@ -271,7 +267,7 @@ class EditionsService {
     const id = crypto.randomUUID();
 
     await db
-      .insertInto("edition_configs")
+      .insertInto('edition_configs')
       .values({
         id,
         user_id: params.userId,
@@ -286,7 +282,7 @@ class EditionsService {
 
     if (params.focuses.length > 0) {
       await db
-        .insertInto("edition_config_focuses")
+        .insertInto('edition_config_focuses')
         .values(
           params.focuses.map((f) => ({
             edition_config_id: id,
@@ -304,11 +300,7 @@ class EditionsService {
     return this.getConfig(params.userId, id);
   };
 
-  updateConfig = async (
-    userId: string,
-    id: string,
-    params: UpdateEditionConfigParams,
-  ): Promise<EditionConfig> => {
+  updateConfig = async (userId: string, id: string, params: UpdateEditionConfigParams): Promise<EditionConfig> => {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     await this.getConfig(userId, id);
@@ -317,30 +309,33 @@ class EditionsService {
       updated_at: new Date().toISOString(),
     };
 
-    if (params.name !== undefined) values.name = params.name;
-    if (params.icon !== undefined) values.icon = params.icon;
-    if (params.schedule !== undefined) values.schedule = params.schedule;
-    if (params.lookbackHours !== undefined) values.lookback_hours = params.lookbackHours;
-    if (params.excludePriorEditions !== undefined)
+    if (params.name !== undefined) {
+      values.name = params.name;
+    }
+    if (params.icon !== undefined) {
+      values.icon = params.icon;
+    }
+    if (params.schedule !== undefined) {
+      values.schedule = params.schedule;
+    }
+    if (params.lookbackHours !== undefined) {
+      values.lookback_hours = params.lookbackHours;
+    }
+    if (params.excludePriorEditions !== undefined) {
       values.exclude_prior_editions = params.excludePriorEditions ? 1 : 0;
-    if (params.enabled !== undefined) values.enabled = params.enabled ? 1 : 0;
+    }
+    if (params.enabled !== undefined) {
+      values.enabled = params.enabled ? 1 : 0;
+    }
 
-    await db
-      .updateTable("edition_configs")
-      .set(values)
-      .where("id", "=", id)
-      .where("user_id", "=", userId)
-      .execute();
+    await db.updateTable('edition_configs').set(values).where('id', '=', id).where('user_id', '=', userId).execute();
 
     if (params.focuses !== undefined) {
-      await db
-        .deleteFrom("edition_config_focuses")
-        .where("edition_config_id", "=", id)
-        .execute();
+      await db.deleteFrom('edition_config_focuses').where('edition_config_id', '=', id).execute();
 
       if (params.focuses.length > 0) {
         await db
-          .insertInto("edition_config_focuses")
+          .insertInto('edition_config_focuses')
           .values(
             params.focuses.map((f) => ({
               edition_config_id: id,
@@ -349,7 +344,12 @@ class EditionsService {
               budget_type: f.budgetType,
               budget_value: f.budgetValue,
               lookback_hours: f.lookbackHours ?? null,
-              exclude_prior_editions: f.excludePriorEditions === undefined || f.excludePriorEditions === null ? null : f.excludePriorEditions ? 1 : 0,
+              exclude_prior_editions:
+                f.excludePriorEditions === undefined || f.excludePriorEditions === null
+                  ? null
+                  : f.excludePriorEditions
+                    ? 1
+                    : 0,
               weight: f.weight ?? 1,
             })),
           )
@@ -365,11 +365,7 @@ class EditionsService {
 
     await this.getConfig(userId, id);
 
-    await db
-      .deleteFrom("edition_configs")
-      .where("id", "=", id)
-      .where("user_id", "=", userId)
-      .execute();
+    await db.deleteFrom('edition_configs').where('id', '=', id).where('user_id', '=', userId).execute();
   };
 
   // --- Generated Editions ---
@@ -380,23 +376,23 @@ class EditionsService {
     await this.getConfig(userId, configId);
 
     const rows = await db
-      .selectFrom("editions")
-      .innerJoin("edition_configs", "edition_configs.id", "editions.edition_config_id")
+      .selectFrom('editions')
+      .innerJoin('edition_configs', 'edition_configs.id', 'editions.edition_config_id')
       .select([
-        "editions.id",
-        "editions.edition_config_id",
-        "editions.title",
-        "editions.total_reading_minutes",
-        "editions.article_count",
-        "editions.current_position",
-        "editions.read_at",
-        "editions.published_at",
-        "editions.created_at",
-        "edition_configs.name as config_name",
+        'editions.id',
+        'editions.edition_config_id',
+        'editions.title',
+        'editions.total_reading_minutes',
+        'editions.article_count',
+        'editions.current_position',
+        'editions.read_at',
+        'editions.published_at',
+        'editions.created_at',
+        'edition_configs.name as config_name',
       ])
-      .where("editions.edition_config_id", "=", configId)
-      .where("edition_configs.user_id", "=", userId)
-      .orderBy("editions.published_at", "desc")
+      .where('editions.edition_config_id', '=', configId)
+      .where('edition_configs.user_id', '=', userId)
+      .orderBy('editions.published_at', 'desc')
       .execute();
 
     return rows.map((row) => ({
@@ -417,21 +413,21 @@ class EditionsService {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     const row = await db
-      .selectFrom("editions")
-      .innerJoin("edition_configs", "edition_configs.id", "editions.edition_config_id")
+      .selectFrom('editions')
+      .innerJoin('edition_configs', 'edition_configs.id', 'editions.edition_config_id')
       .select([
-        "editions.id",
-        "editions.edition_config_id",
-        "editions.title",
-        "editions.total_reading_minutes",
-        "editions.article_count",
-        "editions.current_position",
-        "editions.read_at",
-        "editions.published_at",
-        "editions.created_at",
+        'editions.id',
+        'editions.edition_config_id',
+        'editions.title',
+        'editions.total_reading_minutes',
+        'editions.article_count',
+        'editions.current_position',
+        'editions.read_at',
+        'editions.published_at',
+        'editions.created_at',
       ])
-      .where("editions.id", "=", editionId)
-      .where("edition_configs.user_id", "=", userId)
+      .where('editions.id', '=', editionId)
+      .where('edition_configs.user_id', '=', userId)
       .executeTakeFirst();
 
     if (!row) {
@@ -439,33 +435,33 @@ class EditionsService {
     }
 
     const articles = await db
-      .selectFrom("edition_articles")
-      .innerJoin("articles", "articles.id", "edition_articles.article_id")
-      .innerJoin("sources", "sources.id", "articles.source_id")
-      .innerJoin("focuses", "focuses.id", "edition_articles.focus_id")
+      .selectFrom('edition_articles')
+      .innerJoin('articles', 'articles.id', 'edition_articles.article_id')
+      .innerJoin('sources', 'sources.id', 'articles.source_id')
+      .innerJoin('focuses', 'focuses.id', 'edition_articles.focus_id')
       .select([
-        "articles.id",
-        "articles.source_id",
-        "articles.title",
-        "articles.author",
-        "articles.summary",
-        "articles.url",
-        "articles.image_url",
-        "articles.published_at",
-        "articles.consumption_time_seconds",
-        "articles.content",
-        "articles.media_url",
-        "articles.media_type",
-        "articles.read_at",
-        "articles.progress",
-        "sources.name as source_name",
-        "sources.type as source_type",
-        "edition_articles.focus_id",
-        "focuses.name as focus_name",
-        "edition_articles.position",
+        'articles.id',
+        'articles.source_id',
+        'articles.title',
+        'articles.author',
+        'articles.summary',
+        'articles.url',
+        'articles.image_url',
+        'articles.published_at',
+        'articles.consumption_time_seconds',
+        'articles.content',
+        'articles.media_url',
+        'articles.media_type',
+        'articles.read_at',
+        'articles.progress',
+        'sources.name as source_name',
+        'sources.type as source_type',
+        'edition_articles.focus_id',
+        'focuses.name as focus_name',
+        'edition_articles.position',
       ])
-      .where("edition_articles.edition_id", "=", editionId)
-      .orderBy("edition_articles.position", "asc")
+      .where('edition_articles.edition_id', '=', editionId)
+      .orderBy('edition_articles.position', 'asc')
       .execute();
 
     return {
@@ -508,53 +504,33 @@ class EditionsService {
     // Verify ownership
     await this.getEdition(userId, editionId);
 
-    await db.deleteFrom("editions").where("id", "=", editionId).execute();
+    await db.deleteFrom('editions').where('id', '=', editionId).execute();
   };
 
-  setEditionReadStatus = async (
-    userId: string,
-    editionId: string,
-    read: boolean,
-  ): Promise<Edition> => {
+  setEditionReadStatus = async (userId: string, editionId: string, read: boolean): Promise<Edition> => {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     const edition = await this.getEdition(userId, editionId);
     const readAt = read ? new Date().toISOString() : null;
 
     // Mark the edition itself
-    await db
-      .updateTable("editions")
-      .set({ read_at: readAt })
-      .where("id", "=", editionId)
-      .execute();
+    await db.updateTable('editions').set({ read_at: readAt }).where('id', '=', editionId).execute();
 
     // Mark all articles in the edition
     const articleIds = edition.articles.map((a) => a.id);
     if (articleIds.length > 0) {
-      await db
-        .updateTable("articles")
-        .set({ read_at: readAt })
-        .where("id", "in", articleIds)
-        .execute();
+      await db.updateTable('articles').set({ read_at: readAt }).where('id', 'in', articleIds).execute();
     }
 
     return { ...edition, readAt };
   };
 
-  updateEditionProgress = async (
-    userId: string,
-    editionId: string,
-    currentPosition: number,
-  ): Promise<Edition> => {
+  updateEditionProgress = async (userId: string, editionId: string, currentPosition: number): Promise<Edition> => {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     const edition = await this.getEdition(userId, editionId);
 
-    await db
-      .updateTable("editions")
-      .set({ current_position: currentPosition })
-      .where("id", "=", editionId)
-      .execute();
+    await db.updateTable('editions').set({ current_position: currentPosition }).where('id', '=', editionId).execute();
 
     return { ...edition, currentPosition };
   };
@@ -567,7 +543,7 @@ class EditionsService {
     const config = await this.getConfig(userId, configId);
 
     if (config.focuses.length === 0) {
-      throw new EditionError("Edition config has no focuses");
+      throw new EditionError('Edition config has no focuses');
     }
 
     // Collect IDs of articles already in prior editions of this config.
@@ -575,16 +551,14 @@ class EditionsService {
     // OR if any focus overrides it to true — so the set is ready for any focus that needs it.
     const excludedArticleIds = new Set<string>();
 
-    const needsExcludedSet =
-      config.excludePriorEditions ||
-      config.focuses.some((f) => f.excludePriorEditions === true);
+    const needsExcludedSet = config.excludePriorEditions || config.focuses.some((f) => f.excludePriorEditions === true);
 
     if (needsExcludedSet) {
       const priorArticles = await db
-        .selectFrom("edition_articles")
-        .innerJoin("editions", "editions.id", "edition_articles.edition_id")
-        .select("edition_articles.article_id")
-        .where("editions.edition_config_id", "=", configId)
+        .selectFrom('edition_articles')
+        .innerJoin('editions', 'editions.id', 'edition_articles.edition_id')
+        .select('edition_articles.article_id')
+        .where('editions.edition_config_id', '=', configId)
         .execute();
 
       for (const row of priorArticles) {
@@ -605,7 +579,12 @@ class EditionsService {
     const focusesService = this.#services.get(FocusesService);
     const focusDetails = new Map<
       string,
-      { minConfidence: number; minConsumptionTimeSeconds: number | null; maxConsumptionTimeSeconds: number | null; sourceWeights: Map<string, number> }
+      {
+        minConfidence: number;
+        minConsumptionTimeSeconds: number | null;
+        maxConsumptionTimeSeconds: number | null;
+        sourceWeights: Map<string, number>;
+      }
     >();
     for (const fc of sortedFocuses) {
       const focus = await focusesService.get(userId, fc.focusId);
@@ -613,7 +592,12 @@ class EditionsService {
       for (const src of focus.sources) {
         sourceWeights.set(src.sourceId, src.weight);
       }
-      focusDetails.set(fc.focusId, { minConfidence: focus.minConfidence, minConsumptionTimeSeconds: focus.minConsumptionTimeSeconds, maxConsumptionTimeSeconds: focus.maxConsumptionTimeSeconds, sourceWeights });
+      focusDetails.set(fc.focusId, {
+        minConfidence: focus.minConfidence,
+        minConsumptionTimeSeconds: focus.minConsumptionTimeSeconds,
+        maxConsumptionTimeSeconds: focus.maxConsumptionTimeSeconds,
+        sourceWeights,
+      });
     }
 
     // Load global vote context and user scoring weights once for the user
@@ -629,54 +613,48 @@ class EditionsService {
 
       // Per-focus cutoff: use focus-level lookback if set, otherwise config default
       const lookbackHours = focusConfig.lookbackHours ?? config.lookbackHours;
-      const cutoff = new Date(
-        Date.now() - lookbackHours * 60 * 60 * 1000,
-      ).toISOString();
+      const cutoff = new Date(Date.now() - lookbackHours * 60 * 60 * 1000).toISOString();
 
       // Get all candidate articles for this focus within the time window
       let candidateQuery = db
-        .selectFrom("article_focuses")
-        .innerJoin("articles", "articles.id", "article_focuses.article_id")
-        .innerJoin("sources", "sources.id", "articles.source_id")
-        .leftJoin(
-          "article_embeddings",
-          "article_embeddings.article_id",
-          "articles.id",
-        )
+        .selectFrom('article_focuses')
+        .innerJoin('articles', 'articles.id', 'article_focuses.article_id')
+        .innerJoin('sources', 'sources.id', 'articles.source_id')
+        .leftJoin('article_embeddings', 'article_embeddings.article_id', 'articles.id')
         .select([
-          "articles.id",
-          "articles.source_id",
-          "articles.published_at",
-          "articles.consumption_time_seconds",
-          "article_focuses.similarity",
-          "article_focuses.nli",
-          "article_embeddings.embedding",
+          'articles.id',
+          'articles.source_id',
+          'articles.published_at',
+          'articles.consumption_time_seconds',
+          'article_focuses.similarity',
+          'article_focuses.nli',
+          'article_embeddings.embedding',
         ])
-        .where("article_focuses.focus_id", "=", focusConfig.focusId)
-        .where("sources.user_id", "=", userId)
-        .where("articles.read_at", "is", null) // unread only
-        .where("articles.published_at", ">=", cutoff);
+        .where('article_focuses.focus_id', '=', focusConfig.focusId)
+        .where('sources.user_id', '=', userId)
+        .where('articles.read_at', 'is', null) // unread only
+        .where('articles.published_at', '>=', cutoff);
 
       if (focusInfo.minConfidence > 0) {
         candidateQuery = candidateQuery.where(
           sql`COALESCE(article_focuses.nli, article_focuses.similarity)`,
-          ">=",
+          '>=',
           focusInfo.minConfidence,
         );
       }
 
       if (focusInfo.minConsumptionTimeSeconds !== null) {
         candidateQuery = candidateQuery.where(
-          "articles.consumption_time_seconds",
-          ">=",
+          'articles.consumption_time_seconds',
+          '>=',
           focusInfo.minConsumptionTimeSeconds,
         );
       }
 
       if (focusInfo.maxConsumptionTimeSeconds !== null) {
         candidateQuery = candidateQuery.where(
-          "articles.consumption_time_seconds",
-          "<=",
+          'articles.consumption_time_seconds',
+          '<=',
           focusInfo.maxConsumptionTimeSeconds,
         );
       }
@@ -684,14 +662,8 @@ class EditionsService {
       const candidates = await candidateQuery.execute();
 
       // Load focus-scoped vote context and merge with global + edition
-      const focusVoteContext = await votesService.loadVoteContext(
-        userId,
-        focusConfig.focusId,
-      );
-      const voteContext = mergeVoteContexts(
-        mergeVoteContexts(globalVoteContext, focusVoteContext),
-        editionVoteContext,
-      );
+      const focusVoteContext = await votesService.loadVoteContext(userId, focusConfig.focusId);
+      const voteContext = mergeVoteContexts(mergeVoteContexts(globalVoteContext, focusVoteContext), editionVoteContext);
 
       // Score and rank candidates (apply source weights and focus weight to scores)
       const { sourceWeights } = focusInfo;
@@ -705,11 +677,7 @@ class EditionsService {
           nli: c.nli,
           publishedAt: c.published_at,
           embedding: embeddingBuf
-            ? new Float32Array(
-                embeddingBuf.buffer,
-                embeddingBuf.byteOffset,
-                embeddingBuf.byteLength / 4,
-              )
+            ? new Float32Array(embeddingBuf.buffer, embeddingBuf.byteOffset, embeddingBuf.byteLength / 4)
             : null,
         };
       });
@@ -749,7 +717,7 @@ class EditionsService {
       while (activeSources.size > 0 && focusBudgetUsed < focusConfig.budgetValue) {
         // Build weighted pool from sources that still have articles
         let totalWeight = 0;
-        const pool: Array<{ sourceId: string; weight: number }> = [];
+        const pool: { sourceId: string; weight: number }[] = [];
         for (const sourceId of activeSources) {
           const w = sourceWeights.get(sourceId) ?? 1;
           pool.push({ sourceId, weight: w });
@@ -786,7 +754,7 @@ class EditionsService {
           position: globalPosition++,
         });
 
-        if (focusConfig.budgetType === "count") {
+        if (focusConfig.budgetType === 'count') {
           focusBudgetUsed++;
         } else {
           totalReadingSeconds += article.consumption_time_seconds ?? 0;
@@ -803,10 +771,10 @@ class EditionsService {
     // Create the edition snapshot
     const editionId = crypto.randomUUID();
     const now = new Date().toISOString();
-    const title = `${config.name} — ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+    const title = `${config.name} — ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
 
     await db
-      .insertInto("editions")
+      .insertInto('editions')
       .values({
         id: editionId,
         edition_config_id: configId,
@@ -820,7 +788,7 @@ class EditionsService {
 
     if (editionArticles.length > 0) {
       await db
-        .insertInto("edition_articles")
+        .insertInto('edition_articles')
         .values(
           editionArticles.map((ea) => ({
             edition_id: editionId,

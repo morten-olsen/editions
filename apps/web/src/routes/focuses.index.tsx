@@ -1,14 +1,16 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from '@tanstack/react-router';
 
-import { useFocusesList } from "../hooks/focuses/focuses.hooks.ts";
-import { PageHeader } from "../components/page-header.tsx";
-import { Button } from "../components/button.tsx";
-import { EmptyState } from "../components/empty-state.tsx";
+import { useFocusesList } from '../hooks/focuses/focuses.hooks.ts';
+import { PageHeader } from '../components/page-header.tsx';
+import { Button } from '../components/button.tsx';
+import { EmptyState } from '../components/empty-state.tsx';
 
 const FocusesPage = (): React.ReactNode => {
   const { focuses, isLoading, headers } = useFocusesList();
 
-  if (!headers) return null;
+  if (!headers) {
+    return null;
+  }
 
   return (
     <>
@@ -18,7 +20,9 @@ const FocusesPage = (): React.ReactNode => {
         serif
         actions={
           <Link to="/focuses/new">
-            <Button variant="primary" size="sm">New focus</Button>
+            <Button variant="primary" size="sm">
+              New focus
+            </Button>
           </Link>
         }
       />
@@ -47,14 +51,12 @@ const FocusesPage = (): React.ReactNode => {
                   {focus.name}
                 </div>
                 {focus.description && (
-                  <div className="text-sm text-ink-secondary mt-0.5 truncate">
-                    {focus.description}
-                  </div>
+                  <div className="text-sm text-ink-secondary mt-0.5 truncate">{focus.description}</div>
                 )}
                 <div className="text-xs text-ink-tertiary mt-1">
                   {focus.sources.length === 0
-                    ? "No sources"
-                    : `${focus.sources.length} source${focus.sources.length === 1 ? "" : "s"}`}
+                    ? 'No sources'
+                    : `${focus.sources.length} source${focus.sources.length === 1 ? '' : 's'}`}
                 </div>
               </div>
               <span className="text-xs text-ink-faint group-hover:text-ink-tertiary transition-colors duration-fast ml-4">
@@ -68,7 +70,7 @@ const FocusesPage = (): React.ReactNode => {
   );
 };
 
-const Route = createFileRoute("/focuses/")({
+const Route = createFileRoute('/focuses/')({
   component: FocusesPage,
 });
 

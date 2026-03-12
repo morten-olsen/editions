@@ -1,12 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from '@tanstack/react-router';
 
-import { useAuthHeaders, queryKeys } from "../../api/api.hooks.ts";
-import { client } from "../../api/api.ts";
-
-import { useOptimisticMap } from "../utilities/use-optimistic-map.ts";
-import { useFormPopulation } from "../utilities/use-form-population.ts";
+import { useAuthHeaders, queryKeys } from '../../api/api.hooks.ts';
+import { client } from '../../api/api.ts';
+import { useOptimisticMap } from '../utilities/use-optimistic-map.ts';
+import { useFormPopulation } from '../utilities/use-form-population.ts';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -14,7 +13,7 @@ import { useFormPopulation } from "../utilities/use-form-population.ts";
 
 type VoteValue = 1 | -1 | null;
 
-type SourceMode = "always" | "match";
+type SourceMode = 'always' | 'match';
 
 type SourceSelection = {
   sourceId: string;
@@ -87,14 +86,14 @@ type ArticlesWithBookmarks = {
   bookmarkedIds: Set<string>;
 };
 
-type SortMode = "top" | "recent";
-type TimeWindow = "today" | "week" | "all";
-type ReadStatus = "all" | "unread" | "read";
+type SortMode = 'top' | 'recent';
+type TimeWindow = 'today' | 'week' | 'all';
+type ReadStatus = 'all' | 'unread' | 'read';
 
 type JobEntry = {
   id: string;
   type: string;
-  status: "pending" | "running" | "completed" | "failed";
+  status: 'pending' | 'running' | 'completed' | 'failed';
   affects: { sourceIds: string[]; focusIds: string[] };
 };
 
@@ -105,22 +104,38 @@ type VoteOverride = { vote?: VoteValue; globalVote?: VoteValue };
 // ---------------------------------------------------------------------------
 
 const selectClasses =
-  "rounded-md border border-border bg-surface px-2 py-1 text-xs text-ink-secondary focus:outline-none focus:ring-1 focus:ring-accent";
+  'rounded-md border border-border bg-surface px-2 py-1 text-xs text-ink-secondary focus:outline-none focus:ring-1 focus:ring-accent';
 
 const priorityLabel = (w: number): string => {
-  if (w <= 0.1) return "Off";
-  if (w < 0.75) return "Low";
-  if (w <= 1.25) return "Normal";
-  if (w <= 2.1) return "High";
-  return "Top";
+  if (w <= 0.1) {
+    return 'Off';
+  }
+  if (w < 0.75) {
+    return 'Low';
+  }
+  if (w <= 1.25) {
+    return 'Normal';
+  }
+  if (w <= 2.1) {
+    return 'High';
+  }
+  return 'Top';
 };
 
 const confidenceHint = (v: number): string => {
-  if (v === 0) return "All articles";
-  if (v <= 30) return "Loose match";
-  if (v <= 60) return "Moderate";
-  if (v <= 80) return "Strong match";
-  return "Exact match";
+  if (v === 0) {
+    return 'All articles';
+  }
+  if (v <= 30) {
+    return 'Loose match';
+  }
+  if (v <= 60) {
+    return 'Moderate';
+  }
+  if (v <= 80) {
+    return 'Strong match';
+  }
+  return 'Exact match';
 };
 
 // ---------------------------------------------------------------------------
@@ -139,7 +154,7 @@ const useFocusesList = (): UseFocusesListResult => {
   const { data: focuses = [], isLoading } = useQuery({
     queryKey: queryKeys.focuses.all,
     queryFn: async (): Promise<FocusListItem[]> => {
-      const { data } = await client.GET("/api/focuses", { headers });
+      const { data } = await client.GET('/api/focuses', { headers });
       return (data as FocusListItem[]) ?? [];
     },
     enabled: !!headers,
@@ -167,18 +182,14 @@ type UseFocusSourceSelectionResult = {
   setSelectedSources: React.Dispatch<React.SetStateAction<SourceSelection[]>>;
 };
 
-const useFocusSourceSelection = (
-  params?: UseFocusSourceSelectionParams,
-): UseFocusSourceSelectionResult => {
+const useFocusSourceSelection = (params?: UseFocusSourceSelectionParams): UseFocusSourceSelectionResult => {
   const headers = useAuthHeaders();
-  const [selectedSources, setSelectedSources] = useState<SourceSelection[]>(
-    params?.initialSources ?? [],
-  );
+  const [selectedSources, setSelectedSources] = useState<SourceSelection[]>(params?.initialSources ?? []);
 
   const { data: allSources = [], isLoading: loadingSources } = useQuery({
     queryKey: queryKeys.sources.all,
     queryFn: async (): Promise<Source[]> => {
-      const { data } = await client.GET("/api/sources", { headers });
+      const { data } = await client.GET('/api/sources', { headers });
       return (data as Source[]) ?? [];
     },
     enabled: !!headers,
@@ -187,21 +198,19 @@ const useFocusSourceSelection = (
   const toggleSource = useCallback((sourceId: string): void => {
     setSelectedSources((prev) => {
       const existing = prev.find((s) => s.sourceId === sourceId);
-      if (existing) return prev.filter((s) => s.sourceId !== sourceId);
-      return [...prev, { sourceId, mode: "always" as const, weight: 1 }];
+      if (existing) {
+        return prev.filter((s) => s.sourceId !== sourceId);
+      }
+      return [...prev, { sourceId, mode: 'always' as const, weight: 1 }];
     });
   }, []);
 
   const changeMode = useCallback((sourceId: string, mode: SourceMode): void => {
-    setSelectedSources((prev) =>
-      prev.map((s) => (s.sourceId === sourceId ? { ...s, mode } : s)),
-    );
+    setSelectedSources((prev) => prev.map((s) => (s.sourceId === sourceId ? { ...s, mode } : s)));
   }, []);
 
   const changeWeight = useCallback((sourceId: string, weight: number): void => {
-    setSelectedSources((prev) =>
-      prev.map((s) => (s.sourceId === sourceId ? { ...s, weight } : s)),
-    );
+    setSelectedSources((prev) => prev.map((s) => (s.sourceId === sourceId ? { ...s, weight } : s)));
   }, []);
 
   const selectedIds = new Set(selectedSources.map((s) => s.sourceId));
@@ -248,12 +257,12 @@ const useCreateFocus = (): UseCreateFocusResult => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [icon, setIcon] = useState<string | null>(null);
   const [minConfidence, setMinConfidence] = useState(0);
-  const [minReadingTime, setMinReadingTime] = useState("");
-  const [maxReadingTime, setMaxReadingTime] = useState("");
+  const [minReadingTime, setMinReadingTime] = useState('');
+  const [maxReadingTime, setMaxReadingTime] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const sourceSelection = useFocusSourceSelection();
@@ -269,31 +278,40 @@ const useCreateFocus = (): UseCreateFocusResult => {
         maxConsumptionTimeSeconds?: number | null;
         sources?: SourceSelection[];
       } = { name };
-      if (description.trim()) body.description = description.trim();
-      if (icon) body.icon = icon;
-      if (minConfidence > 0) body.minConfidence = minConfidence / 100;
+      if (description.trim()) {
+        body.description = description.trim();
+      }
+      if (icon) {
+        body.icon = icon;
+      }
+      if (minConfidence > 0) {
+        body.minConfidence = minConfidence / 100;
+      }
       const parsedMin = minReadingTime ? Number(minReadingTime) : null;
       const parsedMax = maxReadingTime ? Number(maxReadingTime) : null;
-      if (parsedMin !== null) body.minConsumptionTimeSeconds = parsedMin * 60;
-      if (parsedMax !== null) body.maxConsumptionTimeSeconds = parsedMax * 60;
-      if (sourceSelection.selectedSources.length > 0)
+      if (parsedMin !== null) {
+        body.minConsumptionTimeSeconds = parsedMin * 60;
+      }
+      if (parsedMax !== null) {
+        body.maxConsumptionTimeSeconds = parsedMax * 60;
+      }
+      if (sourceSelection.selectedSources.length > 0) {
         body.sources = sourceSelection.selectedSources;
+      }
 
-      const { error: err } = await client.POST("/api/focuses", {
+      const { error: err } = await client.POST('/api/focuses', {
         body,
         headers,
       });
 
       if (err) {
-        throw new Error(
-          "error" in err ? (err as { error: string }).error : "Failed to create focus",
-        );
+        throw new Error('error' in err ? (err as { error: string }).error : 'Failed to create focus');
       }
     },
     onSuccess: async (): Promise<void> => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.nav });
       await queryClient.invalidateQueries({ queryKey: queryKeys.focuses.all });
-      await navigate({ to: "/focuses" });
+      await navigate({ to: '/focuses' });
     },
     onError: (err: Error): void => {
       setError(err.message);
@@ -334,19 +352,19 @@ const useCreateFocus = (): UseCreateFocusResult => {
 const PAGE_SIZE = 20;
 
 const ANALYSIS_JOB_TYPES = new Set([
-  "reconcile_focus",
-  "reanalyse_source",
-  "reanalyse_all",
-  "refresh_source",
-  "extract_and_analyse",
+  'reconcile_focus',
+  'reanalyse_source',
+  'reanalyse_all',
+  'refresh_source',
+  'extract_and_analyse',
 ]);
 
 const windowToRange = (window: TimeWindow): { from?: string; to?: string } => {
-  if (window === "all") return {};
+  if (window === 'all') {
+    return {};
+  }
   const now = new Date();
-  const from = new Date(
-    now.getTime() - (window === "today" ? 24 : 7 * 24) * 60 * 60 * 1000,
-  );
+  const from = new Date(now.getTime() - (window === 'today' ? 24 : 7 * 24) * 60 * 60 * 1000);
   return { from: from.toISOString() };
 };
 
@@ -382,21 +400,27 @@ const useFocusDetail = (focusId: string): UseFocusDetailResult => {
   const headers = useAuthHeaders();
   const queryClient = useQueryClient();
 
-  const [sort, setSort] = useState<SortMode>("top");
-  const [window, setWindow] = useState<TimeWindow>("all");
-  const [status, setStatus] = useState<ReadStatus>("unread");
+  const [sort, setSort] = useState<SortMode>('top');
+  const [window, setWindow] = useState<TimeWindow>('all');
+  const [status, setStatus] = useState<ReadStatus>('unread');
 
   const voteMap = useOptimisticMap<VoteOverride>();
   const bookmarkMap = useOptimisticMap<boolean>();
 
-  const { data: focus, isLoading: loadingFocus, error: focusError } = useQuery({
+  const {
+    data: focus,
+    isLoading: loadingFocus,
+    error: focusError,
+  } = useQuery({
     queryKey: queryKeys.focuses.detail(focusId),
     queryFn: async (): Promise<FocusDetail> => {
-      const { data, error: err } = await client.GET("/api/focuses/{id}", {
+      const { data, error: err } = await client.GET('/api/focuses/{id}', {
         params: { path: { id: focusId } },
         headers,
       });
-      if (err) throw new Error("Focus not found");
+      if (err) {
+        throw new Error('Focus not found');
+      }
       return data as FocusDetail;
     },
     enabled: !!headers,
@@ -405,10 +429,10 @@ const useFocusDetail = (focusId: string): UseFocusDetailResult => {
   const [offset, setOffset] = useState(0);
 
   const { data: articlesData, isLoading: loadingArticles } = useQuery({
-    queryKey: ["focuses", focusId, "articles", { sort, window, status, offset }],
+    queryKey: ['focuses', focusId, 'articles', { sort, window, status, offset }],
     queryFn: async (): Promise<ArticlesWithBookmarks> => {
       const range = windowToRange(window);
-      const { data } = await client.GET("/api/focuses/{id}/articles", {
+      const { data } = await client.GET('/api/focuses/{id}/articles', {
         params: {
           path: { id: focusId },
           query: {
@@ -432,14 +456,12 @@ const useFocusDetail = (focusId: string): UseFocusDetailResult => {
       let bookmarkedIds = new Set<string>();
       const articleIds = page.articles.map((a) => a.id);
       if (articleIds.length > 0) {
-        const { data: bmData } = await client.POST("/api/bookmarks/check", {
+        const { data: bmData } = await client.POST('/api/bookmarks/check', {
           body: { articleIds },
           headers,
         });
         if (bmData) {
-          bookmarkedIds = new Set(
-            (bmData as { bookmarkedIds: string[] }).bookmarkedIds,
-          );
+          bookmarkedIds = new Set((bmData as { bookmarkedIds: string[] }).bookmarkedIds);
         }
       }
 
@@ -457,21 +479,20 @@ const useFocusDetail = (focusId: string): UseFocusDetailResult => {
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
 
   // Analysis task polling when feed is empty
-  const isEmpty =
-    !loadingArticles && (!articlesPage || articlesPage.articles.length === 0);
+  const isEmpty = !loadingArticles && (!articlesPage || articlesPage.articles.length === 0);
 
   const { data: analysisRunning } = useQuery({
-    queryKey: ["jobs", "analysis-running"],
+    queryKey: ['jobs', 'analysis-running'],
     queryFn: async (): Promise<boolean> => {
-      const res = await fetch("/api/jobs?active=true", {
+      const res = await fetch('/api/jobs?active=true', {
         headers: headers as Record<string, string>,
       });
-      if (!res.ok) return false;
+      if (!res.ok) {
+        return false;
+      }
       const body = (await res.json()) as { jobs: JobEntry[] };
       return body.jobs.some(
-        (j) =>
-          ANALYSIS_JOB_TYPES.has(j.type) &&
-          (j.status === "pending" || j.status === "running"),
+        (j) => ANALYSIS_JOB_TYPES.has(j.type) && (j.status === 'pending' || j.status === 'running'),
       );
     },
     enabled: !!headers && isEmpty,
@@ -486,7 +507,7 @@ const useFocusDetail = (focusId: string): UseFocusDetailResult => {
     } else if (wasRunning.current && analysisRunning === false) {
       wasRunning.current = false;
       void queryClient.invalidateQueries({
-        queryKey: ["focuses", focusId, "articles"],
+        queryKey: ['focuses', focusId, 'articles'],
       });
     }
   }, [analysisRunning, queryClient, focusId]);
@@ -503,17 +524,14 @@ const useFocusDetail = (focusId: string): UseFocusDetailResult => {
   const getGlobalVoteOverride = useCallback(
     (articleId: string, serverGlobalVote: VoteValue): VoteValue => {
       const override = voteMap.overrides[articleId];
-      return override?.globalVote !== undefined
-        ? override.globalVote
-        : serverGlobalVote;
+      return override?.globalVote !== undefined ? override.globalVote : serverGlobalVote;
     },
     [voteMap.overrides],
   );
 
   // Bookmark check
   const isBookmarked = useCallback(
-    (articleId: string): boolean =>
-      bookmarkMap.get(articleId, serverBookmarkedIds.has(articleId)),
+    (articleId: string): boolean => bookmarkMap.get(articleId, serverBookmarkedIds.has(articleId)),
     [bookmarkMap, serverBookmarkedIds],
   );
 
@@ -524,12 +542,12 @@ const useFocusDetail = (focusId: string): UseFocusDetailResult => {
       voteMap.set(articleId, { ...existing, vote: value });
 
       if (value === null) {
-        await client.DELETE("/api/focuses/{id}/articles/{articleId}/vote", {
+        await client.DELETE('/api/focuses/{id}/articles/{articleId}/vote', {
           params: { path: { id: focusId, articleId } },
           headers,
         });
       } else {
-        await client.PUT("/api/focuses/{id}/articles/{articleId}/vote", {
+        await client.PUT('/api/focuses/{id}/articles/{articleId}/vote', {
           params: { path: { id: focusId, articleId } },
           body: { value },
           headers,
@@ -545,12 +563,12 @@ const useFocusDetail = (focusId: string): UseFocusDetailResult => {
       voteMap.set(articleId, { ...existing, globalVote: value });
 
       if (value === null) {
-        await client.DELETE("/api/articles/{articleId}/vote", {
+        await client.DELETE('/api/articles/{articleId}/vote', {
           params: { path: { articleId } },
           headers,
         });
       } else {
-        await client.PUT("/api/articles/{articleId}/vote", {
+        await client.PUT('/api/articles/{articleId}/vote', {
           params: { path: { articleId } },
           body: { value },
           headers,
@@ -562,19 +580,16 @@ const useFocusDetail = (focusId: string): UseFocusDetailResult => {
 
   const handleBookmarkToggle = useCallback(
     async (articleId: string): Promise<void> => {
-      const currentlyBookmarked = bookmarkMap.get(
-        articleId,
-        serverBookmarkedIds.has(articleId),
-      );
+      const currentlyBookmarked = bookmarkMap.get(articleId, serverBookmarkedIds.has(articleId));
       bookmarkMap.set(articleId, !currentlyBookmarked);
 
       if (currentlyBookmarked) {
-        await client.DELETE("/api/articles/{articleId}/bookmark", {
+        await client.DELETE('/api/articles/{articleId}/bookmark', {
           params: { path: { articleId } },
           headers,
         });
       } else {
-        await client.PUT("/api/articles/{articleId}/bookmark", {
+        await client.PUT('/api/articles/{articleId}/bookmark', {
           params: { path: { articleId } },
           headers,
         });
@@ -584,11 +599,7 @@ const useFocusDetail = (focusId: string): UseFocusDetailResult => {
   );
 
   const handleFilterChange = useCallback(
-    (
-      newSort: SortMode = sort,
-      newWindow: TimeWindow = window,
-      newStatus: ReadStatus = status,
-    ): void => {
+    (newSort: SortMode = sort, newWindow: TimeWindow = window, newStatus: ReadStatus = status): void => {
       setSort(newSort);
       setWindow(newWindow);
       setStatus(newStatus);
@@ -671,12 +682,12 @@ const useEditFocus = (focusId: string): UseEditFocusResult => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [icon, setIcon] = useState<string | null>(null);
   const [minConfidence, setMinConfidence] = useState(0);
-  const [minReadingTime, setMinReadingTime] = useState("");
-  const [maxReadingTime, setMaxReadingTime] = useState("");
+  const [minReadingTime, setMinReadingTime] = useState('');
+  const [maxReadingTime, setMaxReadingTime] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const sourceSelection = useFocusSourceSelection();
@@ -688,11 +699,13 @@ const useEditFocus = (focusId: string): UseEditFocusResult => {
   } = useQuery({
     queryKey: queryKeys.focuses.detail(focusId),
     queryFn: async (): Promise<FocusEditable> => {
-      const { data, error: err } = await client.GET("/api/focuses/{id}", {
+      const { data, error: err } = await client.GET('/api/focuses/{id}', {
         params: { path: { id: focusId } },
         headers,
       });
-      if (err) throw new Error("Focus not found");
+      if (err) {
+        throw new Error('Focus not found');
+      }
       return data as unknown as FocusEditable;
     },
     enabled: !!headers,
@@ -701,73 +714,74 @@ const useEditFocus = (focusId: string): UseEditFocusResult => {
   // Populate form from fetched focus data
   useFormPopulation(focus, (data) => {
     setName(data.name);
-    setDescription(data.description ?? "");
+    setDescription(data.description ?? '');
     setIcon(data.icon);
     setMinConfidence(Math.round(data.minConfidence * 100));
-    setMinReadingTime(
-      data.minConsumptionTimeSeconds !== null
-        ? String(data.minConsumptionTimeSeconds / 60)
-        : "",
-    );
-    setMaxReadingTime(
-      data.maxConsumptionTimeSeconds !== null
-        ? String(data.maxConsumptionTimeSeconds / 60)
-        : "",
-    );
+    setMinReadingTime(data.minConsumptionTimeSeconds !== null ? String(data.minConsumptionTimeSeconds / 60) : '');
+    setMaxReadingTime(data.maxConsumptionTimeSeconds !== null ? String(data.maxConsumptionTimeSeconds / 60) : '');
     sourceSelection.setSelectedSources(data.sources);
   });
 
   const updateMutation = useMutation({
     mutationFn: async (): Promise<void> => {
-      if (!focus) return;
+      if (!focus) {
+        return;
+      }
 
       const patchBody: Record<string, string | number | null> = {};
-      if (name !== focus.name) patchBody.name = name;
+      if (name !== focus.name) {
+        patchBody.name = name;
+      }
       const newDesc = description.trim() || null;
-      if (newDesc !== focus.description) patchBody.description = newDesc;
-      if (icon !== focus.icon) patchBody.icon = icon;
+      if (newDesc !== focus.description) {
+        patchBody.description = newDesc;
+      }
+      if (icon !== focus.icon) {
+        patchBody.icon = icon;
+      }
       const newMinConfidence = minConfidence / 100;
-      if (newMinConfidence !== focus.minConfidence)
+      if (newMinConfidence !== focus.minConfidence) {
         patchBody.minConfidence = newMinConfidence;
+      }
       const newMinReading = minReadingTime ? Number(minReadingTime) * 60 : null;
-      if (newMinReading !== focus.minConsumptionTimeSeconds)
+      if (newMinReading !== focus.minConsumptionTimeSeconds) {
         patchBody.minConsumptionTimeSeconds = newMinReading;
+      }
       const newMaxReading = maxReadingTime ? Number(maxReadingTime) * 60 : null;
-      if (newMaxReading !== focus.maxConsumptionTimeSeconds)
+      if (newMaxReading !== focus.maxConsumptionTimeSeconds) {
         patchBody.maxConsumptionTimeSeconds = newMaxReading;
+      }
 
       const sourcesChanged =
-        JSON.stringify(
-          sourceSelection.selectedSources
-            .slice()
-            .sort((a, b) => a.sourceId.localeCompare(b.sourceId)),
-        ) !==
-        JSON.stringify(
-          focus.sources
-            .slice()
-            .sort((a, b) => a.sourceId.localeCompare(b.sourceId)),
-        );
+        JSON.stringify(sourceSelection.selectedSources.slice().sort((a, b) => a.sourceId.localeCompare(b.sourceId))) !==
+        JSON.stringify(focus.sources.slice().sort((a, b) => a.sourceId.localeCompare(b.sourceId)));
 
       const hasFieldChanges = Object.keys(patchBody).length > 0;
 
-      if (!hasFieldChanges && !sourcesChanged) return;
+      if (!hasFieldChanges && !sourcesChanged) {
+        return;
+      }
 
       if (hasFieldChanges) {
-        const { error: err } = await client.PATCH("/api/focuses/{id}", {
+        const { error: err } = await client.PATCH('/api/focuses/{id}', {
           params: { path: { id: focusId } },
           body: patchBody,
           headers,
         });
-        if (err) throw new Error("Failed to update focus");
+        if (err) {
+          throw new Error('Failed to update focus');
+        }
       }
 
       if (sourcesChanged) {
-        const { error: err } = await client.PUT("/api/focuses/{id}/sources", {
+        const { error: err } = await client.PUT('/api/focuses/{id}/sources', {
           params: { path: { id: focusId } },
           body: { sources: sourceSelection.selectedSources },
           headers,
         });
-        if (err) throw new Error("Failed to update sources");
+        if (err) {
+          throw new Error('Failed to update sources');
+        }
       }
     },
     onSuccess: async (): Promise<void> => {
@@ -776,7 +790,7 @@ const useEditFocus = (focusId: string): UseEditFocusResult => {
       await queryClient.invalidateQueries({
         queryKey: queryKeys.focuses.detail(focusId),
       });
-      await navigate({ to: "/focuses/$focusId", params: { focusId } });
+      await navigate({ to: '/focuses/$focusId', params: { focusId } });
     },
     onError: (err: Error): void => {
       setError(err.message);

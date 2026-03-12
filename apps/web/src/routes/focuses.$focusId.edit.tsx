@@ -1,20 +1,20 @@
-import { useEffect, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 
-import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
-import { client } from "../api/api.ts";
-import { PageHeader } from "../components/page-header.tsx";
-import { Input } from "../components/input.tsx";
-import { Textarea } from "../components/textarea.tsx";
-import { Button } from "../components/button.tsx";
-import { Checkbox } from "../components/checkbox.tsx";
-import { Separator } from "../components/separator.tsx";
-import { IconPicker } from "../components/icon-picker.tsx";
+import { useAuthHeaders, queryKeys } from '../api/api.hooks.ts';
+import { client } from '../api/api.ts';
+import { PageHeader } from '../components/page-header.tsx';
+import { Input } from '../components/input.tsx';
+import { Textarea } from '../components/textarea.tsx';
+import { Button } from '../components/button.tsx';
+import { Checkbox } from '../components/checkbox.tsx';
+import { Separator } from '../components/separator.tsx';
+import { IconPicker } from '../components/icon-picker.tsx';
 
 type FocusSource = {
   sourceId: string;
-  mode: "always" | "match";
+  mode: 'always' | 'match';
   weight: number;
 };
 
@@ -36,22 +36,38 @@ type Source = {
 };
 
 const selectClasses =
-  "rounded-md border border-border bg-surface px-2 py-1 text-xs text-ink-secondary focus:outline-none focus:ring-1 focus:ring-accent";
+  'rounded-md border border-border bg-surface px-2 py-1 text-xs text-ink-secondary focus:outline-none focus:ring-1 focus:ring-accent';
 
 const priorityLabel = (w: number): string => {
-  if (w <= 0.1) return "Off";
-  if (w < 0.75) return "Low";
-  if (w <= 1.25) return "Normal";
-  if (w <= 2.1) return "High";
-  return "Top";
+  if (w <= 0.1) {
+    return 'Off';
+  }
+  if (w < 0.75) {
+    return 'Low';
+  }
+  if (w <= 1.25) {
+    return 'Normal';
+  }
+  if (w <= 2.1) {
+    return 'High';
+  }
+  return 'Top';
 };
 
 const confidenceHint = (v: number): string => {
-  if (v === 0) return "All articles";
-  if (v <= 30) return "Loose match";
-  if (v <= 60) return "Moderate";
-  if (v <= 80) return "Strong match";
-  return "Exact match";
+  if (v === 0) {
+    return 'All articles';
+  }
+  if (v <= 30) {
+    return 'Loose match';
+  }
+  if (v <= 60) {
+    return 'Moderate';
+  }
+  if (v <= 80) {
+    return 'Strong match';
+  }
+  return 'Exact match';
 };
 
 const EditFocusPage = (): React.ReactNode => {
@@ -59,24 +75,30 @@ const EditFocusPage = (): React.ReactNode => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { focusId } = Route.useParams();
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [icon, setIcon] = useState<string | null>(null);
   const [minConfidence, setMinConfidence] = useState(0);
-  const [minReadingTime, setMinReadingTime] = useState("");
-  const [maxReadingTime, setMaxReadingTime] = useState("");
+  const [minReadingTime, setMinReadingTime] = useState('');
+  const [maxReadingTime, setMaxReadingTime] = useState('');
   const [selectedSources, setSelectedSources] = useState<FocusSource[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [formPopulated, setFormPopulated] = useState(false);
 
-  const { data: focus, isLoading: loadingFocus, isError: focusError } = useQuery({
+  const {
+    data: focus,
+    isLoading: loadingFocus,
+    isError: focusError,
+  } = useQuery({
     queryKey: queryKeys.focuses.detail(focusId),
     queryFn: async (): Promise<Focus> => {
-      const { data, error: err } = await client.GET("/api/focuses/{id}", {
+      const { data, error: err } = await client.GET('/api/focuses/{id}', {
         params: { path: { id: focusId } },
         headers,
       });
-      if (err) throw new Error("Focus not found");
+      if (err) {
+        throw new Error('Focus not found');
+      }
       return data as unknown as Focus;
     },
     enabled: !!headers,
@@ -85,7 +107,7 @@ const EditFocusPage = (): React.ReactNode => {
   const { data: allSources = [], isLoading: loadingSources } = useQuery({
     queryKey: queryKeys.sources.all,
     queryFn: async (): Promise<Source[]> => {
-      const { data } = await client.GET("/api/sources", { headers });
+      const { data } = await client.GET('/api/sources', { headers });
       return (data as Source[]) ?? [];
     },
     enabled: !!headers,
@@ -95,11 +117,11 @@ const EditFocusPage = (): React.ReactNode => {
   useEffect(() => {
     if (focus && !formPopulated) {
       setName(focus.name);
-      setDescription(focus.description ?? "");
+      setDescription(focus.description ?? '');
       setIcon(focus.icon);
       setMinConfidence(Math.round(focus.minConfidence * 100));
-      setMinReadingTime(focus.minConsumptionTimeSeconds !== null ? String(focus.minConsumptionTimeSeconds / 60) : "");
-      setMaxReadingTime(focus.maxConsumptionTimeSeconds !== null ? String(focus.maxConsumptionTimeSeconds / 60) : "");
+      setMinReadingTime(focus.minConsumptionTimeSeconds !== null ? String(focus.minConsumptionTimeSeconds / 60) : '');
+      setMaxReadingTime(focus.maxConsumptionTimeSeconds !== null ? String(focus.maxConsumptionTimeSeconds / 60) : '');
       setSelectedSources(focus.sources);
       setFormPopulated(true);
     }
@@ -107,19 +129,33 @@ const EditFocusPage = (): React.ReactNode => {
 
   const updateFocus = useMutation({
     mutationFn: async (): Promise<void> => {
-      if (!focus) return;
+      if (!focus) {
+        return;
+      }
 
       const patchBody: Record<string, string | number | null> = {};
-      if (name !== focus.name) patchBody.name = name;
+      if (name !== focus.name) {
+        patchBody.name = name;
+      }
       const newDesc = description.trim() || null;
-      if (newDesc !== focus.description) patchBody.description = newDesc;
-      if (icon !== focus.icon) patchBody.icon = icon;
+      if (newDesc !== focus.description) {
+        patchBody.description = newDesc;
+      }
+      if (icon !== focus.icon) {
+        patchBody.icon = icon;
+      }
       const newMinConfidence = minConfidence / 100;
-      if (newMinConfidence !== focus.minConfidence) patchBody.minConfidence = newMinConfidence;
+      if (newMinConfidence !== focus.minConfidence) {
+        patchBody.minConfidence = newMinConfidence;
+      }
       const newMinReading = minReadingTime ? Number(minReadingTime) * 60 : null;
-      if (newMinReading !== focus.minConsumptionTimeSeconds) patchBody.minConsumptionTimeSeconds = newMinReading;
+      if (newMinReading !== focus.minConsumptionTimeSeconds) {
+        patchBody.minConsumptionTimeSeconds = newMinReading;
+      }
       const newMaxReading = maxReadingTime ? Number(maxReadingTime) * 60 : null;
-      if (newMaxReading !== focus.maxConsumptionTimeSeconds) patchBody.maxConsumptionTimeSeconds = newMaxReading;
+      if (newMaxReading !== focus.maxConsumptionTimeSeconds) {
+        patchBody.maxConsumptionTimeSeconds = newMaxReading;
+      }
 
       const sourcesChanged =
         JSON.stringify(selectedSources.slice().sort((a, b) => a.sourceId.localeCompare(b.sourceId))) !==
@@ -127,38 +163,46 @@ const EditFocusPage = (): React.ReactNode => {
 
       const hasFieldChanges = Object.keys(patchBody).length > 0;
 
-      if (!hasFieldChanges && !sourcesChanged) return;
+      if (!hasFieldChanges && !sourcesChanged) {
+        return;
+      }
 
       if (hasFieldChanges) {
-        const { error: err } = await client.PATCH("/api/focuses/{id}", {
+        const { error: err } = await client.PATCH('/api/focuses/{id}', {
           params: { path: { id: focusId } },
           body: patchBody,
           headers,
         });
-        if (err) throw new Error("Failed to update focus");
+        if (err) {
+          throw new Error('Failed to update focus');
+        }
       }
 
       if (sourcesChanged) {
-        const { error: err } = await client.PUT("/api/focuses/{id}/sources", {
+        const { error: err } = await client.PUT('/api/focuses/{id}/sources', {
           params: { path: { id: focusId } },
           body: { sources: selectedSources },
           headers,
         });
-        if (err) throw new Error("Failed to update sources");
+        if (err) {
+          throw new Error('Failed to update sources');
+        }
       }
     },
     onSuccess: async (): Promise<void> => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.nav });
       await queryClient.invalidateQueries({ queryKey: queryKeys.focuses.all });
       await queryClient.invalidateQueries({ queryKey: queryKeys.focuses.detail(focusId) });
-      await navigate({ to: "/focuses/$focusId", params: { focusId } });
+      await navigate({ to: '/focuses/$focusId', params: { focusId } });
     },
     onError: (err: Error): void => {
       setError(err.message);
     },
   });
 
-  if (!headers) return null;
+  if (!headers) {
+    return null;
+  }
 
   const loading = loadingFocus || loadingSources;
 
@@ -169,7 +213,7 @@ const EditFocusPage = (): React.ReactNode => {
   if (!focus || focusError) {
     return (
       <div className="py-12 text-center">
-        <div className="text-sm text-critical">{error ?? "Focus not found"}</div>
+        <div className="text-sm text-critical">{error ?? 'Focus not found'}</div>
       </div>
     );
   }
@@ -177,21 +221,19 @@ const EditFocusPage = (): React.ReactNode => {
   const toggleSource = (sourceId: string): void => {
     setSelectedSources((prev) => {
       const existing = prev.find((s) => s.sourceId === sourceId);
-      if (existing) return prev.filter((s) => s.sourceId !== sourceId);
-      return [...prev, { sourceId, mode: "always", weight: 1 }];
+      if (existing) {
+        return prev.filter((s) => s.sourceId !== sourceId);
+      }
+      return [...prev, { sourceId, mode: 'always', weight: 1 }];
     });
   };
 
-  const changeMode = (sourceId: string, mode: "always" | "match"): void => {
-    setSelectedSources((prev) =>
-      prev.map((s) => (s.sourceId === sourceId ? { ...s, mode } : s)),
-    );
+  const changeMode = (sourceId: string, mode: 'always' | 'match'): void => {
+    setSelectedSources((prev) => prev.map((s) => (s.sourceId === sourceId ? { ...s, mode } : s)));
   };
 
   const changeWeight = (sourceId: string, weight: number): void => {
-    setSelectedSources((prev) =>
-      prev.map((s) => (s.sourceId === sourceId ? { ...s, weight } : s)),
-    );
+    setSelectedSources((prev) => prev.map((s) => (s.sourceId === sourceId ? { ...s, weight } : s)));
   };
 
   const selectedIds = new Set(selectedSources.map((s) => s.sourceId));
@@ -207,12 +249,23 @@ const EditFocusPage = (): React.ReactNode => {
       <PageHeader title="Edit topic" />
 
       {error && (
-        <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6" data-ai-id="edit-focus-error" data-ai-role="error" data-ai-error={error}>
+        <div
+          className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6"
+          data-ai-id="edit-focus-error"
+          data-ai-role="error"
+          data-ai-error={error}
+        >
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="max-w-lg flex flex-col gap-6" data-ai-id="edit-focus-form" data-ai-role="form" data-ai-label="Edit focus form">
+      <form
+        onSubmit={handleSubmit}
+        className="max-w-lg flex flex-col gap-6"
+        data-ai-id="edit-focus-form"
+        data-ai-role="form"
+        data-ai-label="Edit focus form"
+      >
         <div className="flex flex-col gap-5">
           <Input
             label="Name"
@@ -239,11 +292,10 @@ const EditFocusPage = (): React.ReactNode => {
 
           {/* Match strength */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-ink">
-              How closely articles must match
-            </label>
+            <label className="text-sm font-medium text-ink">How closely articles must match</label>
             <p className="text-xs text-ink-tertiary -mt-0.5">
-              Raise this to only include articles that are clearly a strong match. At 0%, anything potentially relevant is included.
+              Raise this to only include articles that are clearly a strong match. At 0%, anything potentially relevant
+              is included.
             </p>
             <div className="flex items-center gap-3">
               <input
@@ -256,16 +308,14 @@ const EditFocusPage = (): React.ReactNode => {
                 className="flex-1 accent-accent"
               />
               <span className="text-sm text-ink-secondary tabular-nums w-24 text-right">
-                {minConfidence === 0 ? "All articles" : `${minConfidence}% — ${confidenceHint(minConfidence)}`}
+                {minConfidence === 0 ? 'All articles' : `${minConfidence}% — ${confidenceHint(minConfidence)}`}
               </span>
             </div>
           </div>
 
           {/* Reading time */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-ink">
-              Reading time
-            </label>
+            <label className="text-sm font-medium text-ink">Reading time</label>
             <p className="text-xs text-ink-tertiary -mt-0.5">
               Only include articles within this length. Leave blank for any length.
             </p>
@@ -314,11 +364,11 @@ const EditFocusPage = (): React.ReactNode => {
                 return (
                   <div
                     key={source.id}
-                    className={`rounded-md transition-colors duration-fast ${isSelected ? "bg-surface-sunken/50 p-3" : "px-3 py-2"}`}
+                    className={`rounded-md transition-colors duration-fast ${isSelected ? 'bg-surface-sunken/50 p-3' : 'px-3 py-2'}`}
                     data-ai-id={`edit-focus-source-${source.id}`}
                     data-ai-role="checkbox"
                     data-ai-label={source.name}
-                    data-ai-state={isSelected ? "checked" : "unchecked"}
+                    data-ai-state={isSelected ? 'checked' : 'unchecked'}
                   >
                     <div className="flex items-center justify-between">
                       <Checkbox
@@ -329,7 +379,7 @@ const EditFocusPage = (): React.ReactNode => {
                       {isSelected && selection && (
                         <select
                           value={selection.mode}
-                          onChange={(e) => changeMode(source.id, e.target.value as "always" | "match")}
+                          onChange={(e) => changeMode(source.id, e.target.value as 'always' | 'match')}
                           className={selectClasses}
                           data-ai-id={`edit-focus-source-${source.id}-mode`}
                           data-ai-role="input"
@@ -370,13 +420,21 @@ const EditFocusPage = (): React.ReactNode => {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button variant="primary" type="submit" disabled={updateFocus.isPending} data-ai-id="edit-focus-submit" data-ai-role="button" data-ai-label="Save changes" data-ai-state={updateFocus.isPending ? "loading" : "idle"}>
-            {updateFocus.isPending ? "Saving…" : "Save changes"}
+          <Button
+            variant="primary"
+            type="submit"
+            disabled={updateFocus.isPending}
+            data-ai-id="edit-focus-submit"
+            data-ai-role="button"
+            data-ai-label="Save changes"
+            data-ai-state={updateFocus.isPending ? 'loading' : 'idle'}
+          >
+            {updateFocus.isPending ? 'Saving…' : 'Save changes'}
           </Button>
           <Button
             variant="ghost"
             type="button"
-            onClick={() => void navigate({ to: "/focuses/$focusId", params: { focusId } })}
+            onClick={() => void navigate({ to: '/focuses/$focusId', params: { focusId } })}
             data-ai-id="edit-focus-cancel"
             data-ai-role="button"
             data-ai-label="Cancel"
@@ -389,7 +447,7 @@ const EditFocusPage = (): React.ReactNode => {
   );
 };
 
-const Route = createFileRoute("/focuses/$focusId/edit")({
+const Route = createFileRoute('/focuses/$focusId/edit')({
   component: EditFocusPage,
 });
 

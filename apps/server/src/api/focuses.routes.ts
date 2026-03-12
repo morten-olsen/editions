@@ -1,20 +1,16 @@
-import { z } from "zod/v4";
+import { z } from 'zod/v4';
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
-import { createAuthHook } from "../auth/auth.middleware.ts";
-import { FocusNotFoundError, FocusesService } from "../focuses/focuses.ts";
-import {
-  ArticleNotFoundForVoteError,
-  VotesService,
-} from "../votes/votes.ts";
-
-import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
-import type { Services } from "../services/services.ts";
+import { createAuthHook } from '../auth/auth.middleware.ts';
+import { FocusNotFoundError, FocusesService } from '../focuses/focuses.ts';
+import { ArticleNotFoundForVoteError, VotesService } from '../votes/votes.ts';
+import type { Services } from '../services/services.ts';
 
 // --- Schemas ---
 
 const focusSourceSchema = z.object({
   sourceId: z.string(),
-  mode: z.enum(["always", "match"]),
+  mode: z.enum(['always', 'match']),
   weight: z.number(),
 });
 
@@ -34,7 +30,7 @@ const focusSchema = z.object({
 
 const createFocusSourceSchema = z.object({
   sourceId: z.string(),
-  mode: z.enum(["always", "match"]),
+  mode: z.enum(['always', 'match']),
   weight: z.number().min(0).default(1),
 });
 
@@ -92,10 +88,10 @@ const focusArticlesPageSchema = z.object({
 const focusArticlesQuerySchema = z.object({
   offset: z.coerce.number().int().min(0).default(0),
   limit: z.coerce.number().int().min(1).max(100).default(20),
-  sort: z.enum(["top", "recent"]).default("top"),
+  sort: z.enum(['top', 'recent']).default('top'),
   from: z.string().optional(),
   to: z.string().optional(),
-  status: z.enum(["unread", "read", "all"]).default("all"),
+  status: z.enum(['unread', 'read', 'all']).default('all'),
 });
 
 const errorResponseSchema = z.object({
@@ -108,14 +104,15 @@ const idParamSchema = z.object({
 
 // --- Routes ---
 
-const createFocusesRoutes = (services: Services): FastifyPluginAsyncZod =>
+const createFocusesRoutes =
+  (services: Services): FastifyPluginAsyncZod =>
   async (fastify) => {
     const authenticate = createAuthHook(services);
 
     // List focuses
     fastify.route({
-      method: "GET",
-      url: "/focuses",
+      method: 'GET',
+      url: '/focuses',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -131,8 +128,8 @@ const createFocusesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Get focus
     fastify.route({
-      method: "GET",
-      url: "/focuses/:id",
+      method: 'GET',
+      url: '/focuses/:id',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -157,8 +154,8 @@ const createFocusesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Create focus
     fastify.route({
-      method: "POST",
-      url: "/focuses",
+      method: 'POST',
+      url: '/focuses',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -185,8 +182,8 @@ const createFocusesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Update focus
     fastify.route({
-      method: "PATCH",
-      url: "/focuses/:id",
+      method: 'PATCH',
+      url: '/focuses/:id',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -212,8 +209,8 @@ const createFocusesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Delete focus
     fastify.route({
-      method: "DELETE",
-      url: "/focuses/:id",
+      method: 'DELETE',
+      url: '/focuses/:id',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -239,8 +236,8 @@ const createFocusesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // List articles in a focus
     fastify.route({
-      method: "GET",
-      url: "/focuses/:id/articles",
+      method: 'GET',
+      url: '/focuses/:id/articles',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -273,8 +270,8 @@ const createFocusesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Set sources for a focus (replace all)
     fastify.route({
-      method: "PUT",
-      url: "/focuses/:id/sources",
+      method: 'PUT',
+      url: '/focuses/:id/sources',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -300,8 +297,8 @@ const createFocusesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Upsert focus-scoped vote on an article
     fastify.route({
-      method: "PUT",
-      url: "/focuses/:id/articles/:articleId/vote",
+      method: 'PUT',
+      url: '/focuses/:id/articles/:articleId/vote',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -343,8 +340,8 @@ const createFocusesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Remove focus-scoped vote on an article
     fastify.route({
-      method: "DELETE",
-      url: "/focuses/:id/articles/:articleId/vote",
+      method: 'DELETE',
+      url: '/focuses/:id/articles/:articleId/vote',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -355,11 +352,7 @@ const createFocusesRoutes = (services: Services): FastifyPluginAsyncZod =>
       },
       handler: async (req, reply) => {
         const votesService = services.get(VotesService);
-        await votesService.remove(
-          req.user.sub,
-          req.params.articleId,
-          req.params.id,
-        );
+        await votesService.remove(req.user.sub, req.params.articleId, req.params.id);
         return reply.code(204).send();
       },
     });

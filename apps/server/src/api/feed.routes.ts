@@ -1,15 +1,11 @@
-import { z } from "zod/v4";
+import { z } from 'zod/v4';
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
-import { createAuthHook } from "../auth/auth.middleware.ts";
-import { DatabaseService } from "../database/database.ts";
-import {
-  VotesService,
-  rankArticles,
-} from "../votes/votes.ts";
-import { computeScore } from "../votes/votes.scoring.ts";
-
-import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
-import type { Services } from "../services/services.ts";
+import { createAuthHook } from '../auth/auth.middleware.ts';
+import { DatabaseService } from '../database/database.ts';
+import { VotesService, rankArticles } from '../votes/votes.ts';
+import { computeScore } from '../votes/votes.scoring.ts';
+import type { Services } from '../services/services.ts';
 
 // --- Schemas ---
 
@@ -44,21 +40,22 @@ const feedPageSchema = z.object({
 const feedQuerySchema = z.object({
   offset: z.coerce.number().int().min(0).default(0),
   limit: z.coerce.number().int().min(1).max(100).default(20),
-  sort: z.enum(["top", "recent"]).default("top"),
-  status: z.enum(["unread", "read", "all"]).default("all"),
+  sort: z.enum(['top', 'recent']).default('top'),
+  status: z.enum(['unread', 'read', 'all']).default('all'),
   from: z.string().optional(),
   to: z.string().optional(),
 });
 
 // --- Routes ---
 
-const createFeedRoutes = (services: Services): FastifyPluginAsyncZod =>
+const createFeedRoutes =
+  (services: Services): FastifyPluginAsyncZod =>
   async (fastify) => {
     const authenticate = createAuthHook(services);
 
     fastify.route({
-      method: "GET",
-      url: "/feed",
+      method: 'GET',
+      url: '/feed',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -74,62 +71,56 @@ const createFeedRoutes = (services: Services): FastifyPluginAsyncZod =>
 
         const baseQuery = () => {
           let q = db
-            .selectFrom("articles")
-            .innerJoin("sources", "sources.id", "articles.source_id")
-            .where("sources.user_id", "=", userId);
+            .selectFrom('articles')
+            .innerJoin('sources', 'sources.id', 'articles.source_id')
+            .where('sources.user_id', '=', userId);
 
-          if (status === "unread") {
-            q = q.where("articles.read_at", "is", null);
-          } else if (status === "read") {
-            q = q.where("articles.read_at", "is not", null);
+          if (status === 'unread') {
+            q = q.where('articles.read_at', 'is', null);
+          } else if (status === 'read') {
+            q = q.where('articles.read_at', 'is not', null);
           }
 
           if (from) {
-            q = q.where("articles.published_at", ">=", from);
+            q = q.where('articles.published_at', '>=', from);
           }
           if (to) {
-            q = q.where("articles.published_at", "<=", to);
+            q = q.where('articles.published_at', '<=', to);
           }
 
           return q;
         };
 
-        const countResult = await baseQuery()
-          .select(db.fn.countAll().as("count"))
-          .executeTakeFirstOrThrow();
+        const countResult = await baseQuery().select(db.fn.countAll().as('count')).executeTakeFirstOrThrow();
 
-        if (sort === "recent") {
+        if (sort === 'recent') {
           const rows = await baseQuery()
             .select([
-              "articles.id",
-              "articles.source_id",
-              "articles.url",
-              "articles.title",
-              "articles.author",
-              "articles.summary",
-              "articles.image_url",
-              "articles.published_at",
-              "articles.consumption_time_seconds",
-              "articles.media_url",
-              "articles.media_type",
-              "articles.read_at",
-              "articles.progress",
-              "articles.created_at",
-              "sources.name as source_name",
-              "sources.type as source_type",
+              'articles.id',
+              'articles.source_id',
+              'articles.url',
+              'articles.title',
+              'articles.author',
+              'articles.summary',
+              'articles.image_url',
+              'articles.published_at',
+              'articles.consumption_time_seconds',
+              'articles.media_url',
+              'articles.media_type',
+              'articles.read_at',
+              'articles.progress',
+              'articles.created_at',
+              'sources.name as source_name',
+              'sources.type as source_type',
             ])
-            .orderBy("articles.published_at", "desc")
+            .orderBy('articles.published_at', 'desc')
             .offset(offset)
             .limit(limit)
             .execute();
 
           const votesService = services.get(VotesService);
           const articleIds = rows.map((r) => r.id);
-          const votesMap = await votesService.getVotesByArticleIds(
-            userId,
-            articleIds,
-            null,
-          );
+          const votesMap = await votesService.getVotesByArticleIds(userId, articleIds, null);
 
           return {
             articles: rows.map((row) => {
@@ -163,29 +154,25 @@ const createFeedRoutes = (services: Services): FastifyPluginAsyncZod =>
 
         // "top" sort — fetch all, score, then paginate
         const rows = await baseQuery()
-          .leftJoin(
-            "article_embeddings",
-            "article_embeddings.article_id",
-            "articles.id",
-          )
+          .leftJoin('article_embeddings', 'article_embeddings.article_id', 'articles.id')
           .select([
-            "articles.id",
-            "articles.source_id",
-            "articles.url",
-            "articles.title",
-            "articles.author",
-            "articles.summary",
-            "articles.image_url",
-            "articles.published_at",
-            "articles.consumption_time_seconds",
-            "articles.media_url",
-            "articles.media_type",
-            "articles.read_at",
-            "articles.progress",
-            "articles.created_at",
-            "article_embeddings.embedding",
-            "sources.name as source_name",
-            "sources.type as source_type",
+            'articles.id',
+            'articles.source_id',
+            'articles.url',
+            'articles.title',
+            'articles.author',
+            'articles.summary',
+            'articles.image_url',
+            'articles.published_at',
+            'articles.consumption_time_seconds',
+            'articles.media_url',
+            'articles.media_type',
+            'articles.read_at',
+            'articles.progress',
+            'articles.created_at',
+            'article_embeddings.embedding',
+            'sources.name as source_name',
+            'sources.type as source_type',
           ])
           .execute();
 
@@ -198,11 +185,7 @@ const createFeedRoutes = (services: Services): FastifyPluginAsyncZod =>
         const candidates = rows.map((row) => {
           const embeddingBuf = row.embedding as Buffer | null;
           const embedding = embeddingBuf
-            ? new Float32Array(
-                embeddingBuf.buffer,
-                embeddingBuf.byteOffset,
-                embeddingBuf.byteLength / 4,
-              )
+            ? new Float32Array(embeddingBuf.buffer, embeddingBuf.byteOffset, embeddingBuf.byteLength / 4)
             : null;
 
           return {
@@ -232,11 +215,7 @@ const createFeedRoutes = (services: Services): FastifyPluginAsyncZod =>
         const page = ranked.slice(offset, offset + limit);
 
         const articleIds = page.map((c) => c.articleId);
-        const votesMap = await votesService.getVotesByArticleIds(
-          userId,
-          articleIds,
-          null,
-        );
+        const votesMap = await votesService.getVotesByArticleIds(userId, articleIds, null);
 
         return {
           articles: page.map((c) => {

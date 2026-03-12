@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from 'react';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { client } from "../api/api.ts";
-import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
-import { Button } from "../components/button.tsx";
-import { EmptyState } from "../components/empty-state.tsx";
+import { client } from '../api/api.ts';
+import { useAuthHeaders, queryKeys } from '../api/api.hooks.ts';
+import { Button } from '../components/button.tsx';
+import { EmptyState } from '../components/empty-state.tsx';
 
 type EditionConfig = {
   id: string;
@@ -14,7 +14,13 @@ type EditionConfig = {
   lookbackHours: number;
   excludePriorEditions: boolean;
   enabled: boolean;
-  focuses: { focusId: string; focusName: string; position: number; budgetType: "time" | "count"; budgetValue: number }[];
+  focuses: {
+    focusId: string;
+    focusName: string;
+    position: number;
+    budgetType: 'time' | 'count';
+    budgetValue: number;
+  }[];
   createdAt: string;
   updatedAt: string;
 };
@@ -33,7 +39,11 @@ type EditionSummary = {
 
 const CogIcon = (): React.ReactElement => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-    <path fillRule="evenodd" d="M7.84 1.804A1 1 0 0 1 8.82 1h2.36a1 1 0 0 1 .98.804l.331 1.652a6.993 6.993 0 0 1 1.929 1.115l1.598-.54a1 1 0 0 1 1.186.447l1.18 2.044a1 1 0 0 1-.205 1.251l-1.267 1.113a7.047 7.047 0 0 1 0 2.228l1.267 1.113a1 1 0 0 1 .206 1.25l-1.18 2.045a1 1 0 0 1-1.187.447l-1.598-.54a6.993 6.993 0 0 1-1.929 1.115l-.33 1.652a1 1 0 0 1-.98.804H8.82a1 1 0 0 1-.98-.804l-.331-1.652a6.993 6.993 0 0 1-1.929-1.115l-1.598.54a1 1 0 0 1-1.186-.447l-1.18-2.044a1 1 0 0 1 .205-1.251l1.267-1.114a7.05 7.05 0 0 1 0-2.227L1.821 7.773a1 1 0 0 1-.206-1.25l1.18-2.045a1 1 0 0 1 1.187-.447l1.598.54A6.992 6.992 0 0 1 7.51 3.456l.33-1.652ZM10 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clipRule="evenodd" />
+    <path
+      fillRule="evenodd"
+      d="M7.84 1.804A1 1 0 0 1 8.82 1h2.36a1 1 0 0 1 .98.804l.331 1.652a6.993 6.993 0 0 1 1.929 1.115l1.598-.54a1 1 0 0 1 1.186.447l1.18 2.044a1 1 0 0 1-.205 1.251l-1.267 1.113a7.047 7.047 0 0 1 0 2.228l1.267 1.113a1 1 0 0 1 .206 1.25l-1.18 2.045a1 1 0 0 1-1.187.447l-1.598-.54a6.993 6.993 0 0 1-1.929 1.115l-.33 1.652a1 1 0 0 1-.98.804H8.82a1 1 0 0 1-.98-.804l-.331-1.652a6.993 6.993 0 0 1-1.929-1.115l-1.598.54a1 1 0 0 1-1.186-.447l-1.18-2.044a1 1 0 0 1 .205-1.251l1.267-1.114a7.05 7.05 0 0 1 0-2.227L1.821 7.773a1 1 0 0 1-.206-1.25l1.18-2.045a1 1 0 0 1 1.187-.447l1.598.54A6.992 6.992 0 0 1 7.51 3.456l.33-1.652ZM10 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
+      clipRule="evenodd"
+    />
   </svg>
 );
 
@@ -43,16 +53,18 @@ const EditionConfigDetailPage = (): React.ReactNode => {
   const queryClient = useQueryClient();
   const { configId } = Route.useParams();
   const [error, setError] = useState<string | null>(null);
-  const [readFilter, setReadFilter] = useState<"unread" | "all" | "read">("unread");
+  const [readFilter, setReadFilter] = useState<'unread' | 'all' | 'read'>('unread');
 
   const configQuery = useQuery({
     queryKey: queryKeys.editions.config(configId),
     queryFn: async (): Promise<EditionConfig> => {
-      const { data, error: err } = await client.GET("/api/editions/configs/{configId}", {
+      const { data, error: err } = await client.GET('/api/editions/configs/{configId}', {
         params: { path: { configId } },
         headers,
       });
-      if (err) throw new Error("Edition config not found");
+      if (err) {
+        throw new Error('Edition config not found');
+      }
       return data as EditionConfig;
     },
     enabled: !!headers,
@@ -61,7 +73,7 @@ const EditionConfigDetailPage = (): React.ReactNode => {
   const editionsQuery = useQuery({
     queryKey: queryKeys.editions.forConfig(configId),
     queryFn: async (): Promise<EditionSummary[]> => {
-      const { data } = await client.GET("/api/editions/configs/{configId}/editions", {
+      const { data } = await client.GET('/api/editions/configs/{configId}/editions', {
         params: { path: { configId } },
         headers,
       });
@@ -72,12 +84,12 @@ const EditionConfigDetailPage = (): React.ReactNode => {
 
   const generateMutation = useMutation({
     mutationFn: async (): Promise<{ id: string }> => {
-      const { data, error: err } = await client.POST("/api/editions/configs/{configId}/generate", {
+      const { data, error: err } = await client.POST('/api/editions/configs/{configId}/generate', {
         params: { path: { configId } },
         headers,
       });
       if (err) {
-        throw new Error("error" in err ? (err as { error: string }).error : "Failed to generate edition");
+        throw new Error('error' in err ? (err as { error: string }).error : 'Failed to generate edition');
       }
       return data as { id: string };
     },
@@ -85,7 +97,7 @@ const EditionConfigDetailPage = (): React.ReactNode => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.editions.forConfig(configId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.nav });
       void navigate({
-        to: "/editions/$configId/issues/$editionId",
+        to: '/editions/$configId/issues/$editionId',
         params: { configId, editionId: data.id },
       });
     },
@@ -96,7 +108,7 @@ const EditionConfigDetailPage = (): React.ReactNode => {
 
   const deleteMutation = useMutation({
     mutationFn: async (editionId: string): Promise<string> => {
-      await client.DELETE("/api/editions/{editionId}", {
+      await client.DELETE('/api/editions/{editionId}', {
         params: { path: { editionId } },
         headers,
       });
@@ -122,7 +134,9 @@ const EditionConfigDetailPage = (): React.ReactNode => {
     },
   });
 
-  if (!headers) return null;
+  if (!headers) {
+    return null;
+  }
 
   const loading = configQuery.isLoading || editionsQuery.isLoading;
   const config = configQuery.data ?? null;
@@ -134,7 +148,9 @@ const EditionConfigDetailPage = (): React.ReactNode => {
   };
 
   const handleDeleteEdition = (editionId: string, title: string): void => {
-    if (!confirm(`Delete "${title}"?`)) return;
+    if (!confirm(`Delete "${title}"?`)) {
+      return;
+    }
     deleteMutation.mutate(editionId);
   };
 
@@ -145,24 +161,31 @@ const EditionConfigDetailPage = (): React.ReactNode => {
   if (!config) {
     return (
       <div className="py-12 text-center">
-        <div className="text-sm text-critical">{error ?? configQuery.error?.message ?? "Edition config not found"}</div>
+        <div className="text-sm text-critical">{error ?? configQuery.error?.message ?? 'Edition config not found'}</div>
       </div>
     );
   }
 
   const filtered = editions.filter((e) => {
-    if (readFilter === "unread") return !e.readAt;
-    if (readFilter === "read") return !!e.readAt;
+    if (readFilter === 'unread') {
+      return !e.readAt;
+    }
+    if (readFilter === 'read') {
+      return !!e.readAt;
+    }
     return true;
   });
 
   return (
     <>
       {/* Header: name + cog */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8" data-ai-id="edition-header" data-ai-role="heading" data-ai-label={config.name}>
-        <h1 className="text-2xl font-serif font-medium tracking-tight text-ink">
-          {config.name}
-        </h1>
+      <div
+        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8"
+        data-ai-id="edition-header"
+        data-ai-role="heading"
+        data-ai-label={config.name}
+      >
+        <h1 className="text-2xl font-serif font-medium tracking-tight text-ink">{config.name}</h1>
         <div className="flex items-center gap-2">
           <Button
             variant="primary"
@@ -172,9 +195,9 @@ const EditionConfigDetailPage = (): React.ReactNode => {
             data-ai-id="edition-generate"
             data-ai-role="button"
             data-ai-label="Generate issue"
-            data-ai-state={generateMutation.isPending ? "loading" : "idle"}
+            data-ai-state={generateMutation.isPending ? 'loading' : 'idle'}
           >
-            {generateMutation.isPending ? "Generating..." : "Generate issue"}
+            {generateMutation.isPending ? 'Generating...' : 'Generate issue'}
           </Button>
           <Link
             to="/editions/$configId/edit"
@@ -191,7 +214,12 @@ const EditionConfigDetailPage = (): React.ReactNode => {
       </div>
 
       {error && (
-        <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6" data-ai-id="edition-error" data-ai-role="error" data-ai-error={error}>
+        <div
+          className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6"
+          data-ai-id="edition-error"
+          data-ai-role="error"
+          data-ai-error={error}
+        >
           {error}
         </div>
       )}
@@ -199,14 +227,14 @@ const EditionConfigDetailPage = (): React.ReactNode => {
       {/* Filter tabs */}
       {editions.length > 0 && (
         <div className="flex gap-1 border-b border-border mb-6">
-          {(["unread", "all", "read"] as const).map((f) => (
+          {(['unread', 'all', 'read'] as const).map((f) => (
             <button
               key={f}
               type="button"
               onClick={() => setReadFilter(f)}
-              className={`relative flex h-8 items-center justify-center px-3 text-xs font-medium outline-none select-none transition-colors duration-fast cursor-pointer ${readFilter === f ? "text-ink after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-accent" : "text-ink-tertiary hover:text-ink-secondary"}`}
+              className={`relative flex h-8 items-center justify-center px-3 text-xs font-medium outline-none select-none transition-colors duration-fast cursor-pointer ${readFilter === f ? 'text-ink after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-accent' : 'text-ink-tertiary hover:text-ink-secondary'}`}
             >
-              {f === "unread" ? "Unread" : f === "all" ? "All" : "Read"}
+              {f === 'unread' ? 'Unread' : f === 'all' ? 'All' : 'Read'}
             </button>
           ))}
         </div>
@@ -218,21 +246,22 @@ const EditionConfigDetailPage = (): React.ReactNode => {
           title="No issues yet"
           description="Generate your first issue to see it here."
           action={
-            <Button
-              variant="primary"
-              disabled={generateMutation.isPending}
-              onClick={() => handleGenerate()}
-            >
-              {generateMutation.isPending ? "Generating..." : "Generate issue"}
+            <Button variant="primary" disabled={generateMutation.isPending} onClick={() => handleGenerate()}>
+              {generateMutation.isPending ? 'Generating...' : 'Generate issue'}
             </Button>
           }
         />
       ) : filtered.length === 0 ? (
         <div className="py-8 text-center text-sm text-ink-tertiary">
-          {readFilter === "unread" ? "All caught up!" : "No read issues yet."}
+          {readFilter === 'unread' ? 'All caught up!' : 'No read issues yet.'}
         </div>
       ) : (
-        <div className="divide-y divide-border" data-ai-id="edition-issues" data-ai-role="list" data-ai-label={`${filtered.length} issues`}>
+        <div
+          className="divide-y divide-border"
+          data-ai-id="edition-issues"
+          data-ai-role="list"
+          data-ai-label={`${filtered.length} issues`}
+        >
           {filtered.map((edition) => (
             <div
               key={edition.id}
@@ -243,13 +272,11 @@ const EditionConfigDetailPage = (): React.ReactNode => {
             >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  {!edition.readAt && (
-                    <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-accent" />
-                  )}
+                  {!edition.readAt && <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-accent" />}
                   <Link
                     to="/editions/$configId/issues/$editionId"
                     params={{ configId, editionId: edition.id }}
-                    className={`font-serif font-medium hover:text-accent transition-colors duration-fast ${edition.readAt ? "text-ink-secondary" : "text-ink"}`}
+                    className={`font-serif font-medium hover:text-accent transition-colors duration-fast ${edition.readAt ? 'text-ink-secondary' : 'text-ink'}`}
                     data-ai-id={`edition-issue-${edition.id}-link`}
                     data-ai-role="link"
                     data-ai-label={edition.title}
@@ -257,7 +284,9 @@ const EditionConfigDetailPage = (): React.ReactNode => {
                     {edition.title}
                   </Link>
                 </div>
-                <div className={`flex items-center gap-2 text-xs mt-0.5 ${!edition.readAt ? "ml-3.5" : ""} text-ink-tertiary`}>
+                <div
+                  className={`flex items-center gap-2 text-xs mt-0.5 ${!edition.readAt ? 'ml-3.5' : ''} text-ink-tertiary`}
+                >
                   <span>{edition.articleCount} articles</span>
                   {edition.totalReadingMinutes && (
                     <>
@@ -266,7 +295,13 @@ const EditionConfigDetailPage = (): React.ReactNode => {
                     </>
                   )}
                   <span className="text-ink-faint">·</span>
-                  <span>{new Date(edition.publishedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
+                  <span>
+                    {new Date(edition.publishedAt).toLocaleDateString('en-GB', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </span>
                   {edition.currentPosition > 0 && (
                     <>
                       <span className="text-ink-faint">·</span>
@@ -290,7 +325,7 @@ const EditionConfigDetailPage = (): React.ReactNode => {
   );
 };
 
-const Route = createFileRoute("/editions/$configId/")({
+const Route = createFileRoute('/editions/$configId/')({
   component: EditionConfigDetailPage,
 });
 

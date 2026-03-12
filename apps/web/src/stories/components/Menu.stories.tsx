@@ -1,10 +1,11 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Menu } from "../../components/menu.tsx";
-import { Button } from "../../components/button.tsx";
+import type { Meta, StoryObj } from '@storybook/react-vite';
+
+import { Menu } from '../../components/menu.tsx';
+import { Button } from '../../components/button.tsx';
 
 const meta: Meta = {
-  title: "Design System/Components/Menu",
-  parameters: { layout: "centered" },
+  title: 'Design System/Components/Menu',
+  parameters: { layout: 'centered' },
 };
 
 type Story = StoryObj;

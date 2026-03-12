@@ -1,4 +1,4 @@
-const destroySymbol = Symbol("destroy");
+const destroySymbol = Symbol('destroy');
 
 type ServiceDependency<T> = new (services: Services) => T;
 
@@ -20,10 +20,10 @@ class Services {
     await Promise.all(
       Array.from(this.#instances.values()).map(async (instance) => {
         if (
-          typeof instance === "object" &&
+          typeof instance === 'object' &&
           instance !== null &&
           destroySymbol in instance &&
-          typeof instance[destroySymbol] === "function"
+          typeof instance[destroySymbol] === 'function'
         ) {
           await instance[destroySymbol]();
         }

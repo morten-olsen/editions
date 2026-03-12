@@ -1,9 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from '@tanstack/react-router';
 
-import { useEditionConfigs, formatLookback } from "../hooks/editions/editions.hooks.ts";
-import { PageHeader } from "../components/page-header.tsx";
-import { Button } from "../components/button.tsx";
-import { EmptyState } from "../components/empty-state.tsx";
+import { useEditionConfigs, formatLookback } from '../hooks/editions/editions.hooks.ts';
+import { PageHeader } from '../components/page-header.tsx';
+import { Button } from '../components/button.tsx';
+import { EmptyState } from '../components/empty-state.tsx';
 
 const EditionsPage = (): React.ReactNode => {
   const { configs, loading, deletingId, handleDelete } = useEditionConfigs();
@@ -12,10 +12,12 @@ const EditionsPage = (): React.ReactNode => {
     <>
       <PageHeader
         title="Editions"
-        subtitle={loading ? "Loading..." : `${configs.length} edition configurations`}
+        subtitle={loading ? 'Loading...' : `${configs.length} edition configurations`}
         actions={
           <Link to="/editions/new" data-ai-id="edition-new" data-ai-role="link" data-ai-label="New edition">
-            <Button variant="primary" size="sm">New edition</Button>
+            <Button variant="primary" size="sm">
+              New edition
+            </Button>
           </Link>
         }
       />
@@ -31,7 +33,12 @@ const EditionsPage = (): React.ReactNode => {
           }
         />
       ) : (
-        <div className="grid gap-3" data-ai-id="edition-list" data-ai-role="list" data-ai-label={`${configs.length} edition configurations`}>
+        <div
+          className="grid gap-3"
+          data-ai-id="edition-list"
+          data-ai-role="list"
+          data-ai-label={`${configs.length} edition configurations`}
+        >
           {configs.map((config) => (
             <div
               key={config.id}
@@ -56,8 +63,8 @@ const EditionsPage = (): React.ReactNode => {
                   <span className="text-ink-faint">·</span>
                   <span>
                     {config.focuses.length === 0
-                      ? "No focuses"
-                      : `${config.focuses.length} focus${config.focuses.length === 1 ? "" : "es"}`}
+                      ? 'No focuses'
+                      : `${config.focuses.length} focus${config.focuses.length === 1 ? '' : 'es'}`}
                   </span>
                   {!config.enabled && (
                     <>
@@ -75,7 +82,7 @@ const EditionsPage = (): React.ReactNode => {
                 data-ai-role="button"
                 data-ai-label={`Delete ${config.name}`}
               >
-                {deletingId === config.id ? "Deleting..." : "Delete"}
+                {deletingId === config.id ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           ))}
@@ -85,7 +92,7 @@ const EditionsPage = (): React.ReactNode => {
   );
 };
 
-const Route = createFileRoute("/editions/")({
+const Route = createFileRoute('/editions/')({
   component: EditionsPage,
 });
 

@@ -1,15 +1,10 @@
-import { z } from "zod/v4";
+import { z } from 'zod/v4';
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
-import {
-  AuthService,
-  InvalidCredentialsError,
-  UsernameExistsError,
-} from "../auth/auth.ts";
-import { createAuthHook } from "../auth/auth.middleware.ts";
-import { ConfigService } from "../config/config.ts";
-
-import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
-import type { Services } from "../services/services.ts";
+import { AuthService, InvalidCredentialsError, UsernameExistsError } from '../auth/auth.ts';
+import { createAuthHook } from '../auth/auth.middleware.ts';
+import { ConfigService } from '../config/config.ts';
+import type { Services } from '../services/services.ts';
 
 const credentialsSchema = z.object({
   username: z.string().min(1).max(64),
@@ -32,11 +27,12 @@ const errorResponseSchema = z.object({
   error: z.string(),
 });
 
-const createAuthRoutes = (services: Services): FastifyPluginAsyncZod =>
+const createAuthRoutes =
+  (services: Services): FastifyPluginAsyncZod =>
   async (fastify) => {
     fastify.route({
-      method: "POST",
-      url: "/auth/register",
+      method: 'POST',
+      url: '/auth/register',
       schema: {
         body: credentialsSchema,
         response: {
@@ -48,7 +44,7 @@ const createAuthRoutes = (services: Services): FastifyPluginAsyncZod =>
       handler: async (req, reply) => {
         const config = services.get(ConfigService).config;
         if (!config.auth.allowSignups) {
-          return reply.code(403).send({ error: "Signups are disabled" });
+          return reply.code(403).send({ error: 'Signups are disabled' });
         }
         const auth = services.get(AuthService);
         try {
@@ -64,8 +60,8 @@ const createAuthRoutes = (services: Services): FastifyPluginAsyncZod =>
     });
 
     fastify.route({
-      method: "POST",
-      url: "/auth/login",
+      method: 'POST',
+      url: '/auth/login',
       schema: {
         body: credentialsSchema,
         response: {
@@ -90,8 +86,8 @@ const createAuthRoutes = (services: Services): FastifyPluginAsyncZod =>
     const authenticate = createAuthHook(services);
 
     fastify.route({
-      method: "GET",
-      url: "/auth/me",
+      method: 'GET',
+      url: '/auth/me',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],

@@ -1,19 +1,19 @@
-import { existsSync, readFileSync } from "node:fs";
-import { homedir } from "node:os";
-import path from "node:path";
-import crypto from "node:crypto";
+import { existsSync, readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import path from 'node:path';
+import crypto from 'node:crypto';
 
-import { z } from "zod/v4";
+import { z } from 'zod/v4';
 
-import { Services } from "../services/services.ts";
+import { Services } from '../services/services.ts';
 
 const serverSchema = z.object({
-  host: z.string().default("0.0.0.0"),
+  host: z.string().default('0.0.0.0'),
   port: z.number().default(3007),
 });
 
 const databaseSchema = z.object({
-  filename: z.string().default("editions.db"),
+  filename: z.string().default('editions.db'),
 });
 
 const authSchema = z.object({
@@ -27,53 +27,49 @@ const schedulerSchema = z.object({
 });
 
 const analysisSchema = z.object({
-  classifier: z.enum(["nli", "similarity", "hybrid"]).default("hybrid"),
+  classifier: z.enum(['nli', 'similarity', 'hybrid']).default('hybrid'),
 });
 
 const configSchema = z.object({
-  server: serverSchema.default({ host: "0.0.0.0", port: 3007 }),
-  database: databaseSchema.default({ filename: "editions.db" }),
-  auth: authSchema.default({ jwtSecret: "", allowSignups: true }),
+  server: serverSchema.default({ host: '0.0.0.0', port: 3007 }),
+  database: databaseSchema.default({ filename: 'editions.db' }),
+  auth: authSchema.default({ jwtSecret: '', allowSignups: true }),
   scheduler: schedulerSchema.default({ enabled: true, fetchIntervalMinutes: 60 }),
-  analysis: analysisSchema.default({ classifier: "hybrid" }),
+  analysis: analysisSchema.default({ classifier: 'hybrid' }),
 });
 
 type Config = z.infer<typeof configSchema>;
 
-const CONFIG_FILENAME = "editions.json";
+const CONFIG_FILENAME = 'editions.json';
 
 const configPaths = (): string[] => [
-  path.join("/etc/editions", CONFIG_FILENAME),
-  path.join(homedir(), ".config", "editions", CONFIG_FILENAME),
+  path.join('/etc/editions', CONFIG_FILENAME),
+  path.join(homedir(), '.config', 'editions', CONFIG_FILENAME),
   path.resolve(CONFIG_FILENAME),
 ];
 
 const readJsonFile = (filePath: string): Record<string, unknown> => {
-  if (!existsSync(filePath)) return {};
-  const raw = readFileSync(filePath, "utf-8");
+  if (!existsSync(filePath)) {
+    return {};
+  }
+  const raw = readFileSync(filePath, 'utf-8');
   return JSON.parse(raw) as Record<string, unknown>;
 };
 
-const deepMerge = (
-  target: Record<string, unknown>,
-  source: Record<string, unknown>,
-): Record<string, unknown> => {
+const deepMerge = (target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> => {
   const result = { ...target };
   for (const key of Object.keys(source)) {
     const targetVal = target[key];
     const sourceVal = source[key];
     if (
-      typeof targetVal === "object" &&
+      typeof targetVal === 'object' &&
       targetVal !== null &&
       !Array.isArray(targetVal) &&
-      typeof sourceVal === "object" &&
+      typeof sourceVal === 'object' &&
       sourceVal !== null &&
       !Array.isArray(sourceVal)
     ) {
-      result[key] = deepMerge(
-        targetVal as Record<string, unknown>,
-        sourceVal as Record<string, unknown>,
-      );
+      result[key] = deepMerge(targetVal as Record<string, unknown>, sourceVal as Record<string, unknown>);
     } else {
       result[key] = sourceVal;
     }
@@ -85,18 +81,32 @@ const envOverrides = (): Record<string, unknown> => {
   const overrides: Record<string, unknown> = {};
   const env = process.env;
 
-  const host = env["EDITIONS_HOST"] ?? env["HOST"];
-  if (host) overrides["server"] = { ...((overrides["server"] as Record<string, unknown>) ?? {}), host };
-  const portStr = env["EDITIONS_PORT"] ?? env["PORT"];
+  const host = env['EDITIONS_HOST'] ?? env['HOST'];
+  if (host) {
+    overrides['server'] = { ...((overrides['server'] as Record<string, unknown>) ?? {}), host };
+  }
+  const portStr = env['EDITIONS_PORT'] ?? env['PORT'];
   if (portStr) {
     const port = Number(portStr);
     if (!Number.isNaN(port)) {
-      overrides["server"] = { ...((overrides["server"] as Record<string, unknown>) ?? {}), port };
+      overrides['server'] = { ...((overrides['server'] as Record<string, unknown>) ?? {}), port };
     }
   }
-  if (env["EDITIONS_DB"]) overrides["database"] = { filename: env["EDITIONS_DB"] };
-  if (env["EDITIONS_JWT_SECRET"]) overrides["auth"] = { ...((overrides["auth"] as Record<string, unknown>) ?? {}), jwtSecret: env["EDITIONS_JWT_SECRET"] };
-  if (env["EDITIONS_ALLOW_SIGNUPS"] !== undefined) overrides["auth"] = { ...((overrides["auth"] as Record<string, unknown>) ?? {}), allowSignups: env["EDITIONS_ALLOW_SIGNUPS"] !== "false" };
+  if (env['EDITIONS_DB']) {
+    overrides['database'] = { filename: env['EDITIONS_DB'] };
+  }
+  if (env['EDITIONS_JWT_SECRET']) {
+    overrides['auth'] = {
+      ...((overrides['auth'] as Record<string, unknown>) ?? {}),
+      jwtSecret: env['EDITIONS_JWT_SECRET'],
+    };
+  }
+  if (env['EDITIONS_ALLOW_SIGNUPS'] !== undefined) {
+    overrides['auth'] = {
+      ...((overrides['auth'] as Record<string, unknown>) ?? {}),
+      allowSignups: env['EDITIONS_ALLOW_SIGNUPS'] !== 'false',
+    };
+  }
 
   return overrides;
 };
@@ -112,10 +122,10 @@ const loadConfig = (): Config => {
   merged = deepMerge(merged, envOverrides());
 
   // Generate a random JWT secret if none was provided
-  const auth = merged["auth"] as Record<string, unknown> | undefined;
-  if (!auth?.["jwtSecret"]) {
-    const generated = crypto.randomBytes(32).toString("hex");
-    merged["auth"] = { ...(auth ?? {}), jwtSecret: generated };
+  const auth = merged['auth'] as Record<string, unknown> | undefined;
+  if (!auth?.['jwtSecret']) {
+    const generated = crypto.randomBytes(32).toString('hex');
+    merged['auth'] = { ...(auth ?? {}), jwtSecret: generated };
     console.log("No JWT secret configured — generated ephemeral secret (sessions won't survive restart)");
   }
 

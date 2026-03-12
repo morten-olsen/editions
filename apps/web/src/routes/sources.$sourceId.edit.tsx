@@ -1,10 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router';
 
-import { useEditSource } from "../hooks/sources/sources.hooks.ts";
-import { PageHeader } from "../components/page-header.tsx";
-import { Input } from "../components/input.tsx";
-import { Button } from "../components/button.tsx";
-import { Separator } from "../components/separator.tsx";
+import { useEditSource } from '../hooks/sources/sources.hooks.ts';
+import { PageHeader } from '../components/page-header.tsx';
+import { Input } from '../components/input.tsx';
+import { Button } from '../components/button.tsx';
+import { Separator } from '../components/separator.tsx';
 
 const EditSourcePage = (): React.ReactNode => {
   const { sourceId } = Route.useParams();
@@ -22,7 +22,9 @@ const EditSourcePage = (): React.ReactNode => {
     ready,
   } = useEditSource({ sourceId });
 
-  if (!ready) return null;
+  if (!ready) {
+    return null;
+  }
 
   if (loading) {
     return <div className="text-sm text-ink-tertiary py-12 text-center">Loading...</div>;
@@ -31,7 +33,7 @@ const EditSourcePage = (): React.ReactNode => {
   if (!source) {
     return (
       <div className="py-12 text-center">
-        <div className="text-sm text-critical">{form.error ?? sourceQuery.error?.message ?? "Source not found"}</div>
+        <div className="text-sm text-critical">{form.error ?? sourceQuery.error?.message ?? 'Source not found'}</div>
       </div>
     );
   }
@@ -41,12 +43,23 @@ const EditSourcePage = (): React.ReactNode => {
       <PageHeader title="Edit source" />
 
       {form.error && (
-        <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6" data-ai-id="edit-source-error" data-ai-role="error" data-ai-error={form.error}>
+        <div
+          className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6"
+          data-ai-id="edit-source-error"
+          data-ai-role="error"
+          data-ai-error={form.error}
+        >
           {form.error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="max-w-md flex flex-col gap-5" data-ai-id="edit-source-form" data-ai-role="form" data-ai-label="Edit source form">
+      <form
+        onSubmit={handleSubmit}
+        className="max-w-md flex flex-col gap-5"
+        data-ai-id="edit-source-form"
+        data-ai-role="form"
+        data-ai-label="Edit source form"
+      >
         <Input
           label="Name"
           required
@@ -84,8 +97,16 @@ const EditSourcePage = (): React.ReactNode => {
           </select>
         </div>
         <div className="flex items-center gap-3 mt-2">
-          <Button variant="primary" type="submit" disabled={updateMutation.isPending} data-ai-id="edit-source-submit" data-ai-role="button" data-ai-label="Save changes" data-ai-state={updateMutation.isPending ? "loading" : "idle"}>
-            {updateMutation.isPending ? "Saving..." : "Save changes"}
+          <Button
+            variant="primary"
+            type="submit"
+            disabled={updateMutation.isPending}
+            data-ai-id="edit-source-submit"
+            data-ai-role="button"
+            data-ai-label="Save changes"
+            data-ai-state={updateMutation.isPending ? 'loading' : 'idle'}
+          >
+            {updateMutation.isPending ? 'Saving...' : 'Save changes'}
           </Button>
           <Button
             variant="ghost"
@@ -100,11 +121,16 @@ const EditSourcePage = (): React.ReactNode => {
         </div>
       </form>
 
-      {source.type !== "bookmarks" && (
+      {source.type !== 'bookmarks' && (
         <>
           <Separator soft className="my-8" />
 
-          <div className="max-w-md" data-ai-id="edit-source-delete-section" data-ai-role="section" data-ai-label="Delete source">
+          <div
+            className="max-w-md"
+            data-ai-id="edit-source-delete-section"
+            data-ai-role="section"
+            data-ai-label="Delete source"
+          >
             <h3 className="text-sm font-medium text-critical mb-1">Delete source</h3>
             <p className="text-xs text-ink-tertiary mb-3">
               This will permanently delete this source and all its articles. This action cannot be undone.
@@ -119,9 +145,9 @@ const EditSourcePage = (): React.ReactNode => {
                   data-ai-id="edit-source-confirm-delete"
                   data-ai-role="button"
                   data-ai-label="Confirm delete"
-                  data-ai-state={deleteMutation.isPending ? "loading" : "idle"}
+                  data-ai-state={deleteMutation.isPending ? 'loading' : 'idle'}
                 >
-                  {deleteMutation.isPending ? "Deleting..." : "Yes, delete"}
+                  {deleteMutation.isPending ? 'Deleting...' : 'Yes, delete'}
                 </Button>
                 <Button
                   variant="ghost"
@@ -153,7 +179,7 @@ const EditSourcePage = (): React.ReactNode => {
   );
 };
 
-const Route = createFileRoute("/sources/$sourceId/edit")({
+const Route = createFileRoute('/sources/$sourceId/edit')({
   component: EditSourcePage,
 });
 

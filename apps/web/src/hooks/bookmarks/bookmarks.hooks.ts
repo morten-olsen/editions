@@ -1,10 +1,10 @@
-import { useRef, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRef, useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { client } from "../../api/api.ts";
-import { useAuthHeaders, queryKeys } from "../../api/api.hooks.ts";
-import { usePagination } from "../utilities/use-pagination.ts";
-import type { UsePaginationResult } from "../utilities/use-pagination.ts";
+import { client } from '../../api/api.ts';
+import { useAuthHeaders, queryKeys } from '../../api/api.hooks.ts';
+import { usePagination } from '../utilities/use-pagination.ts';
+import type { UsePaginationResult } from '../utilities/use-pagination.ts';
 
 type BookmarkWithArticle = {
   id: string;
@@ -47,7 +47,7 @@ const PAGE_SIZE = 30;
 const useBookmarks = (): UseBookmarksResult => {
   const headers = useAuthHeaders();
   const queryClient = useQueryClient();
-  const [saveUrl, setSaveUrl] = useState("");
+  const [saveUrl, setSaveUrl] = useState('');
   const [saveError, setSaveError] = useState<string | null>(null);
   const lastTotal = useRef(0);
 
@@ -61,7 +61,7 @@ const useBookmarks = (): UseBookmarksResult => {
   const { data: page, isLoading } = useQuery<BookmarksPage>({
     queryKey,
     queryFn: async (): Promise<BookmarksPage> => {
-      const { data } = await client.GET("/api/bookmarks", {
+      const { data } = await client.GET('/api/bookmarks', {
         params: { query: { offset: pagination.offset, limit: PAGE_SIZE } },
         headers,
       });
@@ -79,18 +79,16 @@ const useBookmarks = (): UseBookmarksResult => {
 
   const saveMutation = useMutation({
     mutationFn: async (url: string): Promise<void> => {
-      const { error: err } = await client.POST("/api/bookmarks/save", {
+      const { error: err } = await client.POST('/api/bookmarks/save', {
         body: { url },
         headers,
       });
       if (err) {
-        throw new Error(
-          "error" in err ? (err as { error: string }).error : "Failed to save article",
-        );
+        throw new Error('error' in err ? (err as { error: string }).error : 'Failed to save article');
       }
     },
     onSuccess: (): void => {
-      setSaveUrl("");
+      setSaveUrl('');
       setSaveError(null);
       pagination.reset();
       void queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.all });
@@ -102,7 +100,7 @@ const useBookmarks = (): UseBookmarksResult => {
 
   const removeMutation = useMutation({
     mutationFn: async (articleId: string): Promise<void> => {
-      await client.DELETE("/api/articles/{articleId}/bookmark", {
+      await client.DELETE('/api/articles/{articleId}/bookmark', {
         params: { path: { articleId } },
         headers,
       });
@@ -110,7 +108,9 @@ const useBookmarks = (): UseBookmarksResult => {
     onMutate: async (articleId: string): Promise<void> => {
       await queryClient.cancelQueries({ queryKey });
       queryClient.setQueryData<BookmarksPage>(queryKey, (old) => {
-        if (!old) return old;
+        if (!old) {
+          return old;
+        }
         return {
           ...old,
           bookmarks: old.bookmarks.filter((b) => b.articleId !== articleId),
@@ -123,7 +123,9 @@ const useBookmarks = (): UseBookmarksResult => {
   const handleSaveUrl = (e: React.FormEvent): void => {
     e.preventDefault();
     const trimmed = saveUrl.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      return;
+    }
     setSaveError(null);
     saveMutation.mutate(trimmed);
   };

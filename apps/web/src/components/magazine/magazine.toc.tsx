@@ -1,6 +1,7 @@
-import * as React from "react";
-import { motion } from "motion/react";
-import { MagazinePage } from "./magazine.layout.tsx";
+import * as React from 'react';
+import { motion } from 'motion/react';
+
+import { MagazinePage } from './magazine.layout.tsx';
 
 /* ── Types ────────────────────────────────────────────────────────── */
 
@@ -30,16 +31,12 @@ const easeOut = [0, 0, 0.15, 1] as const;
 
 const formatMin = (seconds: number): string => {
   const m = Math.round(seconds / 60);
-  return m < 1 ? "< 1m" : `${m}m`;
+  return m < 1 ? '< 1m' : `${m}m`;
 };
 
 /* ── MagazineToc ──────────────────────────────────────────────────── */
 
-const MagazineToc = ({
-  editionTitle,
-  sections,
-  onNavigate,
-}: MagazineTocProps): React.ReactElement => (
+const MagazineToc = ({ editionTitle, sections, onNavigate }: MagazineTocProps): React.ReactElement => (
   <MagazinePage>
     <div className="max-w-wide mx-auto w-full">
       {/* Header */}
@@ -49,12 +46,8 @@ const MagazineToc = ({
         transition={{ duration: 0.4, ease: easeOut }}
         className="mb-12"
       >
-        <div className="text-xs font-mono tracking-wide text-accent uppercase mb-2">
-          Contents
-        </div>
-        <h2 className="font-serif text-3xl tracking-tight text-ink">
-          {editionTitle}
-        </h2>
+        <div className="text-xs font-mono tracking-wide text-accent uppercase mb-2">Contents</div>
+        <h2 className="font-serif text-3xl tracking-tight text-ink">{editionTitle}</h2>
       </motion.div>
 
       {/* Section list */}
@@ -68,14 +61,10 @@ const MagazineToc = ({
           >
             {/* Section heading row */}
             <div className="flex items-baseline gap-4 mb-4 border-b border-border pb-3">
-              <span className="text-2xl font-mono text-accent leading-none">
-                {String(sIdx + 1).padStart(2, "0")}
-              </span>
-              <h3 className="font-serif text-xl tracking-tight text-ink">
-                {section.focusName}
-              </h3>
+              <span className="text-2xl font-mono text-accent leading-none">{String(sIdx + 1).padStart(2, '0')}</span>
+              <h3 className="font-serif text-xl tracking-tight text-ink">{section.focusName}</h3>
               <span className="ml-auto text-xs font-mono text-ink-faint">
-                p. {String(section.startPage).padStart(2, "0")}
+                p. {String(section.startPage).padStart(2, '0')}
               </span>
             </div>
 
@@ -92,13 +81,9 @@ const MagazineToc = ({
                   </span>
                   <span className="flex-1 border-b border-dotted border-ink-faint/40 min-w-8 translate-y-[-3px]" />
                   <span className="text-xs font-mono text-ink-faint shrink-0">
-                    {article.sourceType === "podcast" && (
-                      <span className="text-accent/70 mr-1.5">podcast</span>
-                    )}
+                    {article.sourceType === 'podcast' && <span className="text-accent/70 mr-1.5">podcast</span>}
                     {article.sourceName}
-                    {article.consumptionTimeSeconds
-                      ? ` · ${formatMin(article.consumptionTimeSeconds)}`
-                      : ""}
+                    {article.consumptionTimeSeconds ? ` · ${formatMin(article.consumptionTimeSeconds)}` : ''}
                   </span>
                 </button>
               ))}

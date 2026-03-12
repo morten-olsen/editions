@@ -1,6 +1,7 @@
-import * as React from "react";
-import { motion } from "motion/react";
-import { MagazinePage } from "./magazine.layout.tsx";
+import * as React from 'react';
+import { motion } from 'motion/react';
+
+import { MagazinePage } from './magazine.layout.tsx';
 
 /* ── Types ────────────────────────────────────────────────────────── */
 

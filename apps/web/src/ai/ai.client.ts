@@ -3,15 +3,15 @@
  * Supports tool calling via the standard OpenAI format.
  * ──────────────────────────────────────────────────────── */
 
-import type { AiConfig, AiChatMessage, AiToolCall, AiToolDefinition } from "./ai.types.ts";
+import type { AiConfig, AiChatMessage, AiToolCall, AiToolDefinition } from './ai.types.ts';
 
 type CompletionChoice = {
   message: {
-    role: "assistant";
+    role: 'assistant';
     content: string | null;
     tool_calls?: {
       id: string;
-      type: "function";
+      type: 'function';
       function: {
         name: string;
         arguments: string;
@@ -33,20 +33,20 @@ type ChatCompletionResult = {
 
 const formatMessages = (messages: AiChatMessage[]): unknown[] =>
   messages.map((msg) => {
-    if (msg.role === "assistant" && msg.toolCalls && msg.toolCalls.length > 0) {
+    if (msg.role === 'assistant' && msg.toolCalls && msg.toolCalls.length > 0) {
       return {
-        role: "assistant",
+        role: 'assistant',
         content: msg.content || null,
         tool_calls: msg.toolCalls.map((tc) => ({
           id: tc.id,
-          type: "function" as const,
+          type: 'function' as const,
           function: { name: tc.name, arguments: tc.arguments },
         })),
       };
     }
-    if (msg.role === "tool") {
+    if (msg.role === 'tool') {
       return {
-        role: "tool",
+        role: 'tool',
         content: msg.content,
         tool_call_id: msg.toolCallId,
       };
@@ -56,7 +56,7 @@ const formatMessages = (messages: AiChatMessage[]): unknown[] =>
 
 const formatTools = (tools: AiToolDefinition[]): unknown[] =>
   tools.map((t) => ({
-    type: "function",
+    type: 'function',
     function: {
       name: t.name,
       description: t.description,
@@ -69,12 +69,12 @@ const chatCompletion = async (
   messages: AiChatMessage[],
   tools: AiToolDefinition[],
 ): Promise<ChatCompletionResult> => {
-  const url = `${config.endpoint.replace(/\/$/, "")}/chat/completions`;
+  const url = `${config.endpoint.replace(/\/$/, '')}/chat/completions`;
 
   const response = await fetch(url, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
       Authorization: `Bearer ${config.apiKey}`,
     },
     body: JSON.stringify({
@@ -91,7 +91,9 @@ const chatCompletion = async (
 
   const data = (await response.json()) as CompletionResponse;
   const choice = data.choices[0];
-  if (!choice) throw new Error("No response from AI provider");
+  if (!choice) {
+    throw new Error('No response from AI provider');
+  }
 
   const toolCalls: AiToolCall[] = (choice.message.tool_calls ?? []).map((tc) => ({
     id: tc.id,

@@ -53,9 +53,10 @@ const cosineSimilarity = (a: Float32Array, b: Float32Array): number => {
 };
 
 const recencyDecay = (publishedAt: string | null): number => {
-  if (!publishedAt) return 0.5;
-  const daysSince =
-    (Date.now() - new Date(publishedAt).getTime()) / (1000 * 60 * 60 * 24);
+  if (!publishedAt) {
+    return 0.5;
+  }
+  const daysSince = (Date.now() - new Date(publishedAt).getTime()) / (1000 * 60 * 60 * 24);
   return Math.pow(0.5, daysSince / RECENCY_HALF_LIFE_DAYS);
 };
 
@@ -118,10 +119,7 @@ const rankArticles = <T extends ScoringCandidate>(
   return scored.map((s) => s.item);
 };
 
-const mergeVoteContexts = (
-  global: VoteContext,
-  focusScoped: VoteContext,
-): VoteContext => {
+const mergeVoteContexts = (global: VoteContext, focusScoped: VoteContext): VoteContext => {
   // Focus-scoped votes take precedence over global for the same article
   const votes = new Map(global.votes);
   for (const [articleId, value] of focusScoped.votes) {
@@ -154,7 +152,9 @@ const defaultUserScoringWeights: UserScoringWeights = {
 };
 
 const parseUserScoringWeights = (json: string | null): UserScoringWeights => {
-  if (!json) return defaultUserScoringWeights;
+  if (!json) {
+    return defaultUserScoringWeights;
+  }
   try {
     const parsed = JSON.parse(json) as Partial<UserScoringWeights>;
     return {

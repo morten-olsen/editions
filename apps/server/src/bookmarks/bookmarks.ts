@@ -1,11 +1,10 @@
-import crypto from "node:crypto";
+import crypto from 'node:crypto';
 
-import { DatabaseService } from "../database/database.ts";
-import { JobService } from "../jobs/jobs.ts";
-import { SourcesService } from "../sources/sources.ts";
-
-import type { ExtractAndAnalysePayload } from "../jobs/jobs.handlers.ts";
-import type { Services } from "../services/services.ts";
+import { DatabaseService } from '../database/database.ts';
+import { JobService } from '../jobs/jobs.ts';
+import { SourcesService } from '../sources/sources.ts';
+import type { ExtractAndAnalysePayload } from '../jobs/jobs.handlers.ts';
+import type { Services } from '../services/services.ts';
 
 // --- Types ---
 
@@ -66,10 +65,10 @@ class BookmarksService {
 
     // Check if this URL already exists under the bookmarks source
     const existing = await db
-      .selectFrom("articles")
-      .select("id")
-      .where("source_id", "=", source.id)
-      .where("url", "=", url)
+      .selectFrom('articles')
+      .select('id')
+      .where('source_id', '=', source.id)
+      .where('url', '=', url)
       .executeTakeFirst();
 
     let articleId: string;
@@ -81,7 +80,7 @@ class BookmarksService {
       const now = new Date().toISOString();
 
       await db
-        .insertInto("articles")
+        .insertInto('articles')
         .values({
           id: articleId,
           source_id: source.id,
@@ -94,10 +93,14 @@ class BookmarksService {
 
       // Enqueue extraction and analysis for the bookmark's source
       const jobService = this.#services.get(JobService);
-      jobService.enqueue<ExtractAndAnalysePayload>("extract_and_analyse", {
-        sourceId: source.id,
-        userId,
-      }, { userId, affects: { sourceIds: [source.id] } });
+      jobService.enqueue<ExtractAndAnalysePayload>(
+        'extract_and_analyse',
+        {
+          sourceId: source.id,
+          userId,
+        },
+        { userId, affects: { sourceIds: [source.id] } },
+      );
     }
 
     const bookmark = await this.add(userId, articleId);
@@ -110,10 +113,10 @@ class BookmarksService {
 
     // Check if already bookmarked
     const existing = await db
-      .selectFrom("bookmarks")
+      .selectFrom('bookmarks')
       .selectAll()
-      .where("user_id", "=", userId)
-      .where("article_id", "=", articleId)
+      .where('user_id', '=', userId)
+      .where('article_id', '=', articleId)
       .executeTakeFirst();
 
     if (existing) {
@@ -129,7 +132,7 @@ class BookmarksService {
     const now = new Date().toISOString();
 
     await db
-      .insertInto("bookmarks")
+      .insertInto('bookmarks')
       .values({
         id,
         user_id: userId,
@@ -145,9 +148,9 @@ class BookmarksService {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     const result = await db
-      .deleteFrom("bookmarks")
-      .where("user_id", "=", userId)
-      .where("article_id", "=", articleId)
+      .deleteFrom('bookmarks')
+      .where('user_id', '=', userId)
+      .where('article_id', '=', articleId)
       .executeTakeFirst();
 
     return result.numDeletedRows > 0n;
@@ -157,28 +160,27 @@ class BookmarksService {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     const row = await db
-      .selectFrom("bookmarks")
-      .select("id")
-      .where("user_id", "=", userId)
-      .where("article_id", "=", articleId)
+      .selectFrom('bookmarks')
+      .select('id')
+      .where('user_id', '=', userId)
+      .where('article_id', '=', articleId)
       .executeTakeFirst();
 
     return row !== undefined;
   };
 
-  getBookmarkedArticleIds = async (
-    userId: string,
-    articleIds: string[],
-  ): Promise<Set<string>> => {
-    if (articleIds.length === 0) return new Set();
+  getBookmarkedArticleIds = async (userId: string, articleIds: string[]): Promise<Set<string>> => {
+    if (articleIds.length === 0) {
+      return new Set();
+    }
 
     const db = await this.#services.get(DatabaseService).getInstance();
 
     const rows = await db
-      .selectFrom("bookmarks")
-      .select("article_id")
-      .where("user_id", "=", userId)
-      .where("article_id", "in", articleIds)
+      .selectFrom('bookmarks')
+      .select('article_id')
+      .where('user_id', '=', userId)
+      .where('article_id', 'in', articleIds)
       .execute();
 
     return new Set(rows.map((r) => r.article_id));
@@ -191,32 +193,32 @@ class BookmarksService {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     const countResult = await db
-      .selectFrom("bookmarks")
-      .select(db.fn.countAll().as("count"))
-      .where("user_id", "=", userId)
+      .selectFrom('bookmarks')
+      .select(db.fn.countAll().as('count'))
+      .where('user_id', '=', userId)
       .executeTakeFirstOrThrow();
 
     const rows = await db
-      .selectFrom("bookmarks")
-      .innerJoin("articles", "articles.id", "bookmarks.article_id")
-      .innerJoin("sources", "sources.id", "articles.source_id")
-      .where("bookmarks.user_id", "=", userId)
+      .selectFrom('bookmarks')
+      .innerJoin('articles', 'articles.id', 'bookmarks.article_id')
+      .innerJoin('sources', 'sources.id', 'articles.source_id')
+      .where('bookmarks.user_id', '=', userId)
       .select([
-        "bookmarks.id",
-        "bookmarks.article_id",
-        "bookmarks.created_at",
-        "articles.title as article_title",
-        "articles.url as article_url",
-        "articles.author",
-        "articles.summary",
-        "articles.image_url",
-        "articles.published_at",
-        "articles.consumption_time_seconds",
-        "articles.source_id",
-        "sources.name as source_name",
-        "sources.type as source_type",
+        'bookmarks.id',
+        'bookmarks.article_id',
+        'bookmarks.created_at',
+        'articles.title as article_title',
+        'articles.url as article_url',
+        'articles.author',
+        'articles.summary',
+        'articles.image_url',
+        'articles.published_at',
+        'articles.consumption_time_seconds',
+        'articles.source_id',
+        'sources.name as source_name',
+        'sources.type as source_type',
       ])
-      .orderBy("bookmarks.created_at", "desc")
+      .orderBy('bookmarks.created_at', 'desc')
       .offset(offset)
       .limit(limit)
       .execute();

@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { client } from "../../api/api.ts";
 
 type JobAffects = {
   sourceIds: string[];
@@ -16,7 +15,7 @@ type JobProgress = {
 type JobItem = {
   id: string;
   type: string;
-  status: "pending" | "running" | "completed" | "failed";
+  status: 'pending' | 'running' | 'completed' | 'failed';
   affects: JobAffects;
   progress: JobProgress;
   error: string | null;
@@ -59,29 +58,41 @@ type UseJobsResult = {
 const POLL_INTERVAL_MS = 3000;
 
 const JOB_TYPE_LABELS: Record<string, string> = {
-  refresh_source: "Fetch feed",
-  reconcile_focus: "Classify articles",
-  reanalyse_source: "Reanalyse source",
-  reanalyse_all: "Reanalyse all",
-  extract_and_analyse: "Extract & analyse",
+  refresh_source: 'Fetch feed',
+  reconcile_focus: 'Classify articles',
+  reanalyse_source: 'Reanalyse source',
+  reanalyse_all: 'Reanalyse all',
+  extract_and_analyse: 'Extract & analyse',
 };
 
 const formatJobType = (type: string): string =>
-  JOB_TYPE_LABELS[type] ?? type.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  JOB_TYPE_LABELS[type] ?? type.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
 const formatTimeAgo = (ms: number): string => {
   const diffSec = Math.floor((Date.now() - ms) / 1000);
-  if (diffSec < 5) return "just now";
-  if (diffSec < 60) return `${diffSec}s ago`;
-  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
-  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
-  return new Date(ms).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  if (diffSec < 5) {
+    return 'just now';
+  }
+  if (diffSec < 60) {
+    return `${diffSec}s ago`;
+  }
+  if (diffSec < 3600) {
+    return `${Math.floor(diffSec / 60)}m ago`;
+  }
+  if (diffSec < 86400) {
+    return `${Math.floor(diffSec / 3600)}h ago`;
+  }
+  return new Date(ms).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 };
 
 const formatDuration = (start: number, end: number): string => {
   const sec = Math.round((end - start) / 1000);
-  if (sec < 1) return "<1s";
-  if (sec < 60) return `${sec}s`;
+  if (sec < 1) {
+    return '<1s';
+  }
+  if (sec < 60) {
+    return `${sec}s`;
+  }
   return `${Math.floor(sec / 60)}m ${sec % 60}s`;
 };
 
@@ -93,8 +104,11 @@ const groupFinishedJobs = (jobs: JobItem[]): JobGroup[] => {
       group = { type: job.type, completed: 0, failed: 0, jobs: [] };
       map.set(job.type, group);
     }
-    if (job.status === "completed") group.completed++;
-    else group.failed++;
+    if (job.status === 'completed') {
+      group.completed++;
+    } else {
+      group.failed++;
+    }
     group.jobs.push(job);
   }
   return Array.from(map.values());
@@ -108,12 +122,18 @@ const useJobs = (token: string, filter?: UseJobsFilter): UseJobsResult => {
 
   const loadJobs = useCallback(async (): Promise<void> => {
     const query: Record<string, string> = {};
-    if (filter?.active !== undefined) query.active = String(filter.active);
-    if (filter?.sourceId) query.sourceId = filter.sourceId;
-    if (filter?.focusId) query.focusId = filter.focusId;
+    if (filter?.active !== undefined) {
+      query.active = String(filter.active);
+    }
+    if (filter?.sourceId) {
+      query.sourceId = filter.sourceId;
+    }
+    if (filter?.focusId) {
+      query.focusId = filter.focusId;
+    }
 
     const qs = new URLSearchParams(query).toString();
-    const res = await fetch(`/api/jobs${qs ? `?${qs}` : ""}`, {
+    const res = await fetch(`/api/jobs${qs ? `?${qs}` : ''}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (res.ok) {
@@ -127,35 +147,40 @@ const useJobs = (token: string, filter?: UseJobsFilter): UseJobsResult => {
     void loadJobs();
   }, [loadJobs]);
 
-  const hasActive = jobs.some((j) => j.status === "pending" || j.status === "running");
+  const hasActive = jobs.some((j) => j.status === 'pending' || j.status === 'running');
 
   useEffect(() => {
     if (hasActive) {
       intervalRef.current = setInterval(() => void loadJobs(), POLL_INTERVAL_MS);
     }
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     };
   }, [hasActive, loadJobs]);
 
-  const activeJobs = jobs.filter((j) => j.status === "pending" || j.status === "running");
-  const finishedJobs = jobs.filter((j) => j.status === "completed" || j.status === "failed");
+  const activeJobs = jobs.filter((j) => j.status === 'pending' || j.status === 'running');
+  const finishedJobs = jobs.filter((j) => j.status === 'completed' || j.status === 'failed');
   const finishedGroups = groupFinishedJobs(finishedJobs);
 
   const toggleGroup = useCallback((type: string): void => {
     setExpandedGroups((prev) => {
       const next = new Set(prev);
-      if (next.has(type)) next.delete(type);
-      else next.add(type);
+      if (next.has(type)) {
+        next.delete(type);
+      } else {
+        next.add(type);
+      }
       return next;
     });
   }, []);
 
   const counts: JobCounts = {
-    pending: activeJobs.filter((j) => j.status === "pending").length,
-    running: activeJobs.filter((j) => j.status === "running").length,
-    completed: finishedJobs.filter((j) => j.status === "completed").length,
-    failed: finishedJobs.filter((j) => j.status === "failed").length,
+    pending: activeJobs.filter((j) => j.status === 'pending').length,
+    running: activeJobs.filter((j) => j.status === 'running').length,
+    completed: finishedJobs.filter((j) => j.status === 'completed').length,
+    failed: finishedJobs.filter((j) => j.status === 'failed').length,
   };
 
   return {

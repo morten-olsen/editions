@@ -1,11 +1,11 @@
-import * as React from "react";
-import { Link } from "@tanstack/react-router";
-import { motion, type Transition } from "motion/react";
+import * as React from 'react';
+import { Link } from '@tanstack/react-router';
+import { motion, type Transition } from 'motion/react';
 
-import { BookmarkButton } from "./bookmark-button.tsx";
-import { Collapse } from "./animate.tsx";
-import { VoteControls } from "./vote-controls.tsx";
-import type { VoteValue } from "./vote-controls.tsx";
+import { BookmarkButton } from './bookmark-button.tsx';
+import { Collapse } from './animate.tsx';
+import { VoteControls } from './vote-controls.tsx';
+import type { VoteValue } from './vote-controls.tsx';
 
 type ArticleCardProps = {
   id: string;
@@ -37,8 +37,10 @@ type ArticleCardProps = {
 
 const formatTime = (seconds: number, sourceType?: string | null): string => {
   const minutes = Math.round(seconds / 60);
-  if (minutes < 1) return "< 1 min";
-  const suffix = sourceType === "podcast" ? "listen" : "read";
+  if (minutes < 1) {
+    return '< 1 min';
+  }
+  const suffix = sourceType === 'podcast' ? 'listen' : 'read';
   return `${minutes} min ${suffix}`;
 };
 
@@ -48,15 +50,19 @@ const formatDate = (iso: string): string => {
   const diffMs = now.getTime() - date.getTime();
   const diffHours = diffMs / (1000 * 60 * 60);
 
-  if (diffHours < 1) return "Just now";
-  if (diffHours < 24) return `${Math.floor(diffHours)}h ago`;
-  if (diffHours < 48) return "Yesterday";
-  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  if (diffHours < 1) {
+    return 'Just now';
+  }
+  if (diffHours < 24) {
+    return `${Math.floor(diffHours)}h ago`;
+  }
+  if (diffHours < 48) {
+    return 'Yesterday';
+  }
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 };
 
-const Dot = (): React.ReactElement => (
-  <span className="text-ink-faint">·</span>
-);
+const Dot = (): React.ReactElement => <span className="text-ink-faint">·</span>;
 
 /* ── Animation tokens ──────────────────────────────────────────────── */
 
@@ -89,7 +95,7 @@ const ArticleCard = ({
   onBookmarkToggle,
 }: ArticleCardProps): React.ReactElement => {
   const aiId = `article-${id}`;
-  const aiLabel = [title, sourceName, publishedAt ? formatDate(publishedAt) : null].filter(Boolean).join(" · ");
+  const aiLabel = [title, sourceName, publishedAt ? formatDate(publishedAt) : null].filter(Boolean).join(' · ');
   const hasVoting = onVote !== undefined || onFocusVote !== undefined;
   const hasBookmark = onBookmarkToggle !== undefined;
   const muted = read;
@@ -104,7 +110,7 @@ const ArticleCard = ({
           <span>{formatDate(publishedAt)}</span>
         </>
       )}
-      {sourceType === "podcast" && (
+      {sourceType === 'podcast' && (
         <>
           <Dot />
           <span className="text-accent font-medium">Podcast</span>
@@ -123,35 +129,31 @@ const ArticleCard = ({
     <motion.div
       animate={{ opacity: muted ? 0.7 : 1 }}
       transition={gentle}
-      className={`font-serif font-medium tracking-tight leading-snug ${muted ? "text-sm text-ink-tertiary" : compact ? "text-sm text-ink" : "text-lg text-ink"}`}
+      className={`font-serif font-medium tracking-tight leading-snug ${muted ? 'text-sm text-ink-tertiary' : compact ? 'text-sm text-ink' : 'text-lg text-ink'}`}
     >
       {title}
     </motion.div>
   );
 
-  const summaryEl = showDetails && summary ? (
-    <motion.div
-      animate={{ opacity: muted ? 0.6 : 1 }}
-      transition={gentle}
-      className={`text-sm leading-relaxed ${muted ? "line-clamp-1 text-ink-faint" : "line-clamp-2 text-ink-secondary"}`}
-    >
-      {summary}
-    </motion.div>
-  ) : null;
+  const summaryEl =
+    showDetails && summary ? (
+      <motion.div
+        animate={{ opacity: muted ? 0.6 : 1 }}
+        transition={gentle}
+        className={`text-sm leading-relaxed ${muted ? 'line-clamp-1 text-ink-faint' : 'line-clamp-2 text-ink-secondary'}`}
+      >
+        {summary}
+      </motion.div>
+    ) : null;
 
-  const actionBar = (hasVoting || hasBookmark) ? (
-    <div className="flex items-center gap-4 mt-1">
-      {onFocusVote && (
-        <VoteControls value={focusVote ?? null} onVote={onFocusVote} label="Relevance" />
-      )}
-      {onVote && (
-        <VoteControls value={vote ?? null} onVote={onVote} label="Quality" />
-      )}
-      {hasBookmark && (
-        <BookmarkButton bookmarked={bookmarked ?? false} onToggle={onBookmarkToggle} />
-      )}
-    </div>
-  ) : null;
+  const actionBar =
+    hasVoting || hasBookmark ? (
+      <div className="flex items-center gap-4 mt-1">
+        {onFocusVote && <VoteControls value={focusVote ?? null} onVote={onFocusVote} label="Relevance" />}
+        {onVote && <VoteControls value={vote ?? null} onVote={onVote} label="Quality" />}
+        {hasBookmark && <BookmarkButton bookmarked={bookmarked ?? false} onToggle={onBookmarkToggle} />}
+      </div>
+    ) : null;
 
   const hasImage = showDetails && imageUrl;
 
@@ -171,17 +173,13 @@ const ArticleCard = ({
         </div>
       </Collapse>
       <Collapse show={showDetails && !muted && !!author}>
-        <div className="text-xs text-ink-tertiary">
-          By {author}
-        </div>
+        <div className="text-xs text-ink-tertiary">By {author}</div>
       </Collapse>
-      <Collapse show={!muted && !!actionBar}>
-        {actionBar}
-      </Collapse>
+      <Collapse show={!muted && !!actionBar}>{actionBar}</Collapse>
     </>
   );
 
-  const wrapperClass = `flex flex-col gap-1.5 ${href ? "cursor-pointer group" : ""}`;
+  const wrapperClass = `flex flex-col gap-1.5 ${href ? 'cursor-pointer group' : ''}`;
 
   if (href) {
     return (

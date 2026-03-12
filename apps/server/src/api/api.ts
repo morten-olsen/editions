@@ -1,25 +1,25 @@
-import { z } from "zod/v4";
+import { z } from 'zod/v4';
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
-import { createArticlesRoutes } from "./articles.routes.ts";
-import { createAuthRoutes } from "./auth.routes.ts";
-import { createConfigRoutes } from "./config.routes.ts";
-import { createBookmarksRoutes } from "./bookmarks.routes.ts";
-import { createEditionsRoutes } from "./editions.routes.ts";
-import { createHomeRoutes } from "./home.routes.ts";
-import { createFeedRoutes } from "./feed.routes.ts";
-import { createFocusesRoutes } from "./focuses.routes.ts";
-import { createSourcesRoutes } from "./sources.routes.ts";
-import { createJobsRoutes } from "./jobs.routes.ts";
-import { createScoringRoutes } from "./scoring.routes.ts";
-import { createVotesRoutes } from "./votes.routes.ts";
+import type { Services } from '../services/services.ts';
 
-import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
-import type { Services } from "../services/services.ts";
+import { createArticlesRoutes } from './articles.routes.ts';
+import { createAuthRoutes } from './auth.routes.ts';
+import { createConfigRoutes } from './config.routes.ts';
+import { createBookmarksRoutes } from './bookmarks.routes.ts';
+import { createEditionsRoutes } from './editions.routes.ts';
+import { createHomeRoutes } from './home.routes.ts';
+import { createFeedRoutes } from './feed.routes.ts';
+import { createFocusesRoutes } from './focuses.routes.ts';
+import { createSourcesRoutes } from './sources.routes.ts';
+import { createJobsRoutes } from './jobs.routes.ts';
+import { createScoringRoutes } from './scoring.routes.ts';
+import { createVotesRoutes } from './votes.routes.ts';
 
 const healthRoute: FastifyPluginAsyncZod = async (fastify) => {
   fastify.route({
-    method: "GET",
-    url: "/health",
+    method: 'GET',
+    url: '/health',
     schema: {
       response: {
         200: z.object({
@@ -28,15 +28,12 @@ const healthRoute: FastifyPluginAsyncZod = async (fastify) => {
       },
     },
     handler: async (_req, _reply) => {
-      return { status: "ok" };
+      return { status: 'ok' };
     },
   });
 };
 
-const registerRoutes = async (
-  fastify: Parameters<FastifyPluginAsyncZod>[0],
-  services: Services,
-): Promise<void> => {
+const registerRoutes = async (fastify: Parameters<FastifyPluginAsyncZod>[0], services: Services): Promise<void> => {
   await fastify.register(
     async (api) => {
       await api.register(healthRoute);
@@ -53,7 +50,7 @@ const registerRoutes = async (
       await api.register(createScoringRoutes(services));
       await api.register(createVotesRoutes(services));
     },
-    { prefix: "/api" },
+    { prefix: '/api' },
   );
 };
 

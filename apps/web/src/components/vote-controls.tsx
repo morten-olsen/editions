@@ -1,4 +1,4 @@
-import * as React from "react";
+import * as React from 'react';
 
 type VoteValue = 1 | -1 | null;
 
@@ -32,11 +32,7 @@ const ChevronDown = (): React.ReactElement => (
   </svg>
 );
 
-const VoteControls = ({
-  value,
-  onVote,
-  label,
-}: VoteControlsProps): React.ReactElement => {
+const VoteControls = ({ value, onVote, label }: VoteControlsProps): React.ReactElement => {
   const handleUp = (e: React.MouseEvent): void => {
     e.preventDefault();
     e.stopPropagation();
@@ -55,11 +51,9 @@ const VoteControls = ({
         type="button"
         onClick={handleUp}
         className={`rounded p-0.5 transition-colors duration-fast ease-gentle cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
-          value === 1
-            ? "text-accent"
-            : "text-ink-faint hover:text-ink-tertiary"
+          value === 1 ? 'text-accent' : 'text-ink-faint hover:text-ink-tertiary'
         }`}
-        aria-label={label ? `${label}: more like this` : "More like this"}
+        aria-label={label ? `${label}: more like this` : 'More like this'}
       >
         <ChevronUp />
       </button>
@@ -67,17 +61,13 @@ const VoteControls = ({
         type="button"
         onClick={handleDown}
         className={`rounded p-0.5 transition-colors duration-fast ease-gentle cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
-          value === -1
-            ? "text-critical"
-            : "text-ink-faint hover:text-ink-tertiary"
+          value === -1 ? 'text-critical' : 'text-ink-faint hover:text-ink-tertiary'
         }`}
-        aria-label={label ? `${label}: less like this` : "Less like this"}
+        aria-label={label ? `${label}: less like this` : 'Less like this'}
       >
         <ChevronDown />
       </button>
-      {label && (
-        <span className="text-xs text-ink-faint ml-0.5 select-none">{label}</span>
-      )}
+      {label && <span className="text-xs text-ink-faint ml-0.5 select-none">{label}</span>}
     </div>
   );
 };

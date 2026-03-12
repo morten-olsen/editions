@@ -1,11 +1,11 @@
-import { useState, useCallback, useRef } from "react";
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useCallback, useRef } from 'react';
+import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
 
-import { client } from "../api/api.ts";
-import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
-import { Button } from "../components/button.tsx";
-import type { VoteValue } from "../components/vote-controls.tsx";
+import { client } from '../api/api.ts';
+import { useAuthHeaders, queryKeys } from '../api/api.hooks.ts';
+import { Button } from '../components/button.tsx';
+import type { VoteValue } from '../components/vote-controls.tsx';
 import {
   MagazineLayout,
   MagazineCover,
@@ -14,7 +14,7 @@ import {
   MagazineArticle,
   MagazineFinale,
   type TocEntry,
-} from "../components/magazine/magazine.tsx";
+} from '../components/magazine/magazine.tsx';
 
 /* ── Types ────────────────────────────────────────────────────────── */
 
@@ -86,14 +86,20 @@ const MagazinePage = (): React.ReactNode => {
   const pageRef = useRef(0);
   const [votes, setVotes] = useState<Record<string, VoteValue>>({});
 
-  const { data: edition, isLoading, error } = useQuery<EditionDetail>({
+  const {
+    data: edition,
+    isLoading,
+    error,
+  } = useQuery<EditionDetail>({
     queryKey: queryKeys.editions.detail(editionId),
     queryFn: async (): Promise<EditionDetail> => {
-      const { data, error: err } = await client.GET("/api/editions/{editionId}", {
+      const { data, error: err } = await client.GET('/api/editions/{editionId}', {
         params: { path: { editionId } },
         headers,
       });
-      if (err) throw new Error("Edition not found");
+      if (err) {
+        throw new Error('Edition not found');
+      }
       return data as EditionDetail;
     },
     enabled: !!headers,
@@ -103,12 +109,12 @@ const MagazinePage = (): React.ReactNode => {
     if (window.history.length > 1) {
       router.history.back();
     } else {
-      void navigate({ to: "/" });
+      void navigate({ to: '/' });
     }
   }, [router.history, navigate]);
 
   const handleMarkDone = useCallback(async (): Promise<void> => {
-    await client.PUT("/api/editions/{editionId}/read", {
+    await client.PUT('/api/editions/{editionId}/read', {
       params: { path: { editionId } },
       body: { read: true },
       headers,
@@ -116,33 +122,39 @@ const MagazinePage = (): React.ReactNode => {
     if (window.history.length > 1) {
       router.history.back();
     } else {
-      await navigate({ to: "/" });
+      await navigate({ to: '/' });
     }
   }, [editionId, headers, router.history, navigate]);
 
-  const handleVote = useCallback(async (articleId: string, value: VoteValue): Promise<void> => {
-    setVotes((prev) => ({ ...prev, [articleId]: value }));
-    if (value === null) {
-      await client.DELETE("/api/editions/{editionId}/articles/{articleId}/vote", {
-        params: { path: { editionId, articleId } },
-        headers,
-      });
-    } else {
-      await client.PUT("/api/editions/{editionId}/articles/{articleId}/vote", {
-        params: { path: { editionId, articleId } },
-        body: { value },
-        headers,
-      });
-    }
-  }, [editionId, headers]);
+  const handleVote = useCallback(
+    async (articleId: string, value: VoteValue): Promise<void> => {
+      setVotes((prev) => ({ ...prev, [articleId]: value }));
+      if (value === null) {
+        await client.DELETE('/api/editions/{editionId}/articles/{articleId}/vote', {
+          params: { path: { editionId, articleId } },
+          headers,
+        });
+      } else {
+        await client.PUT('/api/editions/{editionId}/articles/{articleId}/vote', {
+          params: { path: { editionId, articleId } },
+          body: { value },
+          headers,
+        });
+      }
+    },
+    [editionId, headers],
+  );
 
-  const handleMarkArticleViewed = useCallback(async (sourceId: string, articleId: string): Promise<void> => {
-    await client.PUT("/api/sources/{id}/articles/{articleId}/read", {
-      params: { path: { id: sourceId, articleId } },
-      body: { read: true },
-      headers,
-    });
-  }, [headers]);
+  const handleMarkArticleViewed = useCallback(
+    async (sourceId: string, articleId: string): Promise<void> => {
+      await client.PUT('/api/sources/{id}/articles/{articleId}/read', {
+        params: { path: { id: sourceId, articleId } },
+        body: { read: true },
+        headers,
+      });
+    },
+    [headers],
+  );
 
   if (!headers || isLoading) {
     return (
@@ -157,9 +169,11 @@ const MagazinePage = (): React.ReactNode => {
       <div className="flex min-h-dvh items-center justify-center bg-surface">
         <div className="text-center">
           <div className="font-serif text-xl text-ink mb-2">
-            {error instanceof Error ? error.message : "Edition not found"}
+            {error instanceof Error ? error.message : 'Edition not found'}
           </div>
-          <Button variant="ghost" size="sm" onClick={handleExit}>Go back</Button>
+          <Button variant="ghost" size="sm" onClick={handleExit}>
+            Go back
+          </Button>
         </div>
       </div>
     );
@@ -207,7 +221,7 @@ const MagazinePage = (): React.ReactNode => {
   };
 
   // Cover
-  const leadArticle = edition.articles[0] ?? { title: edition.title, sourceName: "" };
+  const leadArticle = edition.articles[0] ?? { title: edition.title, sourceName: '' };
   const highlightArticles = sections
     .slice(1, 3)
     .map((s) => s.articles[0])
@@ -228,12 +242,7 @@ const MagazinePage = (): React.ReactNode => {
 
   // TOC
   pages.push(
-    <MagazineToc
-      key="toc"
-      editionTitle={edition.title}
-      sections={tocSections}
-      onNavigate={handlePageChange}
-    />,
+    <MagazineToc key="toc" editionTitle={edition.title} sections={tocSections} onNavigate={handlePageChange} />,
   );
 
   // Sections + articles
@@ -305,7 +314,7 @@ const MagazinePage = (): React.ReactNode => {
   );
 };
 
-const Route = createFileRoute("/editions/$configId/issues/$editionId/magazine")({
+const Route = createFileRoute('/editions/$configId/issues/$editionId/magazine')({
   component: MagazinePage,
 });
 

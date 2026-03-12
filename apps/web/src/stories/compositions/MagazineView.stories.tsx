@@ -1,5 +1,6 @@
-import { useState } from "react";
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useState } from 'react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+
 import {
   MagazineLayout,
   MagazineCover,
@@ -8,7 +9,7 @@ import {
   MagazineArticle,
   MagazineFinale,
   type TocEntry,
-} from "../../components/magazine/magazine.tsx";
+} from '../../components/magazine/magazine.tsx';
 
 /* ── Sample article content (extracted HTML) ──────────────────────── */
 
@@ -191,94 +192,94 @@ const tradeContent = `
 const now = Date.now();
 
 const sampleEdition = {
-  title: "Morning Briefing",
+  title: 'Morning Briefing',
   date: new Date(now - 2 * 60 * 60 * 1000).toISOString(),
   totalReadingMinutes: 14,
   articleCount: 8,
   sections: [
     {
-      focusName: "Technology",
+      focusName: 'Technology',
       articles: [
         {
-          title: "The quiet revolution in reader design",
-          sourceName: "Ars Technica",
-          author: "Samuel Axon",
+          title: 'The quiet revolution in reader design',
+          sourceName: 'Ars Technica',
+          author: 'Samuel Axon',
           summary:
             "How a new generation of reading apps is rethinking the relationship between content, interface, and the reader's attention span. The old paradigm of infinite scroll is giving way to something more intentional.",
           publishedAt: new Date(now - 3 * 60 * 60 * 1000).toISOString(),
           consumptionTimeSeconds: 480,
-          imageUrl: "https://picsum.photos/seed/reader-mag/800/600",
+          imageUrl: 'https://picsum.photos/seed/reader-mag/800/600',
           content: readerDesignContent,
         },
         {
-          title: "Building finite feeds: architecture for calm software",
-          sourceName: "Software Unscripted",
-          sourceType: "podcast" as const,
-          author: "Richard Feldman",
+          title: 'Building finite feeds: architecture for calm software',
+          sourceName: 'Software Unscripted',
+          sourceType: 'podcast' as const,
+          author: 'Richard Feldman',
           summary:
-            "Two engineers discuss source budgeting, edition generation, and why they chose SQLite — a deep technical conversation about building reading software that respects attention.",
+            'Two engineers discuss source budgeting, edition generation, and why they chose SQLite — a deep technical conversation about building reading software that respects attention.',
           publishedAt: new Date(now - 4 * 60 * 60 * 1000).toISOString(),
           consumptionTimeSeconds: 2700,
-          imageUrl: "https://picsum.photos/seed/podcast-cover/800/800",
-          mediaUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-          mediaType: "audio/mpeg",
+          imageUrl: 'https://picsum.photos/seed/podcast-cover/800/800',
+          mediaUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+          mediaType: 'audio/mpeg',
           content: podcastShowNotes,
         },
         {
-          title: "TypeScript 6.0 introduces pattern matching",
-          sourceName: "Hacker News",
+          title: 'TypeScript 6.0 introduces pattern matching',
+          sourceName: 'Hacker News',
           summary:
-            "The long-awaited pattern matching RFC lands in TypeScript, bringing exhaustive checks and destructuring to a new level.",
+            'The long-awaited pattern matching RFC lands in TypeScript, bringing exhaustive checks and destructuring to a new level.',
           publishedAt: new Date(now - 5 * 60 * 60 * 1000).toISOString(),
           consumptionTimeSeconds: 180,
           content: patternMatchingContent,
         },
         {
           title: "Why SQLite is the database you didn't know you needed",
-          sourceName: "Hacker News",
-          author: "Richard Hipp",
+          sourceName: 'Hacker News',
+          author: 'Richard Hipp',
           summary:
-            "A deep dive into why embedded databases are making a comeback in server-side applications, and what the trade-offs really look like at scale.",
+            'A deep dive into why embedded databases are making a comeback in server-side applications, and what the trade-offs really look like at scale.',
           publishedAt: new Date(now - 9 * 60 * 60 * 1000).toISOString(),
           consumptionTimeSeconds: 720,
-          imageUrl: "https://picsum.photos/seed/sqlite-mag/800/600",
+          imageUrl: 'https://picsum.photos/seed/sqlite-mag/800/600',
           content: sqliteContent,
         },
       ],
     },
     {
-      focusName: "Science",
+      focusName: 'Science',
       articles: [
         {
           title: "JWST captures light from the universe's first galaxies",
-          sourceName: "Nature",
-          author: "Dr. Emily Carter",
+          sourceName: 'Nature',
+          author: 'Dr. Emily Carter',
           summary:
-            "New observations push the frontier of known galaxies back another 200 million years, challenging existing models of early star formation and cosmic evolution.",
+            'New observations push the frontier of known galaxies back another 200 million years, challenging existing models of early star formation and cosmic evolution.',
           publishedAt: new Date(now - 4 * 60 * 60 * 1000).toISOString(),
           consumptionTimeSeconds: 360,
-          imageUrl: "https://picsum.photos/seed/jwst-mag/800/600",
+          imageUrl: 'https://picsum.photos/seed/jwst-mag/800/600',
           content: jwstContent,
         },
       ],
     },
     {
-      focusName: "Global News",
+      focusName: 'Global News',
       articles: [
         {
           title: "Europe's new data sovereignty framework explained",
-          sourceName: "The Guardian",
-          author: "Alex Hern",
+          sourceName: 'The Guardian',
+          author: 'Alex Hern',
           summary:
-            "The Digital Markets Act enters its second phase, requiring tech giants to open their platforms to interoperability. What it means for everyday users and the companies that serve them.",
+            'The Digital Markets Act enters its second phase, requiring tech giants to open their platforms to interoperability. What it means for everyday users and the companies that serve them.',
           publishedAt: new Date(now - 6 * 60 * 60 * 1000).toISOString(),
           consumptionTimeSeconds: 240,
-          imageUrl: "https://picsum.photos/seed/eu-data-mag/800/600",
+          imageUrl: 'https://picsum.photos/seed/eu-data-mag/800/600',
           content: euDataContent,
         },
         {
-          title: "Pacific trade agreement reaches final ratification",
-          sourceName: "Reuters",
+          title: 'Pacific trade agreement reaches final ratification',
+          sourceName: 'Reuters',
           summary:
             "Twelve nations sign the landmark agreement after three years of negotiations, creating the world's largest free trade zone.",
           publishedAt: new Date(now - 7 * 60 * 60 * 1000).toISOString(),
@@ -333,22 +334,14 @@ const buildPages = (
       articleCount={edition.articleCount}
       focusCount={edition.sections.length}
       lead={edition.sections[0]!.articles[0]!}
-      highlights={[
-        edition.sections[1]?.articles[0],
-        edition.sections[2]?.articles[0],
-      ].filter((a): a is (typeof edition.sections)[number]["articles"][number] => !!a)}
+      highlights={[edition.sections[1]?.articles[0], edition.sections[2]?.articles[0]].filter(
+        (a): a is (typeof edition.sections)[number]['articles'][number] => !!a,
+      )}
     />,
   );
 
   // TOC
-  pages.push(
-    <MagazineToc
-      key="toc"
-      editionTitle={edition.title}
-      sections={tocSections}
-      onNavigate={onNavigate}
-    />,
-  );
+  pages.push(<MagazineToc key="toc" editionTitle={edition.title} sections={tocSections} onNavigate={onNavigate} />);
 
   // Section dividers + articles
   edition.sections.forEach((section, sIdx) => {
@@ -367,13 +360,7 @@ const buildPages = (
     );
 
     section.articles.forEach((article, aIdx) => {
-      pages.push(
-        <MagazineArticle
-          key={`article-${sIdx}-${aIdx}`}
-          {...article}
-          positionInSection={aIdx}
-        />,
-      );
+      pages.push(<MagazineArticle key={`article-${sIdx}-${aIdx}`} {...article} positionInSection={aIdx} />);
     });
   });
 
@@ -393,8 +380,8 @@ const buildPages = (
 /* ── Stories ───────────────────────────────────────────────────────── */
 
 const meta: Meta = {
-  title: "Design System/Compositions/Magazine View",
-  parameters: { layout: "fullscreen" },
+  title: 'Design System/Compositions/Magazine View',
+  parameters: { layout: 'fullscreen' },
 };
 
 type Story = StoryObj;
@@ -422,10 +409,7 @@ const Cover: Story = {
       articleCount={sampleEdition.articleCount}
       focusCount={sampleEdition.sections.length}
       lead={sampleEdition.sections[0]!.articles[0]!}
-      highlights={[
-        sampleEdition.sections[1]!.articles[0]!,
-        sampleEdition.sections[2]!.articles[0]!,
-      ]}
+      highlights={[sampleEdition.sections[1]!.articles[0]!, sampleEdition.sections[2]!.articles[0]!]}
     />
   ),
 };
@@ -446,14 +430,7 @@ const TableOfContents: Story = {
 
 /* Section divider in isolation */
 const SectionDivider: Story = {
-  render: () => (
-    <MagazineSection
-      focusName="Technology"
-      index={0}
-      articleCount={3}
-      totalReadingMinutes={8}
-    />
-  ),
+  render: () => <MagazineSection focusName="Technology" index={0} articleCount={3} totalReadingMinutes={8} />,
 };
 
 /* Article spread: hero layout with full content */
@@ -573,13 +550,7 @@ const ArticlePodcastNoMedia: Story = {
 
 /* Finale page */
 const Finale: Story = {
-  render: () => (
-    <MagazineFinale
-      articleCount={7}
-      totalReadingMinutes={14}
-      editionTitle="Morning Briefing"
-    />
-  ),
+  render: () => <MagazineFinale articleCount={7} totalReadingMinutes={14} editionTitle="Morning Briefing" />,
 };
 
 export default meta;

@@ -1,8 +1,9 @@
 /* ── System prompt for the AI agent ───────────────────── */
 
-import { getTutorialRegistry } from "./ai.tutorials.ts";
+import { getTutorialRegistry } from './ai.tutorials.ts';
 
-const buildSystemPrompt = (): string => `You are an AI assistant built into Editions, a calm, personal news reader. You help users set up and use the app by interacting with the UI on their behalf.
+const buildSystemPrompt =
+  (): string => `You are an AI assistant built into Editions, a calm, personal news reader. You help users set up and use the app by interacting with the UI on their behalf.
 
 ## How you work
 

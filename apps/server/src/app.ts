@@ -29,10 +29,7 @@ type App = {
   stop: () => Promise<void>;
 };
 
-const createApp = async ({ logger = true }: { logger?: boolean } = {}): Promise<App> => {
-  const services = new Services();
-  const { config } = services.get(ConfigService);
-
+const createFastifyInstance = (logger: boolean): FastifyInstance & { withTypeProvider: () => unknown } => {
   const fastify = Fastify({
     logger: logger
       ? {
@@ -57,6 +54,10 @@ const createApp = async ({ logger = true }: { logger?: boolean } = {}): Promise<
     throw err;
   });
 
+  return fastify;
+};
+
+const registerSwagger = async (fastify: Parameters<typeof registerRoutes>[0]): Promise<void> => {
   await fastify.register(fastifySwagger, {
     openapi: {
       info: {
@@ -80,24 +81,50 @@ const createApp = async ({ logger = true }: { logger?: boolean } = {}): Promise<
   await fastify.register(scalarReference, {
     routePrefix: '/api/docs',
   });
+};
 
-  await registerRoutes(fastify, services);
-
-  // Serve static frontend assets if the public directory exists
+const registerStaticAssets = async (fastify: FastifyInstance): Promise<void> => {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const publicDir = path.resolve(__dirname, '..', 'public');
-  if (existsSync(publicDir)) {
-    await fastify.register(fastifyStatic, { root: publicDir, wildcard: false });
-
-    // SPA fallback: serve index.html for non-API routes that don't match a static file
-    fastify.setNotFoundHandler((_req: FastifyRequest, reply: FastifyReply) => {
-      return reply.sendFile('index.html');
-    });
+  if (!existsSync(publicDir)) {
+    return;
   }
+
+  await fastify.register(fastifyStatic, { root: publicDir, wildcard: false });
+
+  // SPA fallback: serve index.html for non-API routes that don't match a static file
+  fastify.setNotFoundHandler((_req: FastifyRequest, reply: FastifyReply) => {
+    return reply.sendFile('index.html');
+  });
+};
+
+const recoverUnanalysedArticles = async (services: Services, log: FastifyInstance['log']): Promise<void> => {
+  const db = await services.get(DatabaseService).getInstance();
+  const result = await db
+    .selectFrom('articles')
+    .select(db.fn.countAll().as('count'))
+    .where('extracted_at', 'is not', null)
+    .where('analysed_at', 'is', null)
+    .executeTakeFirstOrThrow();
+  const recovered = Number(result.count);
+  if (recovered > 0) {
+    services.get(JobService).enqueue<Record<string, never>>('reanalyse_all', {}, {});
+    log.info(`Enqueued ${recovered} articles for analysis recovery`);
+  }
+};
+
+const createApp = async ({ logger = true }: { logger?: boolean } = {}): Promise<App> => {
+  const services = new Services();
+  const { config } = services.get(ConfigService);
+
+  const fastify = createFastifyInstance(logger);
+
+  await registerSwagger(fastify as Parameters<typeof registerRoutes>[0]);
+  await registerRoutes(fastify as Parameters<typeof registerRoutes>[0], services);
+  await registerStaticAssets(fastify);
 
   registerJobHandlers(services);
 
-  // Create scheduler (not started until listen completes)
   const scheduler = new SchedulerService(services, config.scheduler, {
     info: (msg) => fastify.log.info(msg),
     error: (msg) => fastify.log.error(msg),
@@ -105,22 +132,7 @@ const createApp = async ({ logger = true }: { logger?: boolean } = {}): Promise<
 
   const start = async (): Promise<void> => {
     await fastify.listen({ host: config.server.host, port: config.server.port });
-
-    // Recover any articles that were extracted but not yet analysed
-    const db = await services.get(DatabaseService).getInstance();
-    const result = await db
-      .selectFrom('articles')
-      .select(db.fn.countAll().as('count'))
-      .where('extracted_at', 'is not', null)
-      .where('analysed_at', 'is', null)
-      .executeTakeFirstOrThrow();
-    const recovered = Number(result.count);
-    if (recovered > 0) {
-      services.get(JobService).enqueue<Record<string, never>>('reanalyse_all', {}, {});
-      fastify.log.info(`Enqueued ${recovered} articles for analysis recovery`);
-    }
-
-    // Start the scheduler for automatic feed fetching and edition generation
+    await recoverUnanalysedArticles(services, fastify.log);
     scheduler.start();
   };
 

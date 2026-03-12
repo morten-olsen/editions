@@ -10,6 +10,17 @@ import { prepareText } from './reconciler.utils.ts';
 
 type ClassifyFn = (text: string, labels: string[]) => Promise<{ label: string; score: number }[]>;
 
+type NliRow = {
+  article_id: string;
+  title: string;
+  content: string | null;
+  summary: string | null;
+  source_type: string;
+  focus_id: string;
+  name: string;
+  description: string | null;
+};
+
 type NliItem = {
   articleId: string;
   focusId: string;
@@ -42,6 +53,67 @@ const upsertNli = async (
     .execute();
 };
 
+// --- Helpers ---
+
+const buildNliQuery = (db: Kysely<DatabaseSchema>, scopeFilter: ScopeFilter | undefined, batchSize: number) => {
+  let q = db
+    .selectFrom('focus_sources')
+    .innerJoin('articles', 'articles.source_id', 'focus_sources.source_id')
+    .innerJoin('focuses', 'focuses.id', 'focus_sources.focus_id')
+    .innerJoin('sources', 'sources.id', 'articles.source_id')
+    .leftJoin('article_focuses', (join) =>
+      join
+        .onRef('article_focuses.article_id', '=', 'articles.id')
+        .onRef('article_focuses.focus_id', '=', 'focus_sources.focus_id'),
+    )
+    .select([
+      'articles.id as article_id',
+      'articles.title',
+      'articles.content',
+      'articles.summary',
+      'sources.type as source_type',
+      'focus_sources.focus_id',
+      'focus_sources.mode',
+      'focuses.name',
+      'focuses.description',
+    ])
+    .where('articles.extracted_at', 'is not', null)
+    .where('focus_sources.mode', '=', 'match')
+    .where('article_focuses.similarity', 'is not', null)
+    .where('article_focuses.nli', 'is', null)
+    .limit(batchSize);
+
+  if (scopeFilter?.focusIds && scopeFilter.focusIds.length > 0) {
+    q = q.where('focus_sources.focus_id', 'in', scopeFilter.focusIds);
+  }
+  if (scopeFilter?.sourceIds && scopeFilter.sourceIds.length > 0) {
+    q = q.where('focus_sources.source_id', 'in', scopeFilter.sourceIds);
+  }
+
+  return q;
+};
+
+const rowsToNliItems = (rows: NliRow[]): NliItem[] => {
+  const items: NliItem[] = [];
+  for (const row of rows) {
+    const text = prepareText({
+      title: row.title,
+      content: row.content,
+      summary: row.summary,
+      sourceType: row.source_type,
+    });
+    if (text) {
+      items.push({
+        articleId: row.article_id,
+        focusId: row.focus_id,
+        focusLabel: row.description ? `${row.name}: ${row.description}` : row.name,
+        preparedText: text,
+      });
+    }
+  }
+  return items;
+};
+
 // --- Step factory ---
 
 const createNliStep = (params: {
@@ -56,63 +128,12 @@ const createNliStep = (params: {
     name: 'nli',
     fetchBatch: async function* (): AsyncGenerator<NliItem[]> {
       while (true) {
-        let q = db
-          .selectFrom('focus_sources')
-          .innerJoin('articles', 'articles.source_id', 'focus_sources.source_id')
-          .innerJoin('focuses', 'focuses.id', 'focus_sources.focus_id')
-          .innerJoin('sources', 'sources.id', 'articles.source_id')
-          .leftJoin('article_focuses', (join) =>
-            join
-              .onRef('article_focuses.article_id', '=', 'articles.id')
-              .onRef('article_focuses.focus_id', '=', 'focus_sources.focus_id'),
-          )
-          .select([
-            'articles.id as article_id',
-            'articles.title',
-            'articles.content',
-            'articles.summary',
-            'sources.type as source_type',
-            'focus_sources.focus_id',
-            'focus_sources.mode',
-            'focuses.name',
-            'focuses.description',
-          ])
-          .where('articles.extracted_at', 'is not', null)
-          .where('focus_sources.mode', '=', 'match')
-          .where('article_focuses.similarity', 'is not', null)
-          .where('article_focuses.nli', 'is', null)
-          .limit(batchSize);
-
-        if (scopeFilter?.focusIds && scopeFilter.focusIds.length > 0) {
-          q = q.where('focus_sources.focus_id', 'in', scopeFilter.focusIds);
-        }
-        if (scopeFilter?.sourceIds && scopeFilter.sourceIds.length > 0) {
-          q = q.where('focus_sources.source_id', 'in', scopeFilter.sourceIds);
-        }
-
-        const rows = await q.execute();
+        const rows = (await buildNliQuery(db, scopeFilter, batchSize).execute()) as NliRow[];
         if (rows.length === 0) {
           break;
         }
 
-        const items: NliItem[] = [];
-        for (const row of rows) {
-          const text = prepareText({
-            title: row.title,
-            content: row.content,
-            summary: row.summary,
-            sourceType: row.source_type,
-          });
-          if (text) {
-            items.push({
-              articleId: row.article_id,
-              focusId: row.focus_id,
-              focusLabel: row.description ? `${row.name}: ${row.description}` : row.name,
-              preparedText: text,
-            });
-          }
-        }
-
+        const items = rowsToNliItems(rows);
         if (items.length > 0) {
           yield items;
         }

@@ -8,16 +8,50 @@ import { client } from '../api/api.ts';
 const PROGRESS_PREFIX = 'editions:media-progress:';
 const SAVE_INTERVAL_MS = 3000;
 
+/** Save progress to server — fire-and-forget. */
+const saveProgressToServer = (articleId: string, ratio: number): void => {
+  client
+    .PATCH('/api/articles/{articleId}/progress', {
+      params: { path: { articleId } },
+      body: { progress: ratio },
+    })
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    .catch(() => {});
+};
+
+/** Save current playback position to localStorage and optionally to the server. */
+const persistPosition = (el: HTMLMediaElement, localKey: string, articleId?: string | null): void => {
+  try {
+    localStorage.setItem(localKey, String(el.currentTime));
+  } catch {
+    /* ignore */
+  }
+  if (articleId && el.duration > 0) {
+    saveProgressToServer(articleId, Math.min(1, el.currentTime / el.duration));
+  }
+};
+
+/** Restore playback position from localStorage or server progress. */
+const restorePosition = (el: HTMLMediaElement, localKey: string, initialProgress?: number | null): void => {
+  const saved = localStorage.getItem(localKey);
+  if (saved) {
+    const t = parseFloat(saved);
+    if (Number.isFinite(t) && t > 0 && t < el.duration) {
+      el.currentTime = t;
+      return;
+    }
+  }
+  if (initialProgress && initialProgress > 0 && initialProgress < 1) {
+    el.currentTime = initialProgress * el.duration;
+  }
+};
+
 /**
  * Persists and restores playback position for a media element.
  *
  * Two layers:
- * - **localStorage** — fast cache keyed by media URL, written every
- *   ~3 seconds. Provides instant restore without a network round-trip.
- * - **Server API** — `PATCH /api/articles/:articleId/progress` with
- *   a 0.0–1.0 ratio. Written at the same throttle interval. Syncs
- *   across devices. The server-side `progress` value is used as the
- *   initial restore source when `initialProgress` is provided.
+ * - **localStorage** — fast cache keyed by media URL
+ * - **Server API** — `PATCH /api/articles/:articleId/progress`
  */
 const usePlaybackProgress = (
   mediaRef: React.RefObject<HTMLMediaElement | null>,
@@ -34,19 +68,7 @@ const usePlaybackProgress = (
       return;
     }
 
-    const restore = (): void => {
-      const saved = localStorage.getItem(localKey);
-      if (saved) {
-        const t = parseFloat(saved);
-        if (Number.isFinite(t) && t > 0 && t < el.duration) {
-          el.currentTime = t;
-          return;
-        }
-      }
-      if (initialProgress && initialProgress > 0 && initialProgress < 1) {
-        el.currentTime = initialProgress * el.duration;
-      }
-    };
+    const restore = (): void => restorePosition(el, localKey, initialProgress);
 
     el.addEventListener('loadedmetadata', restore, { once: true });
     if (el.readyState >= 1) {
@@ -68,22 +90,7 @@ const usePlaybackProgress = (
         return;
       }
       lastSave.current = now;
-
-      try {
-        localStorage.setItem(localKey, String(el.currentTime));
-      } catch {
-        /* ignore */
-      }
-
-      if (articleId && el.duration > 0) {
-        const ratio = Math.min(1, el.currentTime / el.duration);
-        client
-          .PATCH('/api/articles/{articleId}/progress', {
-            params: { path: { articleId } },
-            body: { progress: ratio },
-          })
-          .catch(() => {});
-      }
+      persistPosition(el, localKey, articleId);
     };
 
     const onEnded = (): void => {
@@ -93,12 +100,7 @@ const usePlaybackProgress = (
         /* ignore */
       }
       if (articleId) {
-        client
-          .PATCH('/api/articles/{articleId}/progress', {
-            params: { path: { articleId } },
-            body: { progress: 1 },
-          })
-          .catch(() => {});
+        saveProgressToServer(articleId, 1);
       }
     };
 
@@ -108,20 +110,7 @@ const usePlaybackProgress = (
       el.removeEventListener('timeupdate', save);
       el.removeEventListener('ended', onEnded);
       if (el.currentTime > 0 && !el.ended) {
-        try {
-          localStorage.setItem(localKey, String(el.currentTime));
-        } catch {
-          /* ignore */
-        }
-        if (articleId && el.duration > 0) {
-          const ratio = Math.min(1, el.currentTime / el.duration);
-          client
-            .PATCH('/api/articles/{articleId}/progress', {
-              params: { path: { articleId } },
-              body: { progress: ratio },
-            })
-            .catch(() => {});
-        }
+        persistPosition(el, localKey, articleId);
       }
     };
   }, [localKey, articleId, mediaRef]);
@@ -160,11 +149,123 @@ type AudioPlayerProps = {
   delay?: number;
 };
 
-/**
- * Waveform-integrated audio player. The decorative soundwave doubles
- * as the seek bar — bars to the left of the playhead fill with accent,
- * bars to the right stay muted. A seek handle sits at the boundary.
- */
+/* ── Play/pause button ────────────────────────────────────────────── */
+
+const PlayPauseButton = ({ playing, onToggle }: { playing: boolean; onToggle: () => void }): React.ReactElement => (
+  <button
+    onClick={onToggle}
+    className="shrink-0 w-14 h-14 rounded-full bg-accent text-accent-ink flex items-center justify-center
+      hover:bg-accent-hover hover:scale-105 active:scale-95
+      transition-all duration-normal cursor-pointer shadow-md"
+    aria-label={playing ? 'Pause' : 'Play'}
+  >
+    {playing ? (
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" aria-hidden="true">
+        <rect x="3" y="2" width="4" height="14" rx="1.5" />
+        <rect x="11" y="2" width="4" height="14" rx="1.5" />
+      </svg>
+    ) : (
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" aria-hidden="true">
+        <path d="M4.5 2v14l11-7z" />
+      </svg>
+    )}
+  </button>
+);
+
+/* ── Waveform bar color ──────────────────────────────────────────── */
+
+const barClass = (played: boolean, inHoverZone: boolean): string => {
+  if (played) {
+    return inHoverZone ? 'bg-accent/40' : 'bg-accent';
+  }
+  return inHoverZone ? 'bg-accent/55' : 'bg-accent/15';
+};
+
+/* ── Waveform seek bar ───────────────────────────────────────────── */
+
+type WaveformSeekProps = {
+  waveRef: React.RefObject<HTMLDivElement | null>;
+  progress: number;
+  duration: number;
+  currentTime: number;
+  hoverRatio: number | null;
+  dragging: boolean;
+  onPointerDown: (e: React.PointerEvent<HTMLDivElement>) => void;
+  onPointerMove: (e: React.PointerEvent<HTMLDivElement>) => void;
+  onPointerUp: () => void;
+  onPointerLeave: () => void;
+};
+
+const WaveformSeek = ({
+  waveRef,
+  progress,
+  duration,
+  currentTime,
+  hoverRatio,
+  dragging,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
+  onPointerLeave,
+}: WaveformSeekProps): React.ReactElement => {
+  const activeBar = Math.floor(progress * WAVEFORM_BAR_COUNT);
+  const hoverBar = hoverRatio !== null ? Math.floor(hoverRatio * WAVEFORM_BAR_COUNT) : null;
+  const isHovering = hoverRatio !== null;
+
+  return (
+    <div className="w-full">
+      <div
+        ref={waveRef}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerLeave={onPointerLeave}
+        className="relative flex items-center justify-center gap-[2px] h-12 cursor-pointer select-none touch-none"
+        role="slider"
+        aria-label="Seek"
+        aria-valuenow={Math.round(currentTime)}
+        aria-valuemin={0}
+        aria-valuemax={Math.round(duration)}
+      >
+        {waveformHeights.map((h, i) => {
+          const played = i <= activeBar && duration > 0;
+          const inHoverZone =
+            hoverBar !== null &&
+            duration > 0 &&
+            (hoverBar >= activeBar ? i > activeBar && i <= hoverBar : i > hoverBar && i <= activeBar);
+          return (
+            <div
+              key={i}
+              className={`w-[3px] rounded-full transition-colors duration-fast ${barClass(played, inHoverZone)}`}
+              style={{ height: h }}
+            />
+          );
+        })}
+        {duration > 0 && (
+          <div
+            className={`absolute top-1/2 -translate-y-1/2 rounded-full bg-accent shadow-sm pointer-events-none ring-2 ring-surface transition-[left,width,height,opacity] duration-fast ${isHovering || dragging ? 'w-4 h-4 opacity-100' : 'w-2.5 h-2.5 opacity-70'}`}
+            style={{ left: `${progress * 100}%` }}
+          />
+        )}
+        {isHovering && duration > 0 && (
+          <div
+            className="absolute -top-8 -translate-x-1/2 px-2 py-0.5 rounded bg-ink text-surface text-xs font-mono tracking-wide pointer-events-none"
+            style={{ left: `${hoverRatio * 100}%` }}
+          >
+            {formatTimestamp(hoverRatio * duration)}
+          </div>
+        )}
+      </div>
+      <div className="flex justify-between text-xs font-mono tracking-wide text-ink-faint mt-1">
+        <span>{formatTimestamp(currentTime)}</span>
+        <span>{duration > 0 ? formatTimestamp(duration) : '—'}</span>
+      </div>
+    </div>
+  );
+};
+
+/* ── AudioPlayer ─────────────────────────────────────────────────── */
+
 const AudioPlayer = ({ src, articleId, initialProgress, delay = 0.35 }: AudioPlayerProps): React.ReactElement => {
   const audioRef = React.useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = React.useState(false);
@@ -207,32 +308,6 @@ const AudioPlayer = ({ src, articleId, initialProgress, delay = 0.35 }: AudioPla
     el.currentTime = ratio * duration;
   };
 
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>): void => {
-    if (!duration) {
-      return;
-    }
-    setDragging(true);
-    e.currentTarget.setPointerCapture(e.pointerId);
-    const ratio = ratioFromEvent(e);
-    seekTo(ratio);
-  };
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>): void => {
-    const ratio = ratioFromEvent(e);
-    setHoverRatio(ratio);
-    if (dragging) {
-      seekTo(ratio);
-    }
-  };
-
-  const handlePointerUp = (): void => {
-    setDragging(false);
-  };
-
-  const activeBar = Math.floor(progress * WAVEFORM_BAR_COUNT);
-  const hoverBar = hoverRatio !== null ? Math.floor(hoverRatio * WAVEFORM_BAR_COUNT) : null;
-  const isHovering = hoverRatio !== null;
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -249,98 +324,37 @@ const AudioPlayer = ({ src, articleId, initialProgress, delay = 0.35 }: AudioPla
         onPause={() => setPlaying(false)}
         onEnded={() => setPlaying(false)}
       />
-
       <div className="flex flex-col items-center gap-5">
-        {/* Play / pause */}
-        <button
-          onClick={toggle}
-          className="shrink-0 w-14 h-14 rounded-full bg-accent text-accent-ink flex items-center justify-center
-            hover:bg-accent-hover hover:scale-105 active:scale-95
-            transition-all duration-normal cursor-pointer shadow-md"
-          aria-label={playing ? 'Pause' : 'Play'}
-        >
-          {playing ? (
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" aria-hidden="true">
-              <rect x="3" y="2" width="4" height="14" rx="1.5" />
-              <rect x="11" y="2" width="4" height="14" rx="1.5" />
-            </svg>
-          ) : (
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" aria-hidden="true">
-              <path d="M4.5 2v14l11-7z" />
-            </svg>
-          )}
-        </button>
-
-        {/* Waveform seek bar */}
-        <div className="w-full">
-          <div
-            ref={waveRef}
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerLeave={() => {
-              if (!dragging) {
-                setHoverRatio(null);
-              }
-            }}
-            className="relative flex items-center justify-center gap-[2px] h-12 cursor-pointer select-none touch-none"
-            role="slider"
-            aria-label="Seek"
-            aria-valuenow={Math.round(currentTime)}
-            aria-valuemin={0}
-            aria-valuemax={Math.round(duration)}
-          >
-            {waveformHeights.map((h, i) => {
-              const played = i <= activeBar && duration > 0;
-              const inHoverZone =
-                hoverBar !== null &&
-                duration > 0 &&
-                (hoverBar >= activeBar ? i > activeBar && i <= hoverBar : i > hoverBar && i <= activeBar);
-
-              return (
-                <div
-                  key={i}
-                  className={`w-[3px] rounded-full transition-colors duration-fast ${
-                    played
-                      ? inHoverZone
-                        ? 'bg-accent/40'
-                        : 'bg-accent'
-                      : inHoverZone
-                        ? 'bg-accent/55'
-                        : 'bg-accent/15'
-                  }`}
-                  style={{ height: h }}
-                />
-              );
-            })}
-
-            {/* Seek handle */}
-            {duration > 0 && (
-              <div
-                className={`absolute top-1/2 -translate-y-1/2 rounded-full bg-accent shadow-sm pointer-events-none
-                  ring-2 ring-surface transition-[left,width,height,opacity] duration-fast
-                  ${isHovering || dragging ? 'w-4 h-4 opacity-100' : 'w-2.5 h-2.5 opacity-70'}`}
-                style={{ left: `${progress * 100}%` }}
-              />
-            )}
-
-            {/* Hover timestamp tooltip */}
-            {isHovering && duration > 0 && (
-              <div
-                className="absolute -top-8 -translate-x-1/2 px-2 py-0.5 rounded bg-ink text-surface text-xs font-mono tracking-wide pointer-events-none"
-                style={{ left: `${hoverRatio * 100}%` }}
-              >
-                {formatTimestamp(hoverRatio * duration)}
-              </div>
-            )}
-          </div>
-
-          {/* Timestamps */}
-          <div className="flex justify-between text-xs font-mono tracking-wide text-ink-faint mt-1">
-            <span>{formatTimestamp(currentTime)}</span>
-            <span>{duration > 0 ? formatTimestamp(duration) : '—'}</span>
-          </div>
-        </div>
+        <PlayPauseButton playing={playing} onToggle={toggle} />
+        <WaveformSeek
+          waveRef={waveRef}
+          progress={progress}
+          duration={duration}
+          currentTime={currentTime}
+          hoverRatio={hoverRatio}
+          dragging={dragging}
+          onPointerDown={(e) => {
+            if (!duration) {
+              return;
+            }
+            setDragging(true);
+            e.currentTarget.setPointerCapture(e.pointerId);
+            seekTo(ratioFromEvent(e));
+          }}
+          onPointerMove={(e) => {
+            const ratio = ratioFromEvent(e);
+            setHoverRatio(ratio);
+            if (dragging) {
+              seekTo(ratio);
+            }
+          }}
+          onPointerUp={() => setDragging(false)}
+          onPointerLeave={() => {
+            if (!dragging) {
+              setHoverRatio(null);
+            }
+          }}
+        />
       </div>
     </motion.div>
   );

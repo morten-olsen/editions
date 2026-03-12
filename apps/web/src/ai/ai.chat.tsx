@@ -121,6 +121,146 @@ const FloatingStopPill = ({
   </motion.div>
 );
 
+/* ── Drawer header ───────────────────────────────────── */
+
+type DrawerHeaderProps = {
+  hasMessages: boolean;
+  isProcessing: boolean;
+  onClear: () => void;
+  onClose: () => void;
+};
+
+const DrawerHeader = ({ hasMessages, isProcessing, onClear, onClose }: DrawerHeaderProps): React.ReactElement => (
+  <div className="flex items-center justify-between px-4 h-14 border-b border-border shrink-0">
+    <div className="flex items-center gap-2 text-sm font-medium text-ink">
+      <SparkleIcon />
+      <span>Assistant</span>
+    </div>
+    <div className="flex items-center gap-1">
+      {hasMessages && !isProcessing && (
+        <button
+          type="button"
+          onClick={onClear}
+          className="p-1.5 rounded-md text-ink-tertiary hover:text-ink hover:bg-surface-sunken transition-colors duration-fast cursor-pointer"
+          aria-label="New conversation"
+          title="New conversation"
+        >
+          <PlusIcon />
+        </button>
+      )}
+      <button
+        type="button"
+        onClick={onClose}
+        className="p-1.5 rounded-md text-ink-tertiary hover:text-ink hover:bg-surface-sunken transition-colors duration-fast cursor-pointer"
+        aria-label="Close assistant"
+      >
+        <CloseIcon />
+      </button>
+    </div>
+  </div>
+);
+
+/* ── Drawer messages ─────────────────────────────────── */
+
+type DrawerMessagesProps = {
+  messages: AiDisplayMessage[];
+  isProcessing: boolean;
+  lastActivity: string | null;
+  turnCount: number;
+  messagesEndRef: React.RefObject<HTMLDivElement | null>;
+};
+
+const DrawerMessages = ({
+  messages,
+  isProcessing,
+  lastActivity,
+  turnCount,
+  messagesEndRef,
+}: DrawerMessagesProps): React.ReactElement => (
+  <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
+    {messages.length === 0 && (
+      <div className="flex-1 flex items-center justify-center">
+        <p className="text-sm text-ink-faint text-center leading-relaxed">
+          Describe what you'd like to do and I'll help set it up.
+        </p>
+      </div>
+    )}
+    {messages.map((msg, idx) => (
+      <MessageBubble key={idx} message={msg} />
+    ))}
+    {isProcessing && messages.at(-1)?.type !== 'action' && (
+      <div className="flex items-center gap-2 text-xs text-ink-tertiary py-1">
+        <span className="text-accent animate-pulse">●</span>
+        <span className="truncate">
+          {lastActivity ?? 'Thinking'}
+          {turnCount > 0 ? ` · ${turnCount}/20` : ''}
+        </span>
+      </div>
+    )}
+    <div ref={messagesEndRef} />
+  </div>
+);
+
+/* ── Drawer footer ───────────────────────────────────── */
+
+type DrawerFooterProps = {
+  isProcessing: boolean;
+  input: string;
+  inputRef: React.RefObject<HTMLTextAreaElement | null>;
+  onInputChange: (value: string) => void;
+  onSubmit: () => void;
+  onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  onStop: () => void;
+};
+
+const DrawerFooter = ({
+  isProcessing,
+  input,
+  inputRef,
+  onInputChange,
+  onSubmit,
+  onKeyDown,
+  onStop,
+}: DrawerFooterProps): React.ReactElement => (
+  <div className="shrink-0 border-t border-border p-3">
+    {isProcessing ? (
+      <button
+        type="button"
+        onClick={onStop}
+        className="w-full flex items-center justify-center gap-2 h-10 rounded-lg text-sm font-medium text-critical bg-critical-subtle hover:bg-critical/15 transition-colors duration-fast cursor-pointer"
+      >
+        <StopIcon />
+        <span>Stop assistant</span>
+      </button>
+    ) : (
+      <div className="flex items-end gap-2 rounded-lg border border-border bg-surface-raised px-3 py-2 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20 transition-colors duration-fast">
+        <textarea
+          ref={inputRef}
+          value={input}
+          onChange={(e) => {
+            onInputChange(e.target.value);
+            e.target.style.height = 'auto';
+            e.target.style.height = `${Math.min(e.target.scrollHeight, 96)}px`;
+          }}
+          onKeyDown={onKeyDown}
+          placeholder="Ask me anything..."
+          rows={1}
+          className="flex-1 text-sm text-ink placeholder:text-ink-faint bg-transparent outline-none resize-none leading-relaxed max-h-24"
+        />
+        <button
+          type="button"
+          onClick={onSubmit}
+          disabled={!input.trim()}
+          className="shrink-0 p-1 rounded text-ink-tertiary hover:text-accent disabled:opacity-30 disabled:pointer-events-none transition-colors duration-fast cursor-pointer"
+          aria-label="Send message"
+        >
+          <SendIcon />
+        </button>
+      </div>
+    )}
+  </div>
+);
+
 /* ── Chat drawer ─────────────────────────────────────── */
 
 const AiChatDrawer = (): React.ReactNode => {
@@ -140,30 +280,19 @@ const AiChatDrawer = (): React.ReactNode => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-minimize when processing starts, restore when done
   useEffect(() => {
-    if (isProcessing && isOpen) {
-      setMinimized(true);
-    } else {
-      setMinimized(false);
-    }
+    setMinimized(isProcessing && isOpen);
   }, [isProcessing, isOpen]);
-
-  // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (!minimized) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [displayMessages, minimized]);
-
-  // Focus input when drawer opens or un-minimizes
   useEffect(() => {
     if (isOpen && !minimized && !isProcessing) {
       setTimeout(() => inputRef.current?.focus(), 350);
     }
   }, [isOpen, minimized, isProcessing]);
-
-  // Close on Escape (agent stop is handled by the provider)
   useEffect(() => {
     if (!isOpen || isProcessing) {
       return;
@@ -197,7 +326,6 @@ const AiChatDrawer = (): React.ReactNode => {
     stopProcessing();
     setMinimized(false);
   }, [stopProcessing]);
-
   const handleExpand = useCallback((): void => {
     setMinimized(false);
   }, []);
@@ -218,11 +346,9 @@ const AiChatDrawer = (): React.ReactNode => {
           />
         )}
       </AnimatePresence>
-
       <AnimatePresence>
         {showDrawer && (
           <>
-            {/* Scrim — only when not processing */}
             {!isProcessing && (
               <motion.div
                 key="scrim"
@@ -234,8 +360,6 @@ const AiChatDrawer = (): React.ReactNode => {
                 onClick={toggleOpen}
               />
             )}
-
-            {/* Drawer */}
             <motion.div
               key="drawer"
               className="fixed right-0 top-0 bottom-0 z-[901] w-full max-w-sm flex flex-col bg-surface border-l border-border shadow-xl"
@@ -244,97 +368,28 @@ const AiChatDrawer = (): React.ReactNode => {
               exit={{ x: '100%' }}
               transition={transitions.enter}
             >
-              {/* Header */}
-              <div className="flex items-center justify-between px-4 h-14 border-b border-border shrink-0">
-                <div className="flex items-center gap-2 text-sm font-medium text-ink">
-                  <SparkleIcon />
-                  <span>Assistant</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  {displayMessages.length > 0 && !isProcessing && (
-                    <button
-                      type="button"
-                      onClick={clearConversation}
-                      className="p-1.5 rounded-md text-ink-tertiary hover:text-ink hover:bg-surface-sunken transition-colors duration-fast cursor-pointer"
-                      aria-label="New conversation"
-                      title="New conversation"
-                    >
-                      <PlusIcon />
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={toggleOpen}
-                    className="p-1.5 rounded-md text-ink-tertiary hover:text-ink hover:bg-surface-sunken transition-colors duration-fast cursor-pointer"
-                    aria-label="Close assistant"
-                  >
-                    <CloseIcon />
-                  </button>
-                </div>
-              </div>
-
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
-                {displayMessages.length === 0 && (
-                  <div className="flex-1 flex items-center justify-center">
-                    <p className="text-sm text-ink-faint text-center leading-relaxed">
-                      Describe what you'd like to do and I'll help set it up.
-                    </p>
-                  </div>
-                )}
-                {displayMessages.map((msg, idx) => (
-                  <MessageBubble key={idx} message={msg} />
-                ))}
-                {isProcessing && displayMessages.at(-1)?.type !== 'action' && (
-                  <div className="flex items-center gap-2 text-xs text-ink-tertiary py-1">
-                    <span className="text-accent animate-pulse">●</span>
-                    <span className="truncate">
-                      {lastActivity ?? 'Thinking'}
-                      {turnCount > 0 ? ` · ${turnCount}/20` : ''}
-                    </span>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-
-              {/* Footer: input or stop button */}
-              <div className="shrink-0 border-t border-border p-3">
-                {isProcessing ? (
-                  <button
-                    type="button"
-                    onClick={handleStop}
-                    className="w-full flex items-center justify-center gap-2 h-10 rounded-lg text-sm font-medium text-critical bg-critical-subtle hover:bg-critical/15 transition-colors duration-fast cursor-pointer"
-                  >
-                    <StopIcon />
-                    <span>Stop assistant</span>
-                  </button>
-                ) : (
-                  <div className="flex items-end gap-2 rounded-lg border border-border bg-surface-raised px-3 py-2 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20 transition-colors duration-fast">
-                    <textarea
-                      ref={inputRef}
-                      value={input}
-                      onChange={(e) => {
-                        setInput(e.target.value);
-                        e.target.style.height = 'auto';
-                        e.target.style.height = `${Math.min(e.target.scrollHeight, 96)}px`;
-                      }}
-                      onKeyDown={handleKeyDown}
-                      placeholder="Ask me anything..."
-                      rows={1}
-                      className="flex-1 text-sm text-ink placeholder:text-ink-faint bg-transparent outline-none resize-none leading-relaxed max-h-24"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleSubmit}
-                      disabled={!input.trim()}
-                      className="shrink-0 p-1 rounded text-ink-tertiary hover:text-accent disabled:opacity-30 disabled:pointer-events-none transition-colors duration-fast cursor-pointer"
-                      aria-label="Send message"
-                    >
-                      <SendIcon />
-                    </button>
-                  </div>
-                )}
-              </div>
+              <DrawerHeader
+                hasMessages={displayMessages.length > 0}
+                isProcessing={isProcessing}
+                onClear={clearConversation}
+                onClose={toggleOpen}
+              />
+              <DrawerMessages
+                messages={displayMessages}
+                isProcessing={isProcessing}
+                lastActivity={lastActivity}
+                turnCount={turnCount}
+                messagesEndRef={messagesEndRef}
+              />
+              <DrawerFooter
+                isProcessing={isProcessing}
+                input={input}
+                inputRef={inputRef}
+                onInputChange={setInput}
+                onSubmit={handleSubmit}
+                onKeyDown={handleKeyDown}
+                onStop={handleStop}
+              />
             </motion.div>
           </>
         )}

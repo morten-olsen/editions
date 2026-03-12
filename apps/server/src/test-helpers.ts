@@ -6,7 +6,6 @@ process.env['EDITIONS_JWT_SECRET'] ??= 'test-secret-do-not-use-in-production';
 import type { FastifyInstance, InjectOptions, LightMyRequestResponse } from 'fastify';
 
 import { createApp } from './app.ts';
-import type { App } from './app.ts';
 
 type TestContext = {
   server: FastifyInstance;

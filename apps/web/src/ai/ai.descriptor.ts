@@ -7,28 +7,17 @@ import type { AiNode, AiPageDescriptor } from './ai.types.ts';
 
 const AI_SELECTOR = '[data-ai-id]';
 
-const readNode = (el: Element, depth: number, maxDepth: number): AiNode => {
+/** Read annotation attributes from an element into an AiNode. */
+const readAttributes = (el: Element): AiNode => {
   const id = el.getAttribute('data-ai-id') ?? '';
   const role = el.getAttribute('data-ai-role') ?? 'unknown';
-  const label = el.getAttribute('data-ai-label') ?? undefined;
-  const value = el.getAttribute('data-ai-value') ?? undefined;
-  const state = el.getAttribute('data-ai-state') ?? undefined;
-  const error = el.getAttribute('data-ai-error') ?? undefined;
-
-  const childEls = el.querySelectorAll(`:scope ${AI_SELECTOR}`);
-  // Filter to direct ai-children (not nested deeper under another ai node)
-  const directChildren: Element[] = [];
-  for (const child of childEls) {
-    const closestParent = child.parentElement?.closest(AI_SELECTOR);
-    if (closestParent === el) {
-      directChildren.push(child);
-    }
-  }
-
-  // Calculate max available depth below this node
-  const depthAvailable = calculateDepthAvailable(el);
-
   const node: AiNode = { id, role };
+
+  const label = el.getAttribute('data-ai-label');
+  const value = el.getAttribute('data-ai-value');
+  const state = el.getAttribute('data-ai-state');
+  const error = el.getAttribute('data-ai-error');
+
   if (label) {
     node.label = label;
   }
@@ -42,10 +31,30 @@ const readNode = (el: Element, depth: number, maxDepth: number): AiNode => {
     node.error = error;
   }
 
+  return node;
+};
+
+/** Find direct annotated children (not nested deeper under another ai node). */
+const findDirectChildren = (el: Element): Element[] => {
+  const childEls = el.querySelectorAll(`:scope ${AI_SELECTOR}`);
+  const result: Element[] = [];
+  for (const child of childEls) {
+    if (child.parentElement?.closest(AI_SELECTOR) === el) {
+      result.push(child);
+    }
+  }
+  return result;
+};
+
+const readNode = (el: Element, depth: number, maxDepth: number): AiNode => {
+  const node = readAttributes(el);
+  const directChildren = findDirectChildren(el);
+
   if (directChildren.length > 0 && depth < maxDepth) {
     node.children = directChildren.map((child) => readNode(child, depth + 1, maxDepth));
   } else if (directChildren.length > 0) {
     node.items = directChildren.length;
+    const depthAvailable = calculateDepthAvailable(el);
     if (depthAvailable > 0) {
       node.depth_available = depthAvailable;
     }

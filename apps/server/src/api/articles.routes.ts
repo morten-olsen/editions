@@ -39,115 +39,121 @@ const errorResponseSchema = z.object({
   error: z.string(),
 });
 
-// --- Routes ---
+// --- Route registration helpers ---
+
+const registerVoteRoutes = (
+  fastify: Parameters<FastifyPluginAsyncZod>[0],
+  services: Services,
+  authenticate: ReturnType<typeof createAuthHook>,
+): void => {
+  // Get global vote on an article
+  fastify.route({
+    method: 'GET',
+    url: '/articles/:articleId/vote',
+    onRequest: authenticate,
+    schema: {
+      security: [{ bearerAuth: [] }],
+      params: articleVoteParamsSchema,
+      response: { 200: voteResponseSchema, 204: z.undefined() },
+    },
+    handler: async (req, reply) => {
+      const votesService = services.get(VotesService);
+      const vote = await votesService.getForArticle(req.user.sub, req.params.articleId, null);
+      if (!vote) {
+        return reply.code(204).send();
+      }
+      return vote;
+    },
+  });
+
+  // Upsert global vote on an article
+  fastify.route({
+    method: 'PUT',
+    url: '/articles/:articleId/vote',
+    onRequest: authenticate,
+    schema: {
+      security: [{ bearerAuth: [] }],
+      params: articleVoteParamsSchema,
+      body: upsertVoteBodySchema,
+      response: { 200: voteResponseSchema, 404: errorResponseSchema },
+    },
+    handler: async (req, reply) => {
+      const votesService = services.get(VotesService);
+      try {
+        return await votesService.upsert({
+          userId: req.user.sub,
+          articleId: req.params.articleId,
+          focusId: null,
+          editionId: null,
+          value: req.body.value,
+        });
+      } catch (err) {
+        if (err instanceof ArticleNotFoundForVoteError) {
+          return reply.code(404).send({ error: err.message });
+        }
+        throw err;
+      }
+    },
+  });
+
+  // Remove global vote on an article
+  fastify.route({
+    method: 'DELETE',
+    url: '/articles/:articleId/vote',
+    onRequest: authenticate,
+    schema: {
+      security: [{ bearerAuth: [] }],
+      params: articleVoteParamsSchema,
+      response: { 204: z.undefined() },
+    },
+    handler: async (req, reply) => {
+      const votesService = services.get(VotesService);
+      await votesService.remove(req.user.sub, req.params.articleId, null);
+      return reply.code(204).send();
+    },
+  });
+};
+
+const registerProgressRoute = (
+  fastify: Parameters<FastifyPluginAsyncZod>[0],
+  services: Services,
+  authenticate: ReturnType<typeof createAuthHook>,
+): void => {
+  // Update playback / reading progress on an article (0.0-1.0)
+  fastify.route({
+    method: 'PATCH',
+    url: '/articles/:articleId/progress',
+    onRequest: authenticate,
+    schema: {
+      security: [{ bearerAuth: [] }],
+      params: articleVoteParamsSchema,
+      body: updateProgressBodySchema,
+      response: { 200: progressResponseSchema, 404: errorResponseSchema },
+    },
+    handler: async (req, reply) => {
+      const sources = services.get(SourcesService);
+      try {
+        const article = await sources.setArticleProgress(req.user.sub, req.params.articleId, req.body.progress);
+        return { id: article.id, progress: article.progress };
+      } catch (err) {
+        if (err instanceof SourceNotFoundError) {
+          return reply.code(404).send({ error: err.message });
+        }
+        throw err;
+      }
+    },
+  });
+};
+
+// --- Main plugin ---
 
 const createArticlesRoutes =
   (services: Services): FastifyPluginAsyncZod =>
   async (fastify) => {
     const authenticate = createAuthHook(services);
 
-    // Get global vote on an article
-    fastify.route({
-      method: 'GET',
-      url: '/articles/:articleId/vote',
-      onRequest: authenticate,
-      schema: {
-        security: [{ bearerAuth: [] }],
-        params: articleVoteParamsSchema,
-        response: {
-          200: voteResponseSchema,
-          204: z.undefined(),
-        },
-      },
-      handler: async (req, reply) => {
-        const votesService = services.get(VotesService);
-        const vote = await votesService.getForArticle(req.user.sub, req.params.articleId, null);
-        if (!vote) {
-          return reply.code(204).send();
-        }
-        return vote;
-      },
-    });
-
-    // Upsert global vote on an article
-    fastify.route({
-      method: 'PUT',
-      url: '/articles/:articleId/vote',
-      onRequest: authenticate,
-      schema: {
-        security: [{ bearerAuth: [] }],
-        params: articleVoteParamsSchema,
-        body: upsertVoteBodySchema,
-        response: {
-          200: voteResponseSchema,
-          404: errorResponseSchema,
-        },
-      },
-      handler: async (req, reply) => {
-        const votesService = services.get(VotesService);
-        try {
-          return await votesService.upsert({
-            userId: req.user.sub,
-            articleId: req.params.articleId,
-            focusId: null,
-            editionId: null,
-            value: req.body.value,
-          });
-        } catch (err) {
-          if (err instanceof ArticleNotFoundForVoteError) {
-            return reply.code(404).send({ error: err.message });
-          }
-          throw err;
-        }
-      },
-    });
-
-    // Remove global vote on an article
-    fastify.route({
-      method: 'DELETE',
-      url: '/articles/:articleId/vote',
-      onRequest: authenticate,
-      schema: {
-        security: [{ bearerAuth: [] }],
-        params: articleVoteParamsSchema,
-        response: {
-          204: z.undefined(),
-        },
-      },
-      handler: async (req, reply) => {
-        const votesService = services.get(VotesService);
-        await votesService.remove(req.user.sub, req.params.articleId, null);
-        return reply.code(204).send();
-      },
-    });
-
-    // Update playback / reading progress on an article (0.0–1.0)
-    fastify.route({
-      method: 'PATCH',
-      url: '/articles/:articleId/progress',
-      onRequest: authenticate,
-      schema: {
-        security: [{ bearerAuth: [] }],
-        params: articleVoteParamsSchema,
-        body: updateProgressBodySchema,
-        response: {
-          200: progressResponseSchema,
-          404: errorResponseSchema,
-        },
-      },
-      handler: async (req, reply) => {
-        const sources = services.get(SourcesService);
-        try {
-          const article = await sources.setArticleProgress(req.user.sub, req.params.articleId, req.body.progress);
-          return { id: article.id, progress: article.progress };
-        } catch (err) {
-          if (err instanceof SourceNotFoundError) {
-            return reply.code(404).send({ error: err.message });
-          }
-          throw err;
-        }
-      },
-    });
+    registerVoteRoutes(fastify, services, authenticate);
+    registerProgressRoute(fastify, services, authenticate);
   };
 
 export { createArticlesRoutes };

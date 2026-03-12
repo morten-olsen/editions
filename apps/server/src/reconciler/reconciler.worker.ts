@@ -5,6 +5,14 @@ import { parentPort } from 'node:worker_threads';
 import { pipeline, env } from '@huggingface/transformers';
 import type { FeatureExtractionPipeline, ZeroShotClassificationPipeline } from '@huggingface/transformers';
 
+// --- Guard ---
+
+if (!parentPort) {
+  throw new Error('reconciler.worker must be run as a worker thread');
+}
+
+const port = parentPort;
+
 // --- Constants ---
 
 const DEFAULT_EMBEDDING_MODEL = 'Xenova/all-MiniLM-L6-v2';
@@ -123,19 +131,19 @@ const handleEmbed = async (msg: EmbedRequest): Promise<void> => {
   const output = await extractor(msg.text, { pooling: 'mean', normalize: true });
   const embedding = output.data as Float32Array;
   const response: EmbedResponse = { id: msg.id, type: 'embed', embedding };
-  parentPort!.postMessage(response, [embedding.buffer as ArrayBuffer]);
+  port.postMessage(response, [embedding.buffer as ArrayBuffer]);
 };
 
 const handleClassify = async (msg: ClassifyRequest): Promise<void> => {
   if (msg.labels.length === 0) {
-    parentPort!.postMessage({ id: msg.id, type: 'classify', results: [] } as ClassifyResponse);
+    port.postMessage({ id: msg.id, type: 'classify', results: [] } as ClassifyResponse);
     return;
   }
   const classifier = await getClassifierPipeline();
   const result = await classifier(msg.text, msg.labels, { multi_label: true });
   const output = parseClassifyOutput(result);
   const response: ClassifyResponse = { id: msg.id, type: 'classify', results: toClassifyResults(output) };
-  parentPort!.postMessage(response);
+  port.postMessage(response);
 };
 
 const handleEmbedBatch = async (msg: EmbedBatchRequest): Promise<void> => {
@@ -149,7 +157,7 @@ const handleEmbedBatch = async (msg: EmbedBatchRequest): Promise<void> => {
     transferables.push(embedding.buffer as ArrayBuffer);
   }
   const response: EmbedBatchResponse = { id: msg.id, type: 'embed_batch', embeddings };
-  parentPort!.postMessage(response, transferables);
+  port.postMessage(response, transferables);
 };
 
 const handleClassifyBatch = async (msg: ClassifyBatchRequest): Promise<void> => {
@@ -164,7 +172,7 @@ const handleClassifyBatch = async (msg: ClassifyBatchRequest): Promise<void> => 
     results.push(toClassifyResults(parseClassifyOutput(result)));
   }
   const response: ClassifyBatchResponse = { id: msg.id, type: 'classify_batch', results };
-  parentPort!.postMessage(response);
+  port.postMessage(response);
 };
 
 const handleMessage = async (msg: WorkerRequest): Promise<void> => {
@@ -193,11 +201,11 @@ const handleMessage = async (msg: WorkerRequest): Promise<void> => {
       type: 'error',
       error: err instanceof Error ? err.message : String(err),
     };
-    parentPort!.postMessage(response);
+    port.postMessage(response);
   }
 };
 
-parentPort!.on('message', (msg: WorkerRequest) => {
+port.on('message', (msg: WorkerRequest) => {
   void handleMessage(msg);
 });
 

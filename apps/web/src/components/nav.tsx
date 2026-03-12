@@ -43,20 +43,13 @@ const PlusIcon = (): React.ReactElement => (
   </svg>
 );
 
-const Nav = (): React.ReactElement => {
-  const auth = useAuth();
-  const routerState = useRouterState();
-  const currentPath = routerState.location.pathname;
-  const headers = useAuthHeaders();
+/* ── Nav data hook ────────────────────────────────────────────────── */
 
-  const isActive = (href: string): boolean => {
-    if (href === '/') {
-      return currentPath === '/';
-    }
-    return currentPath.startsWith(href);
-  };
-
-  const { data: navData } = useQuery({
+const useNavData = (
+  headers: Record<string, string>,
+  enabled: boolean,
+): { configs: NavEditionConfig[]; focuses: NavFocus[] } => {
+  const { data } = useQuery({
     queryKey: queryKeys.nav,
     queryFn: async (): Promise<{ configs: NavEditionConfig[]; focuses: NavFocus[] }> => {
       const [configsRes, focusesRes] = await Promise.all([
@@ -74,25 +67,161 @@ const Nav = (): React.ReactElement => {
             headers,
           });
           const editions = (data ?? []) as EditionSummary[];
-          return {
-            id: cfg.id,
-            name: cfg.name,
-            icon: cfg.icon,
-            hasUnread: editions.some((e) => e.readAt === null),
-          };
+          return { id: cfg.id, name: cfg.name, icon: cfg.icon, hasUnread: editions.some((e) => e.readAt === null) };
         }),
       );
 
       return { configs: configsWithUnread, focuses: rawFocuses };
     },
-    enabled: auth.status === 'authenticated',
+    enabled,
   });
 
-  const configs = navData?.configs ?? [];
-  const focuses = navData?.focuses ?? [];
+  return { configs: data?.configs ?? [], focuses: data?.focuses ?? [] };
+};
 
-  const username = auth.status === 'authenticated' ? auth.user.username : undefined;
-  const logout = auth.status === 'authenticated' ? auth.logout : undefined;
+/* ── Edition config list ─────────────────────────────────────────── */
+
+type EditionConfigListProps = {
+  configs: NavEditionConfig[];
+  isActive: (href: string) => boolean;
+};
+
+const EditionConfigList = ({ configs, isActive }: EditionConfigListProps): React.ReactElement | null => {
+  if (configs.length === 0) {
+    return null;
+  }
+  return (
+    <div className="flex flex-col gap-0.5 mb-4">
+      {configs.map((cfg) => (
+        <Link
+          key={cfg.id}
+          to="/editions/$configId"
+          params={{ configId: cfg.id }}
+          className={linkClass(isActive(`/editions/${cfg.id}`))}
+          data-ai-id={`edition-${cfg.id}`}
+          data-ai-role="link"
+          data-ai-label={cfg.name}
+        >
+          <EntityIcon icon={cfg.icon} fallback="newspaper" size={14} className="shrink-0" />
+          <span className="truncate flex-1">{cfg.name}</span>
+          {cfg.hasUnread && (
+            <span className="shrink-0 w-5 h-5 flex items-center justify-center">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+            </span>
+          )}
+        </Link>
+      ))}
+    </div>
+  );
+};
+
+/* ── Browse section ──────────────────────────────────────────────── */
+
+type BrowseSectionProps = {
+  focuses: NavFocus[];
+  currentPath: string;
+  isActive: (href: string) => boolean;
+};
+
+const BrowseSection = ({ focuses, currentPath, isActive }: BrowseSectionProps): React.ReactElement => (
+  <div className="mb-6">
+    <div className={sectionHeadClass}>
+      <div className={sectionLabelClass}>Browse</div>
+      <Link
+        to="/focuses/new"
+        className={addButtonClass}
+        aria-label="New focus"
+        data-ai-id="new-focus-btn"
+        data-ai-role="button"
+        data-ai-label="New focus"
+      >
+        <PlusIcon />
+      </Link>
+    </div>
+    <div className="flex flex-col gap-0.5">
+      <Link
+        to="/feed"
+        className={linkClass(currentPath.startsWith('/feed'))}
+        data-ai-id="nav-feed"
+        data-ai-role="link"
+        data-ai-label="All articles"
+      >
+        <EntityIcon icon="layers" size={14} className="shrink-0" />
+        <span className="truncate">All articles</span>
+      </Link>
+      {focuses.map((focus) => (
+        <Link
+          key={focus.id}
+          to="/focuses/$focusId"
+          params={{ focusId: focus.id }}
+          className={linkClass(isActive(`/focuses/${focus.id}`))}
+          data-ai-id={`focus-${focus.id}`}
+          data-ai-role="link"
+          data-ai-label={focus.name}
+        >
+          <EntityIcon icon={focus.icon} fallback="target" size={14} className="shrink-0" />
+          <span className="truncate">{focus.name}</span>
+        </Link>
+      ))}
+    </div>
+  </div>
+);
+
+/* ── Nav footer ──────────────────────────────────────────────────── */
+
+type NavFooterProps = {
+  isActive: (href: string) => boolean;
+  username?: string;
+  logout?: () => void;
+};
+
+const NavFooter = ({ isActive, username, logout }: NavFooterProps): React.ReactElement => (
+  <div className="mt-auto flex flex-col gap-0.5">
+    <Link
+      to="/sources"
+      className={linkClass(isActive('/sources'))}
+      data-ai-id="nav-sources"
+      data-ai-role="link"
+      data-ai-label="Sources"
+    >
+      <EntityIcon icon="rss" size={14} className="shrink-0" />
+      <span className="truncate">Sources</span>
+    </Link>
+    <Link to="/settings" className={linkClass(isActive('/settings'))}>
+      <EntityIcon icon="settings" size={14} className="shrink-0" />
+      <span className="truncate">Settings</span>
+    </Link>
+    <AiToggleButton />
+    <div className="mt-3 pt-3 border-t border-border mx-3">
+      {username && <div className="text-xs text-ink-tertiary mb-1">{username}</div>}
+      {logout && (
+        <button
+          type="button"
+          onClick={logout}
+          className="text-xs text-ink-tertiary hover:text-ink transition-colors duration-fast cursor-pointer"
+        >
+          Sign out
+        </button>
+      )}
+    </div>
+  </div>
+);
+
+/* ── Nav ──────────────────────────────────────────────────────────── */
+
+const Nav = (): React.ReactElement => {
+  const auth = useAuth();
+  const routerState = useRouterState();
+  const currentPath = routerState.location.pathname;
+  const headers = useAuthHeaders();
+
+  const isActive = (href: string): boolean => (href === '/' ? currentPath === '/' : currentPath.startsWith(href));
+
+  const isAuthenticated = auth.status === 'authenticated';
+  const { configs, focuses } = useNavData(headers, isAuthenticated);
+
+  const username = isAuthenticated ? auth.user.username : undefined;
+  const logout = isAuthenticated ? auth.logout : undefined;
 
   return (
     <nav
@@ -101,14 +230,11 @@ const Nav = (): React.ReactElement => {
       data-ai-role="nav"
       data-ai-label="Sidebar navigation"
     >
-      {/* Home link */}
       <div className="mb-4">
         <Link to="/" className={linkClass(currentPath === '/')}>
           <span className="font-serif text-lg tracking-tight">Editions</span>
         </Link>
       </div>
-
-      {/* Edition configs header + add */}
       <div className={sectionHeadClass}>
         <div className={sectionLabelClass}>Your editions</div>
         <Link
@@ -122,33 +248,7 @@ const Nav = (): React.ReactElement => {
           <PlusIcon />
         </Link>
       </div>
-
-      {/* Edition configs */}
-      {configs.length > 0 && (
-        <div className="flex flex-col gap-0.5 mb-4">
-          {configs.map((cfg) => (
-            <Link
-              key={cfg.id}
-              to="/editions/$configId"
-              params={{ configId: cfg.id }}
-              className={linkClass(isActive(`/editions/${cfg.id}`))}
-              data-ai-id={`edition-${cfg.id}`}
-              data-ai-role="link"
-              data-ai-label={cfg.name}
-            >
-              <EntityIcon icon={cfg.icon} fallback="newspaper" size={14} className="shrink-0" />
-              <span className="truncate flex-1">{cfg.name}</span>
-              {cfg.hasUnread && (
-                <span className="shrink-0 w-5 h-5 flex items-center justify-center">
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent" />
-                </span>
-              )}
-            </Link>
-          ))}
-        </div>
-      )}
-
-      {/* Bookmarks */}
+      <EditionConfigList configs={configs} isActive={isActive} />
       <div className="mb-6">
         <Link
           to="/bookmarks"
@@ -161,81 +261,8 @@ const Nav = (): React.ReactElement => {
           <span className="truncate">Bookmarks</span>
         </Link>
       </div>
-
-      {/* Browse section */}
-      <div className="mb-6">
-        <div className={sectionHeadClass}>
-          <div className={sectionLabelClass}>Browse</div>
-          <Link
-            to="/focuses/new"
-            className={addButtonClass}
-            aria-label="New focus"
-            data-ai-id="new-focus-btn"
-            data-ai-role="button"
-            data-ai-label="New focus"
-          >
-            <PlusIcon />
-          </Link>
-        </div>
-        <div className="flex flex-col gap-0.5">
-          <Link
-            to="/feed"
-            className={linkClass(currentPath.startsWith('/feed'))}
-            data-ai-id="nav-feed"
-            data-ai-role="link"
-            data-ai-label="All articles"
-          >
-            <EntityIcon icon="layers" size={14} className="shrink-0" />
-            <span className="truncate">All articles</span>
-          </Link>
-          {focuses.map((focus) => (
-            <Link
-              key={focus.id}
-              to="/focuses/$focusId"
-              params={{ focusId: focus.id }}
-              className={linkClass(isActive(`/focuses/${focus.id}`))}
-              data-ai-id={`focus-${focus.id}`}
-              data-ai-role="link"
-              data-ai-label={focus.name}
-            >
-              <EntityIcon icon={focus.icon} fallback="target" size={14} className="shrink-0" />
-              <span className="truncate">{focus.name}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="mt-auto flex flex-col gap-0.5">
-        <Link
-          to="/sources"
-          className={linkClass(isActive('/sources'))}
-          data-ai-id="nav-sources"
-          data-ai-role="link"
-          data-ai-label="Sources"
-        >
-          <EntityIcon icon="rss" size={14} className="shrink-0" />
-          <span className="truncate">Sources</span>
-        </Link>
-        <Link to="/settings" className={linkClass(isActive('/settings'))}>
-          <EntityIcon icon="settings" size={14} className="shrink-0" />
-          <span className="truncate">Settings</span>
-        </Link>
-        <AiToggleButton />
-
-        <div className="mt-3 pt-3 border-t border-border mx-3">
-          {username && <div className="text-xs text-ink-tertiary mb-1">{username}</div>}
-          {logout && (
-            <button
-              type="button"
-              onClick={logout}
-              className="text-xs text-ink-tertiary hover:text-ink transition-colors duration-fast cursor-pointer"
-            >
-              Sign out
-            </button>
-          )}
-        </div>
-      </div>
+      <BrowseSection focuses={focuses} currentPath={currentPath} isActive={isActive} />
+      <NavFooter isActive={isActive} username={username} logout={logout} />
     </nav>
   );
 };

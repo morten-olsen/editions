@@ -5,13 +5,7 @@ import type { ArticleVoteValue } from '../database/database.types.ts';
 import type { Services } from '../services/services.ts';
 
 import type { UserScoringWeights, VoteContext, VotedArticle } from './votes.scoring.ts';
-import {
-  MAX_VOTE_CONTEXT_SIZE,
-  emptyVoteContext,
-  mergeVoteContexts,
-  parseUserScoringWeights,
-  rankArticles,
-} from './votes.scoring.ts';
+import { MAX_VOTE_CONTEXT_SIZE, parseUserScoringWeights } from './votes.scoring.ts';
 
 // --- Errors ---
 

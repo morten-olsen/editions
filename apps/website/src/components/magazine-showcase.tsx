@@ -4,11 +4,6 @@
  */
 import * as React from 'react';
 
-import { MagazineCover } from '../../../web/src/components/magazine/magazine.cover.tsx';
-import { MagazineSection } from '../../../web/src/components/magazine/magazine.section.tsx';
-import { MagazineFinale } from '../../../web/src/components/magazine/magazine.finale.tsx';
-import { MagazineToc } from '../../../web/src/components/magazine/magazine.toc.tsx';
-import { MagazineArticle } from '../../../web/src/components/magazine/magazine.article.tsx';
 import { MagazinePage } from '../../../web/src/components/magazine/magazine.layout.tsx';
 import { Button } from '../../../web/src/components/button.tsx';
 import { VoteControls } from '../../../web/src/components/vote-controls.tsx';

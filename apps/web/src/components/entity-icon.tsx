@@ -30,7 +30,7 @@ const loadIcon = (name: string): React.ComponentType<LucideProps> | undefined =>
     return undefined;
   }
   if (iconCache.has(resolved)) {
-    return iconCache.get(resolved)!;
+    return iconCache.get(resolved);
   }
   const LazyIcon = lazy(dynamicIconImports[resolved as keyof typeof dynamicIconImports]);
   iconCache.set(resolved, LazyIcon);

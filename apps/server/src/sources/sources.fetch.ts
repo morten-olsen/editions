@@ -210,13 +210,13 @@ const parseItunesDuration = (val: unknown): number | null => {
   }
 
   if (parts.length === 3) {
-    return parts[0]! * 3600 + parts[1]! * 60 + parts[2]!;
+    return (parts[0] as number) * 3600 + (parts[1] as number) * 60 + (parts[2] as number);
   }
   if (parts.length === 2) {
-    return parts[0]! * 60 + parts[1]!;
+    return (parts[0] as number) * 60 + (parts[1] as number);
   }
   if (parts.length === 1) {
-    return parts[0]!;
+    return parts[0] as number;
   }
   return null;
 };

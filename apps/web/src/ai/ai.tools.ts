@@ -121,119 +121,118 @@ let agentClicking = false;
 
 const isAgentClick = (): boolean => agentClicking;
 
+/* ── Element lookup ──────────────────────────────────── */
+
+const findElement = (id: string): Element | null => document.querySelector(`[data-ai-id="${CSS.escape(id)}"]`);
+
+const notFoundError = (id: string): string =>
+  JSON.stringify({ error: `Element "${id}" not found on the current page.` });
+
+/* ── Tool handlers ──────────────────────────────────── */
+
+const handleQueryPage = (args: Record<string, unknown>): string => {
+  const depth = (args.depth as number) ?? 1;
+  return JSON.stringify(queryPage(depth), null, 2);
+};
+
+const handleQueryElement = (args: Record<string, unknown>): string => {
+  const id = args.id as string;
+  const depth = (args.depth as number) ?? 2;
+  const node = queryElement(id, depth);
+  return node ? JSON.stringify(node, null, 2) : notFoundError(id);
+};
+
+const handleGetElementHtml = (args: Record<string, unknown>): string => {
+  const id = args.id as string;
+  const html = getElementHtml(id);
+  return html ?? notFoundError(id);
+};
+
+const handleClick = async (args: Record<string, unknown>, ctx: ToolContext): Promise<string> => {
+  const id = args.id as string;
+  const el = findElement(id);
+  if (!el) {
+    return notFoundError(id);
+  }
+
+  await ctx.moveCursor(id);
+
+  const role = el.getAttribute('data-ai-role');
+  let clickTarget: Element = el;
+  if (role === 'checkbox' || role === 'toggle') {
+    const inner = el.querySelector(
+      "label, input[type='checkbox'], button[role='checkbox'], [data-checked], [data-unchecked]",
+    );
+    if (inner) {
+      clickTarget = inner;
+    }
+  }
+
+  agentClicking = true;
+  if (clickTarget instanceof HTMLElement) {
+    clickTarget.click();
+  } else {
+    clickTarget.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+  }
+  agentClicking = false;
+
+  await awaitSettled(ctx.queryClient);
+  const page = queryPage(1);
+  return JSON.stringify({ result: 'clicked', page }, null, 2);
+};
+
+const handleFillInput = async (args: Record<string, unknown>, ctx: ToolContext): Promise<string> => {
+  const id = args.id as string;
+  const value = args.value as string;
+  const el = findElement(id);
+  if (!el) {
+    return notFoundError(id);
+  }
+
+  await ctx.moveCursor(id);
+
+  if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+    const proto = el instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+    const nativeSetter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
+    nativeSetter?.call(el, value);
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  } else if (el instanceof HTMLSelectElement) {
+    el.value = value;
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  } else {
+    return JSON.stringify({ error: `Element "${id}" is not an input, textarea, or select.` });
+  }
+
+  await awaitSettled(ctx.queryClient);
+  return JSON.stringify({ result: 'filled', value });
+};
+
+const handleNavigate = async (args: Record<string, unknown>, ctx: ToolContext): Promise<string> => {
+  ctx.navigate(args.path as string);
+  await awaitSettled(ctx.queryClient);
+  const page = queryPage(1);
+  return JSON.stringify({ result: 'navigated', page }, null, 2);
+};
+
 /* ── Tool execution ──────────────────────────────────── */
 
+const toolHandlers: Record<string, (args: Record<string, unknown>, ctx: ToolContext) => Promise<string> | string> = {
+  queryPage: (args) => handleQueryPage(args),
+  queryElement: (args) => handleQueryElement(args),
+  getElementHtml: (args) => handleGetElementHtml(args),
+  click: (args, ctx) => handleClick(args, ctx),
+  fillInput: (args, ctx) => handleFillInput(args, ctx),
+  navigate: (args, ctx) => handleNavigate(args, ctx),
+  getTutorial: async (args) => getTutorialContent(args.id as string),
+};
+
 const executeTool = async (name: string, args: Record<string, unknown>, ctx: ToolContext): Promise<string> => {
-  switch (name) {
-    case 'queryPage': {
-      const depth = (args.depth as number) ?? 1;
-      const descriptor = queryPage(depth);
-      return JSON.stringify(descriptor, null, 2);
-    }
-
-    case 'queryElement': {
-      const id = args.id as string;
-      const depth = (args.depth as number) ?? 2;
-      const node = queryElement(id, depth);
-      if (!node) {
-        return JSON.stringify({ error: `Element "${id}" not found on the current page.` });
-      }
-      return JSON.stringify(node, null, 2);
-    }
-
-    case 'getElementHtml': {
-      const id = args.id as string;
-      const html = getElementHtml(id);
-      if (!html) {
-        return JSON.stringify({ error: `Element "${id}" not found on the current page.` });
-      }
-      return html;
-    }
-
-    case 'click': {
-      const id = args.id as string;
-      const el = document.querySelector(`[data-ai-id="${CSS.escape(id)}"]`);
-      if (!el) {
-        return JSON.stringify({ error: `Element "${id}" not found on the current page.` });
-      }
-
-      await ctx.moveCursor(id);
-
-      // For checkbox/toggle roles, find the actual clickable element inside
-      const role = el.getAttribute('data-ai-role');
-      let clickTarget: Element = el;
-      if (role === 'checkbox' || role === 'toggle') {
-        const inner = el.querySelector(
-          "label, input[type='checkbox'], button[role='checkbox'], [data-checked], [data-unchecked]",
-        );
-        if (inner) {
-          clickTarget = inner;
-        }
-      }
-
-      // Dispatch click (flag so global listener ignores it)
-      agentClicking = true;
-      if (clickTarget instanceof HTMLElement) {
-        clickTarget.click();
-      } else {
-        clickTarget.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-      }
-      agentClicking = false;
-
-      await awaitSettled(ctx.queryClient);
-
-      // Return a fresh page snapshot
-      const page = queryPage(1);
-      return JSON.stringify({ result: 'clicked', page }, null, 2);
-    }
-
-    case 'fillInput': {
-      const id = args.id as string;
-      const value = args.value as string;
-      const el = document.querySelector(`[data-ai-id="${CSS.escape(id)}"]`);
-      if (!el) {
-        return JSON.stringify({ error: `Element "${id}" not found on the current page.` });
-      }
-
-      await ctx.moveCursor(id);
-
-      if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
-        // Use native setter to bypass React's synthetic event system
-        const nativeSetter = Object.getOwnPropertyDescriptor(
-          el instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype,
-          'value',
-        )?.set;
-        nativeSetter?.call(el, value);
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-      } else if (el instanceof HTMLSelectElement) {
-        el.value = value;
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-      } else {
-        return JSON.stringify({ error: `Element "${id}" is not an input, textarea, or select.` });
-      }
-
-      await awaitSettled(ctx.queryClient);
-      return JSON.stringify({ result: 'filled', value });
-    }
-
-    case 'navigate': {
-      const path = args.path as string;
-      ctx.navigate(path);
-      await awaitSettled(ctx.queryClient);
-      const page = queryPage(1);
-      return JSON.stringify({ result: 'navigated', page }, null, 2);
-    }
-
-    case 'getTutorial': {
-      const id = args.id as string;
-      const content = await getTutorialContent(id);
-      return content;
-    }
-
-    default:
-      return JSON.stringify({ error: `Unknown tool: ${name}` });
+  const handler = toolHandlers[name];
+  if (!handler) {
+    return JSON.stringify({ error: `Unknown tool: ${name}` });
   }
+  return handler(args, ctx);
 };
 
 export { toolDefinitions, executeTool, isAgentClick };

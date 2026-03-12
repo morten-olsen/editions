@@ -1,10 +1,21 @@
 import { extract } from '@extractus/article-extractor';
 import type { Kysely } from 'kysely';
+import TurndownService from 'turndown';
 
 import type { DatabaseSchema } from '../database/database.types.ts';
 
 import type { ReconcileStep } from './reconciler.runner.ts';
 import type { ScopeFilter } from './reconciler.utils.ts';
+
+// --- HTML → Markdown ---
+
+const turndown = new TurndownService({
+  headingStyle: 'atx',
+  codeBlockStyle: 'fenced',
+  bulletListMarker: '-',
+});
+
+const htmlToMarkdown = (html: string): string => turndown.turndown(html);
 
 // --- Types ---
 
@@ -19,6 +30,71 @@ type ExtractItem = {
 // --- Constants ---
 
 const WORDS_PER_MINUTE = 238;
+
+// --- Helpers ---
+
+const computeReadingTime = (markdown: string): number => {
+  const wordCount = markdown.split(/\s+/).filter(Boolean).length;
+  return Math.ceil((wordCount / WORDS_PER_MINUTE) * 60);
+};
+
+const saveFallbackContent = async (db: Kysely<DatabaseSchema>, itemId: string, htmlContent: string): Promise<void> => {
+  const markdown = htmlToMarkdown(htmlContent);
+  await db
+    .updateTable('articles')
+    .set({
+      content: markdown,
+      consumption_time_seconds: computeReadingTime(markdown),
+      extracted_at: new Date().toISOString(),
+    })
+    .where('id', '=', itemId)
+    .execute();
+};
+
+const saveExtractedContent = async (
+  db: Kysely<DatabaseSchema>,
+  item: ExtractItem,
+  result: { content: string; title?: string; author?: string; description?: string; image?: string },
+): Promise<void> => {
+  const markdown = htmlToMarkdown(result.content);
+  const updates: Record<string, unknown> = {
+    content: markdown,
+    consumption_time_seconds: computeReadingTime(markdown),
+    image_url: result.image ?? undefined,
+    extracted_at: new Date().toISOString(),
+  };
+
+  if (result.title && item.title === item.url) {
+    updates.title = result.title;
+  }
+  if (result.author) {
+    updates.author = result.author;
+  }
+  if (result.description) {
+    updates.summary = result.description;
+  }
+
+  await db.updateTable('articles').set(updates).where('id', '=', item.id).execute();
+};
+
+const processExtractItem = async (db: Kysely<DatabaseSchema>, item: ExtractItem): Promise<void> => {
+  if (item.sourceType === 'podcast') {
+    return;
+  }
+
+  try {
+    const result = await extract(item.url);
+    if (result?.content) {
+      await saveExtractedContent(db, item, { ...result, content: result.content });
+    } else if (item.content) {
+      await saveFallbackContent(db, item.id, item.content);
+    }
+  } catch {
+    if (item.content) {
+      await saveFallbackContent(db, item.id, item.content);
+    }
+  }
+};
 
 // --- Step factory ---
 
@@ -57,7 +133,7 @@ const createExtractStep = (params: {
           .filter((r) => r.url !== null)
           .map((r) => ({
             id: r.id,
-            url: r.url!,
+            url: r.url as string,
             title: r.title,
             content: r.content,
             sourceType: r.source_type,
@@ -66,82 +142,14 @@ const createExtractStep = (params: {
         if (items.length > 0) {
           yield items;
         }
-        lastId = rows[rows.length - 1]!.id;
+        lastId = (rows[rows.length - 1] as (typeof rows)[number]).id;
         if (rows.length < batchSize) {
           break;
         }
       }
     },
     processBatch: async (batch: ExtractItem[]): Promise<void> => {
-      await Promise.all(
-        batch.map(async (item) => {
-          if (item.sourceType === 'podcast') {
-            return;
-          }
-
-          try {
-            const result = await extract(item.url);
-            if (result?.content) {
-              const wordCount = result.content
-                .replace(/<[^>]*>/g, '')
-                .split(/\s+/)
-                .filter(Boolean).length;
-              const consumptionTimeSeconds = Math.ceil((wordCount / WORDS_PER_MINUTE) * 60);
-
-              const updates: Record<string, unknown> = {
-                content: result.content,
-                consumption_time_seconds: consumptionTimeSeconds,
-                image_url: result.image ?? undefined,
-                extracted_at: new Date().toISOString(),
-              };
-
-              if (result.title && item.title === item.url) {
-                updates.title = result.title;
-              }
-              if (result.author) {
-                updates.author = result.author;
-              }
-              if (result.description) {
-                updates.summary = result.description;
-              }
-
-              await db.updateTable('articles').set(updates).where('id', '=', item.id).execute();
-            } else if (item.content) {
-              const wordCount = item.content
-                .replace(/<[^>]*>/g, '')
-                .split(/\s+/)
-                .filter(Boolean).length;
-              const consumptionTimeSeconds = Math.ceil((wordCount / WORDS_PER_MINUTE) * 60);
-
-              await db
-                .updateTable('articles')
-                .set({
-                  consumption_time_seconds: consumptionTimeSeconds,
-                  extracted_at: new Date().toISOString(),
-                })
-                .where('id', '=', item.id)
-                .execute();
-            }
-          } catch {
-            if (item.content) {
-              const wordCount = item.content
-                .replace(/<[^>]*>/g, '')
-                .split(/\s+/)
-                .filter(Boolean).length;
-              const consumptionTimeSeconds = Math.ceil((wordCount / WORDS_PER_MINUTE) * 60);
-
-              await db
-                .updateTable('articles')
-                .set({
-                  consumption_time_seconds: consumptionTimeSeconds,
-                  extracted_at: new Date().toISOString(),
-                })
-                .where('id', '=', item.id)
-                .execute();
-            }
-          }
-        }),
-      );
+      await Promise.all(batch.map((item) => processExtractItem(db, item)));
     },
   };
 };

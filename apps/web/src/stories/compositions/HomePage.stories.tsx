@@ -135,20 +135,72 @@ const CheckIcon = (): React.ReactElement => (
 const formatPubDate = (iso: string): string =>
   new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 
+/* Cover card background */
+const CoverCardBackground = ({ imageUrl }: { imageUrl: string | null }): React.ReactElement =>
+  imageUrl ? (
+    <div className="absolute inset-0 -z-10">
+      <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+      <div className="absolute inset-0 bg-linear-to-b from-black/60 via-black/40 to-black/80" />
+    </div>
+  ) : (
+    <div className="absolute inset-0 -z-10 bg-surface-sunken" />
+  );
+
+/* Cover card lead section */
+const CoverCardLead = ({ edition, hasImage }: { edition: HomeEdition; hasImage: boolean }): React.ReactElement => (
+  <div className="mt-auto pt-4">
+    {edition.lead && (
+      <>
+        <div className={`font-mono text-xs tracking-wide mb-2 ${hasImage ? 'text-white/60' : 'text-ink-faint'}`}>
+          {edition.lead.sourceName}
+        </div>
+        <h3
+          className={`font-serif text-xl md:text-2xl font-medium tracking-tight leading-snug mb-3 ${hasImage ? 'text-white' : 'text-ink'}`}
+        >
+          {edition.lead.title}
+        </h3>
+      </>
+    )}
+    {edition.sections.length > 0 && (
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        {edition.sections.map((s) => (
+          <span
+            key={s.focusName}
+            className={`text-xs px-2 py-0.5 rounded-full ${hasImage ? 'bg-white/15 text-white/80' : 'bg-surface-sunken text-ink-tertiary'}`}
+          >
+            {s.focusName}
+          </span>
+        ))}
+      </div>
+    )}
+    <CoverCardStats edition={edition} hasImage={hasImage} />
+  </div>
+);
+
+/* Cover card stats */
+const CoverCardStats = ({ edition, hasImage }: { edition: HomeEdition; hasImage: boolean }): React.ReactElement => (
+  <div
+    className={`font-mono text-xs tracking-wide flex items-center gap-3 ${hasImage ? 'text-white/50' : 'text-ink-faint'}`}
+  >
+    <span>{edition.articleCount} articles</span>
+    {edition.totalReadingMinutes != null && (
+      <>
+        <span className={hasImage ? 'text-white/30' : 'text-ink-faint'}>·</span>
+        <span>{edition.totalReadingMinutes} min</span>
+      </>
+    )}
+    <span className={hasImage ? 'text-white/30' : 'text-ink-faint'}>·</span>
+    <span>{edition.sections.length} sections</span>
+  </div>
+);
+
 /* Cover card: full magazine-cover-style card with image background */
 const CoverCardStatic = ({ edition }: { edition: HomeEdition }): React.ReactElement => {
   const hasImage = !!edition.lead?.imageUrl;
 
   return (
     <div className="group block rounded-lg overflow-hidden relative isolate cursor-pointer">
-      {hasImage ? (
-        <div className="absolute inset-0 -z-10">
-          <img src={edition.lead!.imageUrl!} alt="" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-linear-to-b from-black/60 via-black/40 to-black/80" />
-        </div>
-      ) : (
-        <div className="absolute inset-0 -z-10 bg-surface-sunken" />
-      )}
+      <CoverCardBackground imageUrl={edition.lead?.imageUrl ?? null} />
       <div className={`flex flex-col justify-between p-5 min-h-56 ${hasImage ? 'text-white' : ''}`}>
         <div className="flex items-baseline justify-between gap-3">
           <span className={`font-mono text-xs tracking-wide uppercase ${hasImage ? 'text-white/80' : 'text-accent'}`}>
@@ -158,45 +210,7 @@ const CoverCardStatic = ({ edition }: { edition: HomeEdition }): React.ReactElem
             {formatPubDate(edition.publishedAt)}
           </span>
         </div>
-        <div className="mt-auto pt-4">
-          {edition.lead && (
-            <>
-              <div className={`font-mono text-xs tracking-wide mb-2 ${hasImage ? 'text-white/60' : 'text-ink-faint'}`}>
-                {edition.lead.sourceName}
-              </div>
-              <h3
-                className={`font-serif text-xl md:text-2xl font-medium tracking-tight leading-snug mb-3 ${hasImage ? 'text-white' : 'text-ink'}`}
-              >
-                {edition.lead.title}
-              </h3>
-            </>
-          )}
-          {edition.sections.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {edition.sections.map((s) => (
-                <span
-                  key={s.focusName}
-                  className={`text-xs px-2 py-0.5 rounded-full ${hasImage ? 'bg-white/15 text-white/80' : 'bg-surface-sunken text-ink-tertiary'}`}
-                >
-                  {s.focusName}
-                </span>
-              ))}
-            </div>
-          )}
-          <div
-            className={`font-mono text-xs tracking-wide flex items-center gap-3 ${hasImage ? 'text-white/50' : 'text-ink-faint'}`}
-          >
-            <span>{edition.articleCount} articles</span>
-            {edition.totalReadingMinutes != null && (
-              <>
-                <span className={hasImage ? 'text-white/30' : 'text-ink-faint'}>·</span>
-                <span>{edition.totalReadingMinutes} min</span>
-              </>
-            )}
-            <span className={hasImage ? 'text-white/30' : 'text-ink-faint'}>·</span>
-            <span>{edition.sections.length} sections</span>
-          </div>
-        </div>
+        <CoverCardLead edition={edition} hasImage={hasImage} />
       </div>
     </div>
   );
@@ -410,12 +424,12 @@ const Newsstand: Story = {
       </div>
 
       {/* Featured cover card */}
-      <CoverCardStatic edition={sampleEditions[0]!} />
+      <CoverCardStatic edition={sampleEditions[0] as HomeEdition} />
 
       {/* Remaining teasers */}
       <div className="mt-2">
-        <EditionTeaserStatic edition={sampleEditions[1]!} />
-        <EditionTeaserStatic edition={sampleEditions[2]!} />
+        <EditionTeaserStatic edition={sampleEditions[1] as HomeEdition} />
+        <EditionTeaserStatic edition={sampleEditions[2] as HomeEdition} />
         <div className="h-px bg-border" />
       </div>
 
@@ -434,7 +448,7 @@ const SingleEdition: Story = {
         <p className="text-sm text-ink-tertiary">One edition waiting.</p>
       </div>
 
-      <CoverCardStatic edition={sampleEditions[0]!} />
+      <CoverCardStatic edition={sampleEditions[0] as HomeEdition} />
 
       <QuickLinks configs={sampleConfigs} />
     </ContentShell>
@@ -451,7 +465,7 @@ const NoImageEdition: Story = {
         <p className="text-sm text-ink-tertiary">One edition waiting.</p>
       </div>
 
-      <CoverCardStatic edition={sampleEditions[1]!} />
+      <CoverCardStatic edition={sampleEditions[1] as HomeEdition} />
 
       <QuickLinks configs={sampleConfigs} />
     </ContentShell>

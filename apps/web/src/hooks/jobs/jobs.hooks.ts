@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-
 type JobAffects = {
   sourceIds: string[];
   focusIds: string[];

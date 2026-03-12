@@ -44,6 +44,33 @@ type UseBookmarksResult = {
 
 const PAGE_SIZE = 30;
 
+const useSaveBookmark = (
+  headers: Record<string, string> | undefined,
+  pagination: UsePaginationResult,
+  setSaveUrl: (url: string) => void,
+  setSaveError: (error: string | null) => void,
+): { saveMutation: ReturnType<typeof useMutation<void, Error, string, unknown>> } => {
+  const queryClient = useQueryClient();
+
+  const saveMutation = useMutation({
+    mutationFn: async (url: string): Promise<void> => {
+      const { error: err } = await client.POST('/api/bookmarks/save', { body: { url }, headers });
+      if (err) {
+        throw new Error('error' in err ? (err as { error: string }).error : 'Failed to save article');
+      }
+    },
+    onSuccess: (): void => {
+      setSaveUrl('');
+      setSaveError(null);
+      pagination.reset();
+      void queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.all });
+    },
+    onError: (err: Error): void => setSaveError(err.message),
+  });
+
+  return { saveMutation };
+};
+
 const useBookmarks = (): UseBookmarksResult => {
   const headers = useAuthHeaders();
   const queryClient = useQueryClient();
@@ -51,11 +78,7 @@ const useBookmarks = (): UseBookmarksResult => {
   const [saveError, setSaveError] = useState<string | null>(null);
   const lastTotal = useRef(0);
 
-  const pagination = usePagination({
-    pageSize: PAGE_SIZE,
-    total: lastTotal.current,
-  });
-
+  const pagination = usePagination({ pageSize: PAGE_SIZE, total: lastTotal.current });
   const queryKey = [...queryKeys.bookmarks.all, pagination.offset] as const;
 
   const { data: page, isLoading } = useQuery<BookmarksPage>({
@@ -70,40 +93,15 @@ const useBookmarks = (): UseBookmarksResult => {
     enabled: !!headers,
   });
 
-  // Keep ref in sync so usePagination gets the real total on next render.
   if (page) {
     lastTotal.current = page.total;
   }
 
-  const total = page?.total ?? 0;
-
-  const saveMutation = useMutation({
-    mutationFn: async (url: string): Promise<void> => {
-      const { error: err } = await client.POST('/api/bookmarks/save', {
-        body: { url },
-        headers,
-      });
-      if (err) {
-        throw new Error('error' in err ? (err as { error: string }).error : 'Failed to save article');
-      }
-    },
-    onSuccess: (): void => {
-      setSaveUrl('');
-      setSaveError(null);
-      pagination.reset();
-      void queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.all });
-    },
-    onError: (err: Error): void => {
-      setSaveError(err.message);
-    },
-  });
+  const { saveMutation } = useSaveBookmark(headers, pagination, setSaveUrl, setSaveError);
 
   const removeMutation = useMutation({
     mutationFn: async (articleId: string): Promise<void> => {
-      await client.DELETE('/api/articles/{articleId}/bookmark', {
-        params: { path: { articleId } },
-        headers,
-      });
+      await client.DELETE('/api/articles/{articleId}/bookmark', { params: { path: { articleId } }, headers });
     },
     onMutate: async (articleId: string): Promise<void> => {
       await queryClient.cancelQueries({ queryKey });
@@ -111,11 +109,7 @@ const useBookmarks = (): UseBookmarksResult => {
         if (!old) {
           return old;
         }
-        return {
-          ...old,
-          bookmarks: old.bookmarks.filter((b) => b.articleId !== articleId),
-          total: old.total - 1,
-        };
+        return { ...old, bookmarks: old.bookmarks.filter((b) => b.articleId !== articleId), total: old.total - 1 };
       });
     },
   });
@@ -132,7 +126,7 @@ const useBookmarks = (): UseBookmarksResult => {
 
   return {
     bookmarks: page?.bookmarks ?? [],
-    total,
+    total: page?.total ?? 0,
     isLoading,
     pagination,
     saveUrl,

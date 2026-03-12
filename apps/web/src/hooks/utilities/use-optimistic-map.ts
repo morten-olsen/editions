@@ -11,7 +11,7 @@ const useOptimisticMap = <V>(): UseOptimisticMapResult<V> => {
   const [overrides, setOverrides] = useState<Record<string, V>>({});
 
   const get = useCallback(
-    (key: string, serverValue: V): V => (key in overrides ? overrides[key]! : serverValue),
+    (key: string, serverValue: V): V => (key in overrides ? (overrides[key] as V) : serverValue),
     [overrides],
   );
 

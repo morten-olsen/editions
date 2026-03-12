@@ -21,7 +21,9 @@
     "motion": "^12.35.2",
     "openapi-fetch": "^0.14.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^5.0.1",

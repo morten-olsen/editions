@@ -32,10 +32,16 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, enabled: false } },
 });
 
-const withRouter = (Story: React.ComponentType): React.ReactElement => (
+const withRouter = (story: React.ComponentType): React.ReactElement => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <RouterProvider router={router} defaultComponent={() => <Story />} />
+      <RouterProvider
+        router={router}
+        defaultComponent={() => {
+          const Story = story;
+          return <Story />;
+        }}
+      />
     </AuthProvider>
   </QueryClientProvider>
 );

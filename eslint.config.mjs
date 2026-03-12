@@ -121,9 +121,14 @@ export default tseslint.config(
   },
   {
     // Generated files — not hand-authored
-    files: ['**/api.types.ts'],
+    files: ['**/api.types.ts', '**/.astro/**'],
     rules: {
       'max-lines': 'off',
+      '@typescript-eslint/naming-convention': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-restricted-types': 'off',
+      '@typescript-eslint/unified-signatures': 'off',
+      '@typescript-eslint/no-empty-object-type': 'off',
     },
   },
   {

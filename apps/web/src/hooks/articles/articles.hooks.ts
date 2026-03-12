@@ -65,6 +65,37 @@ const formatPublishedDate = (iso: string): string =>
     year: 'numeric',
   });
 
+const fetchArticleData = async (
+  sourceId: string,
+  articleId: string,
+  headers: Record<string, string> | undefined,
+): Promise<ArticleData> => {
+  const [articleRes, voteRes, bookmarkRes] = await Promise.all([
+    client.GET('/api/sources/{id}/articles/{articleId}', {
+      params: { path: { id: sourceId, articleId } },
+      headers,
+    }),
+    client.GET('/api/articles/{articleId}/vote', {
+      params: { path: { articleId } },
+      headers,
+    }),
+    client.GET('/api/articles/{articleId}/bookmark', {
+      params: { path: { articleId } },
+      headers,
+    }),
+  ]);
+
+  if (articleRes.error) {
+    throw new Error('Article not found');
+  }
+
+  const article = articleRes.data as ArticleDetail;
+  const voteValue = voteRes.data ? (voteRes.data as { value: 1 | -1 }).value : null;
+  const isBookmarked = bookmarkRes.data ? (bookmarkRes.data as { bookmarked: boolean }).bookmarked : false;
+
+  return { article, vote: voteValue, bookmarked: isBookmarked };
+};
+
 const useArticleDetail = ({ sourceId, articleId }: UseArticleDetailParams): UseArticleDetailResult => {
   const headers = useAuthHeaders();
   const [vote, setVote] = useState<VoteValue>(null);
@@ -74,36 +105,10 @@ const useArticleDetail = ({ sourceId, articleId }: UseArticleDetailParams): UseA
 
   const { data, isLoading, error } = useQuery<ArticleData>({
     queryKey: ['sources', sourceId, 'articles', articleId],
-    queryFn: async (): Promise<ArticleData> => {
-      const [articleRes, voteRes, bookmarkRes] = await Promise.all([
-        client.GET('/api/sources/{id}/articles/{articleId}', {
-          params: { path: { id: sourceId, articleId } },
-          headers,
-        }),
-        client.GET('/api/articles/{articleId}/vote', {
-          params: { path: { articleId } },
-          headers,
-        }),
-        client.GET('/api/articles/{articleId}/bookmark', {
-          params: { path: { articleId } },
-          headers,
-        }),
-      ]);
-
-      if (articleRes.error) {
-        throw new Error('Article not found');
-      }
-
-      const article = articleRes.data as ArticleDetail;
-      const voteValue = voteRes.data ? (voteRes.data as { value: 1 | -1 }).value : null;
-      const isBookmarked = bookmarkRes.data ? (bookmarkRes.data as { bookmarked: boolean }).bookmarked : false;
-
-      return { article, vote: voteValue, bookmarked: isBookmarked };
-    },
+    queryFn: (): Promise<ArticleData> => fetchArticleData(sourceId, articleId, headers),
     enabled: !!headers,
   });
 
-  // Initialize local state from query data when it first arrives
   if (data && !initialized) {
     setVote(data.vote);
     setIsRead(!!data.article.readAt);
@@ -115,35 +120,20 @@ const useArticleDetail = ({ sourceId, articleId }: UseArticleDetailParams): UseA
 
   const handleVote = async (value: VoteValue): Promise<void> => {
     setVote(value);
-
     if (value === null) {
-      await client.DELETE('/api/articles/{articleId}/vote', {
-        params: { path: { articleId } },
-        headers,
-      });
+      await client.DELETE('/api/articles/{articleId}/vote', { params: { path: { articleId } }, headers });
     } else {
-      await client.PUT('/api/articles/{articleId}/vote', {
-        params: { path: { articleId } },
-        body: { value },
-        headers,
-      });
+      await client.PUT('/api/articles/{articleId}/vote', { params: { path: { articleId } }, body: { value }, headers });
     }
   };
 
   const handleToggleBookmark = async (): Promise<void> => {
     const newBookmarked = !bookmarked;
     setBookmarked(newBookmarked);
-
     if (newBookmarked) {
-      await client.PUT('/api/articles/{articleId}/bookmark', {
-        params: { path: { articleId } },
-        headers,
-      });
+      await client.PUT('/api/articles/{articleId}/bookmark', { params: { path: { articleId } }, headers });
     } else {
-      await client.DELETE('/api/articles/{articleId}/bookmark', {
-        params: { path: { articleId } },
-        headers,
-      });
+      await client.DELETE('/api/articles/{articleId}/bookmark', { params: { path: { articleId } }, headers });
     }
   };
 

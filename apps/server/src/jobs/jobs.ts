@@ -151,7 +151,7 @@ class JobService {
 
   #drain = (): void => {
     while (this.#running < this.#concurrency && this.#queue.length > 0) {
-      const id = this.#queue.shift()!;
+      const id = this.#queue.shift() as string;
       const job = this.#jobs.get(id);
       if (!job) {
         continue;

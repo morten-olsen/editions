@@ -58,6 +58,20 @@ const formatDate = (iso: string): string => {
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 };
 
+const buildVotesQuery = (offset: number, scope: ScopeFilter, value: ValueFilter): Record<string, unknown> => {
+  const query: Record<string, unknown> = { offset, limit: PAGE_SIZE };
+  if (scope !== 'all') {
+    query.scope = scope;
+  }
+  if (value === 'up') {
+    query.value = 1;
+  }
+  if (value === 'down') {
+    query.value = -1;
+  }
+  return query;
+};
+
 const useVotes = (): UseVotesResult => {
   const auth = useAuth();
   const [votesPage, setVotesPage] = useState<VotesPage | null>(null);
@@ -65,36 +79,18 @@ const useVotes = (): UseVotesResult => {
   const [scopeFilter, setScopeFilter] = useState<ScopeFilter>('all');
   const [valueFilter, setValueFilter] = useState<ValueFilter>('all');
 
-  const pagination = usePagination({
-    pageSize: PAGE_SIZE,
-    total: votesPage?.total ?? 0,
-  });
+  const pagination = usePagination({ pageSize: PAGE_SIZE, total: votesPage?.total ?? 0 });
 
   const loadVotes = useCallback(
     async (newOffset: number, scope: ScopeFilter, value: ValueFilter): Promise<void> => {
       if (auth.status !== 'authenticated') {
         return;
       }
-
-      const query: Record<string, unknown> = {
-        offset: newOffset,
-        limit: PAGE_SIZE,
-      };
-      if (scope !== 'all') {
-        query.scope = scope;
-      }
-      if (value === 'up') {
-        query.value = 1;
-      }
-      if (value === 'down') {
-        query.value = -1;
-      }
-
+      const query = buildVotesQuery(newOffset, scope, value);
       const { data } = await client.GET('/api/votes', {
         params: { query: query as never },
         headers: { Authorization: `Bearer ${auth.token}` },
       });
-
       if (data) {
         setVotesPage(data as VotesPage);
       }
@@ -128,35 +124,21 @@ const useVotes = (): UseVotesResult => {
       if (auth.status !== 'authenticated') {
         return;
       }
-
       await client.DELETE('/api/votes/{voteId}', {
         params: { path: { voteId: vote.id } },
         headers: { Authorization: `Bearer ${auth.token}` },
       });
-
       setVotesPage((prev) => {
         if (!prev) {
           return prev;
         }
-        return {
-          ...prev,
-          votes: prev.votes.filter((v) => v.id !== vote.id),
-          total: prev.total - 1,
-        };
+        return { ...prev, votes: prev.votes.filter((v) => v.id !== vote.id), total: prev.total - 1 };
       });
     },
     [auth],
   );
 
-  return {
-    votesPage,
-    loading,
-    pagination,
-    scopeFilter,
-    valueFilter,
-    changeFilter,
-    removeVote,
-  };
+  return { votesPage, loading, pagination, scopeFilter, valueFilter, changeFilter, removeVote };
 };
 
 export type { VoteWithArticle, VotesPage, ScopeFilter, ValueFilter, UseVotesResult };

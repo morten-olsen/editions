@@ -1,4 +1,7 @@
+import type { Kysely } from 'kysely';
+
 import { DatabaseService } from '../database/database.ts';
+import type { DatabaseSchema } from '../database/database.types.ts';
 import type { Services } from '../services/services.ts';
 
 // --- Types ---
@@ -47,6 +50,97 @@ type HomeData = {
   editions: HomeEdition[];
 };
 
+// --- Helpers ---
+
+type EditionRow = {
+  id: string;
+  edition_config_id: string;
+  title: string;
+  total_reading_minutes: number | null;
+  article_count: number;
+  published_at: string;
+  config_name: string;
+  config_icon: string | null;
+};
+
+type ArticlePreviewRow = {
+  edition_id: string;
+  focus_id: string;
+  position: number;
+  focus_name: string;
+  title: string;
+  image_url: string | null;
+  consumption_time_seconds: number | null;
+  source_name: string;
+};
+
+const mapEditionRow = (row: EditionRow): Omit<HomeEdition, 'sections' | 'lead' | 'highlights'> => ({
+  id: row.id,
+  editionConfigId: row.edition_config_id,
+  title: row.title,
+  totalReadingMinutes: row.total_reading_minutes,
+  articleCount: row.article_count,
+  publishedAt: row.published_at,
+  configName: row.config_name,
+  configIcon: row.config_icon,
+});
+
+const buildSections = (articles: ArticlePreviewRow[]): HomeEditionSection[] => {
+  const sectionMap = new Map<string, { focusName: string; count: number }>();
+  for (const a of articles) {
+    const existing = sectionMap.get(a.focus_id);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      sectionMap.set(a.focus_id, { focusName: a.focus_name, count: 1 });
+    }
+  }
+  return Array.from(sectionMap.values()).map((s) => ({
+    focusName: s.focusName,
+    articleCount: s.count,
+  }));
+};
+
+const pickLead = (articles: ArticlePreviewRow[]): HomeEditionLead | null => {
+  const leadArticle = articles.find((a) => a.image_url) ?? articles[0] ?? null;
+  return leadArticle
+    ? {
+        title: leadArticle.title,
+        sourceName: leadArticle.source_name,
+        imageUrl: leadArticle.image_url,
+        consumptionTimeSeconds: leadArticle.consumption_time_seconds,
+      }
+    : null;
+};
+
+const pickHighlights = (articles: ArticlePreviewRow[]): HomeEditionHighlight[] => {
+  const leadArticle = articles.find((a) => a.image_url) ?? articles[0] ?? null;
+  return articles
+    .filter((a) => a !== leadArticle)
+    .slice(0, 2)
+    .map((a) => ({ title: a.title, sourceName: a.source_name }));
+};
+
+const assembleEdition = (edRow: EditionRow, articles: ArticlePreviewRow[]): HomeEdition => ({
+  ...mapEditionRow(edRow),
+  sections: buildSections(articles),
+  lead: pickLead(articles),
+  highlights: pickHighlights(articles),
+});
+
+const groupArticlesByEdition = (rows: ArticlePreviewRow[]): Map<string, ArticlePreviewRow[]> => {
+  const map = new Map<string, ArticlePreviewRow[]>();
+  for (const row of rows) {
+    const existing = map.get(row.edition_id);
+    if (existing) {
+      existing.push(row);
+    } else {
+      map.set(row.edition_id, [row]);
+    }
+  }
+  return map;
+};
+
 // --- Service ---
 
 class HomeService {
@@ -59,74 +153,79 @@ class HomeService {
   getHomeData = async (userId: string): Promise<HomeData> => {
     const db = await this.#services.get(DatabaseService).getInstance();
 
-    // Phase 1: parallel lightweight queries
     const [sourcesCount, focusesCount, configs, editionRows] = await Promise.all([
-      db
-        .selectFrom('sources')
-        .select(db.fn.countAll<number>().as('count'))
-        .where('user_id', '=', userId)
-        .executeTakeFirstOrThrow()
-        .then((r) => r.count),
-
-      db
-        .selectFrom('focuses')
-        .select(db.fn.countAll<number>().as('count'))
-        .where('user_id', '=', userId)
-        .executeTakeFirstOrThrow()
-        .then((r) => r.count),
-
-      db
-        .selectFrom('edition_configs')
-        .select(['id', 'name', 'icon'])
-        .where('user_id', '=', userId)
-        .orderBy('created_at', 'desc')
-        .execute(),
-
-      db
-        .selectFrom('editions')
-        .innerJoin('edition_configs', 'edition_configs.id', 'editions.edition_config_id')
-        .select([
-          'editions.id',
-          'editions.edition_config_id',
-          'editions.title',
-          'editions.total_reading_minutes',
-          'editions.article_count',
-          'editions.published_at',
-          'edition_configs.name as config_name',
-          'edition_configs.icon as config_icon',
-        ])
-        .where('edition_configs.user_id', '=', userId)
-        .where('editions.read_at', 'is', null)
-        .orderBy('editions.published_at', 'desc')
-        .execute(),
+      this.#countSources(db, userId),
+      this.#countFocuses(db, userId),
+      this.#fetchConfigs(db, userId),
+      this.#fetchUnreadEditions(db, userId),
     ]);
 
-    // Early return if no unread editions
     if (editionRows.length === 0) {
       return {
         sourcesCount,
         focusesCount,
         configs,
-        editions: editionRows.map((row) => ({
-          id: row.id,
-          editionConfigId: row.edition_config_id,
-          title: row.title,
-          totalReadingMinutes: row.total_reading_minutes,
-          articleCount: row.article_count,
-          publishedAt: row.published_at,
-          configName: row.config_name,
-          configIcon: row.config_icon,
-          sections: [],
-          lead: null,
-          highlights: [],
-        })),
+        editions: editionRows.map((row) => ({ ...mapEditionRow(row), sections: [], lead: null, highlights: [] })),
       };
     }
 
-    // Phase 2: bulk fetch article preview data for all unread editions
-    const editionIds = editionRows.map((r) => r.id);
+    const articlesByEdition = await this.#fetchArticlePreviews(
+      db,
+      editionRows.map((r) => r.id),
+    );
+    const editions = editionRows.map((edRow) => assembleEdition(edRow, articlesByEdition.get(edRow.id) ?? []));
 
-    const articleRows = await db
+    return { sourcesCount, focusesCount, configs, editions };
+  };
+
+  #countSources = async (db: Kysely<DatabaseSchema>, userId: string): Promise<number> =>
+    db
+      .selectFrom('sources')
+      .select(db.fn.countAll<number>().as('count'))
+      .where('user_id', '=', userId)
+      .executeTakeFirstOrThrow()
+      .then((r) => r.count);
+
+  #countFocuses = async (db: Kysely<DatabaseSchema>, userId: string): Promise<number> =>
+    db
+      .selectFrom('focuses')
+      .select(db.fn.countAll<number>().as('count'))
+      .where('user_id', '=', userId)
+      .executeTakeFirstOrThrow()
+      .then((r) => r.count);
+
+  #fetchConfigs = async (db: Kysely<DatabaseSchema>, userId: string): Promise<HomeConfig[]> =>
+    db
+      .selectFrom('edition_configs')
+      .select(['id', 'name', 'icon'])
+      .where('user_id', '=', userId)
+      .orderBy('created_at', 'desc')
+      .execute();
+
+  #fetchUnreadEditions = async (db: Kysely<DatabaseSchema>, userId: string): Promise<EditionRow[]> =>
+    db
+      .selectFrom('editions')
+      .innerJoin('edition_configs', 'edition_configs.id', 'editions.edition_config_id')
+      .select([
+        'editions.id',
+        'editions.edition_config_id',
+        'editions.title',
+        'editions.total_reading_minutes',
+        'editions.article_count',
+        'editions.published_at',
+        'edition_configs.name as config_name',
+        'edition_configs.icon as config_icon',
+      ])
+      .where('edition_configs.user_id', '=', userId)
+      .where('editions.read_at', 'is', null)
+      .orderBy('editions.published_at', 'desc')
+      .execute();
+
+  #fetchArticlePreviews = async (
+    db: Kysely<DatabaseSchema>,
+    editionIds: string[],
+  ): Promise<Map<string, ArticlePreviewRow[]>> => {
+    const rows = await db
       .selectFrom('edition_articles')
       .innerJoin('articles', 'articles.id', 'edition_articles.article_id')
       .innerJoin('sources', 'sources.id', 'articles.source_id')
@@ -146,70 +245,7 @@ class HomeService {
       .orderBy('edition_articles.position', 'asc')
       .execute();
 
-    // Group articles by edition
-    const articlesByEdition = new Map<string, typeof articleRows>();
-    for (const row of articleRows) {
-      const existing = articlesByEdition.get(row.edition_id);
-      if (existing) {
-        existing.push(row);
-      } else {
-        articlesByEdition.set(row.edition_id, [row]);
-      }
-    }
-
-    // Assemble editions with sections, lead, and highlights
-    const editions: HomeEdition[] = editionRows.map((edRow) => {
-      const articles = articlesByEdition.get(edRow.id) ?? [];
-
-      // Build sections: group by focus, preserving insertion order
-      const sectionMap = new Map<string, { focusName: string; count: number }>();
-      for (const a of articles) {
-        const existing = sectionMap.get(a.focus_id);
-        if (existing) {
-          existing.count += 1;
-        } else {
-          sectionMap.set(a.focus_id, { focusName: a.focus_name, count: 1 });
-        }
-      }
-      const sections: HomeEditionSection[] = Array.from(sectionMap.values()).map((s) => ({
-        focusName: s.focusName,
-        articleCount: s.count,
-      }));
-
-      // Lead: prefer first article with an image, fall back to position 0
-      const withImage = articles.find((a) => a.image_url);
-      const leadArticle = withImage ?? articles[0] ?? null;
-      const lead: HomeEditionLead | null = leadArticle
-        ? {
-            title: leadArticle.title,
-            sourceName: leadArticle.source_name,
-            imageUrl: leadArticle.image_url,
-            consumptionTimeSeconds: leadArticle.consumption_time_seconds,
-          }
-        : null;
-
-      // Highlights: next articles after lead (different from lead), up to 2
-      const highlights: HomeEditionHighlight[] = articles
-        .filter((a) => a !== leadArticle)
-        .slice(0, 2)
-        .map((a) => ({ title: a.title, sourceName: a.source_name }));
-
-      return {
-        id: edRow.id,
-        editionConfigId: edRow.edition_config_id,
-        title: edRow.title,
-        totalReadingMinutes: edRow.total_reading_minutes,
-        articleCount: edRow.article_count,
-        publishedAt: edRow.published_at,
-        configName: edRow.config_name,
-        configIcon: edRow.config_icon,
-        sections,
-        lead,
-        highlights,
-      };
-    });
-
-    return { sourcesCount, focusesCount, configs, editions };
+    return groupArticlesByEdition(rows);
   };
 }
 

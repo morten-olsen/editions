@@ -67,36 +67,203 @@ type AiContextValue = {
 
 const AiContext = createContext<AiContextValue | null>(null);
 
+/* ── Agent turn execution ────────────────────────────── */
+
+/** Update the last running action message with a final status. */
+const updateActionStatus = (
+  setDisplayMessages: React.Dispatch<React.SetStateAction<AiDisplayMessage[]>>,
+  toolResult: string,
+): void => {
+  setDisplayMessages((prev) => {
+    const updated = [...prev];
+    let lastAction = -1;
+    for (let i = updated.length - 1; i >= 0; i--) {
+      const item = updated[i];
+      if (item?.type === 'action' && (item as AiDisplayMessage & { type: 'action' }).status === 'running') {
+        lastAction = i;
+        break;
+      }
+    }
+    if (lastAction !== -1) {
+      const msg = updated[lastAction] as AiDisplayMessage & { type: 'action' };
+      const hasError = toolResult.includes('"error"');
+      updated[lastAction] = { ...msg, status: hasError ? 'error' : 'done' };
+    }
+    return updated;
+  });
+};
+
+type AgentState = {
+  messagesRef: React.MutableRefObject<AiChatMessage[]>;
+  abortRef: React.MutableRefObject<boolean>;
+  setDisplayMessages: React.Dispatch<React.SetStateAction<AiDisplayMessage[]>>;
+  setLastActivity: React.Dispatch<React.SetStateAction<string | null>>;
+};
+
+/** Execute a single tool call and record results in the message history. */
+const executeToolCall = async (
+  toolCall: { id: string; name: string; arguments: string },
+  ctx: ToolContext,
+  state: AgentState,
+): Promise<void> => {
+  const { messagesRef, setDisplayMessages, setLastActivity } = state;
+  const toolName = toolCall.name;
+  const isVisualAction = toolName === 'click' || toolName === 'fillInput' || toolName === 'navigate';
+
+  let toolArgs: Record<string, unknown>;
+  try {
+    toolArgs = JSON.parse(toolCall.arguments) as Record<string, unknown>;
+  } catch {
+    const errResult = JSON.stringify({ error: `Invalid tool arguments: ${toolCall.arguments}` });
+    messagesRef.current = [...messagesRef.current, { role: 'tool', content: errResult, toolCallId: toolCall.id }];
+    return;
+  }
+
+  const description = describeAction(toolName, toolArgs);
+  setLastActivity(description);
+
+  if (isVisualAction) {
+    setDisplayMessages((prev) => [...prev, { type: 'action', description, status: 'running' }]);
+  }
+
+  let toolResult: string;
+  let toolError = false;
+  try {
+    toolResult = await executeTool(toolName, toolArgs, ctx);
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+    toolResult = JSON.stringify({ error: `Tool "${toolName}" failed: ${errorMsg}` });
+    toolError = true;
+  }
+
+  if (isVisualAction) {
+    updateActionStatus(setDisplayMessages, toolResult);
+  }
+
+  if (toolError) {
+    setDisplayMessages((prev) => [...prev, { type: 'assistant', content: `Something went wrong: ${toolResult}` }]);
+  }
+
+  messagesRef.current = [...messagesRef.current, { role: 'tool', content: toolResult, toolCallId: toolCall.id }];
+};
+
+/**
+ * Run a single LLM turn: call the model, process tool calls. Returns
+ * true when the loop should stop (no more tool calls or error).
+ */
+const runAgentTurn = async (currentConfig: AiConfig, ctx: ToolContext, state: AgentState): Promise<boolean> => {
+  const { messagesRef, abortRef, setDisplayMessages } = state;
+  let result;
+  try {
+    result = await chatCompletion(currentConfig, messagesRef.current, toolDefinitions);
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+    setDisplayMessages((prev) => [...prev, { type: 'assistant', content: `Something went wrong: ${errorMsg}` }]);
+    return true;
+  }
+
+  const assistantMsg: AiChatMessage = {
+    role: 'assistant',
+    content: result.content ?? '',
+    toolCalls: result.toolCalls.length > 0 ? result.toolCalls : undefined,
+  };
+  messagesRef.current = [...messagesRef.current, assistantMsg];
+
+  if (result.content) {
+    setDisplayMessages((prev) => [...prev, { type: 'assistant', content: result.content ?? '' }]);
+  }
+
+  if (result.toolCalls.length === 0) {
+    return true;
+  }
+
+  for (const toolCall of result.toolCalls) {
+    if (abortRef.current) {
+      break;
+    }
+    await executeToolCall(toolCall, ctx, state);
+  }
+
+  return false;
+};
+
+/* ── Stop-on-interaction effect ──────────────────────── */
+
+const useStopOnInteraction = (isProcessing: boolean, stopProcessing: () => void): void => {
+  useEffect(() => {
+    if (!isProcessing) {
+      return;
+    }
+    const handleClick = (): void => {
+      if (!isAgentClick()) {
+        stopProcessing();
+      }
+    };
+    const handleKeyDown = (): void => {
+      stopProcessing();
+    };
+    document.addEventListener('click', handleClick, true);
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => {
+      document.removeEventListener('click', handleClick, true);
+      document.removeEventListener('keydown', handleKeyDown, true);
+    };
+  }, [isProcessing, stopProcessing]);
+};
+
+/* ── Cursor hook ─────────────────────────────────────── */
+
+type CursorState = {
+  cursorTargetId: string | null;
+  cursorVisible: boolean;
+  moveCursor: (targetId: string) => Promise<void>;
+  resetCursor: () => void;
+};
+
+const useCursorState = (): CursorState => {
+  const [cursorTargetId, setCursorTargetId] = useState<string | null>(null);
+  const [cursorVisible, setCursorVisible] = useState(false);
+
+  const moveCursor = useCallback(
+    (targetId: string): Promise<void> =>
+      new Promise<void>((resolve) => {
+        setCursorVisible(true);
+        setCursorTargetId(targetId);
+        setTimeout(resolve, 300);
+      }),
+    [],
+  );
+
+  const resetCursor = useCallback((): void => {
+    setCursorVisible(false);
+    setCursorTargetId(null);
+  }, []);
+
+  return { cursorTargetId, cursorVisible, moveCursor, resetCursor };
+};
+
 /* ── Provider component ──────────────────────────────── */
 
 const AiProvider = ({ children }: { children: React.ReactNode }): React.ReactNode => {
   const queryClient = useQueryClient();
   const routerNavigate = useNavigate();
 
-  // Config state
   const [config, setConfigState] = useState<AiConfig | null>(loadConfig);
   const isEnabled = config !== null;
 
-  // Chat UI state
   const [isOpen, setIsOpen] = useState(false);
   const [displayMessages, setDisplayMessages] = useState<AiDisplayMessage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-
-  // Cursor state
-  const [cursorTargetId, setCursorTargetId] = useState<string | null>(null);
-  const [cursorVisible, setCursorVisible] = useState(false);
-
-  // Activity status (shown in the floating pill)
   const [lastActivity, setLastActivity] = useState<string | null>(null);
   const [turnCount, setTurnCount] = useState(0);
 
-  // Conversation history (full LLM context)
   const messagesRef = useRef<AiChatMessage[]>([]);
   const abortRef = useRef<boolean>(false);
+  const { cursorTargetId, cursorVisible, moveCursor, resetCursor } = useCursorState();
 
-  const setConfig = useCallback((newConfig: AiConfig): void => {
-    saveConfig(newConfig);
-    setConfigState(newConfig);
+  const setConfig = useCallback((c: AiConfig): void => {
+    saveConfig(c);
+    setConfigState(c);
   }, []);
 
   const removeConfig = useCallback((): void => {
@@ -106,41 +273,16 @@ const AiProvider = ({ children }: { children: React.ReactNode }): React.ReactNod
     messagesRef.current = [];
   }, []);
 
-  const toggleOpen = useCallback((): void => {
-    setIsOpen((prev) => !prev);
-  }, []);
+  const toggleOpen = useCallback((): void => setIsOpen((prev) => !prev), []);
 
   const stopProcessing = useCallback((): void => {
     abortRef.current = true;
     setIsProcessing(false);
     setLastActivity(null);
-    setCursorVisible(false);
-    setCursorTargetId(null);
-  }, []);
+    resetCursor();
+  }, [resetCursor]);
 
-  // Stop agent on any user interaction (click or keypress)
-  useEffect(() => {
-    if (!isProcessing) {
-      return;
-    }
-
-    const handleClick = (): void => {
-      if (!isAgentClick()) {
-        stopProcessing();
-      }
-    };
-
-    const handleKeyDown = (): void => {
-      stopProcessing();
-    };
-
-    document.addEventListener('click', handleClick, true);
-    document.addEventListener('keydown', handleKeyDown, true);
-    return () => {
-      document.removeEventListener('click', handleClick, true);
-      document.removeEventListener('keydown', handleKeyDown, true);
-    };
-  }, [isProcessing, stopProcessing]);
+  useStopOnInteraction(isProcessing, stopProcessing);
 
   const clearConversation = useCallback((): void => {
     abortRef.current = true;
@@ -148,23 +290,9 @@ const AiProvider = ({ children }: { children: React.ReactNode }): React.ReactNod
     setLastActivity(null);
     setDisplayMessages([]);
     messagesRef.current = [];
-    setCursorVisible(false);
-    setCursorTargetId(null);
-  }, []);
+    resetCursor();
+  }, [resetCursor]);
 
-  // Cursor movement with a short animation delay
-  const moveCursor = useCallback(
-    (targetId: string): Promise<void> =>
-      new Promise<void>((resolve) => {
-        setCursorVisible(true);
-        setCursorTargetId(targetId);
-        // Wait for cursor animation to complete
-        setTimeout(resolve, 300);
-      }),
-    [],
-  );
-
-  // Build tool context
   const getToolContext = useCallback(
     (): ToolContext => ({
       queryClient,
@@ -176,127 +304,22 @@ const AiProvider = ({ children }: { children: React.ReactNode }): React.ReactNod
     [queryClient, routerNavigate, moveCursor],
   );
 
-  // Agent loop: send to LLM, execute tools, repeat
   const runAgentLoop = useCallback(
     async (currentConfig: AiConfig): Promise<void> => {
-      const maxIterations = 20;
-      let iterations = 0;
-
-      while (iterations < maxIterations) {
+      for (let i = 0; i < 20; i++) {
         if (abortRef.current) {
           break;
         }
-        iterations++;
-        setTurnCount(iterations);
-
-        let result;
-        try {
-          result = await chatCompletion(currentConfig, messagesRef.current, toolDefinitions);
-        } catch (err) {
-          const errorMsg = err instanceof Error ? err.message : 'Unknown error';
-          setDisplayMessages((prev) => [...prev, { type: 'assistant', content: `Something went wrong: ${errorMsg}` }]);
+        setTurnCount(i + 1);
+        const stop = await runAgentTurn(currentConfig, getToolContext(), {
+          messagesRef,
+          abortRef,
+          setDisplayMessages,
+          setLastActivity,
+        });
+        if (stop) {
           break;
         }
-
-        // Add assistant message to history
-        const assistantMsg: AiChatMessage = {
-          role: 'assistant',
-          content: result.content ?? '',
-          toolCalls: result.toolCalls.length > 0 ? result.toolCalls : undefined,
-        };
-        messagesRef.current = [...messagesRef.current, assistantMsg];
-
-        // Show text content in chat
-        if (result.content) {
-          setDisplayMessages((prev) => [...prev, { type: 'assistant', content: result.content! }]);
-        }
-
-        // If no tool calls, we're done
-        if (result.toolCalls.length === 0) {
-          break;
-        }
-
-        // Execute tools
-        const ctx = getToolContext();
-        let toolError = false;
-        for (const toolCall of result.toolCalls) {
-          if (abortRef.current) {
-            break;
-          }
-          const toolName = toolCall.name;
-          const isVisualAction = toolName === 'click' || toolName === 'fillInput' || toolName === 'navigate';
-
-          let toolArgs: Record<string, unknown>;
-          try {
-            toolArgs = JSON.parse(toolCall.arguments) as Record<string, unknown>;
-          } catch {
-            const errResult = JSON.stringify({ error: `Invalid tool arguments: ${toolCall.arguments}` });
-            messagesRef.current = [
-              ...messagesRef.current,
-              { role: 'tool', content: errResult, toolCallId: toolCall.id },
-            ];
-            continue;
-          }
-
-          // Update activity status for the floating pill
-          const description = describeAction(toolName, toolArgs);
-          setLastActivity(description);
-
-          // Show action in chat for visual actions
-          if (isVisualAction) {
-            setDisplayMessages((prev) => [...prev, { type: 'action', description, status: 'running' }]);
-          }
-
-          let toolResult: string;
-          try {
-            toolResult = await executeTool(toolName, toolArgs, ctx);
-          } catch (err) {
-            const errorMsg = err instanceof Error ? err.message : 'Unknown error';
-            toolResult = JSON.stringify({ error: `Tool "${toolName}" failed: ${errorMsg}` });
-            toolError = true;
-          }
-
-          // Update action status
-          if (isVisualAction) {
-            setDisplayMessages((prev) => {
-              const updated = [...prev];
-              let lastAction = -1;
-              for (let i = updated.length - 1; i >= 0; i--) {
-                if (
-                  updated[i]!.type === 'action' &&
-                  (updated[i] as AiDisplayMessage & { type: 'action' }).status === 'running'
-                ) {
-                  lastAction = i;
-                  break;
-                }
-              }
-              if (lastAction !== -1) {
-                const msg = updated[lastAction] as AiDisplayMessage & { type: 'action' };
-                const hasError = toolResult.includes('"error"');
-                updated[lastAction] = { ...msg, status: hasError ? 'error' : 'done' };
-              }
-              return updated;
-            });
-          }
-
-          // Surface tool errors in the chat
-          if (toolError) {
-            setDisplayMessages((prev) => [
-              ...prev,
-              { type: 'assistant', content: `Something went wrong: ${toolResult}` },
-            ]);
-          }
-
-          // Add tool result to conversation
-          const toolMsg: AiChatMessage = {
-            role: 'tool',
-            content: toolResult,
-            toolCallId: toolCall.id,
-          };
-          messagesRef.current = [...messagesRef.current, toolMsg];
-        }
-
-        // Keep showing the last tool description while waiting for the next LLM response
       }
     },
     [getToolContext],
@@ -307,23 +330,16 @@ const AiProvider = ({ children }: { children: React.ReactNode }): React.ReactNod
       if (!config || isProcessing) {
         return;
       }
-
-      // Reset abort flag
       abortRef.current = false;
-
-      // Add user message to display and history
       setDisplayMessages((prev) => [...prev, { type: 'user', content }]);
 
-      // Build system message if first message
       if (messagesRef.current.length === 0) {
         messagesRef.current = [{ role: 'system', content: buildSystemPrompt() }];
       }
 
-      // Inject current page context with user message
       const pageContext = queryPage(1);
-      const enrichedContent = `${content}\n\n[Current page: ${pageContext.route}]\n${JSON.stringify(pageContext, null, 2)}`;
-
-      messagesRef.current = [...messagesRef.current, { role: 'user', content: enrichedContent }];
+      const enriched = `${content}\n\n[Current page: ${pageContext.route}]\n${JSON.stringify(pageContext, null, 2)}`;
+      messagesRef.current = [...messagesRef.current, { role: 'user', content: enriched }];
 
       setIsProcessing(true);
       setLastActivity('Thinking...');
@@ -333,11 +349,10 @@ const AiProvider = ({ children }: { children: React.ReactNode }): React.ReactNod
         setIsProcessing(false);
         setLastActivity(null);
         setTurnCount(0);
-        setCursorVisible(false);
-        setCursorTargetId(null);
+        resetCursor();
       });
     },
-    [config, isProcessing, runAgentLoop],
+    [config, isProcessing, runAgentLoop, resetCursor],
   );
 
   const value = useMemo(

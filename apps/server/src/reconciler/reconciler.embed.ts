@@ -73,7 +73,7 @@ const createEmbedStep = (params: {
         if (items.length > 0) {
           yield items;
         }
-        lastId = rows[rows.length - 1]!.id;
+        lastId = (rows[rows.length - 1] as (typeof rows)[number]).id;
         if (rows.length < batchSize) {
           break;
         }

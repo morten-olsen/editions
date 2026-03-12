@@ -70,6 +70,40 @@ const windowToRange = (w: TimeWindow): { from?: string } => {
   return { from: new Date(Date.now() - ms).toISOString() };
 };
 
+const fetchFeedWithBookmarks = async (
+  headers: Record<string, string> | undefined,
+  params: { offset: number; sort: SortMode; status: ReadStatus; window: TimeWindow },
+): Promise<FeedData> => {
+  const { data: feedData } = await client.GET('/api/feed', {
+    params: {
+      query: {
+        offset: params.offset,
+        limit: PAGE_SIZE,
+        sort: params.sort,
+        status: params.status,
+        ...windowToRange(params.window),
+      },
+    },
+    headers,
+  });
+
+  const page = feedData as FeedPage;
+  let bookmarkedIds = new Set<string>();
+
+  const articleIds = page.articles.map((a) => a.id);
+  if (articleIds.length > 0) {
+    const { data: bmData } = await client.POST('/api/bookmarks/check', {
+      body: { articleIds },
+      headers,
+    });
+    if (bmData) {
+      bookmarkedIds = new Set((bmData as { bookmarkedIds: string[] }).bookmarkedIds);
+    }
+  }
+
+  return { feedPage: page, bookmarkedIds };
+};
+
 const useFeed = (): UseFeedResult => {
   const headers = useAuthHeaders();
   const queryClient = useQueryClient();
@@ -79,42 +113,14 @@ const useFeed = (): UseFeedResult => {
   const [total, setTotal] = useState(0);
 
   const pagination = usePagination({ pageSize: PAGE_SIZE, total });
-
   const queryKey = queryKeys.feed({ sort, status, window, offset: pagination.offset });
 
   const feedQuery = useQuery<FeedData>({
     queryKey,
     queryFn: async (): Promise<FeedData> => {
-      const { data: feedData } = await client.GET('/api/feed', {
-        params: {
-          query: {
-            offset: pagination.offset,
-            limit: PAGE_SIZE,
-            sort,
-            status,
-            ...windowToRange(window),
-          },
-        },
-        headers,
-      });
-
-      const page = feedData as FeedPage;
-      setTotal(page.total);
-
-      let bookmarkedIds = new Set<string>();
-
-      const articleIds = page.articles.map((a) => a.id);
-      if (articleIds.length > 0) {
-        const { data: bmData } = await client.POST('/api/bookmarks/check', {
-          body: { articleIds },
-          headers,
-        });
-        if (bmData) {
-          bookmarkedIds = new Set((bmData as { bookmarkedIds: string[] }).bookmarkedIds);
-        }
-      }
-
-      return { feedPage: page, bookmarkedIds };
+      const result = await fetchFeedWithBookmarks(headers, { offset: pagination.offset, sort, status, window });
+      setTotal(result.feedPage.total);
+      return result;
     },
     enabled: !!headers,
   });
@@ -125,10 +131,7 @@ const useFeed = (): UseFeedResult => {
   const voteMutation = useMutation({
     mutationFn: async ({ articleId, value }: { articleId: string; value: VoteValue }): Promise<void> => {
       if (value === null) {
-        await client.DELETE('/api/articles/{articleId}/vote', {
-          params: { path: { articleId } },
-          headers,
-        });
+        await client.DELETE('/api/articles/{articleId}/vote', { params: { path: { articleId } }, headers });
       } else {
         await client.PUT('/api/articles/{articleId}/vote', {
           params: { path: { articleId } },
@@ -157,15 +160,9 @@ const useFeed = (): UseFeedResult => {
   const bookmarkMutation = useMutation({
     mutationFn: async ({ articleId, bookmarked }: { articleId: string; bookmarked: boolean }): Promise<void> => {
       if (bookmarked) {
-        await client.DELETE('/api/articles/{articleId}/bookmark', {
-          params: { path: { articleId } },
-          headers,
-        });
+        await client.DELETE('/api/articles/{articleId}/bookmark', { params: { path: { articleId } }, headers });
       } else {
-        await client.PUT('/api/articles/{articleId}/bookmark', {
-          params: { path: { articleId } },
-          headers,
-        });
+        await client.PUT('/api/articles/{articleId}/bookmark', { params: { path: { articleId } }, headers });
       }
     },
     onMutate: async ({ articleId, bookmarked }): Promise<void> => {
@@ -198,17 +195,6 @@ const useFeed = (): UseFeedResult => {
     pagination.reset();
   };
 
-  const vote = (articleId: string, value: VoteValue): void => {
-    voteMutation.mutate({ articleId, value });
-  };
-
-  const toggleBookmark = (articleId: string): void => {
-    bookmarkMutation.mutate({
-      articleId,
-      bookmarked: bookmarkedIds.has(articleId),
-    });
-  };
-
   return {
     feedPage,
     bookmarkedIds,
@@ -226,8 +212,12 @@ const useFeed = (): UseFeedResult => {
       goPrev: pagination.goPrev,
     },
     changeFilter,
-    vote,
-    toggleBookmark,
+    vote: (articleId: string, value: VoteValue): void => {
+      voteMutation.mutate({ articleId, value });
+    },
+    toggleBookmark: (articleId: string): void => {
+      bookmarkMutation.mutate({ articleId, bookmarked: bookmarkedIds.has(articleId) });
+    },
   };
 };
 

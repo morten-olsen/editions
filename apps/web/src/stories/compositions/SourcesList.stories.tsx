@@ -20,9 +20,10 @@ const router = createRouter({
   history: createMemoryHistory({ initialEntries: ['/'] }),
 });
 
-const withRouter = (Story: React.ComponentType): React.ReactElement => (
-  <RouterProvider router={router} defaultComponent={() => <Story />} />
-);
+const withRouter = (story: React.ComponentType): React.ReactElement => {
+  const Story = story;
+  return <RouterProvider router={router} defaultComponent={() => <Story />} />;
+};
 
 const now = Date.now();
 

@@ -6,13 +6,7 @@ import { Button } from '../../components/button.tsx';
 const meta: Meta = {
   title: 'Design System/Components/Tooltip',
   parameters: { layout: 'centered' },
-  decorators: [
-    (Story) => (
-      <TooltipProvider>
-        <Story />
-      </TooltipProvider>
-    ),
-  ],
+  decorators: [(story) => <TooltipProvider>{story()}</TooltipProvider>],
 };
 
 type Story = StoryObj;

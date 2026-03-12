@@ -96,10 +96,7 @@ const EditionConfigDetailPage = (): React.ReactNode => {
     onSuccess: (data): void => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.editions.forConfig(configId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.nav });
-      void navigate({
-        to: '/editions/$configId/issues/$editionId',
-        params: { configId, editionId: data.id },
-      });
+      void navigate({ to: '/editions/$configId/issues/$editionId', params: { configId, editionId: data.id } });
     },
     onError: (err: Error): void => {
       setError(err.message);
@@ -108,10 +105,7 @@ const EditionConfigDetailPage = (): React.ReactNode => {
 
   const deleteMutation = useMutation({
     mutationFn: async (editionId: string): Promise<string> => {
-      await client.DELETE('/api/editions/{editionId}', {
-        params: { path: { editionId } },
-        headers,
-      });
+      await client.DELETE('/api/editions/{editionId}', { params: { path: { editionId } }, headers });
       return editionId;
     },
     onMutate: async (editionId): Promise<{ previous: EditionSummary[] | undefined }> => {
@@ -146,7 +140,6 @@ const EditionConfigDetailPage = (): React.ReactNode => {
     setError(null);
     generateMutation.mutate();
   };
-
   const handleDeleteEdition = (editionId: string, title: string): void => {
     if (!confirm(`Delete "${title}"?`)) {
       return;
@@ -157,7 +150,6 @@ const EditionConfigDetailPage = (): React.ReactNode => {
   if (loading) {
     return <div className="text-sm text-ink-tertiary py-12 text-center">Loading...</div>;
   }
-
   if (!config) {
     return (
       <div className="py-12 text-center">
@@ -178,41 +170,12 @@ const EditionConfigDetailPage = (): React.ReactNode => {
 
   return (
     <>
-      {/* Header: name + cog */}
-      <div
-        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8"
-        data-ai-id="edition-header"
-        data-ai-role="heading"
-        data-ai-label={config.name}
-      >
-        <h1 className="text-2xl font-serif font-medium tracking-tight text-ink">{config.name}</h1>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="primary"
-            size="sm"
-            disabled={generateMutation.isPending}
-            onClick={() => handleGenerate()}
-            data-ai-id="edition-generate"
-            data-ai-role="button"
-            data-ai-label="Generate issue"
-            data-ai-state={generateMutation.isPending ? 'loading' : 'idle'}
-          >
-            {generateMutation.isPending ? 'Generating...' : 'Generate issue'}
-          </Button>
-          <Link
-            to="/editions/$configId/edit"
-            params={{ configId }}
-            className="p-2 rounded-md text-ink-tertiary hover:text-ink hover:bg-surface-sunken transition-colors duration-fast"
-            aria-label="Edit edition settings"
-            data-ai-id="edition-edit"
-            data-ai-role="link"
-            data-ai-label="Edit edition settings"
-          >
-            <CogIcon />
-          </Link>
-        </div>
-      </div>
-
+      <ConfigHeader
+        config={config}
+        configId={configId}
+        generating={generateMutation.isPending}
+        onGenerate={handleGenerate}
+      />
       {error && (
         <div
           className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6"
@@ -223,107 +186,213 @@ const EditionConfigDetailPage = (): React.ReactNode => {
           {error}
         </div>
       )}
-
-      {/* Filter tabs */}
-      {editions.length > 0 && (
-        <div className="flex gap-1 border-b border-border mb-6">
-          {(['unread', 'all', 'read'] as const).map((f) => (
-            <button
-              key={f}
-              type="button"
-              onClick={() => setReadFilter(f)}
-              className={`relative flex h-8 items-center justify-center px-3 text-xs font-medium outline-none select-none transition-colors duration-fast cursor-pointer ${readFilter === f ? 'text-ink after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-accent' : 'text-ink-tertiary hover:text-ink-secondary'}`}
-            >
-              {f === 'unread' ? 'Unread' : f === 'all' ? 'All' : 'Read'}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Issues list */}
-      {editions.length === 0 ? (
-        <EmptyState
-          title="No issues yet"
-          description="Generate your first issue to see it here."
-          action={
-            <Button variant="primary" disabled={generateMutation.isPending} onClick={() => handleGenerate()}>
-              {generateMutation.isPending ? 'Generating...' : 'Generate issue'}
-            </Button>
-          }
-        />
-      ) : filtered.length === 0 ? (
-        <div className="py-8 text-center text-sm text-ink-tertiary">
-          {readFilter === 'unread' ? 'All caught up!' : 'No read issues yet.'}
-        </div>
-      ) : (
-        <div
-          className="divide-y divide-border"
-          data-ai-id="edition-issues"
-          data-ai-role="list"
-          data-ai-label={`${filtered.length} issues`}
-        >
-          {filtered.map((edition) => (
-            <div
-              key={edition.id}
-              className="flex items-center justify-between py-4"
-              data-ai-id={`edition-issue-${edition.id}`}
-              data-ai-role="section"
-              data-ai-label={edition.title}
-            >
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  {!edition.readAt && <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-accent" />}
-                  <Link
-                    to="/editions/$configId/issues/$editionId"
-                    params={{ configId, editionId: edition.id }}
-                    className={`font-serif font-medium hover:text-accent transition-colors duration-fast ${edition.readAt ? 'text-ink-secondary' : 'text-ink'}`}
-                    data-ai-id={`edition-issue-${edition.id}-link`}
-                    data-ai-role="link"
-                    data-ai-label={edition.title}
-                  >
-                    {edition.title}
-                  </Link>
-                </div>
-                <div
-                  className={`flex items-center gap-2 text-xs mt-0.5 ${!edition.readAt ? 'ml-3.5' : ''} text-ink-tertiary`}
-                >
-                  <span>{edition.articleCount} articles</span>
-                  {edition.totalReadingMinutes && (
-                    <>
-                      <span className="text-ink-faint">·</span>
-                      <span>{edition.totalReadingMinutes} min</span>
-                    </>
-                  )}
-                  <span className="text-ink-faint">·</span>
-                  <span>
-                    {new Date(edition.publishedAt).toLocaleDateString('en-GB', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
-                  </span>
-                  {edition.currentPosition > 0 && (
-                    <>
-                      <span className="text-ink-faint">·</span>
-                      <span className="text-accent">resumed</span>
-                    </>
-                  )}
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => handleDeleteEdition(edition.id, edition.title)}
-                className="text-xs text-ink-tertiary hover:text-critical transition-colors duration-fast cursor-pointer ml-4"
-              >
-                Delete
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+      {editions.length > 0 && <ReadFilterTabs readFilter={readFilter} onFilterChange={setReadFilter} />}
+      <IssuesList
+        editions={editions}
+        filtered={filtered}
+        readFilter={readFilter}
+        configId={configId}
+        generating={generateMutation.isPending}
+        onGenerate={handleGenerate}
+        onDelete={handleDeleteEdition}
+      />
     </>
   );
 };
+
+/* ---- Config header ---- */
+
+const ConfigHeader = ({
+  config,
+  configId,
+  generating,
+  onGenerate,
+}: {
+  config: EditionConfig;
+  configId: string;
+  generating: boolean;
+  onGenerate: () => void;
+}): React.ReactNode => (
+  <div
+    className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8"
+    data-ai-id="edition-header"
+    data-ai-role="heading"
+    data-ai-label={config.name}
+  >
+    <h1 className="text-2xl font-serif font-medium tracking-tight text-ink">{config.name}</h1>
+    <div className="flex items-center gap-2">
+      <Button
+        variant="primary"
+        size="sm"
+        disabled={generating}
+        onClick={onGenerate}
+        data-ai-id="edition-generate"
+        data-ai-role="button"
+        data-ai-label="Generate issue"
+        data-ai-state={generating ? 'loading' : 'idle'}
+      >
+        {generating ? 'Generating...' : 'Generate issue'}
+      </Button>
+      <Link
+        to="/editions/$configId/edit"
+        params={{ configId }}
+        className="p-2 rounded-md text-ink-tertiary hover:text-ink hover:bg-surface-sunken transition-colors duration-fast"
+        aria-label="Edit edition settings"
+        data-ai-id="edition-edit"
+        data-ai-role="link"
+        data-ai-label="Edit edition settings"
+      >
+        <CogIcon />
+      </Link>
+    </div>
+  </div>
+);
+
+/* ---- Read filter tabs ---- */
+
+const ReadFilterTabs = ({
+  readFilter,
+  onFilterChange,
+}: {
+  readFilter: string;
+  onFilterChange: (f: 'unread' | 'all' | 'read') => void;
+}): React.ReactNode => (
+  <div className="flex gap-1 border-b border-border mb-6">
+    {(['unread', 'all', 'read'] as const).map((f) => (
+      <button
+        key={f}
+        type="button"
+        onClick={() => onFilterChange(f)}
+        className={`relative flex h-8 items-center justify-center px-3 text-xs font-medium outline-none select-none transition-colors duration-fast cursor-pointer ${readFilter === f ? 'text-ink after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-accent' : 'text-ink-tertiary hover:text-ink-secondary'}`}
+      >
+        {f === 'unread' ? 'Unread' : f === 'all' ? 'All' : 'Read'}
+      </button>
+    ))}
+  </div>
+);
+
+/* ---- Issues list ---- */
+
+const IssuesList = ({
+  editions,
+  filtered,
+  readFilter,
+  configId,
+  generating,
+  onGenerate,
+  onDelete,
+}: {
+  editions: EditionSummary[];
+  filtered: EditionSummary[];
+  readFilter: string;
+  configId: string;
+  generating: boolean;
+  onGenerate: () => void;
+  onDelete: (id: string, title: string) => void;
+}): React.ReactNode => {
+  if (editions.length === 0) {
+    return (
+      <EmptyState
+        title="No issues yet"
+        description="Generate your first issue to see it here."
+        action={
+          <Button variant="primary" disabled={generating} onClick={onGenerate}>
+            {generating ? 'Generating...' : 'Generate issue'}
+          </Button>
+        }
+      />
+    );
+  }
+  if (filtered.length === 0) {
+    return (
+      <div className="py-8 text-center text-sm text-ink-tertiary">
+        {readFilter === 'unread' ? 'All caught up!' : 'No read issues yet.'}
+      </div>
+    );
+  }
+  return (
+    <div
+      className="divide-y divide-border"
+      data-ai-id="edition-issues"
+      data-ai-role="list"
+      data-ai-label={`${filtered.length} issues`}
+    >
+      {filtered.map((edition) => (
+        <EditionRow
+          key={edition.id}
+          edition={edition}
+          configId={configId}
+          onDelete={() => onDelete(edition.id, edition.title)}
+        />
+      ))}
+    </div>
+  );
+};
+
+/* ---- Single edition row ---- */
+
+const EditionRow = ({
+  edition,
+  configId,
+  onDelete,
+}: {
+  edition: EditionSummary;
+  configId: string;
+  onDelete: () => void;
+}): React.ReactNode => (
+  <div
+    className="flex items-center justify-between py-4"
+    data-ai-id={`edition-issue-${edition.id}`}
+    data-ai-role="section"
+    data-ai-label={edition.title}
+  >
+    <div className="min-w-0 flex-1">
+      <div className="flex items-center gap-2">
+        {!edition.readAt && <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-accent" />}
+        <Link
+          to="/editions/$configId/issues/$editionId"
+          params={{ configId, editionId: edition.id }}
+          className={`font-serif font-medium hover:text-accent transition-colors duration-fast ${edition.readAt ? 'text-ink-secondary' : 'text-ink'}`}
+          data-ai-id={`edition-issue-${edition.id}-link`}
+          data-ai-role="link"
+          data-ai-label={edition.title}
+        >
+          {edition.title}
+        </Link>
+      </div>
+      <div className={`flex items-center gap-2 text-xs mt-0.5 ${!edition.readAt ? 'ml-3.5' : ''} text-ink-tertiary`}>
+        <span>{edition.articleCount} articles</span>
+        {edition.totalReadingMinutes && (
+          <>
+            <span className="text-ink-faint">·</span>
+            <span>{edition.totalReadingMinutes} min</span>
+          </>
+        )}
+        <span className="text-ink-faint">·</span>
+        <span>
+          {new Date(edition.publishedAt).toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          })}
+        </span>
+        {edition.currentPosition > 0 && (
+          <>
+            <span className="text-ink-faint">·</span>
+            <span className="text-accent">resumed</span>
+          </>
+        )}
+      </div>
+    </div>
+    <button
+      type="button"
+      onClick={onDelete}
+      className="text-xs text-ink-tertiary hover:text-critical transition-colors duration-fast cursor-pointer ml-4"
+    >
+      Delete
+    </button>
+  </div>
+);
 
 const Route = createFileRoute('/editions/$configId/')({
   component: EditionConfigDetailPage,

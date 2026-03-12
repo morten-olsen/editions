@@ -154,7 +154,7 @@ class ReconcilerService {
     const db = await this.#services.get(DatabaseService).getInstance();
     const { config } = this.#services.get(ConfigService);
     const classifier = config.analysis.classifier;
-    const useNli = (classifier === 'nli' || classifier === 'hybrid');
+    const useNli = classifier === 'nli' || classifier === 'hybrid';
     const scopeFilter = options?.scopeFilter;
 
     const steps = [

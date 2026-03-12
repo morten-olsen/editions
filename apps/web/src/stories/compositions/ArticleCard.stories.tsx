@@ -192,9 +192,9 @@ const WithActiveVotes: Story = {
         publishedAt={new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()}
         consumptionTimeSeconds={360}
         focusVote={1}
-        onFocusVote={() => {}}
+        onFocusVote={() => undefined}
         vote={1}
-        onVote={() => {}}
+        onVote={() => undefined}
       />
       <ArticleCard
         id="2"
@@ -204,9 +204,9 @@ const WithActiveVotes: Story = {
         publishedAt={new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()}
         consumptionTimeSeconds={240}
         focusVote={-1}
-        onFocusVote={() => {}}
+        onFocusVote={() => undefined}
         vote={1}
-        onVote={() => {}}
+        onVote={() => undefined}
       />
       <ArticleCard
         id="3"
@@ -216,9 +216,9 @@ const WithActiveVotes: Story = {
         publishedAt={new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString()}
         consumptionTimeSeconds={180}
         vote={-1}
-        onVote={() => {}}
+        onVote={() => undefined}
         focusVote={null}
-        onFocusVote={() => {}}
+        onFocusVote={() => undefined}
       />
     </div>
   ),

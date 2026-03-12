@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { motion } from 'motion/react';
 
-import { MediaPlayer, waveformHeights } from '../media-player.tsx';
 import { VoteControls } from '../vote-controls.tsx';
 import type { VoteValue } from '../vote-controls.tsx';
 
 import { MagazinePage, useMagazineNav } from './magazine.layout.tsx';
+import { PodcastLayout } from './magazine.podcast.tsx';
 
 /* ── Types ────────────────────────────────────────────────────────── */
 
@@ -86,11 +86,7 @@ const ArticleBody = ({ content, delay = 0.4 }: ArticleBodyProps): React.ReactEle
 
 /* ── Next article prompt ──────────────────────────────────────────── */
 
-type NextPromptProps = {
-  delay?: number;
-};
-
-const NextPrompt = ({ delay = 0.6 }: NextPromptProps): React.ReactElement => {
+const NextPrompt = ({ delay = 0.6 }: { delay?: number }): React.ReactElement => {
   const nav = useMagazineNav();
   const canAdvance = nav !== null && nav.page < nav.total - 1;
 
@@ -182,40 +178,85 @@ const Byline = ({
   </motion.div>
 );
 
-/* ── Waveform decoration ─────────────────────────────────────────── */
+/* ── Article footer (body + vote + next) ─────────────────────────── */
 
-/**
- * Decorative soundwave — used as a static ornament when no mediaUrl
- * is available. Signals "this is audio" like a pull-quote ornament.
- * Uses the shared waveform shape from the media player.
- */
-const Waveform = ({ delay = 0.3 }: { delay?: number }): React.ReactElement => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ duration: 0.5, ease: easeOut, delay }}
-    className="flex justify-center"
-  >
-    <div className="flex items-center gap-[2px] h-9">
-      {waveformHeights.map((h, i) => (
-        <div key={i} className="w-[3px] rounded-full bg-accent/20" style={{ height: h }} />
-      ))}
-    </div>
-  </motion.div>
-);
+type ArticleFooterProps = {
+  content?: string | null;
+  focusVote?: VoteValue | null;
+  onFocusVote?: ((value: VoteValue) => void) | null;
+  bodyDelay?: number;
+  voteDelay?: number;
+  nextDelay?: number;
+  /** Wrapper class for the prose container when content is present */
+  wrapperClass?: string;
+  /** Wrapper class for the vote-only container when no content */
+  voteWrapperClass?: string;
+};
+
+const ArticleFooter = ({
+  content,
+  focusVote,
+  onFocusVote,
+  bodyDelay = 0.4,
+  voteDelay = 0.5,
+  nextDelay = 0.6,
+  wrapperClass = 'max-w-prose mx-auto w-full mt-12',
+  voteWrapperClass = 'max-w-prose mx-auto w-full',
+}: ArticleFooterProps): React.ReactElement | null => {
+  const hasContent = !!content;
+
+  if (hasContent) {
+    return (
+      <div className={wrapperClass}>
+        <ArticleBody content={content} delay={bodyDelay} />
+        {onFocusVote && <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} delay={voteDelay} />}
+        <NextPrompt delay={nextDelay} />
+      </div>
+    );
+  }
+
+  if (onFocusVote) {
+    return (
+      <div className={voteWrapperClass}>
+        <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} delay={voteDelay} />
+      </div>
+    );
+  }
+
+  return null;
+};
+
+/* ── Animated summary ────────────────────────────────────────────── */
+
+type AnimatedSummaryProps = {
+  summary?: string | null;
+  hasContent: boolean;
+  delay?: number;
+  className?: string;
+};
+
+const AnimatedSummary = ({
+  summary,
+  hasContent,
+  delay = 0.2,
+  className = '',
+}: AnimatedSummaryProps): React.ReactElement | null => {
+  if (!summary || hasContent) {
+    return null;
+  }
+  return (
+    <motion.p
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: easeOut, delay }}
+      className={`font-serif text-lg leading-relaxed text-ink-secondary mb-6 ${className}`}
+    >
+      {summary}
+    </motion.p>
+  );
+};
 
 /* ── Layout variants ──────────────────────────────────────────────── */
-
-/**
- * Articles alternate between layout variants based on their position
- * to create visual rhythm — like a magazine editor varying the spread.
- *
- * When `content` is provided, every layout flows into a shared prose
- * body column below the header, then a "next article" prompt.
- *
- * Podcast articles get a dedicated layout regardless of position —
- * square album art, a decorative waveform, and prominent listen time.
- */
 
 const HeroLayout = (props: MagazineArticleProps): React.ReactElement => {
   const {
@@ -235,9 +276,7 @@ const HeroLayout = (props: MagazineArticleProps): React.ReactElement => {
 
   return (
     <MagazinePage flow={hasContent}>
-      {/* Header: two-column hero */}
       <div className="max-w-wide mx-auto w-full grid gap-8 lg:grid-cols-2 lg:gap-16 items-center">
-        {/* Text column */}
         <div className="order-2 lg:order-1">
           <motion.div
             initial={{ opacity: 0 }}
@@ -253,7 +292,6 @@ const HeroLayout = (props: MagazineArticleProps): React.ReactElement => {
               </>
             )}
           </motion.div>
-
           <motion.h2
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -262,22 +300,9 @@ const HeroLayout = (props: MagazineArticleProps): React.ReactElement => {
           >
             {title}
           </motion.h2>
-
-          {summary && !hasContent && (
-            <motion.p
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: easeOut, delay: 0.2 }}
-              className="font-serif text-lg leading-relaxed text-ink-secondary mb-6"
-            >
-              {summary}
-            </motion.p>
-          )}
-
+          <AnimatedSummary summary={summary} hasContent={hasContent} />
           <Byline author={author} consumptionTimeSeconds={consumptionTimeSeconds} sourceType={sourceType} />
         </div>
-
-        {/* Image column */}
         {imageUrl && (
           <motion.div
             initial={{ opacity: 0, scale: 0.97 }}
@@ -289,20 +314,7 @@ const HeroLayout = (props: MagazineArticleProps): React.ReactElement => {
           </motion.div>
         )}
       </div>
-
-      {/* Article body */}
-      {hasContent && (
-        <div className="max-w-prose mx-auto w-full mt-12">
-          <ArticleBody content={content} />
-          {onFocusVote && <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} />}
-          <NextPrompt />
-        </div>
-      )}
-      {!hasContent && onFocusVote && (
-        <div className="max-w-prose mx-auto w-full">
-          <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} />
-        </div>
-      )}
+      <ArticleFooter content={content} focusVote={focusVote} onFocusVote={onFocusVote} />
     </MagazinePage>
   );
 };
@@ -326,7 +338,6 @@ const EditorialLayout = (props: MagazineArticleProps): React.ReactElement => {
   return (
     <MagazinePage className={hasContent ? '' : 'items-center'} flow={hasContent}>
       <div className="max-w-prose mx-auto w-full">
-        {/* Source badge */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -335,8 +346,6 @@ const EditorialLayout = (props: MagazineArticleProps): React.ReactElement => {
         >
           {sourceName}
         </motion.div>
-
-        {/* Title — centered, large */}
         <motion.h2
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -345,16 +354,12 @@ const EditorialLayout = (props: MagazineArticleProps): React.ReactElement => {
         >
           {title}
         </motion.h2>
-
-        {/* Decorative rule */}
         <motion.div
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
           transition={{ duration: 0.5, ease: easeOut, delay: 0.2 }}
           className="w-12 h-px bg-border-strong mx-auto mb-8"
         />
-
-        {/* Image (full-width within prose) */}
         {imageUrl && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -365,20 +370,7 @@ const EditorialLayout = (props: MagazineArticleProps): React.ReactElement => {
             <img src={imageUrl} alt="" className="w-full h-full object-cover" />
           </motion.div>
         )}
-
-        {/* Summary as opening paragraph — only when no full content to avoid repetition */}
-        {summary && !hasContent && (
-          <motion.p
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: easeOut, delay: 0.3 }}
-            className="font-serif text-lg leading-relaxed text-ink-secondary mb-6 text-center"
-          >
-            {summary}
-          </motion.p>
-        )}
-
-        {/* Meta footer */}
+        <AnimatedSummary summary={summary} hasContent={hasContent} delay={0.3} className="text-center" />
         <Byline
           author={author}
           publishedAt={publishedAt}
@@ -387,16 +379,15 @@ const EditorialLayout = (props: MagazineArticleProps): React.ReactElement => {
           centered={!hasContent}
           delay={0.4}
         />
-
-        {/* Article body */}
-        {hasContent && (
+        {hasContent ? (
           <>
             <ArticleBody content={content} delay={0.5} />
             {onFocusVote && <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} delay={0.65} />}
             <NextPrompt delay={0.7} />
           </>
+        ) : (
+          onFocusVote && <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} delay={0.5} />
         )}
-        {!hasContent && onFocusVote && <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} delay={0.5} />}
       </div>
     </MagazinePage>
   );
@@ -422,31 +413,7 @@ const CompactLayout = (props: MagazineArticleProps): React.ReactElement => {
     <MagazinePage flow={hasContent}>
       <div className="max-w-wide mx-auto w-full">
         <div className="grid gap-6 md:grid-cols-[1fr_2fr] md:gap-12 items-start">
-          {/* Left: image or source block */}
-          <div>
-            {imageUrl ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, ease: easeOut }}
-                className="aspect-square rounded-lg overflow-hidden bg-surface-sunken"
-              >
-                <img src={imageUrl} alt="" className="w-full h-full object-cover" />
-              </motion.div>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.4, ease: easeOut }}
-                className="py-4 border-t-2 border-accent"
-              >
-                <div className="text-xs font-mono tracking-wide text-accent uppercase">{sourceName}</div>
-                {publishedAt && <div className="text-xs text-ink-tertiary mt-1">{formatArticleDate(publishedAt)}</div>}
-              </motion.div>
-            )}
-          </div>
-
-          {/* Right: text content */}
+          <CompactLeftColumn imageUrl={imageUrl} sourceName={sourceName} publishedAt={publishedAt} />
           <div>
             {imageUrl && (
               <motion.div
@@ -458,7 +425,6 @@ const CompactLayout = (props: MagazineArticleProps): React.ReactElement => {
                 {sourceName}
               </motion.div>
             )}
-
             <motion.h2
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -467,168 +433,53 @@ const CompactLayout = (props: MagazineArticleProps): React.ReactElement => {
             >
               {title}
             </motion.h2>
-
-            {summary && !hasContent && (
-              <motion.p
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, ease: easeOut, delay: 0.2 }}
-                className="font-serif text-base leading-relaxed text-ink-secondary mb-4"
-              >
-                {summary}
-              </motion.p>
-            )}
-
+            <AnimatedSummary summary={summary} hasContent={hasContent} className="text-base" />
             <Byline author={author} consumptionTimeSeconds={consumptionTimeSeconds} sourceType={sourceType} />
           </div>
         </div>
       </div>
-
-      {/* Article body — full-width prose below the compact header */}
-      {hasContent && (
-        <div className="max-w-prose mx-auto w-full mt-12">
-          <ArticleBody content={content} />
-          {onFocusVote && <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} />}
-          <NextPrompt />
-        </div>
-      )}
-      {!hasContent && onFocusVote && (
-        <div className="max-w-wide mx-auto w-full mt-8">
-          <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} />
-        </div>
-      )}
+      <ArticleFooter
+        content={content}
+        focusVote={focusVote}
+        onFocusVote={onFocusVote}
+        voteWrapperClass="max-w-wide mx-auto w-full mt-8"
+      />
     </MagazinePage>
   );
 };
 
-/* ── Podcast layout ──────────────────────────────────────────────── */
+/* ── Compact left column ─────────────────────────────────────────── */
 
-/**
- * A centered, contemplative spread for podcast episodes. Evokes the
- * feeling of a featured audio piece in a print magazine — album art
- * at moderate scale, a decorative waveform, and prominent listen time.
- */
-const PodcastLayout = (props: MagazineArticleProps): React.ReactElement => {
-  const {
-    articleId,
-    title,
-    sourceName,
-    author,
-    summary,
-    publishedAt,
-    consumptionTimeSeconds,
-    imageUrl,
-    mediaUrl,
-    mediaType,
-    progress,
-    content,
-    focusVote,
-    onFocusVote,
-  } = props;
-  const hasContent = !!content;
-  const listenMin = consumptionTimeSeconds ? Math.round(consumptionTimeSeconds / 60) : null;
-
-  return (
-    <MagazinePage className={hasContent ? '' : 'items-center'} flow={hasContent}>
-      <div className="max-w-prose mx-auto w-full">
-        {/* Type label */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, ease: easeOut }}
-          className="flex items-center justify-center gap-2 text-xs font-mono tracking-wide text-accent mb-8"
-        >
-          <span className="uppercase">Podcast</span>
-          <span className="text-ink-faint">·</span>
-          <span>{sourceName}</span>
-        </motion.div>
-
-        {/* Album art — square, centered, moderate size */}
-        {imageUrl && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, ease: easeOut, delay: 0.1 }}
-            className="mx-auto mb-8 w-48 h-48 md:w-64 md:h-64 rounded-lg overflow-hidden bg-surface-sunken shadow-lg"
-          >
-            <img src={imageUrl} alt="" className="w-full h-full object-cover" />
-          </motion.div>
-        )}
-
-        {/* Episode title */}
-        <motion.h2
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: easeOut, delay: 0.15 }}
-          className="font-serif text-3xl md:text-4xl tracking-tight leading-tight text-ink text-center mb-6"
-        >
-          {title}
-        </motion.h2>
-
-        {/* Media player or waveform + listen time fallback */}
-        {mediaUrl ? (
-          <div className="mb-8">
-            <MediaPlayer
-              mediaUrl={mediaUrl}
-              mediaType={mediaType}
-              articleId={articleId}
-              initialProgress={progress}
-              delay={0.25}
-            />
-          </div>
-        ) : (
-          <>
-            <div className="mb-6">
-              <Waveform delay={0.2} />
-            </div>
-            {listenMin !== null && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.4, ease: easeOut, delay: 0.3 }}
-                className="text-center mb-6"
-              >
-                <span className="inline-flex items-center gap-2 text-sm font-mono tracking-wide text-ink-tertiary">
-                  <span className="text-lg leading-none text-ink">{listenMin}</span>
-                  <span>min listen</span>
-                </span>
-              </motion.div>
-            )}
-          </>
-        )}
-
-        {/* Summary / episode description — only when no show notes to avoid repetition */}
-        {summary && !hasContent && (
-          <motion.p
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: easeOut, delay: mediaUrl ? 0.35 : 0.4 }}
-            className="font-serif text-lg leading-relaxed text-ink-secondary mb-6 text-center"
-          >
-            {summary}
-          </motion.p>
-        )}
-
-        {/* Author / date byline */}
-        <Byline author={author} publishedAt={publishedAt} centered={!hasContent} delay={mediaUrl ? 0.4 : 0.45} />
-
-        {/* Show notes / transcript */}
-        {hasContent && (
-          <>
-            <ArticleBody content={content} delay={mediaUrl ? 0.5 : 0.55} />
-            {onFocusVote && (
-              <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} delay={mediaUrl ? 0.6 : 0.65} />
-            )}
-            <NextPrompt delay={mediaUrl ? 0.65 : 0.7} />
-          </>
-        )}
-        {!hasContent && onFocusVote && (
-          <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} delay={mediaUrl ? 0.5 : 0.55} />
-        )}
-      </div>
-    </MagazinePage>
-  );
+type CompactLeftColumnProps = {
+  imageUrl?: string | null;
+  sourceName: string;
+  publishedAt?: string | null;
 };
+
+const CompactLeftColumn = ({ imageUrl, sourceName, publishedAt }: CompactLeftColumnProps): React.ReactElement => (
+  <div>
+    {imageUrl ? (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, ease: easeOut }}
+        className="aspect-square rounded-lg overflow-hidden bg-surface-sunken"
+      >
+        <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+      </motion.div>
+    ) : (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, ease: easeOut }}
+        className="py-4 border-t-2 border-accent"
+      >
+        <div className="text-xs font-mono tracking-wide text-accent uppercase">{sourceName}</div>
+        {publishedAt && <div className="text-xs text-ink-tertiary mt-1">{formatArticleDate(publishedAt)}</div>}
+      </motion.div>
+    )}
+  </div>
+);
 
 /* ── MagazineArticle (selects layout variant) ─────────────────────── */
 
@@ -651,5 +502,24 @@ const MagazineArticle = (props: MagazineArticleProps): React.ReactElement => {
 
 /* ── Exports ──────────────────────────────────────────────────────── */
 
-export type { MagazineArticleProps, VoteValue };
-export { MagazineArticle };
+export type {
+  MagazineArticleProps,
+  VoteValue,
+  BylineProps,
+  ArticleFooterProps,
+  ArticleBodyProps,
+  VoteRowProps,
+  AnimatedSummaryProps,
+};
+export {
+  MagazineArticle,
+  ArticleBody,
+  ArticleFooter,
+  Byline,
+  VoteRow,
+  NextPrompt,
+  AnimatedSummary,
+  easeOut,
+  formatArticleDate,
+  formatReadingTime,
+};

@@ -333,7 +333,7 @@ const buildPages = (
       totalReadingMinutes={edition.totalReadingMinutes}
       articleCount={edition.articleCount}
       focusCount={edition.sections.length}
-      lead={edition.sections[0]!.articles[0]!}
+      lead={edition.sections[0]?.articles[0] as (typeof edition.sections)[number]['articles'][number]}
       highlights={[edition.sections[1]?.articles[0], edition.sections[2]?.articles[0]].filter(
         (a): a is (typeof edition.sections)[number]['articles'][number] => !!a,
       )}
@@ -387,16 +387,18 @@ const meta: Meta = {
 type Story = StoryObj;
 
 /* Full magazine: all pages with navigation */
+const FullMagazineRender = (): JSX.Element => {
+  const [page, setPage] = useState(0);
+  const { pages, toc } = buildPages(sampleEdition, setPage);
+  return (
+    <MagazineLayout page={page} onPageChange={setPage} toc={toc}>
+      {pages}
+    </MagazineLayout>
+  );
+};
+
 const FullMagazine: Story = {
-  render: () => {
-    const [page, setPage] = useState(0);
-    const { pages, toc } = buildPages(sampleEdition, setPage);
-    return (
-      <MagazineLayout page={page} onPageChange={setPage} toc={toc}>
-        {pages}
-      </MagazineLayout>
-    );
-  },
+  render: () => <FullMagazineRender />,
 };
 
 /* Cover page in isolation */
@@ -408,8 +410,10 @@ const Cover: Story = {
       totalReadingMinutes={sampleEdition.totalReadingMinutes}
       articleCount={sampleEdition.articleCount}
       focusCount={sampleEdition.sections.length}
-      lead={sampleEdition.sections[0]!.articles[0]!}
-      highlights={[sampleEdition.sections[1]!.articles[0]!, sampleEdition.sections[2]!.articles[0]!]}
+      lead={sampleEdition.sections[0]?.articles[0] as (typeof sampleEdition.sections)[number]['articles'][number]}
+      highlights={[sampleEdition.sections[1]?.articles[0], sampleEdition.sections[2]?.articles[0]].filter(
+        (a): a is (typeof sampleEdition.sections)[number]['articles'][number] => !!a,
+      )}
     />
   ),
 };

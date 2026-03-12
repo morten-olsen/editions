@@ -65,6 +65,88 @@ type PageIndicatorProps = {
   toc?: TocEntry[];
 };
 
+/* ── ToC panel ────────────────────────────────────────────────────── */
+
+type TocPanelProps = {
+  toc: TocEntry[];
+  onNavigate: (page: number) => void;
+  onClose: () => void;
+};
+
+const TocPanel = ({ toc, onNavigate, onClose }: TocPanelProps): React.ReactElement => (
+  <>
+    <motion.div
+      key="toc-backdrop"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="fixed inset-0 z-[-1]"
+      onClick={onClose}
+    />
+    <motion.div
+      key="toc-panel"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 12 }}
+      transition={{ duration: 0.25, ease: easeOut }}
+      className="mx-4 mb-2 rounded-xl bg-surface border border-border shadow-xl max-h-[55vh] overflow-y-auto"
+    >
+      <div className="px-5 py-4">
+        <div className="text-[10px] font-mono tracking-widest text-ink-faint uppercase mb-4">Contents</div>
+        <div className="grid gap-5">
+          {toc.map((section) => (
+            <TocSection key={section.sectionName} section={section} onNavigate={onNavigate} />
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  </>
+);
+
+/* ── ToC section ──────────────────────────────────────────────────── */
+
+type TocSectionProps = {
+  section: TocEntry;
+  onNavigate: (page: number) => void;
+};
+
+const TocSection = ({ section, onNavigate }: TocSectionProps): React.ReactElement => (
+  <div>
+    <button
+      onClick={() => onNavigate(section.sectionPage)}
+      className="flex items-baseline gap-3 w-full text-left mb-2 group"
+    >
+      <span className="font-serif text-sm font-medium text-ink group-hover:text-accent transition-colors duration-fast">
+        {section.sectionName}
+      </span>
+      <span className="flex-1 border-b border-dotted border-border min-w-4 translate-y-[-2px]" />
+      <span className="text-[10px] font-mono text-ink-faint shrink-0">
+        p. {String(section.sectionPage + 1).padStart(2, '0')}
+      </span>
+    </button>
+    <div className="grid gap-1.5 pl-3 border-l border-border">
+      {section.articles.map((article) => (
+        <button
+          key={article.page}
+          onClick={() => onNavigate(article.page)}
+          className="flex items-baseline gap-2 w-full text-left group"
+        >
+          <span className="font-serif text-xs text-ink-secondary group-hover:text-accent transition-colors duration-fast leading-snug">
+            {article.title}
+          </span>
+          <span className="flex-1 border-b border-dotted border-border/50 min-w-4 translate-y-[-2px]" />
+          <span className="text-[10px] font-mono text-ink-faint shrink-0">
+            {String(article.page + 1).padStart(2, '0')}
+          </span>
+        </button>
+      ))}
+    </div>
+  </div>
+);
+
+/* ── PageIndicator ────────────────────────────────────────────────── */
+
 const PageIndicator = ({ current, total, onPageChange, toc }: PageIndicatorProps): React.ReactElement => {
   const [tocOpen, setTocOpen] = React.useState(false);
 
@@ -75,104 +157,69 @@ const PageIndicator = ({ current, total, onPageChange, toc }: PageIndicatorProps
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">
-      {/* ToC overlay panel */}
       <AnimatePresence>
-        {tocOpen && toc && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              key="toc-backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-[-1]"
-              onClick={() => setTocOpen(false)}
-            />
-            {/* Panel */}
-            <motion.div
-              key="toc-panel"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 12 }}
-              transition={{ duration: 0.25, ease: easeOut }}
-              className="mx-4 mb-2 rounded-xl bg-surface border border-border shadow-xl max-h-[55vh] overflow-y-auto"
-            >
-              <div className="px-5 py-4">
-                <div className="text-[10px] font-mono tracking-widest text-ink-faint uppercase mb-4">Contents</div>
-                <div className="grid gap-5">
-                  {toc.map((section) => (
-                    <div key={section.sectionName}>
-                      <button
-                        onClick={() => handleNavigate(section.sectionPage)}
-                        className="flex items-baseline gap-3 w-full text-left mb-2 group"
-                      >
-                        <span className="font-serif text-sm font-medium text-ink group-hover:text-accent transition-colors duration-fast">
-                          {section.sectionName}
-                        </span>
-                        <span className="flex-1 border-b border-dotted border-border min-w-4 translate-y-[-2px]" />
-                        <span className="text-[10px] font-mono text-ink-faint shrink-0">
-                          p. {String(section.sectionPage + 1).padStart(2, '0')}
-                        </span>
-                      </button>
-                      <div className="grid gap-1.5 pl-3 border-l border-border">
-                        {section.articles.map((article) => (
-                          <button
-                            key={article.page}
-                            onClick={() => handleNavigate(article.page)}
-                            className="flex items-baseline gap-2 w-full text-left group"
-                          >
-                            <span className="font-serif text-xs text-ink-secondary group-hover:text-accent transition-colors duration-fast leading-snug">
-                              {article.title}
-                            </span>
-                            <span className="flex-1 border-b border-dotted border-border/50 min-w-4 translate-y-[-2px]" />
-                            <span className="text-[10px] font-mono text-ink-faint shrink-0">
-                              {String(article.page + 1).padStart(2, '0')}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
+        {tocOpen && toc && <TocPanel toc={toc} onNavigate={handleNavigate} onClose={() => setTocOpen(false)} />}
       </AnimatePresence>
-
-      {/* Bottom nav bar */}
-      <div className="flex items-center justify-center gap-6 py-4 bg-linear-to-t from-surface via-surface/80 to-transparent">
-        {toc && (
-          <button
-            onClick={() => setTocOpen((o) => !o)}
-            aria-label="Table of contents"
-            className={`transition-colors duration-fast ${tocOpen ? 'text-accent' : 'text-ink-tertiary hover:text-ink'}`}
-          >
-            <List size={14} strokeWidth={1.75} />
-          </button>
-        )}
-        <button
-          onClick={() => onPageChange(Math.max(0, current - 1))}
-          disabled={current === 0}
-          className="text-xs font-mono tracking-wide text-ink-tertiary hover:text-ink disabled:opacity-30 transition-colors duration-fast"
-        >
-          Prev
-        </button>
-        <span className="text-xs font-mono tracking-wide text-ink-tertiary tabular-nums">
-          {String(current + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
-        </span>
-        <button
-          onClick={() => onPageChange(Math.min(total - 1, current + 1))}
-          disabled={current === total - 1}
-          className="text-xs font-mono tracking-wide text-ink-tertiary hover:text-ink disabled:opacity-30 transition-colors duration-fast"
-        >
-          Next
-        </button>
-      </div>
+      <PageNavBar
+        current={current}
+        total={total}
+        onPageChange={onPageChange}
+        toc={toc}
+        tocOpen={tocOpen}
+        onTocToggle={() => setTocOpen((o) => !o)}
+      />
     </div>
   );
 };
+
+/* ── Page nav bar ────────────────────────────────────────────────── */
+
+type PageNavBarProps = {
+  current: number;
+  total: number;
+  onPageChange: (page: number) => void;
+  toc?: TocEntry[];
+  tocOpen: boolean;
+  onTocToggle: () => void;
+};
+
+const PageNavBar = ({
+  current,
+  total,
+  onPageChange,
+  toc,
+  tocOpen,
+  onTocToggle,
+}: PageNavBarProps): React.ReactElement => (
+  <div className="flex items-center justify-center gap-6 py-4 bg-linear-to-t from-surface via-surface/80 to-transparent">
+    {toc && (
+      <button
+        onClick={onTocToggle}
+        aria-label="Table of contents"
+        className={`transition-colors duration-fast ${tocOpen ? 'text-accent' : 'text-ink-tertiary hover:text-ink'}`}
+      >
+        <List size={14} strokeWidth={1.75} />
+      </button>
+    )}
+    <button
+      onClick={() => onPageChange(Math.max(0, current - 1))}
+      disabled={current === 0}
+      className="text-xs font-mono tracking-wide text-ink-tertiary hover:text-ink disabled:opacity-30 transition-colors duration-fast"
+    >
+      Prev
+    </button>
+    <span className="text-xs font-mono tracking-wide text-ink-tertiary tabular-nums">
+      {String(current + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
+    </span>
+    <button
+      onClick={() => onPageChange(Math.min(total - 1, current + 1))}
+      disabled={current === total - 1}
+      className="text-xs font-mono tracking-wide text-ink-tertiary hover:text-ink disabled:opacity-30 transition-colors duration-fast"
+    >
+      Next
+    </button>
+  </div>
+);
 
 /* ── Touch / swipe helpers ────────────────────────────────────────── */
 
@@ -187,11 +234,61 @@ type TouchState = {
   startTime: number;
 };
 
+type SwipeArgs = {
+  dx: number;
+  absDx: number;
+  absDy: number;
+  nav: { page: number; total: number; onPageChange: (page: number) => void };
+};
+
+/** Detect a horizontal swipe and navigate accordingly. Returns true if handled. */
+const handleSwipe = ({ dx, absDx, absDy, nav }: SwipeArgs): boolean => {
+  if (absDx < SWIPE_THRESHOLD || absDx <= absDy * 1.2) {
+    return false;
+  }
+  if (dx < 0 && nav.page < nav.total - 1) {
+    nav.onPageChange(nav.page + 1);
+  } else if (dx > 0 && nav.page > 0) {
+    nav.onPageChange(nav.page - 1);
+  }
+  return true;
+};
+
+type EdgeTapArgs = {
+  e: TouchEvent;
+  t: Touch;
+  elapsed: number;
+  absDx: number;
+  absDy: number;
+  nav: { page: number; total: number; onPageChange: (page: number) => void };
+};
+
+/** Detect an edge tap and navigate accordingly. Returns true if navigated. */
+const handleEdgeTap = ({ e, t, elapsed, absDx, absDy, nav }: EdgeTapArgs): boolean => {
+  if (elapsed >= 300 || absDx >= 10 || absDy >= 10) {
+    return false;
+  }
+
+  const target = e.target as HTMLElement;
+  if (target.closest("a, button, audio, video, input, textarea, [role='button']")) {
+    return false;
+  }
+
+  const x = t.clientX;
+  const width = window.innerWidth;
+  if (x < width * TAP_ZONE && nav.page > 0) {
+    nav.onPageChange(nav.page - 1);
+    return true;
+  }
+  if (x > width * (1 - TAP_ZONE) && nav.page < nav.total - 1) {
+    nav.onPageChange(nav.page + 1);
+    return true;
+  }
+  return false;
+};
+
 /**
  * Hook that adds swipe-to-navigate and edge-tap-to-navigate on touch devices.
- * - Horizontal swipe (≥ SWIPE_THRESHOLD px, mostly horizontal) turns the page.
- * - Quick tap (< 300 ms, < 10 px movement) in the left/right 25% of the screen turns the page.
- * - Taps in the center 50% and vertical scrolls are left alone.
  */
 const useTouchNav = (
   ref: React.RefObject<HTMLDivElement | null>,
@@ -228,45 +325,19 @@ const useTouchNav = (
       const absDx = Math.abs(dx);
       const absDy = Math.abs(dy);
 
-      /* ── Swipe detection ── */
-      if (absDx >= SWIPE_THRESHOLD && absDx > absDy * 1.2) {
-        if (dx < 0 && page < total - 1) {
-          onPageChange(page + 1);
-        } // swipe left → next
-        else if (dx > 0 && page > 0) {
-          onPageChange(page - 1);
-        } // swipe right → prev
+      const nav = { page, total, onPageChange };
+
+      if (handleSwipe({ dx, absDx, absDy, nav })) {
         return;
       }
 
-      /* ── Edge-tap detection ── */
-      if (elapsed < 300 && absDx < 10 && absDy < 10) {
-        /* Ignore taps on interactive elements */
-        const target = e.target as HTMLElement;
-        if (target.closest("a, button, audio, video, input, textarea, [role='button']")) {
-          return;
-        }
-
-        const x = t.clientX;
-        const width = window.innerWidth;
-        let navigated = false;
-        if (x < width * TAP_ZONE && page > 0) {
-          onPageChange(page - 1);
-          navigated = true;
-        } else if (x > width * (1 - TAP_ZONE) && page < total - 1) {
-          onPageChange(page + 1);
-          navigated = true;
-        }
-
-        /* Swallow the click event that follows touchend so it doesn't activate
-           whatever element sits underneath (e.g. a ToC link). */
-        if (navigated) {
-          const suppress = (ev: Event): void => {
-            ev.preventDefault();
-            ev.stopPropagation();
-          };
-          el.addEventListener('click', suppress, { capture: true, once: true });
-        }
+      const navigated = handleEdgeTap({ e, t, elapsed, absDx, absDy, nav });
+      if (navigated) {
+        const suppress = (ev: Event): void => {
+          ev.preventDefault();
+          ev.stopPropagation();
+        };
+        el.addEventListener('click', suppress, { capture: true, once: true });
       }
     };
 

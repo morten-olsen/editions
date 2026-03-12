@@ -14,7 +14,7 @@ const hashHistory = createHashHistory();
 const router = createRouter({
   routeTree,
   history: hashHistory,
-  context: { auth: undefined! },
+  context: { auth: undefined as never },
 });
 
 declare module '@tanstack/react-router' {

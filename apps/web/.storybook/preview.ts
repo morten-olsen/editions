@@ -30,7 +30,7 @@ const preview: Preview = {
     },
   },
   decorators: [
-    (Story, context) => {
+    (story, context) => {
       const bg = context.globals?.backgrounds?.value ?? context.parameters?.backgrounds?.default;
       const isDark = typeof bg === 'string' && bg.includes('dark');
       if (isDark) {
@@ -38,7 +38,7 @@ const preview: Preview = {
       } else {
         document.documentElement.classList.remove('dark');
       }
-      return Story();
+      return story();
     },
   ],
 };

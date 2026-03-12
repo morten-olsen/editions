@@ -70,12 +70,106 @@ const ease = [0.25, 0.1, 0.25, 1] as const;
 
 const gentle: Transition = { duration: 0.35, ease };
 
-/* ── Card ───────────────────────────────────────────────────────── */
+/* ── Sub-components ──────────────────────────────────────────────── */
 
 const MotionLink = motion.create(Link);
 
-const ArticleCard = ({
-  id,
+type CardMetaProps = {
+  sourceName: string;
+  publishedAt?: string | null;
+  sourceType?: string | null;
+  consumptionTimeSeconds?: number | null;
+};
+
+const CardMeta = ({
+  sourceName,
+  publishedAt,
+  sourceType,
+  consumptionTimeSeconds,
+}: CardMetaProps): React.ReactElement => (
+  <div className="flex items-center gap-1.5 text-xs text-ink-tertiary">
+    <span>{sourceName}</span>
+    {publishedAt && (
+      <>
+        <Dot />
+        <span>{formatDate(publishedAt)}</span>
+      </>
+    )}
+    {sourceType === 'podcast' && (
+      <>
+        <Dot />
+        <span className="text-accent font-medium">Podcast</span>
+      </>
+    )}
+    {consumptionTimeSeconds && (
+      <>
+        <Dot />
+        <span>{formatTime(consumptionTimeSeconds, sourceType)}</span>
+      </>
+    )}
+  </div>
+);
+
+type CardTitleProps = {
+  title: string;
+  muted: boolean;
+  compact: boolean;
+};
+
+const CardTitle = ({ title, muted, compact }: CardTitleProps): React.ReactElement => (
+  <motion.div
+    animate={{ opacity: muted ? 0.7 : 1 }}
+    transition={gentle}
+    className={`font-serif font-medium tracking-tight leading-snug ${muted ? 'text-sm text-ink-tertiary' : compact ? 'text-sm text-ink' : 'text-lg text-ink'}`}
+  >
+    {title}
+  </motion.div>
+);
+
+type CardImageProps = {
+  imageUrl: string;
+};
+
+const CardImage = ({ imageUrl }: CardImageProps): React.ReactElement => (
+  <div className="flex flex-col sm:flex-row sm:gap-5">
+    <div className="sm:hidden -mx-1 mb-2 aspect-[3/1] rounded-md overflow-hidden bg-surface-sunken">
+      <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+    </div>
+    <div className="hidden sm:block shrink-0 w-28 h-20 rounded-md overflow-hidden bg-surface-sunken">
+      <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+    </div>
+  </div>
+);
+
+type CardActionsProps = {
+  vote?: VoteValue;
+  onVote?: (value: VoteValue) => void;
+  focusVote?: VoteValue;
+  onFocusVote?: (value: VoteValue) => void;
+  bookmarked?: boolean;
+  onBookmarkToggle?: () => void;
+};
+
+const CardActions = ({
+  vote,
+  onVote,
+  focusVote,
+  onFocusVote,
+  bookmarked,
+  onBookmarkToggle,
+}: CardActionsProps): React.ReactElement => (
+  <div className="flex items-center gap-4 mt-1">
+    {onFocusVote && <VoteControls value={focusVote ?? null} onVote={onFocusVote} label="Relevance" />}
+    {onVote && <VoteControls value={vote ?? null} onVote={onVote} label="Quality" />}
+    {onBookmarkToggle && <BookmarkButton bookmarked={bookmarked ?? false} onToggle={onBookmarkToggle} />}
+  </div>
+);
+
+/* ── Card content ────────────────────────────────────────────────── */
+
+type CardContentProps = Omit<ArticleCardProps, 'id' | 'url' | 'href'>;
+
+const CardContent = ({
   title,
   sourceName,
   author,
@@ -84,7 +178,6 @@ const ArticleCard = ({
   consumptionTimeSeconds,
   sourceType,
   imageUrl,
-  href,
   compact = false,
   read = false,
   vote,
@@ -93,92 +186,58 @@ const ArticleCard = ({
   onFocusVote,
   bookmarked,
   onBookmarkToggle,
-}: ArticleCardProps): React.ReactElement => {
-  const aiId = `article-${id}`;
-  const aiLabel = [title, sourceName, publishedAt ? formatDate(publishedAt) : null].filter(Boolean).join(' · ');
-  const hasVoting = onVote !== undefined || onFocusVote !== undefined;
-  const hasBookmark = onBookmarkToggle !== undefined;
+}: CardContentProps): React.ReactElement => {
   const muted = read;
   const showDetails = !compact;
-
-  const meta = (
-    <div className="flex items-center gap-1.5 text-xs text-ink-tertiary">
-      <span>{sourceName}</span>
-      {publishedAt && (
-        <>
-          <Dot />
-          <span>{formatDate(publishedAt)}</span>
-        </>
-      )}
-      {sourceType === 'podcast' && (
-        <>
-          <Dot />
-          <span className="text-accent font-medium">Podcast</span>
-        </>
-      )}
-      {consumptionTimeSeconds && (
-        <>
-          <Dot />
-          <span>{formatTime(consumptionTimeSeconds, sourceType)}</span>
-        </>
-      )}
-    </div>
-  );
-
-  const titleEl = (
-    <motion.div
-      animate={{ opacity: muted ? 0.7 : 1 }}
-      transition={gentle}
-      className={`font-serif font-medium tracking-tight leading-snug ${muted ? 'text-sm text-ink-tertiary' : compact ? 'text-sm text-ink' : 'text-lg text-ink'}`}
-    >
-      {title}
-    </motion.div>
-  );
-
-  const summaryEl =
-    showDetails && summary ? (
-      <motion.div
-        animate={{ opacity: muted ? 0.6 : 1 }}
-        transition={gentle}
-        className={`text-sm leading-relaxed ${muted ? 'line-clamp-1 text-ink-faint' : 'line-clamp-2 text-ink-secondary'}`}
-      >
-        {summary}
-      </motion.div>
-    ) : null;
-
-  const actionBar =
-    hasVoting || hasBookmark ? (
-      <div className="flex items-center gap-4 mt-1">
-        {onFocusVote && <VoteControls value={focusVote ?? null} onVote={onFocusVote} label="Relevance" />}
-        {onVote && <VoteControls value={vote ?? null} onVote={onVote} label="Quality" />}
-        {hasBookmark && <BookmarkButton bookmarked={bookmarked ?? false} onToggle={onBookmarkToggle} />}
-      </div>
-    ) : null;
-
   const hasImage = showDetails && imageUrl;
+  const hasActions = onVote !== undefined || onFocusVote !== undefined || onBookmarkToggle !== undefined;
 
-  const content = (
+  return (
     <>
-      {meta}
-      {titleEl}
-      {summaryEl}
+      <CardMeta
+        sourceName={sourceName}
+        publishedAt={publishedAt}
+        sourceType={sourceType}
+        consumptionTimeSeconds={consumptionTimeSeconds}
+      />
+      <CardTitle title={title} muted={muted} compact={compact} />
+      {showDetails && summary && (
+        <motion.div
+          animate={{ opacity: muted ? 0.6 : 1 }}
+          transition={gentle}
+          className={`text-sm leading-relaxed ${muted ? 'line-clamp-1 text-ink-faint' : 'line-clamp-2 text-ink-secondary'}`}
+        >
+          {summary}
+        </motion.div>
+      )}
       <Collapse show={!!hasImage && !muted}>
-        <div className="flex flex-col sm:flex-row sm:gap-5">
-          <div className="sm:hidden -mx-1 mb-2 aspect-[3/1] rounded-md overflow-hidden bg-surface-sunken">
-            <img src={imageUrl!} alt="" className="w-full h-full object-cover" />
-          </div>
-          <div className="hidden sm:block shrink-0 w-28 h-20 rounded-md overflow-hidden bg-surface-sunken">
-            <img src={imageUrl!} alt="" className="w-full h-full object-cover" />
-          </div>
-        </div>
+        <CardImage imageUrl={imageUrl ?? ''} />
       </Collapse>
       <Collapse show={showDetails && !muted && !!author}>
         <div className="text-xs text-ink-tertiary">By {author}</div>
       </Collapse>
-      <Collapse show={!muted && !!actionBar}>{actionBar}</Collapse>
+      <Collapse show={!muted && hasActions}>
+        <CardActions
+          vote={vote}
+          onVote={onVote}
+          focusVote={focusVote}
+          onFocusVote={onFocusVote}
+          bookmarked={bookmarked}
+          onBookmarkToggle={onBookmarkToggle}
+        />
+      </Collapse>
     </>
   );
+};
 
+/* ── Card ───────────────────────────────────────────────────────── */
+
+const ArticleCard = ({ id, href, read = false, ...rest }: ArticleCardProps): React.ReactElement => {
+  const aiId = `article-${id}`;
+  const aiLabel = [rest.title, rest.sourceName, rest.publishedAt ? formatDate(rest.publishedAt) : null]
+    .filter(Boolean)
+    .join(' · ');
+  const muted = read;
   const wrapperClass = `flex flex-col gap-1.5 ${href ? 'cursor-pointer group' : ''}`;
 
   if (href) {
@@ -192,7 +251,7 @@ const ArticleCard = ({
         data-ai-role="link"
         data-ai-label={aiLabel}
       >
-        {content}
+        <CardContent read={read} {...rest} />
       </MotionLink>
     );
   }
@@ -206,7 +265,7 @@ const ArticleCard = ({
       data-ai-role="section"
       data-ai-label={aiLabel}
     >
-      {content}
+      <CardContent read={read} {...rest} />
     </motion.div>
   );
 };

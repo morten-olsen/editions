@@ -144,7 +144,12 @@ const EditionEditForm = ({ mode }: { mode: 'create' | 'edit' }): React.ReactElem
         return prev;
       }
       const arr = [...prev];
-      [arr[idx], arr[newIdx]] = [arr[newIdx]!, arr[idx]!];
+      const a = arr[idx];
+      const b = arr[newIdx];
+      if (!a || !b) {
+        return prev;
+      }
+      [arr[idx], arr[newIdx]] = [b, a];
       return arr;
     });
   };

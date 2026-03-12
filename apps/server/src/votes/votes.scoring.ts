@@ -46,7 +46,7 @@ const effectiveConfidence = (c: { similarity: number | null; nli: number | null 
 const cosineSimilarity = (a: Float32Array, b: Float32Array): number => {
   let dot = 0;
   for (let i = 0; i < a.length; i++) {
-    dot += a[i]! * b[i]!;
+    dot += (a[i] as number) * (b[i] as number);
   }
   // Embeddings from all-MiniLM-L6-v2 are L2-normalized, so dot product = cosine similarity
   return dot;

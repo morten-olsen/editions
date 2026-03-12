@@ -31,7 +31,7 @@ const createFakeEmbedder = (): { embed: EmbedFn; callCount: () => number } => {
     const norm = Math.sqrt(arr.reduce((s, v) => s + v * v, 0));
     if (norm > 0) {
       for (let i = 0; i < 4; i++) {
-        arr[i]! /= norm;
+        arr[i] = (arr[i] as number) / norm;
       }
     }
     return arr;
@@ -185,7 +185,6 @@ const getAnalysedCount = async (db: Kysely<DatabaseSchema>): Promise<number> => 
   return Number(row.count);
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const buildSteps = (
   db: Kysely<DatabaseSchema>,
   embedFn: EmbedFn,
@@ -204,7 +203,7 @@ const buildSteps = (
   return [
     createEmbedStep({ db, embedFn, embeddingModel: 'test-model', scopeFilter }),
     createSimilarityStep({ db, embedFn, scopeFilter }),
-    ...(useNli ? [createNliStep({ db, classifyFn: classifyFn!, scopeFilter })] : []),
+    ...(useNli ? [createNliStep({ db, classifyFn: classifyFn as ClassifyFn, scopeFilter })] : []),
     createMarkAnalysedStep({ db, scopeFilter }),
   ];
 };
@@ -247,12 +246,12 @@ describe('reconcile steps', () => {
 
     // AI article scores high via NLI
     const aiTech = techAssignments.find((a) => a.article_id === 'art-ai');
-    expect(aiTech!.nli).toBeCloseTo(0.85, 1);
+    expect(aiTech?.nli).toBeCloseTo(0.85, 1);
 
     // Weather article scores low but is still saved
     const weatherTech = techAssignments.find((a) => a.article_id === 'art-weather');
     expect(weatherTech).toBeDefined();
-    expect(aiTech!.nli).not.toBeNull();
+    expect(aiTech?.nli).not.toBeNull();
 
     // All 3 articles marked as analysed
     expect(await getAnalysedCount(db)).toBe(3);
@@ -314,8 +313,8 @@ describe('reconcile steps', () => {
 
     const politicsAssignments = (await getAssignments(db)).filter((a) => a.focus_id === 'focus-politics');
     expect(politicsAssignments).toHaveLength(1);
-    expect(politicsAssignments[0]!.article_id).toBe('art-election');
-    expect(effectiveConf(politicsAssignments[0]!)).toBeCloseTo(0.75, 1);
+    expect((politicsAssignments[0] as (typeof politicsAssignments)[number]).article_id).toBe('art-election');
+    expect(effectiveConf(politicsAssignments[0] as (typeof politicsAssignments)[number])).toBeCloseTo(0.75, 1);
 
     const previousAssignments = (await getAssignments(db)).filter((a) => a.focus_id !== 'focus-politics');
     expect(previousAssignments).toEqual(assignmentsBefore);
@@ -356,7 +355,7 @@ describe('reconcile steps', () => {
 
     const techAssignments = (await getAssignments(db)).filter((a) => a.focus_id === 'focus-tech');
     const aiAssignment = techAssignments.find((a) => a.article_id === 'art-ai');
-    expect(aiAssignment!.nli).toBeCloseTo(0.85, 1);
+    expect(aiAssignment?.nli).toBeCloseTo(0.85, 1);
   });
 
   it('scoring degrades gracefully when articles lack embeddings', async () => {
@@ -450,7 +449,7 @@ describe('reconcile steps', () => {
     const assignments = await getAssignments(db);
     const alwaysAssignment = assignments.find((a) => a.article_id === 'art-empty' && a.focus_id === 'focus-all');
     expect(alwaysAssignment).toBeDefined();
-    expect(alwaysAssignment!.similarity).toBe(1.0);
+    expect(alwaysAssignment?.similarity).toBe(1.0);
 
     const matchAssignment = assignments.find((a) => a.article_id === 'art-empty' && a.focus_id === 'focus-tech');
     expect(matchAssignment).toBeUndefined();

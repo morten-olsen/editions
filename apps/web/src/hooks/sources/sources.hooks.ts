@@ -14,6 +14,8 @@ import { usePagination } from '../utilities/use-pagination.ts';
 import { useFormPopulation } from '../utilities/use-form-population.ts';
 import type { UsePaginationResult } from '../utilities/use-pagination.ts';
 
+import { pollFetchTask } from './sources.utils.ts';
+
 // -- Shared types --
 
 type Source = {
@@ -75,12 +77,7 @@ const useSourcesList = (): UseSourcesListResult => {
     },
   });
 
-  return {
-    sources: sourcesQuery.data ?? [],
-    loading: sourcesQuery.isLoading,
-    sourcesQuery,
-    reanalyseMutation,
-  };
+  return { sources: sourcesQuery.data ?? [], loading: sourcesQuery.isLoading, sourcesQuery, reanalyseMutation };
 };
 
 // -- useCreateSource --
@@ -130,9 +127,7 @@ const useCreateSource = (): UseCreateSourceResult => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.nav });
       await navigate({ to: '/sources' });
     },
-    onError: (err: Error): void => {
-      setError(err.message);
-    },
+    onError: (err: Error): void => setError(err.message),
   });
 
   const handleSubmit = useCallback(
@@ -149,17 +144,7 @@ const useCreateSource = (): UseCreateSourceResult => {
   }, [navigate]);
 
   return {
-    form: {
-      name,
-      setName,
-      url,
-      setUrl,
-      sourceType,
-      setSourceType,
-      direction,
-      setDirection,
-      error,
-    },
+    form: { name, setName, url, setUrl, sourceType, setSourceType, direction, setDirection, error },
     createMutation,
     handleSubmit,
     navigateToSources,
@@ -169,9 +154,7 @@ const useCreateSource = (): UseCreateSourceResult => {
 
 // -- useSourceDetail --
 
-type UseSourceDetailParams = {
-  sourceId: string;
-};
+type UseSourceDetailParams = { sourceId: string };
 
 type UseSourceDetailResult = {
   source: Source | undefined;
@@ -197,14 +180,8 @@ const useSourceDetail = ({ sourceId }: UseSourceDetailParams): UseSourceDetailRe
   const [fetchResult, setFetchResult] = useState<string | null>(null);
   const [reanalyseResult, setReanalyseResult] = useState<string | null>(null);
 
-  // Pagination is declared before articlesQuery so offset is available for the query key.
-  // The total updates on subsequent renders once articlesQuery resolves.
   const [articlesTotal, setArticlesTotal] = useState(0);
-
-  const pagination = usePagination({
-    pageSize: PAGE_SIZE,
-    total: articlesTotal,
-  });
+  const pagination = usePagination({ pageSize: PAGE_SIZE, total: articlesTotal });
 
   const sourceQuery = useQuery({
     queryKey: queryKeys.sources.detail(sourceId),
@@ -225,10 +202,7 @@ const useSourceDetail = ({ sourceId }: UseSourceDetailParams): UseSourceDetailRe
     queryKey: queryKeys.sources.articles(sourceId, pagination.offset),
     queryFn: async (): Promise<ArticlesPage> => {
       const { data } = await client.GET('/api/sources/{id}/articles', {
-        params: {
-          path: { id: sourceId },
-          query: { offset: pagination.offset, limit: PAGE_SIZE },
-        },
+        params: { path: { id: sourceId }, query: { offset: pagination.offset, limit: PAGE_SIZE } },
         headers,
       });
       const page = data as ArticlesPage;
@@ -244,57 +218,19 @@ const useSourceDetail = ({ sourceId }: UseSourceDetailParams): UseSourceDetailRe
         params: { path: { id: sourceId } },
         headers,
       });
-
       if (err || !data) {
         throw new Error('Failed to start fetch');
       }
-
-      const taskId = (data as { taskId: string }).taskId;
-
-      const poll = (): Promise<string> =>
-        new Promise((resolve, reject) => {
-          const check = async (): Promise<void> => {
-            const { data: task } = await client.GET('/api/sources/{id}/tasks/{taskId}', {
-              params: { path: { id: sourceId, taskId } },
-              headers,
-            });
-
-            if (!task) {
-              reject(new Error('Lost track of task'));
-              return;
-            }
-
-            const t = task as { status: string; result: unknown; error: string | null };
-
-            if (t.status === 'completed') {
-              const result = t.result as { newArticles: number; totalItems: number } | null;
-              resolve(result ? `Fetched ${result.totalItems} items, ${result.newArticles} new` : 'Fetch completed');
-            } else if (t.status === 'failed') {
-              reject(new Error(t.error ?? 'Fetch failed'));
-            } else {
-              setTimeout(() => void check(), 500);
-            }
-          };
-
-          void check();
-        });
-
-      return poll();
+      return pollFetchTask(sourceId, (data as { taskId: string }).taskId, headers);
     },
     onSuccess: (message: string): void => {
       setFetchResult(message);
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.sources.detail(sourceId),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.sources.articles(sourceId, pagination.offset),
-      });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.sources.detail(sourceId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.sources.articles(sourceId, pagination.offset) });
     },
     onError: (err: Error): void => {
       setFetchResult(err.message);
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.sources.detail(sourceId),
-      });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.sources.detail(sourceId) });
     },
   });
 
@@ -304,30 +240,14 @@ const useSourceDetail = ({ sourceId }: UseSourceDetailParams): UseSourceDetailRe
         params: { path: { id: sourceId } },
         headers,
       });
-
       if (err || !data) {
         throw new Error('Failed to start reanalysis');
       }
-      const result = data as { enqueued: number };
-      return `Enqueued ${result.enqueued} articles for analysis`;
+      return `Enqueued ${(data as { enqueued: number }).enqueued} articles for analysis`;
     },
-    onSuccess: (message: string): void => {
-      setReanalyseResult(message);
-    },
-    onError: (err: Error): void => {
-      setReanalyseResult(err.message);
-    },
+    onSuccess: (message: string): void => setReanalyseResult(message),
+    onError: (err: Error): void => setReanalyseResult(err.message),
   });
-
-  const handleFetch = useCallback((): void => {
-    setFetchResult(null);
-    fetchMutation.mutate();
-  }, [fetchMutation]);
-
-  const handleReanalyse = useCallback((): void => {
-    setReanalyseResult(null);
-    reanalyseMutation.mutate();
-  }, [reanalyseMutation]);
 
   return {
     source: sourceQuery.data,
@@ -340,17 +260,21 @@ const useSourceDetail = ({ sourceId }: UseSourceDetailParams): UseSourceDetailRe
     fetchResult,
     reanalyseMutation,
     reanalyseResult,
-    handleFetch,
-    handleReanalyse,
+    handleFetch: useCallback((): void => {
+      setFetchResult(null);
+      fetchMutation.mutate();
+    }, [fetchMutation]),
+    handleReanalyse: useCallback((): void => {
+      setReanalyseResult(null);
+      reanalyseMutation.mutate();
+    }, [reanalyseMutation]),
     ready: !!headers,
   };
 };
 
 // -- useEditSource --
 
-type UseEditSourceParams = {
-  sourceId: string;
-};
+type UseEditSourceParams = { sourceId: string };
 
 type EditSourceForm = {
   name: string;
@@ -419,16 +343,12 @@ const useEditSource = ({ sourceId }: UseEditSourceParams): UseEditSourceResult =
       }
     },
     onSuccess: async (): Promise<void> => {
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.sources.detail(sourceId),
-      });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.sources.detail(sourceId) });
       await queryClient.invalidateQueries({ queryKey: queryKeys.sources.all });
       await queryClient.invalidateQueries({ queryKey: queryKeys.nav });
       await navigate({ to: '/sources/$sourceId', params: { sourceId } });
     },
-    onError: (err: Error): void => {
-      setError(err.message);
-    },
+    onError: (err: Error): void => setError(err.message),
   });
 
   const deleteMutation = useMutation({
@@ -446,21 +366,17 @@ const useEditSource = ({ sourceId }: UseEditSourceParams): UseEditSourceResult =
       await queryClient.invalidateQueries({ queryKey: queryKeys.nav });
       await navigate({ to: '/sources' });
     },
-    onError: (err: Error): void => {
-      setError(err.message);
-    },
+    onError: (err: Error): void => setError(err.message),
   });
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent): Promise<void> => {
       e.preventDefault();
       setError(null);
-
       const source = sourceQuery.data;
       if (!source) {
         return;
       }
-
       const body: Record<string, string> = {};
       if (name !== source.name) {
         body.name = name;
@@ -471,12 +387,10 @@ const useEditSource = ({ sourceId }: UseEditSourceParams): UseEditSourceResult =
       if (direction !== source.direction) {
         body.direction = direction;
       }
-
       if (Object.keys(body).length === 0) {
         await navigate({ to: '/sources/$sourceId', params: { sourceId } });
         return;
       }
-
       updateMutation.mutate(body);
     },
     [sourceQuery.data, name, url, direction, sourceId, navigate, updateMutation],

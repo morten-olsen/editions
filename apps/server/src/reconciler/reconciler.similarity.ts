@@ -8,6 +8,15 @@ import type { EmbedFn } from './reconciler.embed.ts';
 
 // --- Types ---
 
+type SimilarityRow = {
+  article_id: string;
+  focus_id: string;
+  mode: string;
+  name: string;
+  description: string | null;
+  embedding: unknown;
+};
+
 type SimilarityItem = {
   articleId: string;
   focusId: string;
@@ -21,7 +30,7 @@ type SimilarityItem = {
 const dotProduct = (a: Float32Array, b: Float32Array): number => {
   let sum = 0;
   for (let i = 0; i < a.length; i++) {
-    sum += a[i]! * b[i]!;
+    sum += (a[i] as number) * (b[i] as number);
   }
   return sum;
 };
@@ -51,6 +60,54 @@ const upsertSimilarity = async (
     .execute();
 };
 
+// --- Helpers ---
+
+const buildSimilarityQuery = (db: Kysely<DatabaseSchema>, scopeFilter: ScopeFilter | undefined, batchSize: number) => {
+  let q = db
+    .selectFrom('focus_sources')
+    .innerJoin('articles', 'articles.source_id', 'focus_sources.source_id')
+    .innerJoin('focuses', 'focuses.id', 'focus_sources.focus_id')
+    .leftJoin('article_focuses', (join) =>
+      join
+        .onRef('article_focuses.article_id', '=', 'articles.id')
+        .onRef('article_focuses.focus_id', '=', 'focus_sources.focus_id'),
+    )
+    .leftJoin('article_embeddings', 'article_embeddings.article_id', 'articles.id')
+    .select([
+      'articles.id as article_id',
+      'focus_sources.focus_id',
+      'focus_sources.mode',
+      'focuses.name',
+      'focuses.description',
+      'article_embeddings.embedding',
+    ])
+    .where('articles.extracted_at', 'is not', null)
+    .where('article_focuses.similarity', 'is', null)
+    .limit(batchSize);
+
+  if (scopeFilter?.focusIds && scopeFilter.focusIds.length > 0) {
+    q = q.where('focus_sources.focus_id', 'in', scopeFilter.focusIds);
+  }
+  if (scopeFilter?.sourceIds && scopeFilter.sourceIds.length > 0) {
+    q = q.where('focus_sources.source_id', 'in', scopeFilter.sourceIds);
+  }
+
+  return q;
+};
+
+const rowToSimilarityItem = (row: SimilarityRow): SimilarityItem => {
+  const embeddingBuf = row.embedding as Buffer | null;
+  return {
+    articleId: row.article_id,
+    focusId: row.focus_id,
+    mode: row.mode as FocusSourceMode,
+    focusLabel: row.description ? `${row.name}: ${row.description}` : row.name,
+    embedding: embeddingBuf
+      ? new Float32Array(embeddingBuf.buffer, embeddingBuf.byteOffset, embeddingBuf.byteLength / 4)
+      : null,
+  };
+};
+
 // --- Step factory ---
 
 const createSimilarityStep = (params: {
@@ -66,54 +123,12 @@ const createSimilarityStep = (params: {
     name: 'similarity',
     fetchBatch: async function* (): AsyncGenerator<SimilarityItem[]> {
       while (true) {
-        let q = db
-          .selectFrom('focus_sources')
-          .innerJoin('articles', 'articles.source_id', 'focus_sources.source_id')
-          .innerJoin('focuses', 'focuses.id', 'focus_sources.focus_id')
-          .leftJoin('article_focuses', (join) =>
-            join
-              .onRef('article_focuses.article_id', '=', 'articles.id')
-              .onRef('article_focuses.focus_id', '=', 'focus_sources.focus_id'),
-          )
-          .leftJoin('article_embeddings', 'article_embeddings.article_id', 'articles.id')
-          .select([
-            'articles.id as article_id',
-            'focus_sources.focus_id',
-            'focus_sources.mode',
-            'focuses.name',
-            'focuses.description',
-            'article_embeddings.embedding',
-          ])
-          .where('articles.extracted_at', 'is not', null)
-          .where('article_focuses.similarity', 'is', null)
-          .limit(batchSize);
-
-        if (scopeFilter?.focusIds && scopeFilter.focusIds.length > 0) {
-          q = q.where('focus_sources.focus_id', 'in', scopeFilter.focusIds);
-        }
-        if (scopeFilter?.sourceIds && scopeFilter.sourceIds.length > 0) {
-          q = q.where('focus_sources.source_id', 'in', scopeFilter.sourceIds);
-        }
-
-        const rows = await q.execute();
+        const rows = (await buildSimilarityQuery(db, scopeFilter, batchSize).execute()) as SimilarityRow[];
         if (rows.length === 0) {
           break;
         }
 
-        const items: SimilarityItem[] = rows.map((row) => {
-          const embeddingBuf = row.embedding as Buffer | null;
-          return {
-            articleId: row.article_id,
-            focusId: row.focus_id,
-            mode: row.mode as FocusSourceMode,
-            focusLabel: row.description ? `${row.name}: ${row.description}` : row.name,
-            embedding: embeddingBuf
-              ? new Float32Array(embeddingBuf.buffer, embeddingBuf.byteOffset, embeddingBuf.byteLength / 4)
-              : null,
-          };
-        });
-
-        yield items;
+        yield rows.map(rowToSimilarityItem);
         if (rows.length < batchSize) {
           break;
         }

@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { useRouterState } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from 'react';
+import { useRouterState } from '@tanstack/react-router';
 
 type AppShellProps = {
   nav: React.ReactNode;
@@ -24,16 +24,20 @@ const useScrollRestoration = (pathname: string): void => {
     let timer: ReturnType<typeof setTimeout> | null = null;
     const onScroll = (): void => {
       lastScrollY.current = window.scrollY;
-      if (timer) clearTimeout(timer);
+      if (timer) {
+        clearTimeout(timer);
+      }
       timer = setTimeout(() => {
         scrollCache.set(pathname, window.scrollY);
       }, 100);
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
 
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      if (timer) clearTimeout(timer);
+      window.removeEventListener('scroll', onScroll);
+      if (timer) {
+        clearTimeout(timer);
+      }
       scrollCache.set(pathname, lastScrollY.current);
     };
   }, [pathname]);
@@ -63,12 +67,7 @@ const useScrollRestoration = (pathname: string): void => {
 
 const MenuIcon = (): React.ReactElement => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-    <path
-      d="M3 5h14M3 10h14M3 15h14"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-    />
+    <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 );
 
@@ -87,30 +86,32 @@ const AppShell = ({ nav, children }: AppShellProps): React.ReactElement => {
 
   // Close on Escape
   useEffect(() => {
-    if (!mobileNavOpen) return;
+    if (!mobileNavOpen) {
+      return;
+    }
     const handleKeyDown = (e: KeyboardEvent): void => {
-      if (e.key === "Escape") setMobileNavOpen(false);
+      if (e.key === 'Escape') {
+        setMobileNavOpen(false);
+      }
     };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [mobileNavOpen]);
 
   return (
     <div className="flex min-h-dvh bg-surface">
       {/* Desktop sidebar — sticky so it stays while page scrolls */}
-      <div className="hidden lg:block sticky top-0 h-dvh shrink-0">
-        {nav}
-      </div>
+      <div className="hidden lg:block sticky top-0 h-dvh shrink-0">{nav}</div>
 
       {/* Mobile backdrop */}
       <div
-        className={`fixed inset-0 bg-black/25 backdrop-blur-xs z-40 lg:hidden transition-opacity duration-normal ease-gentle ${mobileNavOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        className={`fixed inset-0 bg-black/25 backdrop-blur-xs z-40 lg:hidden transition-opacity duration-normal ease-gentle ${mobileNavOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         onClick={() => setMobileNavOpen(false)}
         aria-hidden="true"
       />
       {/* Mobile drawer */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 lg:hidden transition-transform duration-slow ease-gentle ${mobileNavOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed inset-y-0 left-0 z-50 lg:hidden transition-transform duration-slow ease-gentle ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         {nav}
       </div>
@@ -126,14 +127,10 @@ const AppShell = ({ nav, children }: AppShellProps): React.ReactElement => {
           >
             <MenuIcon />
           </button>
-          <span className="font-serif text-lg tracking-tight text-ink ml-3">
-            Editions
-          </span>
+          <span className="font-serif text-lg tracking-tight text-ink ml-3">Editions</span>
         </div>
 
-        <div className="max-w-prose mx-auto px-4 py-6 md:px-8 md:py-8">
-          {children}
-        </div>
+        <div className="max-w-prose mx-auto px-4 py-6 md:px-8 md:py-8">{children}</div>
       </main>
     </div>
   );
@@ -146,15 +143,10 @@ type ReadingShellProps = {
   header?: React.ReactNode;
 };
 
-const ReadingShell = ({
-  children,
-  header,
-}: ReadingShellProps): React.ReactElement => (
+const ReadingShell = ({ children, header }: ReadingShellProps): React.ReactElement => (
   <div className="min-h-dvh bg-surface">
     {header}
-    <article className="max-w-prose mx-auto px-4 py-8 md:px-6 md:py-12">
-      {children}
-    </article>
+    <article className="max-w-prose mx-auto px-4 py-8 md:px-6 md:py-12">{children}</article>
   </div>
 );
 

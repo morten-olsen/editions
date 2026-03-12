@@ -8,21 +8,19 @@
  *   stop button so the user can watch the agent work
  * ──────────────────────────────────────────────────────── */
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 
-import { transitions } from "../components/animate.tsx";
-import { useAi } from "./ai.provider.tsx";
-import type { AiDisplayMessage } from "./ai.types.ts";
+import { transitions } from '../components/animate.tsx';
+
+import { useAi } from './ai.provider.tsx';
+import type { AiDisplayMessage } from './ai.types.ts';
 
 /* ── Icons ─────────────────────────────────────────────── */
 
 const SparkleIcon = (): React.ReactElement => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-    <path
-      d="M8 1L9.5 5.5L14 7L9.5 8.5L8 13L6.5 8.5L2 7L6.5 5.5L8 1Z"
-      fill="currentColor"
-    />
+    <path d="M8 1L9.5 5.5L14 7L9.5 8.5L8 13L6.5 8.5L2 7L6.5 5.5L8 1Z" fill="currentColor" />
   </svg>
 );
 
@@ -53,7 +51,7 @@ const PlusIcon = (): React.ReactElement => (
 /* ── Message bubble ──────────────────────────────────── */
 
 const MessageBubble = ({ message }: { message: AiDisplayMessage }): React.ReactElement => {
-  if (message.type === "user") {
+  if (message.type === 'user') {
     return (
       <div className="flex justify-end">
         <div className="max-w-[85%] rounded-lg bg-accent/10 px-3.5 py-2.5 text-sm text-ink leading-relaxed">
@@ -63,12 +61,13 @@ const MessageBubble = ({ message }: { message: AiDisplayMessage }): React.ReactE
     );
   }
 
-  if (message.type === "action") {
-    const statusIcon = message.status === "running" ? "●" : message.status === "done" ? "✓" : "✗";
-    const statusColor = message.status === "running" ? "text-accent" : message.status === "done" ? "text-positive" : "text-critical";
+  if (message.type === 'action') {
+    const statusIcon = message.status === 'running' ? '●' : message.status === 'done' ? '✓' : '✗';
+    const statusColor =
+      message.status === 'running' ? 'text-accent' : message.status === 'done' ? 'text-positive' : 'text-critical';
     return (
       <div className="flex items-center gap-2 text-xs text-ink-tertiary py-1 px-1">
-        <span className={`${statusColor} ${message.status === "running" ? "animate-pulse" : ""}`}>{statusIcon}</span>
+        <span className={`${statusColor} ${message.status === 'running' ? 'animate-pulse' : ''}`}>{statusIcon}</span>
         <span className="font-mono">{message.description}</span>
       </div>
     );
@@ -77,16 +76,24 @@ const MessageBubble = ({ message }: { message: AiDisplayMessage }): React.ReactE
   // assistant
   return (
     <div className="flex justify-start">
-      <div className="max-w-[85%] text-sm text-ink leading-relaxed">
-        {message.content}
-      </div>
+      <div className="max-w-[85%] text-sm text-ink leading-relaxed">{message.content}</div>
     </div>
   );
 };
 
 /* ── Floating stop pill ──────────────────────────────── */
 
-const FloatingStopPill = ({ activity, turnCount, onStop, onExpand }: { activity: string | null; turnCount: number; onStop: () => void; onExpand: () => void }): React.ReactElement => (
+const FloatingStopPill = ({
+  activity,
+  turnCount,
+  onStop,
+  onExpand,
+}: {
+  activity: string | null;
+  turnCount: number;
+  onStop: () => void;
+  onExpand: () => void;
+}): React.ReactElement => (
   <motion.div
     className="fixed bottom-6 right-6 z-[901] flex items-center gap-1 rounded-full bg-surface border border-border shadow-lg px-1.5 py-1.5"
     initial={{ opacity: 0, scale: 0.8, y: 20 }}
@@ -100,7 +107,7 @@ const FloatingStopPill = ({ activity, turnCount, onStop, onExpand }: { activity:
       className="flex items-center gap-2 pl-3 pr-2 py-1 rounded-full text-xs text-ink-secondary hover:text-ink transition-colors duration-fast cursor-pointer max-w-64 min-w-0"
     >
       <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shrink-0" />
-      <span className="truncate font-mono">{activity ?? "Working..."}</span>
+      <span className="truncate font-mono">{activity ?? 'Working...'}</span>
       {turnCount > 0 && <span className="text-ink-faint shrink-0">{turnCount}/20</span>}
     </button>
     <button
@@ -118,10 +125,17 @@ const FloatingStopPill = ({ activity, turnCount, onStop, onExpand }: { activity:
 
 const AiChatDrawer = (): React.ReactNode => {
   const {
-    isOpen, toggleOpen, displayMessages, isProcessing, lastActivity, turnCount,
-    sendMessage, stopProcessing, clearConversation,
+    isOpen,
+    toggleOpen,
+    displayMessages,
+    isProcessing,
+    lastActivity,
+    turnCount,
+    sendMessage,
+    stopProcessing,
+    clearConversation,
   } = useAi();
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const [minimized, setMinimized] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -138,7 +152,7 @@ const AiChatDrawer = (): React.ReactNode => {
   // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (!minimized) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [displayMessages, minimized]);
 
@@ -151,25 +165,29 @@ const AiChatDrawer = (): React.ReactNode => {
 
   // Close on Escape (agent stop is handled by the provider)
   useEffect(() => {
-    if (!isOpen || isProcessing) return;
+    if (!isOpen || isProcessing) {
+      return;
+    }
     const handleKeyDown = (e: KeyboardEvent): void => {
-      if (e.key === "Escape") {
+      if (e.key === 'Escape') {
         toggleOpen();
       }
     };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, isProcessing, toggleOpen]);
 
   const handleSubmit = useCallback((): void => {
     const trimmed = input.trim();
-    if (!trimmed || isProcessing) return;
-    setInput("");
+    if (!trimmed || isProcessing) {
+      return;
+    }
+    setInput('');
     sendMessage(trimmed);
   }, [input, isProcessing, sendMessage]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
     }
@@ -191,7 +209,13 @@ const AiChatDrawer = (): React.ReactNode => {
     <>
       <AnimatePresence>
         {showPill && (
-          <FloatingStopPill key="pill" activity={lastActivity} turnCount={turnCount} onStop={handleStop} onExpand={handleExpand} />
+          <FloatingStopPill
+            key="pill"
+            activity={lastActivity}
+            turnCount={turnCount}
+            onStop={handleStop}
+            onExpand={handleExpand}
+          />
         )}
       </AnimatePresence>
 
@@ -215,9 +239,9 @@ const AiChatDrawer = (): React.ReactNode => {
             <motion.div
               key="drawer"
               className="fixed right-0 top-0 bottom-0 z-[901] w-full max-w-sm flex flex-col bg-surface border-l border-border shadow-xl"
-              initial={{ x: "100%" }}
+              initial={{ x: '100%' }}
               animate={{ x: 0 }}
-              exit={{ x: "100%" }}
+              exit={{ x: '100%' }}
               transition={transitions.enter}
             >
               {/* Header */}
@@ -261,12 +285,12 @@ const AiChatDrawer = (): React.ReactNode => {
                 {displayMessages.map((msg, idx) => (
                   <MessageBubble key={idx} message={msg} />
                 ))}
-                {isProcessing && displayMessages.at(-1)?.type !== "action" && (
+                {isProcessing && displayMessages.at(-1)?.type !== 'action' && (
                   <div className="flex items-center gap-2 text-xs text-ink-tertiary py-1">
                     <span className="text-accent animate-pulse">●</span>
                     <span className="truncate">
-                      {lastActivity ?? "Thinking"}
-                      {turnCount > 0 ? ` · ${turnCount}/20` : ""}
+                      {lastActivity ?? 'Thinking'}
+                      {turnCount > 0 ? ` · ${turnCount}/20` : ''}
                     </span>
                   </div>
                 )}
@@ -291,7 +315,7 @@ const AiChatDrawer = (): React.ReactNode => {
                       value={input}
                       onChange={(e) => {
                         setInput(e.target.value);
-                        e.target.style.height = "auto";
+                        e.target.style.height = 'auto';
                         e.target.style.height = `${Math.min(e.target.scrollHeight, 96)}px`;
                       }}
                       onKeyDown={handleKeyDown}
@@ -324,7 +348,9 @@ const AiChatDrawer = (): React.ReactNode => {
 const AiToggleButton = (): React.ReactNode => {
   const { isEnabled, toggleOpen, isProcessing } = useAi();
 
-  if (!isEnabled) return null;
+  if (!isEnabled) {
+    return null;
+  }
 
   return (
     <button
@@ -336,9 +362,7 @@ const AiToggleButton = (): React.ReactNode => {
       <SparkleIcon />
       <span className="truncate">Assistant</span>
       <span className="text-[10px] font-medium text-accent/60 uppercase tracking-wider">alpha</span>
-      {isProcessing && (
-        <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-      )}
+      {isProcessing && <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />}
     </button>
   );
 };

@@ -1,19 +1,15 @@
-import * as React from "react";
-import { Tooltip as BaseTooltip } from "@base-ui/react/tooltip";
+import * as React from 'react';
+import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip';
 
 type TooltipProps = {
   content: React.ReactNode;
   children: React.ReactElement;
-  side?: "top" | "bottom" | "left" | "right";
+  side?: 'top' | 'bottom' | 'left' | 'right';
 };
 
 const TooltipProvider = BaseTooltip.Provider;
 
-const Tooltip = ({
-  content,
-  children,
-  side = "top",
-}: TooltipProps): React.ReactElement => (
+const Tooltip = ({ content, children, side = 'top' }: TooltipProps): React.ReactElement => (
   <BaseTooltip.Root>
     <BaseTooltip.Trigger render={children} />
     <BaseTooltip.Portal>

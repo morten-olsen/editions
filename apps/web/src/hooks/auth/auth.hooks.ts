@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 
-import { client } from "../../api/api.ts";
-import { useAuth } from "../../auth/auth.tsx";
+import { client } from '../../api/api.ts';
+import { useAuth } from '../../auth/auth.tsx';
 
-type LoginFormMode = "login" | "register";
+type LoginFormMode = 'login' | 'register';
 
 type UseLoginFormResult = {
   mode: LoginFormMode;
@@ -23,15 +23,15 @@ type UseLoginFormResult = {
 const useLoginForm = (): UseLoginFormResult => {
   const auth = useAuth();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<LoginFormMode>("login");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [mode, setMode] = useState<LoginFormMode>('login');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [allowSignups, setAllowSignups] = useState(true);
 
   useEffect(() => {
-    client.GET("/api/config").then(({ data }) => {
+    client.GET('/api/config').then(({ data }) => {
       if (data) {
         setAllowSignups(data.allowSignups);
       }
@@ -45,14 +45,14 @@ const useLoginForm = (): UseLoginFormResult => {
       setSubmitting(true);
 
       try {
-        if (mode === "login") {
+        if (mode === 'login') {
           await auth.login(username, password);
         } else {
           await auth.register(username, password);
         }
-        await navigate({ to: "/" });
+        await navigate({ to: '/' });
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
+        setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setSubmitting(false);
       }
@@ -61,7 +61,7 @@ const useLoginForm = (): UseLoginFormResult => {
   );
 
   const toggleMode = useCallback((): void => {
-    setMode((prev) => (prev === "login" ? "register" : "login"));
+    setMode((prev) => (prev === 'login' ? 'register' : 'login'));
     setError(null);
   }, []);
 
@@ -74,7 +74,7 @@ const useLoginForm = (): UseLoginFormResult => {
     error,
     submitting,
     allowSignups,
-    isAuthenticated: auth.status === "authenticated",
+    isAuthenticated: auth.status === 'authenticated',
     handleSubmit,
     toggleMode,
   };

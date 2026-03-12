@@ -1,8 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { createTestApp } from "../test-helpers.ts";
-
-import type { TestContext } from "../test-helpers.ts";
+import { createTestApp } from '../test-helpers.ts';
+import type { TestContext } from '../test-helpers.ts';
 
 let t: TestContext;
 
@@ -18,10 +17,10 @@ afterEach(async () => {
 const createArticle = async (headers: { authorization: string }): Promise<string> => {
   // Create a source first
   const sourceRes = await t.inject({
-    method: "POST",
-    url: "/api/sources",
+    method: 'POST',
+    url: '/api/sources',
     headers,
-    payload: { name: "Test Source", url: "https://example.com/feed.xml" },
+    payload: { name: 'Test Source', url: 'https://example.com/feed.xml' },
   });
   const source = JSON.parse(sourceRes.body) as { id: string };
 
@@ -41,8 +40,8 @@ const createArticle = async (headers: { authorization: string }): Promise<string
   const articleId = crypto.randomUUID();
   const app = t.server;
   // Access the DB through the services container
-  const { Services } = await import("../services/services.ts");
-  const { DatabaseService } = await import("../database/database.ts");
+  const { Services } = await import('../services/services.ts');
+  const { DatabaseService } = await import('../database/database.ts');
 
   // Get the services from the decorated fastify instance
   // Actually, we can just make a direct DB call via inject
@@ -58,13 +57,13 @@ const createArticle = async (headers: { authorization: string }): Promise<string
   return source.id;
 };
 
-describe("global article votes", () => {
-  it("returns 404 for non-existent article", async () => {
+describe('global article votes', () => {
+  it('returns 404 for non-existent article', async () => {
     const user = await t.register();
 
     const res = await t.inject({
-      method: "PUT",
-      url: "/api/articles/nonexistent-id/vote",
+      method: 'PUT',
+      url: '/api/articles/nonexistent-id/vote',
       headers: user.headers,
       payload: { value: 1 },
     });
@@ -72,15 +71,15 @@ describe("global article votes", () => {
     expect(res.statusCode).toBe(404);
   });
 
-  it("upserts and removes a global vote", async () => {
+  it('upserts and removes a global vote', async () => {
     const user = await t.register();
 
     // Create a source to get articles
     const sourceRes = await t.inject({
-      method: "POST",
-      url: "/api/sources",
+      method: 'POST',
+      url: '/api/sources',
       headers: user.headers,
-      payload: { name: "Test Source", url: "https://example.com/feed.xml" },
+      payload: { name: 'Test Source', url: 'https://example.com/feed.xml' },
     });
     const source = JSON.parse(sourceRes.body) as { id: string };
 
@@ -91,19 +90,19 @@ describe("global article votes", () => {
 
     // Unauthenticated request should fail
     const unauthRes = await t.inject({
-      method: "PUT",
-      url: "/api/articles/some-id/vote",
+      method: 'PUT',
+      url: '/api/articles/some-id/vote',
       payload: { value: 1 },
     });
     expect(unauthRes.statusCode).toBe(401);
   });
 
-  it("validates vote value", async () => {
+  it('validates vote value', async () => {
     const user = await t.register();
 
     const res = await t.inject({
-      method: "PUT",
-      url: "/api/articles/some-id/vote",
+      method: 'PUT',
+      url: '/api/articles/some-id/vote',
       headers: user.headers,
       payload: { value: 2 },
     });
@@ -112,12 +111,12 @@ describe("global article votes", () => {
     expect(res.statusCode).toBe(400);
   });
 
-  it("deletes a vote without error even if none exists", async () => {
+  it('deletes a vote without error even if none exists', async () => {
     const user = await t.register();
 
     const res = await t.inject({
-      method: "DELETE",
-      url: "/api/articles/nonexistent-id/vote",
+      method: 'DELETE',
+      url: '/api/articles/nonexistent-id/vote',
       headers: user.headers,
     });
 
@@ -125,21 +124,21 @@ describe("global article votes", () => {
   });
 });
 
-describe("focus-scoped article votes", () => {
-  it("returns 404 for non-existent article", async () => {
+describe('focus-scoped article votes', () => {
+  it('returns 404 for non-existent article', async () => {
     const user = await t.register();
 
     // Create a focus first
     const focusRes = await t.inject({
-      method: "POST",
-      url: "/api/focuses",
+      method: 'POST',
+      url: '/api/focuses',
       headers: user.headers,
-      payload: { name: "Tech" },
+      payload: { name: 'Tech' },
     });
     const focus = JSON.parse(focusRes.body) as { id: string };
 
     const res = await t.inject({
-      method: "PUT",
+      method: 'PUT',
       url: `/api/focuses/${focus.id}/articles/nonexistent-id/vote`,
       headers: user.headers,
       payload: { value: -1 },
@@ -148,19 +147,19 @@ describe("focus-scoped article votes", () => {
     expect(res.statusCode).toBe(404);
   });
 
-  it("deletes a focus vote without error", async () => {
+  it('deletes a focus vote without error', async () => {
     const user = await t.register();
 
     const focusRes = await t.inject({
-      method: "POST",
-      url: "/api/focuses",
+      method: 'POST',
+      url: '/api/focuses',
       headers: user.headers,
-      payload: { name: "Tech" },
+      payload: { name: 'Tech' },
     });
     const focus = JSON.parse(focusRes.body) as { id: string };
 
     const res = await t.inject({
-      method: "DELETE",
+      method: 'DELETE',
       url: `/api/focuses/${focus.id}/articles/nonexistent-id/vote`,
       headers: user.headers,
     });
@@ -168,10 +167,10 @@ describe("focus-scoped article votes", () => {
     expect(res.statusCode).toBe(204);
   });
 
-  it("requires authentication", async () => {
+  it('requires authentication', async () => {
     const res = await t.inject({
-      method: "PUT",
-      url: "/api/focuses/some-id/articles/some-article/vote",
+      method: 'PUT',
+      url: '/api/focuses/some-id/articles/some-article/vote',
       payload: { value: 1 },
     });
 

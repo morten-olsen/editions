@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 type ScoringWeightSet = {
   alpha: number;
@@ -18,7 +18,7 @@ type ScoringResponse = {
   isCustom: boolean;
 };
 
-type FeedType = "global" | "focus" | "edition";
+type FeedType = 'global' | 'focus' | 'edition';
 
 type FeedConfig = {
   label: string;
@@ -45,37 +45,43 @@ type UseScoringResult = {
 
 const FEED_CONFIG: Record<FeedType, FeedConfig> = {
   global: {
-    label: "Global Feed",
-    description: "All articles across sources, without focus filtering.",
-    explanation: "The global feed has no focus context, so confidence is unused by default. Ranking relies on your vote history and recency. Raise recency to keep the feed fresh; raise votes to surface articles similar to ones you've liked.",
+    label: 'Global Feed',
+    description: 'All articles across sources, without focus filtering.',
+    explanation:
+      "The global feed has no focus context, so confidence is unused by default. Ranking relies on your vote history and recency. Raise recency to keep the feed fresh; raise votes to surface articles similar to ones you've liked.",
   },
   focus: {
-    label: "Focus Feeds",
-    description: "Articles within a specific focus topic.",
-    explanation: "Focus feeds use all three signals. Confidence measures how well an article matches the topic \u2014 raising it surfaces on-topic articles more strongly. Vote signal is scoped: votes cast within a focus teach it your preferences for that topic specifically, layered on top of your global votes.",
+    label: 'Focus Feeds',
+    description: 'Articles within a specific focus topic.',
+    explanation:
+      'Focus feeds use all three signals. Confidence measures how well an article matches the topic \u2014 raising it surfaces on-topic articles more strongly. Vote signal is scoped: votes cast within a focus teach it your preferences for that topic specifically, layered on top of your global votes.',
   },
   edition: {
-    label: "Editions",
-    description: "Curated, finite editions assembled from your focuses.",
-    explanation: "Editions already filter by a time window (lookback hours), so recency matters less here \u2014 confidence and votes drive selection. Editions also apply source budgeting and per-focus weights on top of this score, so these weights shape the ordering within each source's allocation.",
+    label: 'Editions',
+    description: 'Curated, finite editions assembled from your focuses.',
+    explanation:
+      "Editions already filter by a time window (lookback hours), so recency matters less here \u2014 confidence and votes drive selection. Editions also apply source budgeting and per-focus weights on top of this score, so these weights shape the ordering within each source's allocation.",
   },
 };
 
 const WEIGHT_CONFIG: Record<keyof ScoringWeightSet, WeightConfig> = {
   alpha: {
-    label: "Confidence (\u03B1)",
-    short: "Topic relevance",
-    detail: "How well the article matches the focus, from the classifier (0.0\u20131.0). Set to 0 to ignore topic fit entirely; raise it to strongly prefer on-topic articles.",
+    label: 'Confidence (\u03B1)',
+    short: 'Topic relevance',
+    detail:
+      'How well the article matches the focus, from the classifier (0.0\u20131.0). Set to 0 to ignore topic fit entirely; raise it to strongly prefer on-topic articles.',
   },
   beta: {
-    label: "Votes (\u03B2)",
-    short: "Personalisation",
-    detail: "Your upvotes and downvotes, propagated to similar articles via semantic embeddings. Only the 15 most similar voted articles contribute \u2014 a few votes go a long way. Raise this to make ranking more personal; lower it for a more neutral feed.",
+    label: 'Votes (\u03B2)',
+    short: 'Personalisation',
+    detail:
+      'Your upvotes and downvotes, propagated to similar articles via semantic embeddings. Only the 15 most similar voted articles contribute \u2014 a few votes go a long way. Raise this to make ranking more personal; lower it for a more neutral feed.',
   },
   gamma: {
-    label: "Recency (\u03B3)",
-    short: "Freshness",
-    detail: "Exponential decay with a 3-day half-life \u2014 an article published today scores 1.0, after 3 days it scores 0.5, after 6 days 0.25. Raise this to prioritise breaking news; lower it to surface older gems.",
+    label: 'Recency (\u03B3)',
+    short: 'Freshness',
+    detail:
+      'Exponential decay with a 3-day half-life \u2014 an article published today scores 1.0, after 3 days it scores 0.5, after 6 days 0.25. Raise this to prioritise breaking news; lower it to surface older gems.',
   },
 };
 
@@ -88,7 +94,7 @@ const useScoring = (token: string): UseScoringResult => {
 
   useEffect(() => {
     void (async (): Promise<void> => {
-      const res = await fetch("/api/settings/scoring", {
+      const res = await fetch('/api/settings/scoring', {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -101,20 +107,24 @@ const useScoring = (token: string): UseScoringResult => {
   }, [token]);
 
   const handleFeedChange = (feedType: FeedType, w: ScoringWeightSet): void => {
-    if (!weights) return;
+    if (!weights) {
+      return;
+    }
     const updated = { ...weights, [feedType]: w };
     setWeights(updated);
     setDirty(true);
   };
 
   const save = async (): Promise<void> => {
-    if (!weights) return;
+    if (!weights) {
+      return;
+    }
     setSaving(true);
-    const res = await fetch("/api/settings/scoring", {
-      method: "PUT",
+    const res = await fetch('/api/settings/scoring', {
+      method: 'PUT',
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(weights),
     });
@@ -129,8 +139,8 @@ const useScoring = (token: string): UseScoringResult => {
 
   const resetAll = async (): Promise<void> => {
     setSaving(true);
-    const res = await fetch("/api/settings/scoring", {
-      method: "DELETE",
+    const res = await fetch('/api/settings/scoring', {
+      method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     });
     if (res.ok) {
@@ -154,5 +164,13 @@ const useScoring = (token: string): UseScoringResult => {
   };
 };
 
-export type { ScoringWeightSet, UserScoringWeights, ScoringResponse, FeedType, FeedConfig, WeightConfig, UseScoringResult };
+export type {
+  ScoringWeightSet,
+  UserScoringWeights,
+  ScoringResponse,
+  FeedType,
+  FeedConfig,
+  WeightConfig,
+  UseScoringResult,
+};
 export { FEED_CONFIG, WEIGHT_CONFIG, useScoring };

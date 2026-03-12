@@ -1,6 +1,5 @@
-import { sql } from "kysely";
-
-import type { Kysely } from "kysely";
+import { sql } from 'kysely';
+import type { Kysely } from 'kysely';
 
 /**
  * Clean up podcast articles that were incorrectly run through HTML extraction.

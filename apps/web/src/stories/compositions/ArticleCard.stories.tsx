@@ -1,36 +1,38 @@
-import { useState } from "react";
-import type { Meta, StoryObj } from "@storybook/react-vite";
-import { ArticleCard } from "../../components/article-card.tsx";
-import type { ArticleCardProps } from "../../components/article-card.tsx";
-import type { VoteValue } from "../../components/vote-controls.tsx";
+import { useState } from 'react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+
+import { ArticleCard } from '../../components/article-card.tsx';
+import type { ArticleCardProps } from '../../components/article-card.tsx';
+import type { VoteValue } from '../../components/vote-controls.tsx';
 
 const sampleProps = {
-  id: "1",
-  title: "The quiet revolution in reader design",
-  sourceName: "Ars Technica",
-  author: "Samuel Axon",
-  summary: "How a new generation of reading apps is rethinking the relationship between content, interface, and the reader's attention span.",
+  id: '1',
+  title: 'The quiet revolution in reader design',
+  sourceName: 'Ars Technica',
+  author: 'Samuel Axon',
+  summary:
+    "How a new generation of reading apps is rethinking the relationship between content, interface, and the reader's attention span.",
   publishedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
   consumptionTimeSeconds: 480,
 } satisfies ArticleCardProps;
 
 const meta: Meta<typeof ArticleCard> = {
-  title: "Design System/Compositions/Article Card",
+  title: 'Design System/Compositions/Article Card',
   component: ArticleCard,
-  parameters: { layout: "centered" },
+  parameters: { layout: 'centered' },
   args: sampleProps,
   argTypes: {
-    read: { control: "boolean" },
-    compact: { control: "boolean" },
-    title: { control: "text" },
-    sourceName: { control: "text" },
-    author: { control: "text" },
-    summary: { control: "text" },
-    imageUrl: { control: "text" },
-    consumptionTimeSeconds: { control: "number" },
+    read: { control: 'boolean' },
+    compact: { control: 'boolean' },
+    title: { control: 'text' },
+    sourceName: { control: 'text' },
+    author: { control: 'text' },
+    summary: { control: 'text' },
+    imageUrl: { control: 'text' },
+    consumptionTimeSeconds: { control: 'number' },
   },
   render: (args) => (
-    <div style={{ width: "40rem" }}>
+    <div style={{ width: '40rem' }}>
       <ArticleCard {...args} />
     </div>
   ),
@@ -42,15 +44,15 @@ const Default: Story = {};
 
 const WithImage: Story = {
   args: {
-    imageUrl: "https://picsum.photos/seed/reader/400/300",
+    imageUrl: 'https://picsum.photos/seed/reader/400/300',
   },
 };
 
 const Compact: Story = {
   args: {
-    id: "2",
-    title: "TypeScript 6.0 introduces pattern matching",
-    sourceName: "Hacker News",
+    id: '2',
+    title: 'TypeScript 6.0 introduces pattern matching',
+    sourceName: 'Hacker News',
     author: undefined,
     summary: undefined,
     publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
@@ -66,13 +68,13 @@ const Read: Story = {
 const ReadWithImage: Story = {
   args: {
     read: true,
-    imageUrl: "https://picsum.photos/seed/reader/400/300",
+    imageUrl: 'https://picsum.photos/seed/reader/400/300',
   },
 };
 
 const List: Story = {
   render: () => (
-    <div style={{ width: "40rem" }} className="divide-y divide-border">
+    <div style={{ width: '40rem' }} className="divide-y divide-border">
       <ArticleCard
         id="1"
         title="The quiet revolution in reader design"
@@ -115,7 +117,7 @@ const List: Story = {
 
 const ReadMixedList: Story = {
   render: () => (
-    <div style={{ width: "40rem" }} className="divide-y divide-border">
+    <div style={{ width: '40rem' }} className="divide-y divide-border">
       <ArticleCard
         id="1"
         title="The quiet revolution in reader design"
@@ -162,7 +164,7 @@ const VotableArticle = (): React.ReactElement => {
   const [globalVote, setGlobalVote] = useState<VoteValue>(null);
 
   return (
-    <div style={{ width: "40rem" }}>
+    <div style={{ width: '40rem' }}>
       <ArticleCard
         {...sampleProps}
         imageUrl="https://picsum.photos/seed/reader/400/300"
@@ -181,7 +183,7 @@ const WithVoting: Story = {
 
 const WithActiveVotes: Story = {
   render: () => (
-    <div style={{ width: "40rem" }} className="divide-y divide-border">
+    <div style={{ width: '40rem' }} className="divide-y divide-border">
       <ArticleCard
         id="1"
         title="An article you upvoted in this focus"

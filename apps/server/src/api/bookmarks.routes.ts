@@ -1,10 +1,9 @@
-import { z } from "zod/v4";
+import { z } from 'zod/v4';
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
-import { createAuthHook } from "../auth/auth.middleware.ts";
-import { BookmarksService } from "../bookmarks/bookmarks.ts";
-
-import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
-import type { Services } from "../services/services.ts";
+import { createAuthHook } from '../auth/auth.middleware.ts';
+import { BookmarksService } from '../bookmarks/bookmarks.ts';
+import type { Services } from '../services/services.ts';
 
 // --- Schemas ---
 
@@ -49,14 +48,15 @@ const articleIdParamsSchema = z.object({
 
 // --- Routes ---
 
-const createBookmarksRoutes = (services: Services): FastifyPluginAsyncZod =>
+const createBookmarksRoutes =
+  (services: Services): FastifyPluginAsyncZod =>
   async (fastify) => {
     const authenticate = createAuthHook(services);
 
     // List bookmarks
     fastify.route({
-      method: "GET",
-      url: "/bookmarks",
+      method: 'GET',
+      url: '/bookmarks',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -76,8 +76,8 @@ const createBookmarksRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Check if an article is bookmarked
     fastify.route({
-      method: "GET",
-      url: "/articles/:articleId/bookmark",
+      method: 'GET',
+      url: '/articles/:articleId/bookmark',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -88,18 +88,15 @@ const createBookmarksRoutes = (services: Services): FastifyPluginAsyncZod =>
       },
       handler: async (req) => {
         const bookmarksService = services.get(BookmarksService);
-        const bookmarked = await bookmarksService.isBookmarked(
-          req.user.sub,
-          req.params.articleId,
-        );
+        const bookmarked = await bookmarksService.isBookmarked(req.user.sub, req.params.articleId);
         return { bookmarked };
       },
     });
 
     // Check bookmark status for multiple articles
     fastify.route({
-      method: "POST",
-      url: "/bookmarks/check",
+      method: 'POST',
+      url: '/bookmarks/check',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -110,18 +107,15 @@ const createBookmarksRoutes = (services: Services): FastifyPluginAsyncZod =>
       },
       handler: async (req) => {
         const bookmarksService = services.get(BookmarksService);
-        const ids = await bookmarksService.getBookmarkedArticleIds(
-          req.user.sub,
-          req.body.articleIds,
-        );
+        const ids = await bookmarksService.getBookmarkedArticleIds(req.user.sub, req.body.articleIds);
         return { bookmarkedIds: [...ids] };
       },
     });
 
     // Save an article by URL (creates article + auto-bookmarks)
     fastify.route({
-      method: "POST",
-      url: "/bookmarks/save",
+      method: 'POST',
+      url: '/bookmarks/save',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -143,8 +137,8 @@ const createBookmarksRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Bookmark an article
     fastify.route({
-      method: "PUT",
-      url: "/articles/:articleId/bookmark",
+      method: 'PUT',
+      url: '/articles/:articleId/bookmark',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -161,8 +155,8 @@ const createBookmarksRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Remove bookmark
     fastify.route({
-      method: "DELETE",
-      url: "/articles/:articleId/bookmark",
+      method: 'DELETE',
+      url: '/articles/:articleId/bookmark',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],

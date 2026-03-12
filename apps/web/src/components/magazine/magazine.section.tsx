@@ -1,6 +1,7 @@
-import * as React from "react";
-import { motion } from "motion/react";
-import { MagazinePage } from "./magazine.layout.tsx";
+import * as React from 'react';
+import { motion } from 'motion/react';
+
+import { MagazinePage } from './magazine.layout.tsx';
 
 /* ── Types ────────────────────────────────────────────────────────── */
 
@@ -30,7 +31,7 @@ const MagazineSection = ({
         transition={{ duration: 0.5, ease: easeOut }}
         className="text-[8rem] md:text-[12rem] font-mono leading-none text-accent/15 select-none mb-[-1rem]"
       >
-        {String(index + 1).padStart(2, "0")}
+        {String(index + 1).padStart(2, '0')}
       </motion.div>
 
       {/* Section name */}
@@ -50,7 +51,7 @@ const MagazineSection = ({
         transition={{ duration: 0.4, ease: easeOut, delay: 0.3 }}
         className="text-xs font-mono tracking-wide text-ink-tertiary"
       >
-        {articleCount} {articleCount === 1 ? "article" : "articles"} · {totalReadingMinutes} min
+        {articleCount} {articleCount === 1 ? 'article' : 'articles'} · {totalReadingMinutes} min
       </motion.div>
 
       {/* Decorative rule */}

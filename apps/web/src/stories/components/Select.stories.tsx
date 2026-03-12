@@ -1,16 +1,17 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Select } from "../../components/select.tsx";
+import type { Meta, StoryObj } from '@storybook/react-vite';
+
+import { Select } from '../../components/select.tsx';
 
 const meta: Meta = {
-  title: "Design System/Components/Select",
-  parameters: { layout: "centered" },
+  title: 'Design System/Components/Select',
+  parameters: { layout: 'centered' },
 };
 
 type Story = StoryObj;
 
 const Default: Story = {
   render: () => (
-    <div style={{ width: "16rem" }}>
+    <div style={{ width: '16rem' }}>
       <Select.Root>
         <Select.Trigger />
         <Select.Content>
@@ -26,7 +27,7 @@ const Default: Story = {
 
 const WithGroups: Story = {
   render: () => (
-    <div style={{ width: "16rem" }}>
+    <div style={{ width: '16rem' }}>
       <Select.Root defaultValue="daily">
         <Select.Trigger />
         <Select.Content>

@@ -1,5 +1,5 @@
-import * as React from "react";
-import { Dialog as BaseDialog } from "@base-ui/react/dialog";
+import * as React from 'react';
+import { Dialog as BaseDialog } from '@base-ui/react/dialog';
 
 /* ── Root ──────────────────────────────────────────────── */
 const Root = BaseDialog.Root;
@@ -11,12 +11,7 @@ type ContentProps = React.ComponentProps<typeof BaseDialog.Popup> & {
   overlayClassName?: string;
 };
 
-const Content = ({
-  children,
-  className = "",
-  overlayClassName = "",
-  ...props
-}: ContentProps): React.ReactElement => (
+const Content = ({ children, className = '', overlayClassName = '', ...props }: ContentProps): React.ReactElement => (
   <BaseDialog.Portal>
     <BaseDialog.Backdrop
       className={`fixed inset-0 bg-black/25 backdrop-blur-xs transition-opacity duration-slow ease-gentle data-[starting-style]:opacity-0 data-[ending-style]:opacity-0 ${overlayClassName}`}
@@ -31,24 +26,15 @@ const Content = ({
 );
 
 /* ── Title & Description ───────────────────────────────── */
-const Title = ({
-  className = "",
-  ...props
-}: React.ComponentProps<typeof BaseDialog.Title>): React.ReactElement => (
-  <BaseDialog.Title
-    className={`text-lg font-medium text-ink tracking-tight mb-1 ${className}`}
-    {...props}
-  />
+const Title = ({ className = '', ...props }: React.ComponentProps<typeof BaseDialog.Title>): React.ReactElement => (
+  <BaseDialog.Title className={`text-lg font-medium text-ink tracking-tight mb-1 ${className}`} {...props} />
 );
 
 const Description = ({
-  className = "",
+  className = '',
   ...props
 }: React.ComponentProps<typeof BaseDialog.Description>): React.ReactElement => (
-  <BaseDialog.Description
-    className={`text-sm text-ink-secondary leading-relaxed mb-6 ${className}`}
-    {...props}
-  />
+  <BaseDialog.Description className={`text-sm text-ink-secondary leading-relaxed mb-6 ${className}`} {...props} />
 );
 
 const Dialog = { Root, Trigger, Close, Content, Title, Description };

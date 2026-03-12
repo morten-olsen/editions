@@ -1,6 +1,6 @@
-import crypto from "node:crypto";
+import crypto from 'node:crypto';
 
-import { XMLParser } from "fast-xml-parser";
+import { XMLParser } from 'fast-xml-parser';
 
 // --- Types ---
 
@@ -22,14 +22,14 @@ type FeedItem = {
 
 const parser = new XMLParser({
   ignoreAttributes: false,
-  attributeNamePrefix: "@_",
+  attributeNamePrefix: '@_',
 });
 
 const parseRssFeed = (xml: string): FeedItem[] => {
   const parsed = parser.parse(xml) as Record<string, unknown>;
 
   // RSS 2.0
-  const rssChannel = getNestedValue(parsed, "rss", "channel") as Record<string, unknown> | undefined;
+  const rssChannel = getNestedValue(parsed, 'rss', 'channel') as Record<string, unknown> | undefined;
   if (rssChannel) {
     return normalizeItems(rssChannel.item);
   }
@@ -41,7 +41,7 @@ const parseRssFeed = (xml: string): FeedItem[] => {
   }
 
   // RSS 1.0 (RDF)
-  const rdf = parsed["rdf:RDF"] as Record<string, unknown> | undefined;
+  const rdf = parsed['rdf:RDF'] as Record<string, unknown> | undefined;
   if (rdf) {
     return normalizeItems(rdf.item);
   }
@@ -50,35 +50,37 @@ const parseRssFeed = (xml: string): FeedItem[] => {
 };
 
 const normalizeItems = (items: unknown): FeedItem[] => {
-  if (!items) return [];
+  if (!items) {
+    return [];
+  }
   const arr = Array.isArray(items) ? items : [items];
 
   return arr.map((item: Record<string, unknown>): FeedItem => {
     const guid = item.guid;
-    const guidText = typeof guid === "object" && guid !== null
-      ? (guid as Record<string, unknown>)["#text"]
-      : guid;
+    const guidText = typeof guid === 'object' && guid !== null ? (guid as Record<string, unknown>)['#text'] : guid;
 
     const { mediaUrl, mediaType } = extractMediaEnclosure(item);
 
     return {
       externalId: String(guidText ?? item.link ?? crypto.randomUUID()),
       url: toStringOrNull(item.link),
-      title: String(item.title ?? "Untitled"),
-      author: toStringOrNull(item["dc:creator"] ?? item.author ?? item["itunes:author"]),
+      title: String(item.title ?? 'Untitled'),
+      author: toStringOrNull(item['dc:creator'] ?? item.author ?? item['itunes:author']),
       summary: toStringOrNull(item.description),
-      content: toStringOrNull(item["content:encoded"]),
+      content: toStringOrNull(item['content:encoded']),
       imageUrl: extractImageUrl(item),
-      publishedAt: toIsoDate(item.pubDate ?? item["dc:date"]),
+      publishedAt: toIsoDate(item.pubDate ?? item['dc:date']),
       mediaUrl,
       mediaType,
-      consumptionTimeSeconds: parseItunesDuration(item["itunes:duration"]),
+      consumptionTimeSeconds: parseItunesDuration(item['itunes:duration']),
     };
   });
 };
 
 const normalizeAtomEntries = (entries: unknown): FeedItem[] => {
-  if (!entries) return [];
+  if (!entries) {
+    return [];
+  }
   const arr = Array.isArray(entries) ? entries : [entries];
 
   return arr.map((entry: Record<string, unknown>): FeedItem => {
@@ -88,19 +90,19 @@ const normalizeAtomEntries = (entries: unknown): FeedItem[] => {
       externalId: String(entry.id ?? link ?? crypto.randomUUID()),
       url: link,
       title: String(
-        typeof entry.title === "object" && entry.title !== null
-          ? (entry.title as Record<string, unknown>)["#text"]
-          : entry.title ?? "Untitled",
+        typeof entry.title === 'object' && entry.title !== null
+          ? (entry.title as Record<string, unknown>)['#text']
+          : (entry.title ?? 'Untitled'),
       ),
       author: extractAtomAuthor(entry.author),
       summary: toStringOrNull(
-        typeof entry.summary === "object" && entry.summary !== null
-          ? (entry.summary as Record<string, unknown>)["#text"]
+        typeof entry.summary === 'object' && entry.summary !== null
+          ? (entry.summary as Record<string, unknown>)['#text']
           : entry.summary,
       ),
       content: toStringOrNull(
-        typeof entry.content === "object" && entry.content !== null
-          ? (entry.content as Record<string, unknown>)["#text"]
+        typeof entry.content === 'object' && entry.content !== null
+          ? (entry.content as Record<string, unknown>)['#text']
           : entry.content,
       ),
       imageUrl: null,
@@ -113,25 +115,32 @@ const normalizeAtomEntries = (entries: unknown): FeedItem[] => {
 };
 
 const extractAtomLink = (link: unknown): string | null => {
-  if (!link) return null;
-  if (typeof link === "string") return link;
-  if (Array.isArray(link)) {
-    const alternate = link.find(
-      (l: Record<string, unknown>) =>
-        l["@_rel"] === "alternate" || !l["@_rel"],
-    ) as Record<string, unknown> | undefined;
-    return toStringOrNull(alternate?.["@_href"]);
+  if (!link) {
+    return null;
   }
-  if (typeof link === "object") {
-    return toStringOrNull((link as Record<string, unknown>)["@_href"]);
+  if (typeof link === 'string') {
+    return link;
+  }
+  if (Array.isArray(link)) {
+    const alternate = link.find((l: Record<string, unknown>) => l['@_rel'] === 'alternate' || !l['@_rel']) as
+      | Record<string, unknown>
+      | undefined;
+    return toStringOrNull(alternate?.['@_href']);
+  }
+  if (typeof link === 'object') {
+    return toStringOrNull((link as Record<string, unknown>)['@_href']);
   }
   return null;
 };
 
 const extractAtomAuthor = (author: unknown): string | null => {
-  if (!author) return null;
-  if (typeof author === "string") return author;
-  if (typeof author === "object") {
+  if (!author) {
+    return null;
+  }
+  if (typeof author === 'string') {
+    return author;
+  }
+  if (typeof author === 'object') {
     return toStringOrNull((author as Record<string, unknown>).name);
   }
   return null;
@@ -140,41 +149,45 @@ const extractAtomAuthor = (author: unknown): string | null => {
 const extractImageUrl = (item: Record<string, unknown>): string | null => {
   const enclosure = item.enclosure as Record<string, unknown> | undefined;
   if (enclosure) {
-    const type = String(enclosure["@_type"] ?? "");
-    if (type.startsWith("image/")) {
-      return toStringOrNull(enclosure["@_url"]);
+    const type = String(enclosure['@_type'] ?? '');
+    if (type.startsWith('image/')) {
+      return toStringOrNull(enclosure['@_url']);
     }
   }
   // Podcast feeds often use itunes:image for episode artwork
-  const itunesImage = item["itunes:image"] as Record<string, unknown> | undefined;
+  const itunesImage = item['itunes:image'] as Record<string, unknown> | undefined;
   if (itunesImage) {
-    return toStringOrNull(itunesImage["@_href"]);
+    return toStringOrNull(itunesImage['@_href']);
   }
   // Megaphone and other feeds use media:thumbnail
-  const mediaThumbnail = item["media:thumbnail"] as Record<string, unknown> | undefined;
+  const mediaThumbnail = item['media:thumbnail'] as Record<string, unknown> | undefined;
   if (mediaThumbnail) {
-    return toStringOrNull(mediaThumbnail["@_url"]);
+    return toStringOrNull(mediaThumbnail['@_url']);
   }
   // media:content with image medium or type
-  const mediaContent = item["media:content"] as Record<string, unknown> | undefined;
+  const mediaContent = item['media:content'] as Record<string, unknown> | undefined;
   if (mediaContent) {
-    const medium = String(mediaContent["@_medium"] ?? "");
-    const mediaType = String(mediaContent["@_type"] ?? "");
-    if (medium === "image" || mediaType.startsWith("image/")) {
-      return toStringOrNull(mediaContent["@_url"]);
+    const medium = String(mediaContent['@_medium'] ?? '');
+    const mediaType = String(mediaContent['@_type'] ?? '');
+    if (medium === 'image' || mediaType.startsWith('image/')) {
+      return toStringOrNull(mediaContent['@_url']);
     }
   }
   return null;
 };
 
-const extractMediaEnclosure = (item: Record<string, unknown>): { mediaUrl: string | null; mediaType: string | null } => {
+const extractMediaEnclosure = (
+  item: Record<string, unknown>,
+): { mediaUrl: string | null; mediaType: string | null } => {
   const enclosure = item.enclosure as Record<string, unknown> | undefined;
-  if (!enclosure) return { mediaUrl: null, mediaType: null };
+  if (!enclosure) {
+    return { mediaUrl: null, mediaType: null };
+  }
 
-  const type = String(enclosure["@_type"] ?? "");
-  if (type.startsWith("audio/") || type.startsWith("video/")) {
+  const type = String(enclosure['@_type'] ?? '');
+  if (type.startsWith('audio/') || type.startsWith('video/')) {
     return {
-      mediaUrl: toStringOrNull(enclosure["@_url"]),
+      mediaUrl: toStringOrNull(enclosure['@_url']),
       mediaType: type || null,
     };
   }
@@ -183,27 +196,43 @@ const extractMediaEnclosure = (item: Record<string, unknown>): { mediaUrl: strin
 };
 
 const parseItunesDuration = (val: unknown): number | null => {
-  if (val === null || val === undefined) return null;
+  if (val === null || val === undefined) {
+    return null;
+  }
   const s = String(val).trim();
-  if (s.length === 0) return null;
+  if (s.length === 0) {
+    return null;
+  }
 
-  const parts = s.split(":").map(Number);
-  if (parts.some(isNaN)) return null;
+  const parts = s.split(':').map(Number);
+  if (parts.some(isNaN)) {
+    return null;
+  }
 
-  if (parts.length === 3) return parts[0]! * 3600 + parts[1]! * 60 + parts[2]!;
-  if (parts.length === 2) return parts[0]! * 60 + parts[1]!;
-  if (parts.length === 1) return parts[0]!;
+  if (parts.length === 3) {
+    return parts[0]! * 3600 + parts[1]! * 60 + parts[2]!;
+  }
+  if (parts.length === 2) {
+    return parts[0]! * 60 + parts[1]!;
+  }
+  if (parts.length === 1) {
+    return parts[0]!;
+  }
   return null;
 };
 
 const toStringOrNull = (val: unknown): string | null => {
-  if (val === null || val === undefined) return null;
+  if (val === null || val === undefined) {
+    return null;
+  }
   const s = String(val).trim();
   return s.length > 0 ? s : null;
 };
 
 const toIsoDate = (val: unknown): string | null => {
-  if (!val) return null;
+  if (!val) {
+    return null;
+  }
   const d = new Date(String(val));
   return isNaN(d.getTime()) ? null : d.toISOString();
 };
@@ -211,7 +240,9 @@ const toIsoDate = (val: unknown): string | null => {
 const getNestedValue = (obj: Record<string, unknown>, ...keys: string[]): unknown => {
   let current: unknown = obj;
   for (const key of keys) {
-    if (typeof current !== "object" || current === null) return undefined;
+    if (typeof current !== 'object' || current === null) {
+      return undefined;
+    }
     current = (current as Record<string, unknown>)[key];
   }
   return current;

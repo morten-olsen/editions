@@ -1,11 +1,12 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { Link, useRouterState } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
 
-import { useAuth } from "../auth/auth.tsx";
-import { client } from "../api/api.ts";
-import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
-import { EntityIcon } from "./entity-icon.tsx";
-import { AiToggleButton } from "../ai/ai.ts";
+import { useAuth } from '../auth/auth.tsx';
+import { client } from '../api/api.ts';
+import { useAuthHeaders, queryKeys } from '../api/api.hooks.ts';
+import { AiToggleButton } from '../ai/ai.ts';
+
+import { EntityIcon } from './entity-icon.tsx';
 
 type NavEditionConfig = {
   id: string;
@@ -27,16 +28,14 @@ type EditionSummary = {
 
 const linkClass = (active: boolean): string =>
   `flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors duration-fast ease-gentle ${
-    active
-      ? "bg-accent-subtle text-accent font-medium"
-      : "text-ink-secondary hover:text-ink hover:bg-surface-sunken"
+    active ? 'bg-accent-subtle text-accent font-medium' : 'text-ink-secondary hover:text-ink hover:bg-surface-sunken'
   }`;
 
-const sectionHeadClass = "flex items-center justify-between px-3 mb-1.5";
-const sectionLabelClass = "text-xs text-ink-faint tracking-wide uppercase";
+const sectionHeadClass = 'flex items-center justify-between px-3 mb-1.5';
+const sectionLabelClass = 'text-xs text-ink-faint tracking-wide uppercase';
 
 const addButtonClass =
-  "shrink-0 w-5 h-5 flex items-center justify-center rounded text-ink-faint hover:text-ink hover:bg-surface-sunken transition-colors duration-fast";
+  'shrink-0 w-5 h-5 flex items-center justify-center rounded text-ink-faint hover:text-ink hover:bg-surface-sunken transition-colors duration-fast';
 
 const PlusIcon = (): React.ReactElement => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5">
@@ -51,7 +50,9 @@ const Nav = (): React.ReactElement => {
   const headers = useAuthHeaders();
 
   const isActive = (href: string): boolean => {
-    if (href === "/") return currentPath === "/";
+    if (href === '/') {
+      return currentPath === '/';
+    }
     return currentPath.startsWith(href);
   };
 
@@ -59,8 +60,8 @@ const Nav = (): React.ReactElement => {
     queryKey: queryKeys.nav,
     queryFn: async (): Promise<{ configs: NavEditionConfig[]; focuses: NavFocus[] }> => {
       const [configsRes, focusesRes] = await Promise.all([
-        client.GET("/api/editions/configs", { headers }),
-        client.GET("/api/focuses", { headers }),
+        client.GET('/api/editions/configs', { headers }),
+        client.GET('/api/focuses', { headers }),
       ]);
 
       const rawConfigs = (configsRes.data ?? []) as unknown as { id: string; name: string; icon: string | null }[];
@@ -68,7 +69,7 @@ const Nav = (): React.ReactElement => {
 
       const configsWithUnread = await Promise.all(
         rawConfigs.map(async (cfg): Promise<NavEditionConfig> => {
-          const { data } = await client.GET("/api/editions/configs/{configId}/editions", {
+          const { data } = await client.GET('/api/editions/configs/{configId}/editions', {
             params: { path: { configId: cfg.id } },
             headers,
           });
@@ -84,20 +85,25 @@ const Nav = (): React.ReactElement => {
 
       return { configs: configsWithUnread, focuses: rawFocuses };
     },
-    enabled: auth.status === "authenticated",
+    enabled: auth.status === 'authenticated',
   });
 
   const configs = navData?.configs ?? [];
   const focuses = navData?.focuses ?? [];
 
-  const username = auth.status === "authenticated" ? auth.user.username : undefined;
-  const logout = auth.status === "authenticated" ? auth.logout : undefined;
+  const username = auth.status === 'authenticated' ? auth.user.username : undefined;
+  const logout = auth.status === 'authenticated' ? auth.logout : undefined;
 
   return (
-    <nav className="flex flex-col h-full w-56 border-r border-border bg-surface py-6 px-3" data-ai-id="nav" data-ai-role="nav" data-ai-label="Sidebar navigation">
+    <nav
+      className="flex flex-col h-full w-56 border-r border-border bg-surface py-6 px-3"
+      data-ai-id="nav"
+      data-ai-role="nav"
+      data-ai-label="Sidebar navigation"
+    >
       {/* Home link */}
       <div className="mb-4">
-        <Link to="/" className={linkClass(currentPath === "/")}>
+        <Link to="/" className={linkClass(currentPath === '/')}>
           <span className="font-serif text-lg tracking-tight">Editions</span>
         </Link>
       </div>
@@ -105,7 +111,14 @@ const Nav = (): React.ReactElement => {
       {/* Edition configs header + add */}
       <div className={sectionHeadClass}>
         <div className={sectionLabelClass}>Your editions</div>
-        <Link to="/editions/new" className={addButtonClass} aria-label="New edition" data-ai-id="new-edition-btn" data-ai-role="button" data-ai-label="New edition">
+        <Link
+          to="/editions/new"
+          className={addButtonClass}
+          aria-label="New edition"
+          data-ai-id="new-edition-btn"
+          data-ai-role="button"
+          data-ai-label="New edition"
+        >
           <PlusIcon />
         </Link>
       </div>
@@ -137,7 +150,13 @@ const Nav = (): React.ReactElement => {
 
       {/* Bookmarks */}
       <div className="mb-6">
-        <Link to="/bookmarks" className={linkClass(isActive("/bookmarks"))} data-ai-id="nav-bookmarks" data-ai-role="link" data-ai-label="Bookmarks">
+        <Link
+          to="/bookmarks"
+          className={linkClass(isActive('/bookmarks'))}
+          data-ai-id="nav-bookmarks"
+          data-ai-role="link"
+          data-ai-label="Bookmarks"
+        >
           <EntityIcon icon="bookmark" size={14} className="shrink-0" />
           <span className="truncate">Bookmarks</span>
         </Link>
@@ -147,12 +166,25 @@ const Nav = (): React.ReactElement => {
       <div className="mb-6">
         <div className={sectionHeadClass}>
           <div className={sectionLabelClass}>Browse</div>
-          <Link to="/focuses/new" className={addButtonClass} aria-label="New focus" data-ai-id="new-focus-btn" data-ai-role="button" data-ai-label="New focus">
+          <Link
+            to="/focuses/new"
+            className={addButtonClass}
+            aria-label="New focus"
+            data-ai-id="new-focus-btn"
+            data-ai-role="button"
+            data-ai-label="New focus"
+          >
             <PlusIcon />
           </Link>
         </div>
         <div className="flex flex-col gap-0.5">
-          <Link to="/feed" className={linkClass(currentPath.startsWith("/feed"))} data-ai-id="nav-feed" data-ai-role="link" data-ai-label="All articles">
+          <Link
+            to="/feed"
+            className={linkClass(currentPath.startsWith('/feed'))}
+            data-ai-id="nav-feed"
+            data-ai-role="link"
+            data-ai-label="All articles"
+          >
             <EntityIcon icon="layers" size={14} className="shrink-0" />
             <span className="truncate">All articles</span>
           </Link>
@@ -175,20 +207,24 @@ const Nav = (): React.ReactElement => {
 
       {/* Footer */}
       <div className="mt-auto flex flex-col gap-0.5">
-        <Link to="/sources" className={linkClass(isActive("/sources"))} data-ai-id="nav-sources" data-ai-role="link" data-ai-label="Sources">
+        <Link
+          to="/sources"
+          className={linkClass(isActive('/sources'))}
+          data-ai-id="nav-sources"
+          data-ai-role="link"
+          data-ai-label="Sources"
+        >
           <EntityIcon icon="rss" size={14} className="shrink-0" />
           <span className="truncate">Sources</span>
         </Link>
-        <Link to="/settings" className={linkClass(isActive("/settings"))}>
+        <Link to="/settings" className={linkClass(isActive('/settings'))}>
           <EntityIcon icon="settings" size={14} className="shrink-0" />
           <span className="truncate">Settings</span>
         </Link>
         <AiToggleButton />
 
         <div className="mt-3 pt-3 border-t border-border mx-3">
-          {username && (
-            <div className="text-xs text-ink-tertiary mb-1">{username}</div>
-          )}
+          {username && <div className="text-xs text-ink-tertiary mb-1">{username}</div>}
           {logout && (
             <button
               type="button"

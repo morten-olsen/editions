@@ -1,14 +1,18 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from '@tanstack/react-router';
 
-import { useFocusDetail, PAGE_SIZE } from "../hooks/focuses/focuses.hooks.ts";
-import type { TimeWindow, ReadStatus } from "../hooks/focuses/focuses.hooks.ts";
-import { Button } from "../components/button.tsx";
-import { EmptyState } from "../components/empty-state.tsx";
-import { ArticleCard } from "../components/article-card.tsx";
+import { useFocusDetail, PAGE_SIZE } from '../hooks/focuses/focuses.hooks.ts';
+import type { TimeWindow, ReadStatus } from '../hooks/focuses/focuses.hooks.ts';
+import { Button } from '../components/button.tsx';
+import { EmptyState } from '../components/empty-state.tsx';
+import { ArticleCard } from '../components/article-card.tsx';
 
 const CogIcon = (): React.ReactElement => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-    <path fillRule="evenodd" d="M7.84 1.804A1 1 0 0 1 8.82 1h2.36a1 1 0 0 1 .98.804l.331 1.652a6.993 6.993 0 0 1 1.929 1.115l1.598-.54a1 1 0 0 1 1.186.447l1.18 2.044a1 1 0 0 1-.205 1.251l-1.267 1.113a7.047 7.047 0 0 1 0 2.228l1.267 1.113a1 1 0 0 1 .206 1.25l-1.18 2.045a1 1 0 0 1-1.187.447l-1.598-.54a6.993 6.993 0 0 1-1.929 1.115l-.33 1.652a1 1 0 0 1-.98.804H8.82a1 1 0 0 1-.98-.804l-.331-1.652a6.993 6.993 0 0 1-1.929-1.115l-1.598.54a1 1 0 0 1-1.186-.447l-1.18-2.044a1 1 0 0 1 .205-1.251l1.267-1.114a7.05 7.05 0 0 1 0-2.227L1.821 7.773a1 1 0 0 1-.206-1.25l1.18-2.045a1 1 0 0 1 1.187-.447l1.598.54A6.992 6.992 0 0 1 7.51 3.456l.33-1.652ZM10 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clipRule="evenodd" />
+    <path
+      fillRule="evenodd"
+      d="M7.84 1.804A1 1 0 0 1 8.82 1h2.36a1 1 0 0 1 .98.804l.331 1.652a6.993 6.993 0 0 1 1.929 1.115l1.598-.54a1 1 0 0 1 1.186.447l1.18 2.044a1 1 0 0 1-.205 1.251l-1.267 1.113a7.047 7.047 0 0 1 0 2.228l1.267 1.113a1 1 0 0 1 .206 1.25l-1.18 2.045a1 1 0 0 1-1.187.447l-1.598-.54a6.993 6.993 0 0 1-1.929 1.115l-.33 1.652a1 1 0 0 1-.98.804H8.82a1 1 0 0 1-.98-.804l-.331-1.652a6.993 6.993 0 0 1-1.929-1.115l-1.598.54a1 1 0 0 1-1.186-.447l-1.18-2.044a1 1 0 0 1 .205-1.251l1.267-1.114a7.05 7.05 0 0 1 0-2.227L1.821 7.773a1 1 0 0 1-.206-1.25l1.18-2.045a1 1 0 0 1 1.187-.447l1.598.54A6.992 6.992 0 0 1 7.51 3.456l.33-1.652ZM10 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
+      clipRule="evenodd"
+    />
   </svg>
 );
 
@@ -37,7 +41,9 @@ const FocusDetailPage = (): React.ReactNode => {
     headers,
   } = useFocusDetail(focusId);
 
-  if (!headers) return null;
+  if (!headers) {
+    return null;
+  }
 
   const loading = loadingFocus || loadingArticles;
 
@@ -48,7 +54,7 @@ const FocusDetailPage = (): React.ReactNode => {
   if (!focus) {
     return (
       <div className="py-12 text-center">
-        <div className="text-sm text-critical">{focusError ? "Focus not found" : "Focus not found"}</div>
+        <div className="text-sm text-critical">{focusError ? 'Focus not found' : 'Focus not found'}</div>
       </div>
     );
   }
@@ -56,15 +62,16 @@ const FocusDetailPage = (): React.ReactNode => {
   return (
     <>
       {/* Header: name + cog */}
-      <div className="flex items-center justify-between gap-4 mb-8" data-ai-id="focus-header" data-ai-role="heading" data-ai-label={focus.name}>
+      <div
+        className="flex items-center justify-between gap-4 mb-8"
+        data-ai-id="focus-header"
+        data-ai-role="heading"
+        data-ai-label={focus.name}
+      >
         <div className="min-w-0">
-          <h1 className="text-2xl font-serif font-medium tracking-tight text-ink">
-            {focus.name}
-          </h1>
+          <h1 className="text-2xl font-serif font-medium tracking-tight text-ink">{focus.name}</h1>
           {focus.description && (
-            <div className="text-sm text-ink-secondary mt-1 leading-relaxed">
-              {focus.description}
-            </div>
+            <div className="text-sm text-ink-secondary mt-1 leading-relaxed">{focus.description}</div>
           )}
         </div>
         <Link
@@ -81,20 +88,25 @@ const FocusDetailPage = (): React.ReactNode => {
       </div>
 
       {/* Filter bar */}
-      <div className="flex items-center gap-4 mb-6" data-ai-id="focus-filters" data-ai-role="section" data-ai-label="Focus filters">
+      <div
+        className="flex items-center gap-4 mb-6"
+        data-ai-id="focus-filters"
+        data-ai-role="section"
+        data-ai-label="Focus filters"
+      >
         <div className="flex gap-1 border-b border-border">
-          {(["top", "recent"] as const).map((s) => (
+          {(['top', 'recent'] as const).map((s) => (
             <button
               key={s}
               type="button"
               onClick={() => handleFilterChange(s)}
-              className={`relative flex h-10 items-center justify-center px-4 text-sm font-medium outline-none select-none transition-colors duration-fast cursor-pointer ${sort === s ? "text-ink after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-accent" : "text-ink-tertiary hover:text-ink-secondary"}`}
+              className={`relative flex h-10 items-center justify-center px-4 text-sm font-medium outline-none select-none transition-colors duration-fast cursor-pointer ${sort === s ? 'text-ink after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-accent' : 'text-ink-tertiary hover:text-ink-secondary'}`}
               data-ai-id={`focus-sort-${s}`}
               data-ai-role="button"
-              data-ai-label={s === "top" ? "Sort by top" : "Sort by recent"}
-              data-ai-state={sort === s ? "selected" : "idle"}
+              data-ai-label={s === 'top' ? 'Sort by top' : 'Sort by recent'}
+              data-ai-state={sort === s ? 'selected' : 'idle'}
             >
-              {s === "top" ? "Top" : "Recent"}
+              {s === 'top' ? 'Top' : 'Recent'}
             </button>
           ))}
         </div>
@@ -141,17 +153,22 @@ const FocusDetailPage = (): React.ReactNode => {
           <EmptyState
             title="No articles"
             description={
-              sort === "top" && window === "all" && status === "unread"
-                ? "You're all caught up! Switch to \"All\" to browse past articles."
-                : sort === "top" && window === "all" && status === "all"
-                  ? "No articles have been classified into this focus yet."
-                  : "No articles match the current filters."
+              sort === 'top' && window === 'all' && status === 'unread'
+                ? 'You\'re all caught up! Switch to "All" to browse past articles.'
+                : sort === 'top' && window === 'all' && status === 'all'
+                  ? 'No articles have been classified into this focus yet.'
+                  : 'No articles match the current filters.'
             }
           />
         )
       ) : (
         <>
-          <div className="divide-y divide-border" data-ai-id="focus-articles" data-ai-role="list" data-ai-label={`${articlesPage.total} articles`}>
+          <div
+            className="divide-y divide-border"
+            data-ai-id="focus-articles"
+            data-ai-role="list"
+            data-ai-label={`${articlesPage.total} articles`}
+          >
             {articlesPage.articles.map((article) => {
               const focusVote = getVoteOverride(article.id, article.vote);
               const globalVote = getGlobalVoteOverride(article.id, article.globalVote);
@@ -170,7 +187,7 @@ const FocusDetailPage = (): React.ReactNode => {
                   sourceType={article.sourceType}
                   imageUrl={article.imageUrl}
                   href={`/sources/${article.sourceId}/articles/${article.id}`}
-                  read={status === "all" ? !!article.readAt : false}
+                  read={status === 'all' ? !!article.readAt : false}
                   focusVote={focusVote}
                   onFocusVote={(v) => void handleFocusVote(article.id, v)}
                   vote={globalVote}
@@ -183,11 +200,16 @@ const FocusDetailPage = (): React.ReactNode => {
           </div>
 
           <div className="text-xs text-ink-tertiary mt-4">
-            {articlesPage.total} article{articlesPage.total === 1 ? "" : "s"}
+            {articlesPage.total} article{articlesPage.total === 1 ? '' : 's'}
           </div>
 
           {pagination.totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-border" data-ai-id="focus-pagination" data-ai-role="info" data-ai-label={`Page ${pagination.currentPage} of ${pagination.totalPages}`}>
+            <div
+              className="flex items-center justify-between mt-4 pt-4 border-t border-border"
+              data-ai-id="focus-pagination"
+              data-ai-role="info"
+              data-ai-label={`Page ${pagination.currentPage} of ${pagination.totalPages}`}
+            >
               <Button
                 variant="ghost"
                 size="sm"
@@ -221,7 +243,7 @@ const FocusDetailPage = (): React.ReactNode => {
   );
 };
 
-const Route = createFileRoute("/focuses/$focusId/")({
+const Route = createFileRoute('/focuses/$focusId/')({
   component: FocusDetailPage,
 });
 

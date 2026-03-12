@@ -1,5 +1,5 @@
-import * as React from "react";
-import { Menu as BaseMenu } from "@base-ui/react/menu";
+import * as React from 'react';
+import { Menu as BaseMenu } from '@base-ui/react/menu';
 
 const Root = BaseMenu.Root;
 const Trigger = BaseMenu.Trigger;
@@ -7,7 +7,7 @@ const RadioGroup = BaseMenu.RadioGroup;
 
 const Content = ({
   children,
-  className = "",
+  className = '',
   ...props
 }: React.ComponentProps<typeof BaseMenu.Popup>): React.ReactElement => (
   <BaseMenu.Portal>
@@ -22,31 +22,18 @@ const Content = ({
   </BaseMenu.Portal>
 );
 
-const Item = ({
-  className = "",
-  ...props
-}: React.ComponentProps<typeof BaseMenu.Item>): React.ReactElement => (
+const Item = ({ className = '', ...props }: React.ComponentProps<typeof BaseMenu.Item>): React.ReactElement => (
   <BaseMenu.Item
     className={`flex items-center gap-2 px-3 py-2 text-sm text-ink outline-none select-none cursor-default data-[highlighted]:bg-surface-sunken data-[highlighted]:text-ink ${className}`}
     {...props}
   />
 );
 
-const Separator = ({
-  className = "",
-  ...props
-}: React.ComponentProps<"div">): React.ReactElement => (
-  <div
-    role="separator"
-    className={`h-px bg-border my-1.5 ${className}`}
-    {...props}
-  />
+const Separator = ({ className = '', ...props }: React.ComponentProps<'div'>): React.ReactElement => (
+  <div role="separator" className={`h-px bg-border my-1.5 ${className}`} {...props} />
 );
 
-const Label = ({
-  className = "",
-  ...props
-}: React.ComponentProps<"div">): React.ReactElement => (
+const Label = ({ className = '', ...props }: React.ComponentProps<'div'>): React.ReactElement => (
   <div
     className={`px-3 py-1.5 text-xs font-medium text-ink-tertiary tracking-wide uppercase ${className}`}
     {...props}

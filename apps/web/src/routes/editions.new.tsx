@@ -1,17 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router';
 
 import {
   useCreateEditionConfig,
   SCHEDULE_PRESETS,
   selectClasses,
   priorityLabel,
-} from "../hooks/editions/editions.hooks.ts";
-import { PageHeader } from "../components/page-header.tsx";
-import { Input } from "../components/input.tsx";
-import { Button } from "../components/button.tsx";
-import { Checkbox } from "../components/checkbox.tsx";
-import { Separator } from "../components/separator.tsx";
-import { IconPicker } from "../components/icon-picker.tsx";
+} from '../hooks/editions/editions.hooks.ts';
+import { PageHeader } from '../components/page-header.tsx';
+import { Input } from '../components/input.tsx';
+import { Button } from '../components/button.tsx';
+import { Checkbox } from '../components/checkbox.tsx';
+import { Separator } from '../components/separator.tsx';
+import { IconPicker } from '../components/icon-picker.tsx';
 
 const NewEditionConfigPage = (): React.ReactNode => {
   const {
@@ -53,12 +53,23 @@ const NewEditionConfigPage = (): React.ReactNode => {
       <PageHeader title="New edition" subtitle="Configure a curated digest from your topics" />
 
       {error && (
-        <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6" data-ai-id="edition-error" data-ai-role="error" data-ai-error={error}>
+        <div
+          className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6"
+          data-ai-id="edition-error"
+          data-ai-role="error"
+          data-ai-error={error}
+        >
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="max-w-lg flex flex-col gap-6" data-ai-id="edition-form" data-ai-role="form" data-ai-label="New edition form">
+      <form
+        onSubmit={handleSubmit}
+        className="max-w-lg flex flex-col gap-6"
+        data-ai-id="edition-form"
+        data-ai-role="form"
+        data-ai-label="New edition form"
+      >
         <div className="flex flex-col gap-5">
           <Input
             label="Name"
@@ -83,7 +94,9 @@ const NewEditionConfigPage = (): React.ReactNode => {
               id="schedule-preset"
               value={scheduleSelectValue(schedule)}
               onChange={(e) => {
-                if (e.target.value !== "__custom__") setSchedule(e.target.value);
+                if (e.target.value !== '__custom__') {
+                  setSchedule(e.target.value);
+                }
               }}
               className={`w-full ${selectClasses}`}
               data-ai-id="edition-schedule"
@@ -92,7 +105,9 @@ const NewEditionConfigPage = (): React.ReactNode => {
               data-ai-value={schedule}
             >
               {SCHEDULE_PRESETS.map((p) => (
-                <option key={p.value} value={p.value}>{p.label}</option>
+                <option key={p.value} value={p.value}>
+                  {p.label}
+                </option>
               ))}
             </select>
             {!isPresetSchedule(schedule) && (
@@ -105,7 +120,8 @@ const NewEditionConfigPage = (): React.ReactNode => {
                   required
                 />
                 <p className="text-xs text-ink-tertiary">
-                  Cron expression — e.g. <code className="font-mono bg-surface-sunken px-1 rounded">0 7 * * *</code> means daily at 7am
+                  Cron expression — e.g. <code className="font-mono bg-surface-sunken px-1 rounded">0 7 * * *</code>{' '}
+                  means daily at 7am
                 </p>
               </div>
             )}
@@ -143,7 +159,7 @@ const NewEditionConfigPage = (): React.ReactNode => {
             data-ai-id="edition-exclude-prior"
             data-ai-role="checkbox"
             data-ai-label="Don't repeat articles across editions"
-            data-ai-state={excludePriorEditions ? "checked" : "unchecked"}
+            data-ai-state={excludePriorEditions ? 'checked' : 'unchecked'}
           />
         </div>
 
@@ -152,9 +168,14 @@ const NewEditionConfigPage = (): React.ReactNode => {
         {/* Selected focuses */}
         <div>
           <div className="text-sm font-medium text-ink mb-0.5">
-            Topics {selectedFocuses.length > 0 && <span className="text-ink-tertiary font-normal">({selectedFocuses.length})</span>}
+            Topics{' '}
+            {selectedFocuses.length > 0 && (
+              <span className="text-ink-tertiary font-normal">({selectedFocuses.length})</span>
+            )}
           </div>
-          <p className="text-xs text-ink-tertiary mb-4">Each topic becomes a section in your edition. Use the arrows ↑↓ to reorder.</p>
+          <p className="text-xs text-ink-tertiary mb-4">
+            Each topic becomes a section in your edition. Use the arrows ↑↓ to reorder.
+          </p>
           {selectedFocuses.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border py-6 text-center">
               <p className="text-sm text-ink-tertiary">No topics added yet.</p>
@@ -164,13 +185,15 @@ const NewEditionConfigPage = (): React.ReactNode => {
             <div className="flex flex-col gap-3">
               {selectedFocuses.map((config, idx) => {
                 const focus = allFocuses.find((f) => f.id === config.focusId);
-                if (!focus) return null;
+                if (!focus) {
+                  return null;
+                }
 
                 return (
                   <div key={config.focusId} className="border border-border rounded-lg p-4">
                     <div className="flex items-center gap-3 mb-4">
                       <span className="text-xs font-mono text-accent w-5 text-center">
-                        {String(idx + 1).padStart(2, "0")}
+                        {String(idx + 1).padStart(2, '0')}
                       </span>
                       <div className="flex-1 text-sm font-medium text-ink">{focus.name}</div>
                       <div className="flex items-center gap-1">
@@ -211,16 +234,12 @@ const NewEditionConfigPage = (): React.ReactNode => {
                             type="number"
                             min={1}
                             value={config.budgetValue}
-                            onChange={(e) =>
-                              updateFocusField(config.focusId, "budgetValue", Number(e.target.value))
-                            }
+                            onChange={(e) => updateFocusField(config.focusId, 'budgetValue', Number(e.target.value))}
                             className="w-16 rounded-md border border-border bg-surface-raised px-2.5 py-1.5 text-sm text-ink focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
                           />
                           <select
                             value={config.budgetType}
-                            onChange={(e) =>
-                              updateFocusField(config.focusId, "budgetType", e.target.value)
-                            }
+                            onChange={(e) => updateFocusField(config.focusId, 'budgetType', e.target.value)}
                             className={selectClasses}
                           >
                             <option value="count">articles</option>
@@ -233,12 +252,12 @@ const NewEditionConfigPage = (): React.ReactNode => {
                       <div className="flex flex-col gap-1.5">
                         <span className="text-xs text-ink-tertiary">Age limit</span>
                         <select
-                          value={config.lookbackHours === null ? "" : String(config.lookbackHours)}
+                          value={config.lookbackHours === null ? '' : String(config.lookbackHours)}
                           onChange={(e) =>
                             updateFocusField(
                               config.focusId,
-                              "lookbackHours",
-                              e.target.value === "" ? null : Number(e.target.value),
+                              'lookbackHours',
+                              e.target.value === '' ? null : Number(e.target.value),
                             )
                           }
                           className={selectClasses}
@@ -257,17 +276,13 @@ const NewEditionConfigPage = (): React.ReactNode => {
                         <span className="text-xs text-ink-tertiary">Past issue articles</span>
                         <select
                           value={
-                            config.excludePriorEditions === null
-                              ? ""
-                              : config.excludePriorEditions
-                              ? "true"
-                              : "false"
+                            config.excludePriorEditions === null ? '' : config.excludePriorEditions ? 'true' : 'false'
                           }
                           onChange={(e) =>
                             updateFocusField(
                               config.focusId,
-                              "excludePriorEditions",
-                              e.target.value === "" ? null : e.target.value === "true",
+                              'excludePriorEditions',
+                              e.target.value === '' ? null : e.target.value === 'true',
                             )
                           }
                           className={selectClasses}
@@ -281,7 +296,9 @@ const NewEditionConfigPage = (): React.ReactNode => {
                       {/* Priority */}
                       <div className="flex flex-col gap-1.5">
                         <span className="text-xs text-ink-tertiary">Priority</span>
-                        <p className="text-xs text-ink-faint -mt-1">How much to favour this topic when selecting articles</p>
+                        <p className="text-xs text-ink-faint -mt-1">
+                          How much to favour this topic when selecting articles
+                        </p>
                         <div className="flex items-center gap-3">
                           <input
                             type="range"
@@ -289,9 +306,7 @@ const NewEditionConfigPage = (): React.ReactNode => {
                             max={3}
                             step={0.1}
                             value={config.weight}
-                            onChange={(e) =>
-                              updateFocusField(config.focusId, "weight", Number(e.target.value))
-                            }
+                            onChange={(e) => updateFocusField(config.focusId, 'weight', Number(e.target.value))}
                             className="flex-1 accent-accent"
                           />
                           <span className="text-xs font-medium text-ink-secondary tabular-nums w-12 text-right">
@@ -347,8 +362,16 @@ const NewEditionConfigPage = (): React.ReactNode => {
         )}
 
         <div className="flex items-center gap-3">
-          <Button variant="primary" type="submit" disabled={isPending} data-ai-id="edition-submit" data-ai-role="button" data-ai-label="Create edition" data-ai-state={isPending ? "loading" : "idle"}>
-            {isPending ? "Creating…" : "Create edition"}
+          <Button
+            variant="primary"
+            type="submit"
+            disabled={isPending}
+            data-ai-id="edition-submit"
+            data-ai-role="button"
+            data-ai-label="Create edition"
+            data-ai-state={isPending ? 'loading' : 'idle'}
+          >
+            {isPending ? 'Creating…' : 'Create edition'}
           </Button>
           <Button
             variant="ghost"
@@ -366,7 +389,7 @@ const NewEditionConfigPage = (): React.ReactNode => {
   );
 };
 
-const Route = createFileRoute("/editions/new")({
+const Route = createFileRoute('/editions/new')({
   component: NewEditionConfigPage,
 });
 

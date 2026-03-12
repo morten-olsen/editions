@@ -1,23 +1,22 @@
-import crypto from "node:crypto";
+import crypto from 'node:crypto';
 
-import { DatabaseService } from "../database/database.ts";
-
-import type { SourceType } from "../database/database.types.ts";
-import type { Services } from "../services/services.ts";
+import { DatabaseService } from '../database/database.ts';
+import type { SourceType } from '../database/database.types.ts';
+import type { Services } from '../services/services.ts';
 
 // --- Errors ---
 
 class SourceError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "SourceError";
+    this.name = 'SourceError';
   }
 }
 
 class SourceNotFoundError extends SourceError {
   constructor(id: string) {
     super(`Source not found: ${id}`);
-    this.name = "SourceNotFoundError";
+    this.name = 'SourceNotFoundError';
   }
 }
 
@@ -97,10 +96,10 @@ class SourcesService {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     const rows = await db
-      .selectFrom("sources")
+      .selectFrom('sources')
       .selectAll()
-      .where("user_id", "=", userId)
-      .orderBy("created_at", "desc")
+      .where('user_id', '=', userId)
+      .orderBy('created_at', 'desc')
       .execute();
 
     return rows.map(toSource);
@@ -110,10 +109,10 @@ class SourcesService {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     const existing = await db
-      .selectFrom("sources")
+      .selectFrom('sources')
       .selectAll()
-      .where("user_id", "=", userId)
-      .where("type", "=", "bookmarks")
+      .where('user_id', '=', userId)
+      .where('type', '=', 'bookmarks')
       .executeTakeFirst();
 
     if (existing) {
@@ -123,15 +122,15 @@ class SourcesService {
     const id = crypto.randomUUID();
 
     await db
-      .insertInto("sources")
+      .insertInto('sources')
       .values({
         id,
         user_id: userId,
-        type: "bookmarks",
-        name: "Saved Articles",
-        url: "bookmarks://saved",
-        config: "{}",
-        direction: "newest",
+        type: 'bookmarks',
+        name: 'Saved Articles',
+        url: 'bookmarks://saved',
+        config: '{}',
+        direction: 'newest',
       })
       .execute();
 
@@ -142,10 +141,10 @@ class SourcesService {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     const row = await db
-      .selectFrom("sources")
+      .selectFrom('sources')
       .selectAll()
-      .where("id", "=", id)
-      .where("user_id", "=", userId)
+      .where('id', '=', id)
+      .where('user_id', '=', userId)
       .executeTakeFirst();
 
     if (!row) {
@@ -162,15 +161,15 @@ class SourcesService {
     const config = JSON.stringify(params.config ?? {});
 
     await db
-      .insertInto("sources")
+      .insertInto('sources')
       .values({
         id,
         user_id: params.userId,
-        type: (params.type ?? "rss") as SourceType,
+        type: (params.type ?? 'rss') as SourceType,
         name: params.name,
         url: params.url,
         config,
-        direction: params.direction ?? "newest",
+        direction: params.direction ?? 'newest',
       })
       .execute();
 
@@ -187,60 +186,77 @@ class SourcesService {
       updated_at: new Date().toISOString(),
     };
 
-    if (params.name !== undefined) values.name = params.name;
-    if (params.url !== undefined) values.url = params.url;
-    if (params.direction !== undefined) values.direction = params.direction;
-    if (params.config !== undefined) values.config = JSON.stringify(params.config);
+    if (params.name !== undefined) {
+      values.name = params.name;
+    }
+    if (params.url !== undefined) {
+      values.url = params.url;
+    }
+    if (params.direction !== undefined) {
+      values.direction = params.direction;
+    }
+    if (params.config !== undefined) {
+      values.config = JSON.stringify(params.config);
+    }
 
-    await db
-      .updateTable("sources")
-      .set(values)
-      .where("id", "=", id)
-      .where("user_id", "=", userId)
-      .execute();
+    await db.updateTable('sources').set(values).where('id', '=', id).where('user_id', '=', userId).execute();
 
     return this.get(userId, id);
   };
 
-  listArticles = async (userId: string, sourceId: string, { offset = 0, limit = 20 }: { offset?: number; limit?: number } = {}): Promise<ArticlesPage> => {
+  listArticles = async (
+    userId: string,
+    sourceId: string,
+    { offset = 0, limit = 20 }: { offset?: number; limit?: number } = {},
+  ): Promise<ArticlesPage> => {
     // Verify ownership and get source for direction
     const source = await this.get(userId, sourceId);
 
     const db = await this.#services.get(DatabaseService).getInstance();
-    const order = source.direction === "oldest" ? "asc" as const : "desc" as const;
+    const order = source.direction === 'oldest' ? ('asc' as const) : ('desc' as const);
 
     const countResult = await db
-      .selectFrom("articles")
-      .select(db.fn.countAll().as("count"))
-      .where("source_id", "=", sourceId)
+      .selectFrom('articles')
+      .select(db.fn.countAll().as('count'))
+      .where('source_id', '=', sourceId)
       .executeTakeFirstOrThrow();
 
     const rows = await db
-      .selectFrom("articles")
+      .selectFrom('articles')
       .select([
-        "id", "source_id", "external_id", "url", "title",
-        "author", "summary", "image_url", "published_at", "created_at",
+        'id',
+        'source_id',
+        'external_id',
+        'url',
+        'title',
+        'author',
+        'summary',
+        'image_url',
+        'published_at',
+        'created_at',
       ])
-      .where("source_id", "=", sourceId)
-      .orderBy("published_at", order)
-      .orderBy("created_at", order)
+      .where('source_id', '=', sourceId)
+      .orderBy('published_at', order)
+      .orderBy('created_at', order)
       .offset(offset)
       .limit(limit)
       .execute();
 
     return {
-      articles: rows.map((row): Article => ({
-        id: row.id,
-        sourceId: row.source_id,
-        externalId: row.external_id,
-        url: row.url,
-        title: row.title,
-        author: row.author,
-        summary: row.summary,
-        imageUrl: row.image_url,
-        publishedAt: row.published_at,
-        createdAt: row.created_at,
-      })),
+      articles: rows.map(
+        (row): Article => ({
+          id: row.id,
+          sourceId: row.source_id,
+          externalId: row.external_id,
+          url: row.url,
+          title: row.title,
+          author: row.author,
+          summary: row.summary,
+          imageUrl: row.image_url,
+          publishedAt: row.published_at,
+          createdAt: row.created_at,
+        }),
+      ),
       total: Number(countResult.count),
       offset,
       limit,
@@ -251,21 +267,30 @@ class SourcesService {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     const row = await db
-      .selectFrom("articles")
-      .innerJoin("sources", "sources.id", "articles.source_id")
+      .selectFrom('articles')
+      .innerJoin('sources', 'sources.id', 'articles.source_id')
       .select([
-        "articles.id", "articles.source_id", "articles.external_id",
-        "articles.url", "articles.title", "articles.author",
-        "articles.summary", "articles.content",
-        "articles.consumption_time_seconds", "articles.image_url",
-        "articles.media_url", "articles.media_type",
-        "articles.published_at", "articles.read_at", "articles.extracted_at",
-        "articles.progress",
-        "articles.created_at",
-        "sources.type as source_type",
+        'articles.id',
+        'articles.source_id',
+        'articles.external_id',
+        'articles.url',
+        'articles.title',
+        'articles.author',
+        'articles.summary',
+        'articles.content',
+        'articles.consumption_time_seconds',
+        'articles.image_url',
+        'articles.media_url',
+        'articles.media_type',
+        'articles.published_at',
+        'articles.read_at',
+        'articles.extracted_at',
+        'articles.progress',
+        'articles.created_at',
+        'sources.type as source_type',
       ])
-      .where("articles.id", "=", articleId)
-      .where("sources.user_id", "=", userId)
+      .where('articles.id', '=', articleId)
+      .where('sources.user_id', '=', userId)
       .executeTakeFirst();
 
     if (!row) {
@@ -294,38 +319,26 @@ class SourcesService {
     };
   };
 
-  setArticleProgress = async (
-    userId: string,
-    articleId: string,
-    progress: number,
-  ): Promise<ArticleDetail> => {
+  setArticleProgress = async (userId: string, articleId: string, progress: number): Promise<ArticleDetail> => {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     await this.getArticle(userId, articleId);
 
-    await db
-      .updateTable("articles")
-      .set({ progress })
-      .where("id", "=", articleId)
-      .execute();
+    await db.updateTable('articles').set({ progress }).where('id', '=', articleId).execute();
 
     return this.getArticle(userId, articleId);
   };
 
-  setArticleReadStatus = async (
-    userId: string,
-    articleId: string,
-    read: boolean,
-  ): Promise<ArticleDetail> => {
+  setArticleReadStatus = async (userId: string, articleId: string, read: boolean): Promise<ArticleDetail> => {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     // Verify ownership via getArticle
     await this.getArticle(userId, articleId);
 
     await db
-      .updateTable("articles")
+      .updateTable('articles')
       .set({ read_at: read ? new Date().toISOString() : null })
-      .where("id", "=", articleId)
+      .where('id', '=', articleId)
       .execute();
 
     return this.getArticle(userId, articleId);
@@ -337,11 +350,7 @@ class SourcesService {
     // Verify ownership
     await this.get(userId, id);
 
-    await db
-      .deleteFrom("sources")
-      .where("id", "=", id)
-      .where("user_id", "=", userId)
-      .execute();
+    await db.deleteFrom('sources').where('id', '=', id).where('user_id', '=', userId).execute();
   };
 }
 

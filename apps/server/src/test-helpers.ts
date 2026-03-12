@@ -1,19 +1,22 @@
 // Ensure test env vars are set before any config loading.
 // Vitest workspace mode may not apply per-project `env` config reliably.
-process.env["EDITIONS_DB"] = ":memory:";
-process.env["EDITIONS_JWT_SECRET"] ??= "test-secret-do-not-use-in-production";
+process.env['EDITIONS_DB'] = ':memory:';
+process.env['EDITIONS_JWT_SECRET'] ??= 'test-secret-do-not-use-in-production';
 
-import { createApp } from "./app.ts";
+import type { FastifyInstance, InjectOptions, LightMyRequestResponse } from 'fastify';
 
-import type { App } from "./app.ts";
-import type { FastifyInstance, InjectOptions, LightMyRequestResponse } from "fastify";
+import { createApp } from './app.ts';
+import type { App } from './app.ts';
 
 type TestContext = {
   server: FastifyInstance;
   stop: () => Promise<void>;
   inject: (opts: InjectOptions) => Promise<LightMyRequestResponse>;
   /** Register a user and return auth headers */
-  register: (username?: string, password?: string) => Promise<{
+  register: (
+    username?: string,
+    password?: string,
+  ) => Promise<{
     id: string;
     token: string;
     headers: { authorization: string };
@@ -28,12 +31,12 @@ const createTestApp = async (): Promise<TestContext> => {
   };
 
   const register = async (
-    username = "testuser",
-    password = "password123",
+    username = 'testuser',
+    password = 'password123',
   ): Promise<{ id: string; token: string; headers: { authorization: string } }> => {
     const res = await inject({
-      method: "POST",
-      url: "/api/auth/register",
+      method: 'POST',
+      url: '/api/auth/register',
       payload: { username, password },
     });
     const body = JSON.parse(res.body) as { id: string; token: string };

@@ -2,22 +2,27 @@
  * Wrapper components that render real app magazine components with mock data.
  * These are imported into Astro pages with `client:visible` for animations.
  */
-import * as React from "react";
-import { MagazineCover } from "../../../web/src/components/magazine/magazine.cover.tsx";
-import { MagazineSection } from "../../../web/src/components/magazine/magazine.section.tsx";
-import { MagazineFinale } from "../../../web/src/components/magazine/magazine.finale.tsx";
-import { MagazineToc } from "../../../web/src/components/magazine/magazine.toc.tsx";
-import { MagazineArticle } from "../../../web/src/components/magazine/magazine.article.tsx";
-import { MagazinePage } from "../../../web/src/components/magazine/magazine.layout.tsx";
-import { Button } from "../../../web/src/components/button.tsx";
-import { VoteControls } from "../../../web/src/components/vote-controls.tsx";
+import * as React from 'react';
+
+import { MagazineCover } from '../../../web/src/components/magazine/magazine.cover.tsx';
+import { MagazineSection } from '../../../web/src/components/magazine/magazine.section.tsx';
+import { MagazineFinale } from '../../../web/src/components/magazine/magazine.finale.tsx';
+import { MagazineToc } from '../../../web/src/components/magazine/magazine.toc.tsx';
+import { MagazineArticle } from '../../../web/src/components/magazine/magazine.article.tsx';
+import { MagazinePage } from '../../../web/src/components/magazine/magazine.layout.tsx';
+import { Button } from '../../../web/src/components/button.tsx';
+import { VoteControls } from '../../../web/src/components/vote-controls.tsx';
 
 /* ── Showcase: Cover ─────────────────────────────────────────────── */
 
 const ShowcaseCover = (): React.ReactElement => (
   <MagazinePage className="relative justify-between !min-h-0 !p-0 overflow-hidden">
-    <div className="relative z-10 flex flex-col justify-between px-6 py-10 md:px-10 text-white min-h-[32rem]"
-      style={{ background: "linear-gradient(to bottom, rgba(26,32,28,0.85) 0%, rgba(26,32,28,0.5) 40%, rgba(26,32,28,0.9) 100%)" }}
+    <div
+      className="relative z-10 flex flex-col justify-between px-6 py-10 md:px-10 text-white min-h-[32rem]"
+      style={{
+        background:
+          'linear-gradient(to bottom, rgba(26,32,28,0.85) 0%, rgba(26,32,28,0.5) 40%, rgba(26,32,28,0.9) 100%)',
+      }}
     >
       <div className="flex items-baseline justify-between pb-3 mb-6 border-b border-white/20">
         <div className="flex items-baseline gap-2">
@@ -45,7 +50,9 @@ const ShowcaseCover = (): React.ReactElement => (
         <div className="flex gap-6">
           <div className="max-w-48">
             <div className="text-[10px] text-white/50 font-mono mb-1">Nature</div>
-            <div className="text-xs font-serif text-white/85 leading-snug">JWST captures the universe's first galaxies in unprecedented detail</div>
+            <div className="text-xs font-serif text-white/85 leading-snug">
+              JWST captures the universe's first galaxies in unprecedented detail
+            </div>
           </div>
           <div className="max-w-48">
             <div className="text-[10px] text-white/50 font-mono mb-1">The Guardian</div>
@@ -67,7 +74,9 @@ const ShowcaseCover = (): React.ReactElement => (
 const ShowcaseSection = (): React.ReactElement => (
   <MagazinePage className="items-center text-center !min-h-0 !py-16">
     <div className="max-w-content mx-auto relative">
-      <div className="text-[6rem] md:text-[8rem] font-mono leading-none text-accent/15 select-none mb-[-0.5rem]">01</div>
+      <div className="text-[6rem] md:text-[8rem] font-mono leading-none text-accent/15 select-none mb-[-0.5rem]">
+        01
+      </div>
       <h2 className="font-serif text-3xl md:text-4xl tracking-tight text-ink mb-3">Technology</h2>
       <div className="text-xs font-mono tracking-wide text-ink-tertiary">4 articles · 14 min</div>
       <div className="w-12 h-px bg-accent mx-auto mt-6" />
@@ -106,7 +115,8 @@ const ShowcaseArticleHero = (): React.ReactElement => (
           The quiet revolution in reader design
         </h3>
         <p className="font-serif text-base leading-relaxed text-ink-secondary mb-4">
-          For the better part of a decade, the dominant paradigm in digital reading has been the infinite scroll. But a growing number of designers are questioning whether the stream ever served the reader at all.
+          For the better part of a decade, the dominant paradigm in digital reading has been the infinite scroll. But a
+          growing number of designers are questioning whether the stream ever served the reader at all.
         </p>
         <div className="text-xs text-ink-tertiary">8 min read</div>
       </div>
@@ -124,15 +134,14 @@ const ShowcaseArticleHero = (): React.ReactElement => (
 const ShowcaseArticleCompact = (): React.ReactElement => (
   <MagazinePage className="!min-h-0 !py-10">
     <div className="max-w-prose mx-auto w-full">
-      <div className="text-xs font-mono tracking-wide text-accent mb-4 text-center">
-        MIT Tech Review
-      </div>
+      <div className="text-xs font-mono tracking-wide text-accent mb-4 text-center">MIT Tech Review</div>
       <h3 className="font-serif text-2xl md:text-3xl tracking-tight leading-tight text-ink text-center mb-4">
         New battery chemistry promises 10x capacity
       </h3>
       <div className="w-10 h-px bg-border-strong mx-auto mb-4" />
       <p className="font-serif text-sm leading-relaxed text-ink-secondary text-center mb-3">
-        Researchers at Stanford have demonstrated a solid-state lithium-sulfur cell that could make electric flight practical for short-haul routes.
+        Researchers at Stanford have demonstrated a solid-state lithium-sulfur cell that could make electric flight
+        practical for short-haul routes.
       </p>
       <div className="flex items-center justify-center gap-3 text-xs text-ink-tertiary">
         <span>10 March 2026</span>
@@ -175,18 +184,12 @@ const ShowcasePodcast = (): React.ReactElement => {
         <div className="flex justify-center mb-3">
           <div className="flex items-center gap-[2px] h-8">
             {bars.map((h, i) => (
-              <div
-                key={i}
-                className="w-[2.5px] rounded-full bg-accent/20"
-                style={{ height: h }}
-              />
+              <div key={i} className="w-[2.5px] rounded-full bg-accent/20" style={{ height: h }} />
             ))}
           </div>
         </div>
 
-        <span className="text-xs font-mono tracking-wide text-ink-tertiary">
-          45 min listen
-        </span>
+        <span className="text-xs font-mono tracking-wide text-ink-tertiary">45 min listen</span>
       </div>
     </MagazinePage>
   );
@@ -208,9 +211,15 @@ const ShowcaseVotes = (): React.ReactElement => {
 
 const ShowcaseButtons = (): React.ReactElement => (
   <div className="flex flex-wrap items-center justify-center gap-3 py-6">
-    <Button variant="primary" size="sm">Subscribe</Button>
-    <Button variant="secondary" size="sm">Manage sources</Button>
-    <Button variant="ghost" size="sm">Skip for now</Button>
+    <Button variant="primary" size="sm">
+      Subscribe
+    </Button>
+    <Button variant="secondary" size="sm">
+      Manage sources
+    </Button>
+    <Button variant="ghost" size="sm">
+      Skip for now
+    </Button>
   </div>
 );
 

@@ -1,25 +1,31 @@
-import crypto from "node:crypto";
+import crypto from 'node:crypto';
 
-import { DatabaseService } from "../database/database.ts";
+import { DatabaseService } from '../database/database.ts';
+import type { ArticleVoteValue } from '../database/database.types.ts';
+import type { Services } from '../services/services.ts';
 
-import type { ArticleVoteValue } from "../database/database.types.ts";
-import type { Services } from "../services/services.ts";
-import type { UserScoringWeights, VoteContext, VotedArticle } from "./votes.scoring.ts";
-import { MAX_VOTE_CONTEXT_SIZE, emptyVoteContext, mergeVoteContexts, parseUserScoringWeights, rankArticles } from "./votes.scoring.ts";
+import type { UserScoringWeights, VoteContext, VotedArticle } from './votes.scoring.ts';
+import {
+  MAX_VOTE_CONTEXT_SIZE,
+  emptyVoteContext,
+  mergeVoteContexts,
+  parseUserScoringWeights,
+  rankArticles,
+} from './votes.scoring.ts';
 
 // --- Errors ---
 
 class VoteError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "VoteError";
+    this.name = 'VoteError';
   }
 }
 
 class ArticleNotFoundForVoteError extends VoteError {
   constructor(articleId: string) {
     super(`Article not found: ${articleId}`);
-    this.name = "ArticleNotFoundForVoteError";
+    this.name = 'ArticleNotFoundForVoteError';
   }
 }
 
@@ -54,7 +60,7 @@ type ArticleVotesMap = Map<string, ArticleVotePair>;
 type ListVotesOptions = {
   offset?: number;
   limit?: number;
-  scope?: "global" | "focus" | "edition";
+  scope?: 'global' | 'focus' | 'edition';
   value?: ArticleVoteValue;
 };
 
@@ -91,11 +97,7 @@ class VotesService {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     // Verify article exists
-    const article = await db
-      .selectFrom("articles")
-      .select("id")
-      .where("id", "=", params.articleId)
-      .executeTakeFirst();
+    const article = await db.selectFrom('articles').select('id').where('id', '=', params.articleId).executeTakeFirst();
 
     if (!article) {
       throw new ArticleNotFoundForVoteError(params.articleId);
@@ -107,26 +109,26 @@ class VotesService {
     // Delete-then-insert in a transaction to handle partial unique index
     await db.transaction().execute(async (trx) => {
       let query = trx
-        .deleteFrom("article_votes")
-        .where("user_id", "=", params.userId)
-        .where("article_id", "=", params.articleId);
+        .deleteFrom('article_votes')
+        .where('user_id', '=', params.userId)
+        .where('article_id', '=', params.articleId);
 
       if (params.focusId === null) {
-        query = query.where("focus_id", "is", null);
+        query = query.where('focus_id', 'is', null);
       } else {
-        query = query.where("focus_id", "=", params.focusId);
+        query = query.where('focus_id', '=', params.focusId);
       }
 
       if (params.editionId === null) {
-        query = query.where("edition_id", "is", null);
+        query = query.where('edition_id', 'is', null);
       } else {
-        query = query.where("edition_id", "=", params.editionId);
+        query = query.where('edition_id', '=', params.editionId);
       }
 
       await query.execute();
 
       await trx
-        .insertInto("article_votes")
+        .insertInto('article_votes')
         .values({
           id,
           user_id: params.userId,
@@ -158,47 +160,42 @@ class VotesService {
   ): Promise<void> => {
     const db = await this.#services.get(DatabaseService).getInstance();
 
-    let query = db
-      .deleteFrom("article_votes")
-      .where("user_id", "=", userId)
-      .where("article_id", "=", articleId);
+    let query = db.deleteFrom('article_votes').where('user_id', '=', userId).where('article_id', '=', articleId);
 
     if (focusId === null) {
-      query = query.where("focus_id", "is", null);
+      query = query.where('focus_id', 'is', null);
     } else {
-      query = query.where("focus_id", "=", focusId);
+      query = query.where('focus_id', '=', focusId);
     }
 
     if (editionId === null) {
-      query = query.where("edition_id", "is", null);
+      query = query.where('edition_id', 'is', null);
     } else {
-      query = query.where("edition_id", "=", editionId);
+      query = query.where('edition_id', '=', editionId);
     }
 
     await query.execute();
   };
 
-  getForArticle = async (
-    userId: string,
-    articleId: string,
-    focusId: string | null,
-  ): Promise<Vote | null> => {
+  getForArticle = async (userId: string, articleId: string, focusId: string | null): Promise<Vote | null> => {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     let query = db
-      .selectFrom("article_votes")
+      .selectFrom('article_votes')
       .selectAll()
-      .where("user_id", "=", userId)
-      .where("article_id", "=", articleId);
+      .where('user_id', '=', userId)
+      .where('article_id', '=', articleId);
 
     if (focusId === null) {
-      query = query.where("focus_id", "is", null);
+      query = query.where('focus_id', 'is', null);
     } else {
-      query = query.where("focus_id", "=", focusId);
+      query = query.where('focus_id', '=', focusId);
     }
 
     const row = await query.executeTakeFirst();
-    if (!row) return null;
+    if (!row) {
+      return null;
+    }
 
     return {
       id: row.id,
@@ -211,32 +208,21 @@ class VotesService {
     };
   };
 
-  loadVoteContext = async (
-    userId: string,
-    focusId: string | null,
-  ): Promise<VoteContext> => {
+  loadVoteContext = async (userId: string, focusId: string | null): Promise<VoteContext> => {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     let query = db
-      .selectFrom("article_votes")
-      .leftJoin(
-        "article_embeddings",
-        "article_embeddings.article_id",
-        "article_votes.article_id",
-      )
-      .select([
-        "article_votes.article_id",
-        "article_votes.value",
-        "article_embeddings.embedding",
-      ])
-      .where("article_votes.user_id", "=", userId)
-      .orderBy("article_votes.created_at", "desc")
+      .selectFrom('article_votes')
+      .leftJoin('article_embeddings', 'article_embeddings.article_id', 'article_votes.article_id')
+      .select(['article_votes.article_id', 'article_votes.value', 'article_embeddings.embedding'])
+      .where('article_votes.user_id', '=', userId)
+      .orderBy('article_votes.created_at', 'desc')
       .limit(MAX_VOTE_CONTEXT_SIZE);
 
     if (focusId === null) {
-      query = query.where("article_votes.focus_id", "is", null);
+      query = query.where('article_votes.focus_id', 'is', null);
     } else {
-      query = query.where("article_votes.focus_id", "=", focusId);
+      query = query.where('article_votes.focus_id', '=', focusId);
     }
 
     const rows = await query.execute();
@@ -250,11 +236,7 @@ class VotesService {
 
       if (row.embedding) {
         const buffer = row.embedding as Buffer;
-        const embedding = new Float32Array(
-          buffer.buffer,
-          buffer.byteOffset,
-          buffer.byteLength / 4,
-        );
+        const embedding = new Float32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 4);
         votedArticles.push({ embedding, value });
       }
     }
@@ -262,28 +244,17 @@ class VotesService {
     return { votes, votedArticles };
   };
 
-  loadEditionVoteContext = async (
-    userId: string,
-    editionConfigId: string,
-  ): Promise<VoteContext> => {
+  loadEditionVoteContext = async (userId: string, editionConfigId: string): Promise<VoteContext> => {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     const rows = await db
-      .selectFrom("article_votes")
-      .innerJoin("editions", "editions.id", "article_votes.edition_id")
-      .leftJoin(
-        "article_embeddings",
-        "article_embeddings.article_id",
-        "article_votes.article_id",
-      )
-      .select([
-        "article_votes.article_id",
-        "article_votes.value",
-        "article_embeddings.embedding",
-      ])
-      .where("article_votes.user_id", "=", userId)
-      .where("editions.edition_config_id", "=", editionConfigId)
-      .orderBy("article_votes.created_at", "desc")
+      .selectFrom('article_votes')
+      .innerJoin('editions', 'editions.id', 'article_votes.edition_id')
+      .leftJoin('article_embeddings', 'article_embeddings.article_id', 'article_votes.article_id')
+      .select(['article_votes.article_id', 'article_votes.value', 'article_embeddings.embedding'])
+      .where('article_votes.user_id', '=', userId)
+      .where('editions.edition_config_id', '=', editionConfigId)
+      .orderBy('article_votes.created_at', 'desc')
       .limit(MAX_VOTE_CONTEXT_SIZE)
       .execute();
 
@@ -296,11 +267,7 @@ class VotesService {
 
       if (row.embedding) {
         const buffer = row.embedding as Buffer;
-        const embedding = new Float32Array(
-          buffer.buffer,
-          buffer.byteOffset,
-          buffer.byteLength / 4,
-        );
+        const embedding = new Float32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 4);
         votedArticles.push({ embedding, value });
       }
     }
@@ -316,45 +283,43 @@ class VotesService {
 
     const baseQuery = () => {
       let q = db
-        .selectFrom("article_votes")
-        .innerJoin("articles", "articles.id", "article_votes.article_id")
-        .innerJoin("sources", "sources.id", "articles.source_id")
-        .leftJoin("focuses", "focuses.id", "article_votes.focus_id")
-        .where("article_votes.user_id", "=", userId);
+        .selectFrom('article_votes')
+        .innerJoin('articles', 'articles.id', 'article_votes.article_id')
+        .innerJoin('sources', 'sources.id', 'articles.source_id')
+        .leftJoin('focuses', 'focuses.id', 'article_votes.focus_id')
+        .where('article_votes.user_id', '=', userId);
 
-      if (scope === "global") {
-        q = q.where("article_votes.focus_id", "is", null).where("article_votes.edition_id", "is", null);
-      } else if (scope === "focus") {
-        q = q.where("article_votes.focus_id", "is not", null);
-      } else if (scope === "edition") {
-        q = q.where("article_votes.edition_id", "is not", null);
+      if (scope === 'global') {
+        q = q.where('article_votes.focus_id', 'is', null).where('article_votes.edition_id', 'is', null);
+      } else if (scope === 'focus') {
+        q = q.where('article_votes.focus_id', 'is not', null);
+      } else if (scope === 'edition') {
+        q = q.where('article_votes.edition_id', 'is not', null);
       }
 
       if (value !== undefined) {
-        q = q.where("article_votes.value", "=", value);
+        q = q.where('article_votes.value', '=', value);
       }
 
       return q;
     };
 
-    const countResult = await baseQuery()
-      .select(db.fn.countAll().as("count"))
-      .executeTakeFirstOrThrow();
+    const countResult = await baseQuery().select(db.fn.countAll().as('count')).executeTakeFirstOrThrow();
 
     const rows = await baseQuery()
       .select([
-        "article_votes.id",
-        "article_votes.article_id",
-        "article_votes.focus_id",
-        "article_votes.value",
-        "article_votes.created_at",
-        "articles.title as article_title",
-        "articles.url as article_url",
-        "articles.source_id",
-        "sources.name as source_name",
-        "focuses.name as focus_name",
+        'article_votes.id',
+        'article_votes.article_id',
+        'article_votes.focus_id',
+        'article_votes.value',
+        'article_votes.created_at',
+        'articles.title as article_title',
+        'articles.url as article_url',
+        'articles.source_id',
+        'sources.name as source_name',
+        'focuses.name as focus_name',
       ])
-      .orderBy("article_votes.created_at", "desc")
+      .orderBy('article_votes.created_at', 'desc')
       .offset(offset)
       .limit(limit)
       .execute();
@@ -382,9 +347,9 @@ class VotesService {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     const result = await db
-      .deleteFrom("article_votes")
-      .where("id", "=", voteId)
-      .where("user_id", "=", userId)
+      .deleteFrom('article_votes')
+      .where('id', '=', voteId)
+      .where('user_id', '=', userId)
       .executeTakeFirst();
 
     return result.numDeletedRows > 0n;
@@ -392,35 +357,31 @@ class VotesService {
 
   loadUserScoringWeights = async (userId: string): Promise<UserScoringWeights> => {
     const db = await this.#services.get(DatabaseService).getInstance();
-    const row = await db
-      .selectFrom("users")
-      .select("scoring_weights")
-      .where("id", "=", userId)
-      .executeTakeFirst();
+    const row = await db.selectFrom('users').select('scoring_weights').where('id', '=', userId).executeTakeFirst();
     return parseUserScoringWeights(row?.scoring_weights ?? null);
   };
 
   saveUserScoringWeights = async (userId: string, weights: UserScoringWeights): Promise<void> => {
     const db = await this.#services.get(DatabaseService).getInstance();
     await db
-      .updateTable("users")
+      .updateTable('users')
       .set({
         scoring_weights: JSON.stringify(weights),
         updated_at: new Date().toISOString(),
       })
-      .where("id", "=", userId)
+      .where('id', '=', userId)
       .execute();
   };
 
   resetUserScoringWeights = async (userId: string): Promise<void> => {
     const db = await this.#services.get(DatabaseService).getInstance();
     await db
-      .updateTable("users")
+      .updateTable('users')
       .set({
         scoring_weights: null,
         updated_at: new Date().toISOString(),
       })
-      .where("id", "=", userId)
+      .where('id', '=', userId)
       .execute();
   };
 
@@ -430,25 +391,27 @@ class VotesService {
     focusId: string | null,
     editionId: string | null = null,
   ): Promise<ArticleVotesMap> => {
-    if (articleIds.length === 0) return new Map();
+    if (articleIds.length === 0) {
+      return new Map();
+    }
 
     const db = await this.#services.get(DatabaseService).getInstance();
 
     const rows = await db
-      .selectFrom("article_votes")
-      .select(["article_id", "focus_id", "edition_id", "value"])
-      .where("user_id", "=", userId)
-      .where("article_id", "in", articleIds)
+      .selectFrom('article_votes')
+      .select(['article_id', 'focus_id', 'edition_id', 'value'])
+      .where('user_id', '=', userId)
+      .where('article_id', 'in', articleIds)
       .where((eb) => {
         const conditions = [
           // Global votes (no focus, no edition)
-          eb.and([eb("focus_id", "is", null), eb("edition_id", "is", null)]),
+          eb.and([eb('focus_id', 'is', null), eb('edition_id', 'is', null)]),
         ];
         if (focusId !== null) {
-          conditions.push(eb("focus_id", "=", focusId));
+          conditions.push(eb('focus_id', '=', focusId));
         }
         if (editionId !== null) {
-          conditions.push(eb("edition_id", "=", editionId));
+          conditions.push(eb('edition_id', '=', editionId));
         }
         return eb.or(conditions);
       })
@@ -479,5 +442,5 @@ export type { Vote, UpsertVoteParams, ArticleVotePair, ArticleVotesMap, ListVote
 export { VotesService, VoteError, ArticleNotFoundForVoteError };
 
 // Re-export scoring utilities for consumers
-export type { VoteContext, ScoringCandidate, UserScoringWeights } from "./votes.scoring.ts";
-export { rankArticles, mergeVoteContexts, emptyVoteContext, defaultUserScoringWeights } from "./votes.scoring.ts";
+export type { VoteContext, ScoringCandidate, UserScoringWeights } from './votes.scoring.ts';
+export { rankArticles, mergeVoteContexts, emptyVoteContext, defaultUserScoringWeights } from './votes.scoring.ts';

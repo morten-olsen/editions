@@ -1,18 +1,18 @@
-import { useState, useCallback } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useState, useCallback } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import {
   useQuery,
   useMutation,
   useQueryClient,
   type UseQueryResult,
   type UseMutationResult,
-} from "@tanstack/react-query";
+} from '@tanstack/react-query';
 
-import { useAuthHeaders, queryKeys } from "../../api/api.hooks.ts";
-import { client } from "../../api/api.ts";
-import { usePagination } from "../utilities/use-pagination.ts";
-import { useFormPopulation } from "../utilities/use-form-population.ts";
-import type { UsePaginationResult } from "../utilities/use-pagination.ts";
+import { useAuthHeaders, queryKeys } from '../../api/api.hooks.ts';
+import { client } from '../../api/api.ts';
+import { usePagination } from '../utilities/use-pagination.ts';
+import { useFormPopulation } from '../utilities/use-form-population.ts';
+import type { UsePaginationResult } from '../utilities/use-pagination.ts';
 
 // -- Shared types --
 
@@ -45,8 +45,8 @@ type ArticlesPage = {
   limit: number;
 };
 
-type SourceType = "rss" | "podcast";
-type Direction = "newest" | "oldest";
+type SourceType = 'rss' | 'podcast';
+type Direction = 'newest' | 'oldest';
 
 // -- useSourcesList --
 
@@ -63,15 +63,15 @@ const useSourcesList = (): UseSourcesListResult => {
   const sourcesQuery = useQuery({
     queryKey: queryKeys.sources.all,
     queryFn: async (): Promise<Source[]> => {
-      const { data } = await client.GET("/api/sources", { headers });
-      return ((data as Source[]) ?? []).filter((s) => s.type !== "bookmarks");
+      const { data } = await client.GET('/api/sources', { headers });
+      return ((data as Source[]) ?? []).filter((s) => s.type !== 'bookmarks');
     },
     enabled: !!headers,
   });
 
   const reanalyseMutation = useMutation({
     mutationFn: async (): Promise<void> => {
-      await client.POST("/api/sources/reanalyse-all", { headers });
+      await client.POST('/api/sources/reanalyse-all', { headers });
     },
   });
 
@@ -109,28 +109,26 @@ const useCreateSource = (): UseCreateSourceResult => {
   const headers = useAuthHeaders();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [name, setName] = useState("");
-  const [url, setUrl] = useState("");
-  const [sourceType, setSourceType] = useState<SourceType>("rss");
-  const [direction, setDirection] = useState<Direction>("newest");
+  const [name, setName] = useState('');
+  const [url, setUrl] = useState('');
+  const [sourceType, setSourceType] = useState<SourceType>('rss');
+  const [direction, setDirection] = useState<Direction>('newest');
   const [error, setError] = useState<string | null>(null);
 
   const createMutation = useMutation({
     mutationFn: async (): Promise<void> => {
-      const { error: err } = await client.POST("/api/sources", {
+      const { error: err } = await client.POST('/api/sources', {
         body: { name, url, type: sourceType, direction },
         headers,
       });
       if (err) {
-        throw new Error(
-          "error" in err ? (err as { error: string }).error : "Failed to create source",
-        );
+        throw new Error('error' in err ? (err as { error: string }).error : 'Failed to create source');
       }
     },
     onSuccess: async (): Promise<void> => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.sources.all });
       await queryClient.invalidateQueries({ queryKey: queryKeys.nav });
-      await navigate({ to: "/sources" });
+      await navigate({ to: '/sources' });
     },
     onError: (err: Error): void => {
       setError(err.message);
@@ -147,7 +145,7 @@ const useCreateSource = (): UseCreateSourceResult => {
   );
 
   const navigateToSources = useCallback((): void => {
-    void navigate({ to: "/sources" });
+    void navigate({ to: '/sources' });
   }, [navigate]);
 
   return {
@@ -211,11 +209,13 @@ const useSourceDetail = ({ sourceId }: UseSourceDetailParams): UseSourceDetailRe
   const sourceQuery = useQuery({
     queryKey: queryKeys.sources.detail(sourceId),
     queryFn: async (): Promise<Source> => {
-      const { data, error: err } = await client.GET("/api/sources/{id}", {
+      const { data, error: err } = await client.GET('/api/sources/{id}', {
         params: { path: { id: sourceId } },
         headers,
       });
-      if (err) throw new Error("Source not found");
+      if (err) {
+        throw new Error('Source not found');
+      }
       return data as Source;
     },
     enabled: !!headers,
@@ -224,7 +224,7 @@ const useSourceDetail = ({ sourceId }: UseSourceDetailParams): UseSourceDetailRe
   const articlesQuery = useQuery({
     queryKey: queryKeys.sources.articles(sourceId, pagination.offset),
     queryFn: async (): Promise<ArticlesPage> => {
-      const { data } = await client.GET("/api/sources/{id}/articles", {
+      const { data } = await client.GET('/api/sources/{id}/articles', {
         params: {
           path: { id: sourceId },
           query: { offset: pagination.offset, limit: PAGE_SIZE },
@@ -240,39 +240,37 @@ const useSourceDetail = ({ sourceId }: UseSourceDetailParams): UseSourceDetailRe
 
   const fetchMutation = useMutation({
     mutationFn: async (): Promise<string> => {
-      const { data, error: err } = await client.POST("/api/sources/{id}/fetch", {
+      const { data, error: err } = await client.POST('/api/sources/{id}/fetch', {
         params: { path: { id: sourceId } },
         headers,
       });
 
-      if (err || !data) throw new Error("Failed to start fetch");
+      if (err || !data) {
+        throw new Error('Failed to start fetch');
+      }
 
       const taskId = (data as { taskId: string }).taskId;
 
       const poll = (): Promise<string> =>
         new Promise((resolve, reject) => {
           const check = async (): Promise<void> => {
-            const { data: task } = await client.GET("/api/sources/{id}/tasks/{taskId}", {
+            const { data: task } = await client.GET('/api/sources/{id}/tasks/{taskId}', {
               params: { path: { id: sourceId, taskId } },
               headers,
             });
 
             if (!task) {
-              reject(new Error("Lost track of task"));
+              reject(new Error('Lost track of task'));
               return;
             }
 
             const t = task as { status: string; result: unknown; error: string | null };
 
-            if (t.status === "completed") {
+            if (t.status === 'completed') {
               const result = t.result as { newArticles: number; totalItems: number } | null;
-              resolve(
-                result
-                  ? `Fetched ${result.totalItems} items, ${result.newArticles} new`
-                  : "Fetch completed",
-              );
-            } else if (t.status === "failed") {
-              reject(new Error(t.error ?? "Fetch failed"));
+              resolve(result ? `Fetched ${result.totalItems} items, ${result.newArticles} new` : 'Fetch completed');
+            } else if (t.status === 'failed') {
+              reject(new Error(t.error ?? 'Fetch failed'));
             } else {
               setTimeout(() => void check(), 500);
             }
@@ -302,12 +300,14 @@ const useSourceDetail = ({ sourceId }: UseSourceDetailParams): UseSourceDetailRe
 
   const reanalyseMutation = useMutation({
     mutationFn: async (): Promise<string> => {
-      const { data, error: err } = await client.POST("/api/sources/{id}/reanalyse", {
+      const { data, error: err } = await client.POST('/api/sources/{id}/reanalyse', {
         params: { path: { id: sourceId } },
         headers,
       });
 
-      if (err || !data) throw new Error("Failed to start reanalysis");
+      if (err || !data) {
+        throw new Error('Failed to start reanalysis');
+      }
       const result = data as { enqueued: number };
       return `Enqueued ${result.enqueued} articles for analysis`;
     },
@@ -380,20 +380,22 @@ const useEditSource = ({ sourceId }: UseEditSourceParams): UseEditSourceResult =
   const headers = useAuthHeaders();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [name, setName] = useState("");
-  const [url, setUrl] = useState("");
-  const [direction, setDirection] = useState("newest");
+  const [name, setName] = useState('');
+  const [url, setUrl] = useState('');
+  const [direction, setDirection] = useState('newest');
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const sourceQuery = useQuery({
     queryKey: queryKeys.sources.detail(sourceId),
     queryFn: async (): Promise<Source> => {
-      const { data, error: err } = await client.GET("/api/sources/{id}", {
+      const { data, error: err } = await client.GET('/api/sources/{id}', {
         params: { path: { id: sourceId } },
         headers,
       });
-      if (err) throw new Error("Source not found");
+      if (err) {
+        throw new Error('Source not found');
+      }
       return data as Source;
     },
     enabled: !!headers,
@@ -407,12 +409,14 @@ const useEditSource = ({ sourceId }: UseEditSourceParams): UseEditSourceResult =
 
   const updateMutation = useMutation({
     mutationFn: async (body: Record<string, string>): Promise<void> => {
-      const { error: err } = await client.PATCH("/api/sources/{id}", {
+      const { error: err } = await client.PATCH('/api/sources/{id}', {
         params: { path: { id: sourceId } },
         body,
         headers,
       });
-      if (err) throw new Error("Failed to update source");
+      if (err) {
+        throw new Error('Failed to update source');
+      }
     },
     onSuccess: async (): Promise<void> => {
       await queryClient.invalidateQueries({
@@ -420,7 +424,7 @@ const useEditSource = ({ sourceId }: UseEditSourceParams): UseEditSourceResult =
       });
       await queryClient.invalidateQueries({ queryKey: queryKeys.sources.all });
       await queryClient.invalidateQueries({ queryKey: queryKeys.nav });
-      await navigate({ to: "/sources/$sourceId", params: { sourceId } });
+      await navigate({ to: '/sources/$sourceId', params: { sourceId } });
     },
     onError: (err: Error): void => {
       setError(err.message);
@@ -429,16 +433,18 @@ const useEditSource = ({ sourceId }: UseEditSourceParams): UseEditSourceResult =
 
   const deleteMutation = useMutation({
     mutationFn: async (): Promise<void> => {
-      const { error: err } = await client.DELETE("/api/sources/{id}", {
+      const { error: err } = await client.DELETE('/api/sources/{id}', {
         params: { path: { id: sourceId } },
         headers,
       });
-      if (err) throw new Error("Failed to delete source");
+      if (err) {
+        throw new Error('Failed to delete source');
+      }
     },
     onSuccess: async (): Promise<void> => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.sources.all });
       await queryClient.invalidateQueries({ queryKey: queryKeys.nav });
-      await navigate({ to: "/sources" });
+      await navigate({ to: '/sources' });
     },
     onError: (err: Error): void => {
       setError(err.message);
@@ -451,15 +457,23 @@ const useEditSource = ({ sourceId }: UseEditSourceParams): UseEditSourceResult =
       setError(null);
 
       const source = sourceQuery.data;
-      if (!source) return;
+      if (!source) {
+        return;
+      }
 
       const body: Record<string, string> = {};
-      if (name !== source.name) body.name = name;
-      if (url !== source.url) body.url = url;
-      if (direction !== source.direction) body.direction = direction;
+      if (name !== source.name) {
+        body.name = name;
+      }
+      if (url !== source.url) {
+        body.url = url;
+      }
+      if (direction !== source.direction) {
+        body.direction = direction;
+      }
 
       if (Object.keys(body).length === 0) {
-        await navigate({ to: "/sources/$sourceId", params: { sourceId } });
+        await navigate({ to: '/sources/$sourceId', params: { sourceId } });
         return;
       }
 
@@ -469,7 +483,7 @@ const useEditSource = ({ sourceId }: UseEditSourceParams): UseEditSourceResult =
   );
 
   const navigateToSource = useCallback((): void => {
-    void navigate({ to: "/sources/$sourceId", params: { sourceId } });
+    void navigate({ to: '/sources/$sourceId', params: { sourceId } });
   }, [navigate, sourceId]);
 
   return {

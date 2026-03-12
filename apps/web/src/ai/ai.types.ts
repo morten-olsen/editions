@@ -41,17 +41,17 @@ type AiToolResult = {
 };
 
 type AiChatMessage =
-  | { role: "system"; content: string }
-  | { role: "user"; content: string }
-  | { role: "assistant"; content: string; toolCalls?: AiToolCall[] }
-  | { role: "tool"; content: string; toolCallId: string };
+  | { role: 'system'; content: string }
+  | { role: 'user'; content: string }
+  | { role: 'assistant'; content: string; toolCalls?: AiToolCall[] }
+  | { role: 'tool'; content: string; toolCallId: string };
 
 /* ── Display messages (what shows in the chat UI) ─────── */
 
 type AiDisplayMessage =
-  | { type: "user"; content: string }
-  | { type: "assistant"; content: string }
-  | { type: "action"; description: string; status: "running" | "done" | "error" };
+  | { type: 'user'; content: string }
+  | { type: 'assistant'; content: string }
+  | { type: 'action'; description: string; status: 'running' | 'done' | 'error' };
 
 /* ── Tool definitions ─────────────────────────────────── */
 
@@ -66,7 +66,7 @@ type AiToolDefinition = {
   name: string;
   description: string;
   parameters: {
-    type: "object";
+    type: 'object';
     properties: Record<string, AiToolParameter>;
     required?: string[];
   };

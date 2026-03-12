@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback } from 'react';
 
 type UseOptimisticMapResult<V> = {
   overrides: Record<string, V>;
@@ -11,8 +11,7 @@ const useOptimisticMap = <V>(): UseOptimisticMapResult<V> => {
   const [overrides, setOverrides] = useState<Record<string, V>>({});
 
   const get = useCallback(
-    (key: string, serverValue: V): V =>
-      key in overrides ? overrides[key]! : serverValue,
+    (key: string, serverValue: V): V => (key in overrides ? overrides[key]! : serverValue),
     [overrides],
   );
 

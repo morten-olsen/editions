@@ -1,21 +1,18 @@
-import { promises as fs } from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-import Database from "better-sqlite3";
-import { FileMigrationProvider, Kysely, Migrator, SqliteDialect } from "kysely";
+import Database from 'better-sqlite3';
+import { FileMigrationProvider, Kysely, Migrator, SqliteDialect } from 'kysely';
 
-import { ConfigService } from "../config/config.ts";
-import { destroySymbol, Services } from "../services/services.ts";
+import { ConfigService } from '../config/config.ts';
+import { destroySymbol, Services } from '../services/services.ts';
 
-import type { DatabaseSchema } from "./database.types.ts";
+import type { DatabaseSchema } from './database.types.ts';
 
 // --- Service ---
 
-const migrationsFolder = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "migrations",
-);
+const migrationsFolder = path.join(path.dirname(fileURLToPath(import.meta.url)), 'migrations');
 
 class DatabaseService {
   #services: Services;
@@ -40,8 +37,8 @@ class DatabaseService {
   #setup = async (): Promise<Kysely<DatabaseSchema>> => {
     const { database } = this.#services.get(ConfigService).config;
     const sqlite = new Database(database.filename);
-    sqlite.pragma("journal_mode = WAL");
-    sqlite.pragma("foreign_keys = ON");
+    sqlite.pragma('journal_mode = WAL');
+    sqlite.pragma('foreign_keys = ON');
 
     const db = new Kysely<DatabaseSchema>({
       dialect: new SqliteDialect({ database: sqlite }),
@@ -55,9 +52,9 @@ class DatabaseService {
     const { error, results } = await migrator.migrateToLatest();
 
     for (const result of results ?? []) {
-      if (result.status === "Success") {
+      if (result.status === 'Success') {
         console.log(`Migration "${result.migrationName}" applied`);
-      } else if (result.status === "Error") {
+      } else if (result.status === 'Error') {
         console.error(`Migration "${result.migrationName}" failed`);
       }
     }
@@ -77,5 +74,5 @@ class DatabaseService {
   };
 }
 
-export type * from "./database.types.ts";
+export type * from './database.types.ts';
 export { DatabaseService };

@@ -6,28 +6,29 @@
  * - Virtual cursor state
  * ──────────────────────────────────────────────────────── */
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from '@tanstack/react-router';
 
-import type { AiConfig, AiChatMessage, AiDisplayMessage } from "./ai.types.ts";
-import { toolDefinitions, executeTool, isAgentClick } from "./ai.tools.ts";
-import { chatCompletion } from "./ai.client.ts";
-import { buildSystemPrompt } from "./ai.prompt.ts";
-import { queryPage } from "./ai.descriptor.ts";
+import type { AiConfig, AiChatMessage, AiDisplayMessage } from './ai.types.ts';
+import { toolDefinitions, executeTool, isAgentClick } from './ai.tools.ts';
+import { chatCompletion } from './ai.client.ts';
+import { buildSystemPrompt } from './ai.prompt.ts';
+import { queryPage } from './ai.descriptor.ts';
+import type { ToolContext } from './ai.tools.ts';
 
-import type { ToolContext } from "./ai.tools.ts";
-
-const CONFIG_KEY = "editions_ai_config";
+const CONFIG_KEY = 'editions_ai_config';
 
 /* ── Config persistence ──────────────────────────────── */
 
 const loadConfig = (): AiConfig | null => {
   const raw = localStorage.getItem(CONFIG_KEY);
-  if (!raw) return null;
+  if (!raw) {
+    return null;
+  }
   try {
     const parsed = JSON.parse(raw) as Record<string, unknown>;
-    if (typeof parsed.endpoint === "string" && typeof parsed.apiKey === "string" && typeof parsed.model === "string") {
+    if (typeof parsed.endpoint === 'string' && typeof parsed.apiKey === 'string' && typeof parsed.model === 'string') {
       return parsed as unknown as AiConfig;
     }
     return null;
@@ -119,21 +120,25 @@ const AiProvider = ({ children }: { children: React.ReactNode }): React.ReactNod
 
   // Stop agent on any user interaction (click or keypress)
   useEffect(() => {
-    if (!isProcessing) return;
+    if (!isProcessing) {
+      return;
+    }
 
     const handleClick = (): void => {
-      if (!isAgentClick()) stopProcessing();
+      if (!isAgentClick()) {
+        stopProcessing();
+      }
     };
 
     const handleKeyDown = (): void => {
       stopProcessing();
     };
 
-    document.addEventListener("click", handleClick, true);
-    document.addEventListener("keydown", handleKeyDown, true);
+    document.addEventListener('click', handleClick, true);
+    document.addEventListener('keydown', handleKeyDown, true);
     return () => {
-      document.removeEventListener("click", handleClick, true);
-      document.removeEventListener("keydown", handleKeyDown, true);
+      document.removeEventListener('click', handleClick, true);
+      document.removeEventListener('keydown', handleKeyDown, true);
     };
   }, [isProcessing, stopProcessing]);
 
@@ -148,181 +153,229 @@ const AiProvider = ({ children }: { children: React.ReactNode }): React.ReactNod
   }, []);
 
   // Cursor movement with a short animation delay
-  const moveCursor = useCallback((targetId: string): Promise<void> =>
-    new Promise<void>((resolve) => {
-      setCursorVisible(true);
-      setCursorTargetId(targetId);
-      // Wait for cursor animation to complete
-      setTimeout(resolve, 300);
-    }), []);
+  const moveCursor = useCallback(
+    (targetId: string): Promise<void> =>
+      new Promise<void>((resolve) => {
+        setCursorVisible(true);
+        setCursorTargetId(targetId);
+        // Wait for cursor animation to complete
+        setTimeout(resolve, 300);
+      }),
+    [],
+  );
 
   // Build tool context
-  const getToolContext = useCallback((): ToolContext => ({
-    queryClient,
-    navigate: (path: string) => {
-      void routerNavigate({ to: path });
-    },
-    moveCursor,
-  }), [queryClient, routerNavigate, moveCursor]);
+  const getToolContext = useCallback(
+    (): ToolContext => ({
+      queryClient,
+      navigate: (path: string) => {
+        void routerNavigate({ to: path });
+      },
+      moveCursor,
+    }),
+    [queryClient, routerNavigate, moveCursor],
+  );
 
   // Agent loop: send to LLM, execute tools, repeat
-  const runAgentLoop = useCallback(async (currentConfig: AiConfig): Promise<void> => {
-    const maxIterations = 20;
-    let iterations = 0;
+  const runAgentLoop = useCallback(
+    async (currentConfig: AiConfig): Promise<void> => {
+      const maxIterations = 20;
+      let iterations = 0;
 
-    while (iterations < maxIterations) {
-      if (abortRef.current) break;
-      iterations++;
-      setTurnCount(iterations);
-
-      let result;
-      try {
-        result = await chatCompletion(currentConfig, messagesRef.current, toolDefinitions);
-      } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : "Unknown error";
-        setDisplayMessages((prev) => [...prev, { type: "assistant", content: `Something went wrong: ${errorMsg}` }]);
-        break;
-      }
-
-      // Add assistant message to history
-      const assistantMsg: AiChatMessage = {
-        role: "assistant",
-        content: result.content ?? "",
-        toolCalls: result.toolCalls.length > 0 ? result.toolCalls : undefined,
-      };
-      messagesRef.current = [...messagesRef.current, assistantMsg];
-
-      // Show text content in chat
-      if (result.content) {
-        setDisplayMessages((prev) => [...prev, { type: "assistant", content: result.content! }]);
-      }
-
-      // If no tool calls, we're done
-      if (result.toolCalls.length === 0) break;
-
-      // Execute tools
-      const ctx = getToolContext();
-      let toolError = false;
-      for (const toolCall of result.toolCalls) {
-        if (abortRef.current) break;
-        const toolName = toolCall.name;
-        const isVisualAction = toolName === "click" || toolName === "fillInput" || toolName === "navigate";
-
-        let toolArgs: Record<string, unknown>;
-        try {
-          toolArgs = JSON.parse(toolCall.arguments) as Record<string, unknown>;
-        } catch {
-          const errResult = JSON.stringify({ error: `Invalid tool arguments: ${toolCall.arguments}` });
-          messagesRef.current = [...messagesRef.current, { role: "tool", content: errResult, toolCallId: toolCall.id }];
-          continue;
+      while (iterations < maxIterations) {
+        if (abortRef.current) {
+          break;
         }
+        iterations++;
+        setTurnCount(iterations);
 
-        // Update activity status for the floating pill
-        const description = describeAction(toolName, toolArgs);
-        setLastActivity(description);
-
-        // Show action in chat for visual actions
-        if (isVisualAction) {
-          setDisplayMessages((prev) => [...prev, { type: "action", description, status: "running" }]);
-        }
-
-        let toolResult: string;
+        let result;
         try {
-          toolResult = await executeTool(toolName, toolArgs, ctx);
+          result = await chatCompletion(currentConfig, messagesRef.current, toolDefinitions);
         } catch (err) {
-          const errorMsg = err instanceof Error ? err.message : "Unknown error";
-          toolResult = JSON.stringify({ error: `Tool "${toolName}" failed: ${errorMsg}` });
-          toolError = true;
+          const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+          setDisplayMessages((prev) => [...prev, { type: 'assistant', content: `Something went wrong: ${errorMsg}` }]);
+          break;
         }
 
-        // Update action status
-        if (isVisualAction) {
-          setDisplayMessages((prev) => {
-            const updated = [...prev];
-            let lastAction = -1;
-            for (let i = updated.length - 1; i >= 0; i--) {
-              if (updated[i]!.type === "action" && (updated[i] as AiDisplayMessage & { type: "action" }).status === "running") {
-                lastAction = i;
-                break;
-              }
-            }
-            if (lastAction !== -1) {
-              const msg = updated[lastAction] as AiDisplayMessage & { type: "action" };
-              const hasError = toolResult.includes('"error"');
-              updated[lastAction] = { ...msg, status: hasError ? "error" : "done" };
-            }
-            return updated;
-          });
-        }
-
-        // Surface tool errors in the chat
-        if (toolError) {
-          setDisplayMessages((prev) => [...prev, { type: "assistant", content: `Something went wrong: ${toolResult}` }]);
-        }
-
-        // Add tool result to conversation
-        const toolMsg: AiChatMessage = {
-          role: "tool",
-          content: toolResult,
-          toolCallId: toolCall.id,
+        // Add assistant message to history
+        const assistantMsg: AiChatMessage = {
+          role: 'assistant',
+          content: result.content ?? '',
+          toolCalls: result.toolCalls.length > 0 ? result.toolCalls : undefined,
         };
-        messagesRef.current = [...messagesRef.current, toolMsg];
+        messagesRef.current = [...messagesRef.current, assistantMsg];
+
+        // Show text content in chat
+        if (result.content) {
+          setDisplayMessages((prev) => [...prev, { type: 'assistant', content: result.content! }]);
+        }
+
+        // If no tool calls, we're done
+        if (result.toolCalls.length === 0) {
+          break;
+        }
+
+        // Execute tools
+        const ctx = getToolContext();
+        let toolError = false;
+        for (const toolCall of result.toolCalls) {
+          if (abortRef.current) {
+            break;
+          }
+          const toolName = toolCall.name;
+          const isVisualAction = toolName === 'click' || toolName === 'fillInput' || toolName === 'navigate';
+
+          let toolArgs: Record<string, unknown>;
+          try {
+            toolArgs = JSON.parse(toolCall.arguments) as Record<string, unknown>;
+          } catch {
+            const errResult = JSON.stringify({ error: `Invalid tool arguments: ${toolCall.arguments}` });
+            messagesRef.current = [
+              ...messagesRef.current,
+              { role: 'tool', content: errResult, toolCallId: toolCall.id },
+            ];
+            continue;
+          }
+
+          // Update activity status for the floating pill
+          const description = describeAction(toolName, toolArgs);
+          setLastActivity(description);
+
+          // Show action in chat for visual actions
+          if (isVisualAction) {
+            setDisplayMessages((prev) => [...prev, { type: 'action', description, status: 'running' }]);
+          }
+
+          let toolResult: string;
+          try {
+            toolResult = await executeTool(toolName, toolArgs, ctx);
+          } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+            toolResult = JSON.stringify({ error: `Tool "${toolName}" failed: ${errorMsg}` });
+            toolError = true;
+          }
+
+          // Update action status
+          if (isVisualAction) {
+            setDisplayMessages((prev) => {
+              const updated = [...prev];
+              let lastAction = -1;
+              for (let i = updated.length - 1; i >= 0; i--) {
+                if (
+                  updated[i]!.type === 'action' &&
+                  (updated[i] as AiDisplayMessage & { type: 'action' }).status === 'running'
+                ) {
+                  lastAction = i;
+                  break;
+                }
+              }
+              if (lastAction !== -1) {
+                const msg = updated[lastAction] as AiDisplayMessage & { type: 'action' };
+                const hasError = toolResult.includes('"error"');
+                updated[lastAction] = { ...msg, status: hasError ? 'error' : 'done' };
+              }
+              return updated;
+            });
+          }
+
+          // Surface tool errors in the chat
+          if (toolError) {
+            setDisplayMessages((prev) => [
+              ...prev,
+              { type: 'assistant', content: `Something went wrong: ${toolResult}` },
+            ]);
+          }
+
+          // Add tool result to conversation
+          const toolMsg: AiChatMessage = {
+            role: 'tool',
+            content: toolResult,
+            toolCallId: toolCall.id,
+          };
+          messagesRef.current = [...messagesRef.current, toolMsg];
+        }
+
+        // Keep showing the last tool description while waiting for the next LLM response
+      }
+    },
+    [getToolContext],
+  );
+
+  const sendMessage = useCallback(
+    (content: string): void => {
+      if (!config || isProcessing) {
+        return;
       }
 
-      // Keep showing the last tool description while waiting for the next LLM response
-    }
-  }, [getToolContext]);
+      // Reset abort flag
+      abortRef.current = false;
 
-  const sendMessage = useCallback((content: string): void => {
-    if (!config || isProcessing) return;
+      // Add user message to display and history
+      setDisplayMessages((prev) => [...prev, { type: 'user', content }]);
 
-    // Reset abort flag
-    abortRef.current = false;
+      // Build system message if first message
+      if (messagesRef.current.length === 0) {
+        messagesRef.current = [{ role: 'system', content: buildSystemPrompt() }];
+      }
 
-    // Add user message to display and history
-    setDisplayMessages((prev) => [...prev, { type: "user", content }]);
+      // Inject current page context with user message
+      const pageContext = queryPage(1);
+      const enrichedContent = `${content}\n\n[Current page: ${pageContext.route}]\n${JSON.stringify(pageContext, null, 2)}`;
 
-    // Build system message if first message
-    if (messagesRef.current.length === 0) {
-      messagesRef.current = [{ role: "system", content: buildSystemPrompt() }];
-    }
+      messagesRef.current = [...messagesRef.current, { role: 'user', content: enrichedContent }];
 
-    // Inject current page context with user message
-    const pageContext = queryPage(1);
-    const enrichedContent = `${content}\n\n[Current page: ${pageContext.route}]\n${JSON.stringify(pageContext, null, 2)}`;
-
-    messagesRef.current = [...messagesRef.current, { role: "user", content: enrichedContent }];
-
-    setIsProcessing(true);
-    setLastActivity("Thinking...");
-    setTurnCount(0);
-
-    void runAgentLoop(config).finally(() => {
-      setIsProcessing(false);
-      setLastActivity(null);
+      setIsProcessing(true);
+      setLastActivity('Thinking...');
       setTurnCount(0);
-      setCursorVisible(false);
-      setCursorTargetId(null);
-    });
-  }, [config, isProcessing, runAgentLoop]);
 
-  const value = useMemo((): AiContextValue => ({
-    config,
-    setConfig,
-    removeConfig,
-    isEnabled,
-    isOpen,
-    toggleOpen,
-    displayMessages,
-    isProcessing,
-    lastActivity,
-    turnCount,
-    sendMessage,
-    stopProcessing,
-    clearConversation,
-    cursorTargetId,
-    cursorVisible,
-  }), [config, setConfig, removeConfig, isEnabled, isOpen, toggleOpen, displayMessages, isProcessing, lastActivity, turnCount, sendMessage, stopProcessing, clearConversation, cursorTargetId, cursorVisible]);
+      void runAgentLoop(config).finally(() => {
+        setIsProcessing(false);
+        setLastActivity(null);
+        setTurnCount(0);
+        setCursorVisible(false);
+        setCursorTargetId(null);
+      });
+    },
+    [config, isProcessing, runAgentLoop],
+  );
+
+  const value = useMemo(
+    (): AiContextValue => ({
+      config,
+      setConfig,
+      removeConfig,
+      isEnabled,
+      isOpen,
+      toggleOpen,
+      displayMessages,
+      isProcessing,
+      lastActivity,
+      turnCount,
+      sendMessage,
+      stopProcessing,
+      clearConversation,
+      cursorTargetId,
+      cursorVisible,
+    }),
+    [
+      config,
+      setConfig,
+      removeConfig,
+      isEnabled,
+      isOpen,
+      toggleOpen,
+      displayMessages,
+      isProcessing,
+      lastActivity,
+      turnCount,
+      sendMessage,
+      stopProcessing,
+      clearConversation,
+      cursorTargetId,
+      cursorVisible,
+    ],
+  );
 
   return <AiContext.Provider value={value}>{children}</AiContext.Provider>;
 };
@@ -332,7 +385,7 @@ const AiProvider = ({ children }: { children: React.ReactNode }): React.ReactNod
 const useAi = (): AiContextValue => {
   const context = useContext(AiContext);
   if (!context) {
-    throw new Error("useAi must be used within an AiProvider");
+    throw new Error('useAi must be used within an AiProvider');
   }
   return context;
 };
@@ -341,19 +394,19 @@ const useAi = (): AiContextValue => {
 
 const describeAction = (name: string, args: Record<string, unknown>): string => {
   switch (name) {
-    case "click":
+    case 'click':
       return `Clicking "${args.id}"`;
-    case "fillInput":
+    case 'fillInput':
       return `Typing into "${args.id}"`;
-    case "navigate":
+    case 'navigate':
       return `Navigating to ${args.path}`;
-    case "queryPage":
-      return "Reading the page";
-    case "queryElement":
+    case 'queryPage':
+      return 'Reading the page';
+    case 'queryElement':
       return `Inspecting "${args.id}"`;
-    case "getElementHtml":
+    case 'getElementHtml':
       return `Reading HTML of "${args.id}"`;
-    case "getTutorial":
+    case 'getTutorial':
       return `Loading tutorial: ${args.id}`;
     default:
       return name;

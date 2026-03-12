@@ -112,6 +112,21 @@ export default tseslint.config(
     },
   },
   {
+    // Tests, stories, and migrations are naturally long — relax size limits
+    files: ['**/*.test.ts', '**/*.test.tsx', '**/*.stories.tsx', '**/migrations/*.ts'],
+    rules: {
+      'max-lines': 'off',
+      'max-lines-per-function': 'off',
+    },
+  },
+  {
+    // Generated files — not hand-authored
+    files: ['**/api.types.ts'],
+    rules: {
+      'max-lines': 'off',
+    },
+  },
+  {
     // React-specific rules for frontend
     files: ['apps/web/**/*.{ts,tsx}'],
     plugins: {

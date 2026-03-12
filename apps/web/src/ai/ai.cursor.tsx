@@ -6,11 +6,11 @@
  * contexts from parent components breaking fixed positioning.
  * ──────────────────────────────────────────────────────── */
 
-import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "motion/react";
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'motion/react';
 
-import { transitions } from "../components/animate.tsx";
+import { transitions } from '../components/animate.tsx';
 
 type AiCursorProps = {
   visible: boolean;
@@ -24,10 +24,12 @@ const CURSOR_SIZE = 20;
 
 const measureElement = (id: string): Position | null => {
   const el = document.querySelector(`[data-ai-id="${CSS.escape(id)}"]`);
-  if (!el) return null;
+  if (!el) {
+    return null;
+  }
 
   // Scroll into view if needed so the user can see the action
-  el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
   const rect = el.getBoundingClientRect();
   return { x: rect.left, y: rect.top, w: rect.width, h: rect.height };
@@ -46,7 +48,9 @@ const AiCursor = ({ visible, targetId, onArrived }: AiCursorProps): React.ReactN
     // Small delay to let scrollIntoView settle before measuring
     const measure = (): void => {
       const p = measureElement(targetId);
-      if (p) setPos(p);
+      if (p) {
+        setPos(p);
+      }
     };
 
     // Measure immediately, then again after scroll settles
@@ -99,13 +103,7 @@ const AiCursor = ({ visible, targetId, onArrived }: AiCursorProps): React.ReactN
             transition={transitions.normal}
             onAnimationComplete={handleAnimationComplete}
           >
-            <svg
-              width={CURSOR_SIZE}
-              height={CURSOR_SIZE}
-              viewBox="0 0 20 20"
-              fill="none"
-              className="drop-shadow-sm"
-            >
+            <svg width={CURSOR_SIZE} height={CURSOR_SIZE} viewBox="0 0 20 20" fill="none" className="drop-shadow-sm">
               <path
                 d="M4 2L4 16L8.5 12L14 18L17 15L11 9L16 5L4 2Z"
                 className="fill-accent stroke-surface"

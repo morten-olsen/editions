@@ -1,14 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState, useCallback } from "react";
-import {
-  FadeIn,
-  SlideIn,
-  ScaleIn,
-  Collapse,
-  Presence,
-  StaggerList,
-  StaggerItem,
-} from "../../components/animate.tsx";
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { useState, useCallback } from 'react';
+
+import { FadeIn, SlideIn, ScaleIn, Collapse, Presence, StaggerList, StaggerItem } from '../../components/animate.tsx';
 
 /* ── Helpers ──────────────────────────────────────────────────────── */
 
@@ -51,26 +44,22 @@ const EasingCurves = (): React.ReactElement => {
         className="text-sm text-accent hover:text-accent-hover transition-colors cursor-pointer"
         onClick={() => setAnimate((prev) => !prev)}
       >
-        {animate ? "Reset" : "Play animation"}
+        {animate ? 'Reset' : 'Play animation'}
       </button>
 
       <div className="space-y-6">
         <div>
           <div className="flex items-center gap-4 mb-3">
-            <span className="text-xs font-mono text-ink-tertiary w-24">
-              ease-gentle
-            </span>
-            <span className="text-xs text-ink-secondary">
-              Default — cubic-bezier(0.25, 0.1, 0.25, 1)
-            </span>
+            <span className="text-xs font-mono text-ink-tertiary w-24">ease-gentle</span>
+            <span className="text-xs text-ink-secondary">Default — cubic-bezier(0.25, 0.1, 0.25, 1)</span>
           </div>
           <div className="h-10 bg-surface-sunken rounded-lg relative overflow-hidden">
             <div
               className="absolute top-1 bottom-1 left-1 w-12 bg-accent rounded-md"
               style={{
-                transform: animate ? "translateX(calc(100cqw - 4rem))" : "translateX(0)",
-                transition: "transform 800ms cubic-bezier(0.25, 0.1, 0.25, 1)",
-                containerType: "inline-size",
+                transform: animate ? 'translateX(calc(100cqw - 4rem))' : 'translateX(0)',
+                transition: 'transform 800ms cubic-bezier(0.25, 0.1, 0.25, 1)',
+                containerType: 'inline-size',
               }}
             />
           </div>
@@ -78,20 +67,16 @@ const EasingCurves = (): React.ReactElement => {
 
         <div>
           <div className="flex items-center gap-4 mb-3">
-            <span className="text-xs font-mono text-ink-tertiary w-24">
-              ease-out-soft
-            </span>
-            <span className="text-xs text-ink-secondary">
-              Entering — cubic-bezier(0, 0, 0.15, 1)
-            </span>
+            <span className="text-xs font-mono text-ink-tertiary w-24">ease-out-soft</span>
+            <span className="text-xs text-ink-secondary">Entering — cubic-bezier(0, 0, 0.15, 1)</span>
           </div>
           <div className="h-10 bg-surface-sunken rounded-lg relative overflow-hidden">
             <div
               className="absolute top-1 bottom-1 left-1 w-12 bg-accent rounded-md"
               style={{
-                transform: animate ? "translateX(calc(100cqw - 4rem))" : "translateX(0)",
-                transition: "transform 800ms cubic-bezier(0, 0, 0.15, 1)",
-                containerType: "inline-size",
+                transform: animate ? 'translateX(calc(100cqw - 4rem))' : 'translateX(0)',
+                transition: 'transform 800ms cubic-bezier(0, 0, 0.15, 1)',
+                containerType: 'inline-size',
               }}
             />
           </div>
@@ -104,19 +89,17 @@ const EasingCurves = (): React.ReactElement => {
 /* ── Duration Scale ───────────────────────────────────────────────── */
 
 const durations = [
-  { name: "fast", ms: "120ms", use: "Hover states, color changes" },
-  { name: "normal", ms: "200ms", use: "Default transitions, focus rings" },
-  { name: "slow", ms: "350ms", use: "Panel slides, layout shifts" },
-  { name: "slower", ms: "500ms", use: "Page transitions, modal entries" },
+  { name: 'fast', ms: '120ms', use: 'Hover states, color changes' },
+  { name: 'normal', ms: '200ms', use: 'Default transitions, focus rings' },
+  { name: 'slow', ms: '350ms', use: 'Panel slides, layout shifts' },
+  { name: 'slower', ms: '500ms', use: 'Page transitions, modal entries' },
 ] as const;
 
 const DurationScale = (): React.ReactElement => (
   <div className="space-y-4 p-8">
     {durations.map((d) => (
       <div key={d.name} className="flex items-center gap-6">
-        <span className="text-xs font-mono text-ink-tertiary w-16 text-right shrink-0">
-          {d.name}
-        </span>
+        <span className="text-xs font-mono text-ink-tertiary w-16 text-right shrink-0">{d.name}</span>
         <div className="w-20 shrink-0">
           <div
             className="h-2 rounded-full bg-accent/30"
@@ -142,9 +125,7 @@ const TransitionExamples = (): React.ReactElement => (
       <div className="text-sm font-medium text-ink mb-1 transition-colors duration-fast group-hover:text-accent">
         Card hover
       </div>
-      <div className="text-xs text-ink-tertiary">
-        shadow + color · normal + fast
-      </div>
+      <div className="text-xs text-ink-tertiary">shadow + color · normal + fast</div>
     </div>
 
     <button
@@ -256,7 +237,7 @@ const CollapseDemo = (): React.ReactElement => {
           className="text-xs text-accent hover:text-accent-hover transition-colors cursor-pointer font-mono"
           onClick={() => setShow((s) => !s)}
         >
-          {show ? "Collapse" : "Expand"}
+          {show ? 'Collapse' : 'Expand'}
         </button>
       </div>
       <div className="max-w-md">
@@ -267,9 +248,8 @@ const CollapseDemo = (): React.ReactElement => {
           <Collapse show={show}>
             <div className="p-4 border-t border-border">
               <div className="text-sm text-ink-secondary leading-relaxed">
-                This content smoothly animates its height when toggled.
-                Useful for accordions, detail panels, and progressive disclosure
-                — revealing information without jarring layout shifts.
+                This content smoothly animates its height when toggled. Useful for accordions, detail panels, and
+                progressive disclosure — revealing information without jarring layout shifts.
               </div>
             </div>
           </Collapse>
@@ -293,7 +273,7 @@ const PresenceDemo = (): React.ReactElement => {
           className="text-xs text-accent hover:text-accent-hover transition-colors cursor-pointer font-mono"
           onClick={() => setShow((s) => !s)}
         >
-          {show ? "Hide" : "Show"}
+          {show ? 'Hide' : 'Show'}
         </button>
       </div>
       <div className="h-24 flex items-start">
@@ -309,7 +289,7 @@ const PresenceDemo = (): React.ReactElement => {
 
 const StaggerListDemo = (): React.ReactElement => {
   const [key, replay] = useReplay();
-  const items = ["Latest from Stratechery", "The Browser Company Blog", "Daring Fireball", "Platformer", "Not Boring"];
+  const items = ['Latest from Stratechery', 'The Browser Company Blog', 'Daring Fireball', 'Platformer', 'Not Boring'];
 
   return (
     <div className="space-y-6 p-8">
@@ -350,14 +330,12 @@ const PageEnterDemo = (): React.ReactElement => {
             <div className="text-xs font-mono text-ink-tertiary tracking-wide uppercase">Morning Edition</div>
           </FadeIn>
           <SlideIn from="up" distance={8} delay={0.1}>
-            <div className="text-2xl font-serif font-medium text-ink mt-2 tracking-tight">
-              Tuesday, March 10
-            </div>
+            <div className="text-2xl font-serif font-medium text-ink mt-2 tracking-tight">Tuesday, March 10</div>
           </SlideIn>
         </div>
         <div className="p-6">
           <StaggerList className="space-y-4">
-            {["The State of RSS in 2026", "Why Calm Software Wins", "On Finite Feeds"].map((title) => (
+            {['The State of RSS in 2026', 'Why Calm Software Wins', 'On Finite Feeds'].map((title) => (
               <StaggerItem key={title}>
                 <div className="flex gap-3 items-start">
                   <div className="w-1 h-8 rounded-full bg-accent/20 shrink-0 mt-0.5" />
@@ -378,9 +356,9 @@ const PageEnterDemo = (): React.ReactElement => {
 /* ── Stories ───────────────────────────────────────────────────────── */
 
 const meta: Meta = {
-  title: "Design System/Tokens/Motion",
+  title: 'Design System/Tokens/Motion',
   parameters: {
-    layout: "fullscreen",
+    layout: 'fullscreen',
   },
 };
 
@@ -395,42 +373,42 @@ const Duration: Story = {
 };
 
 const Examples: Story = {
-  name: "CSS Transitions",
+  name: 'CSS Transitions',
   render: () => <TransitionExamples />,
 };
 
 const FadeInStory: Story = {
-  name: "FadeIn",
+  name: 'FadeIn',
   render: () => <FadeInDemo />,
 };
 
 const SlideInStory: Story = {
-  name: "SlideIn",
+  name: 'SlideIn',
   render: () => <SlideInDemo />,
 };
 
 const ScaleInStory: Story = {
-  name: "ScaleIn",
+  name: 'ScaleIn',
   render: () => <ScaleInDemo />,
 };
 
 const CollapseStory: Story = {
-  name: "Collapse",
+  name: 'Collapse',
   render: () => <CollapseDemo />,
 };
 
 const PresenceStory: Story = {
-  name: "Presence",
+  name: 'Presence',
   render: () => <PresenceDemo />,
 };
 
 const StaggerListStory: Story = {
-  name: "StaggerList",
+  name: 'StaggerList',
   render: () => <StaggerListDemo />,
 };
 
 const PageEnter: Story = {
-  name: "Composition: Page Enter",
+  name: 'Composition: Page Enter',
   render: () => <PageEnterDemo />,
 };
 

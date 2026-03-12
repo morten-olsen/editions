@@ -1,10 +1,9 @@
-import { z } from "zod/v4";
+import { z } from 'zod/v4';
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
-import { createAuthHook } from "../auth/auth.middleware.ts";
-import { JobService } from "../jobs/jobs.ts";
-
-import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
-import type { Services } from "../services/services.ts";
+import { createAuthHook } from '../auth/auth.middleware.ts';
+import { JobService } from '../jobs/jobs.ts';
+import type { Services } from '../services/services.ts';
 
 // --- Schemas ---
 
@@ -24,7 +23,7 @@ const jobProgressSchema = z
 const jobSchema = z.object({
   id: z.string(),
   type: z.string(),
-  status: z.enum(["pending", "running", "completed", "failed"]),
+  status: z.enum(['pending', 'running', 'completed', 'failed']),
   affects: jobAffectsSchema,
   progress: jobProgressSchema,
   error: z.string().nullable(),
@@ -53,13 +52,14 @@ const errorResponseSchema = z.object({
 
 // --- Routes ---
 
-const createJobsRoutes = (services: Services): FastifyPluginAsyncZod =>
+const createJobsRoutes =
+  (services: Services): FastifyPluginAsyncZod =>
   async (fastify) => {
     const authenticate = createAuthHook(services);
 
     fastify.route({
-      method: "GET",
-      url: "/jobs",
+      method: 'GET',
+      url: '/jobs',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -92,8 +92,8 @@ const createJobsRoutes = (services: Services): FastifyPluginAsyncZod =>
     });
 
     fastify.route({
-      method: "GET",
-      url: "/jobs/:jobId",
+      method: 'GET',
+      url: '/jobs/:jobId',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -107,7 +107,7 @@ const createJobsRoutes = (services: Services): FastifyPluginAsyncZod =>
         const jobService = services.get(JobService);
         const job = jobService.get(req.params.jobId);
         if (!job || job.userId !== req.user.sub) {
-          return reply.code(404).send({ error: "Job not found" });
+          return reply.code(404).send({ error: 'Job not found' });
         }
         return {
           id: job.id,

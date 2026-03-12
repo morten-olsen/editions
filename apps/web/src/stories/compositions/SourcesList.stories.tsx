@@ -1,22 +1,23 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
   createMemoryHistory,
   createRootRoute,
   createRoute,
   createRouter,
   RouterProvider,
-} from "@tanstack/react-router";
-import { SourceCard } from "../../components/source-card.tsx";
-import { PageHeader } from "../../components/page-header.tsx";
-import { Button } from "../../components/button.tsx";
-import { EmptyState } from "../../components/empty-state.tsx";
+} from '@tanstack/react-router';
+
+import { SourceCard } from '../../components/source-card.tsx';
+import { PageHeader } from '../../components/page-header.tsx';
+import { Button } from '../../components/button.tsx';
+import { EmptyState } from '../../components/empty-state.tsx';
 
 const rootRoute = createRootRoute();
-const indexRoute = createRoute({ getParentRoute: () => rootRoute, path: "/" });
+const indexRoute = createRoute({ getParentRoute: () => rootRoute, path: '/' });
 const routeTree = rootRoute.addChildren([indexRoute]);
 const router = createRouter({
   routeTree,
-  history: createMemoryHistory({ initialEntries: ["/"] }),
+  history: createMemoryHistory({ initialEntries: ['/'] }),
 });
 
 const withRouter = (Story: React.ComponentType): React.ReactElement => (
@@ -27,53 +28,57 @@ const now = Date.now();
 
 const sampleSources = [
   {
-    id: "1",
-    name: "Ars Technica",
-    url: "https://feeds.arstechnica.com/arstechnica/index",
+    id: '1',
+    name: 'Ars Technica',
+    url: 'https://feeds.arstechnica.com/arstechnica/index',
     lastFetchedAt: new Date(now - 30 * 60 * 1000).toISOString(),
   },
   {
-    id: "2",
-    name: "The Guardian",
-    url: "https://www.theguardian.com/world/rss",
+    id: '2',
+    name: 'The Guardian',
+    url: 'https://www.theguardian.com/world/rss',
     lastFetchedAt: new Date(now - 60 * 60 * 1000).toISOString(),
   },
   {
-    id: "3",
-    name: "Hacker News",
-    url: "https://hnrss.org/frontpage",
+    id: '3',
+    name: 'Hacker News',
+    url: 'https://hnrss.org/frontpage',
     lastFetchedAt: new Date(now - 2 * 60 * 60 * 1000).toISOString(),
   },
   {
-    id: "4",
-    name: "Nature News",
-    url: "https://www.nature.com/nature.rss",
-    fetchError: "Connection timed out",
+    id: '4',
+    name: 'Nature News',
+    url: 'https://www.nature.com/nature.rss',
+    fetchError: 'Connection timed out',
     lastFetchedAt: new Date(now - 24 * 60 * 60 * 1000).toISOString(),
   },
   {
-    id: "5",
-    name: "Daring Fireball",
-    url: "https://daringfireball.net/feeds/main",
+    id: '5',
+    name: 'Daring Fireball',
+    url: 'https://daringfireball.net/feeds/main',
     lastFetchedAt: new Date(now - 4 * 60 * 60 * 1000).toISOString(),
   },
 ];
 
 const meta: Meta = {
-  title: "Design System/Compositions/Sources List",
+  title: 'Design System/Compositions/Sources List',
   decorators: [withRouter],
-  parameters: { layout: "fullscreen" },
+  parameters: { layout: 'fullscreen' },
 };
 
 type Story = StoryObj;
 
 const WithSources: Story = {
   render: () => (
-    <div style={{ maxWidth: "48rem", margin: "0 auto", padding: "2rem" }}>
+    <div style={{ maxWidth: '48rem', margin: '0 auto', padding: '2rem' }}>
       <PageHeader
         title="Sources"
         subtitle={`${sampleSources.length} feeds configured`}
-        actions={<Button variant="primary" size="sm">Add source</Button>}
+        actions={
+          <Button variant="primary" size="sm">
+            Add source
+          </Button>
+        }
       />
       <div className="grid gap-3">
         {sampleSources.map((source) => (
@@ -86,7 +91,7 @@ const WithSources: Story = {
 
 const Empty: Story = {
   render: () => (
-    <div style={{ maxWidth: "48rem", margin: "0 auto", padding: "2rem" }}>
+    <div style={{ maxWidth: '48rem', margin: '0 auto', padding: '2rem' }}>
       <PageHeader title="Sources" />
       <EmptyState
         title="No sources yet"

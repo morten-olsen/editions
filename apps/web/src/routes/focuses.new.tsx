@@ -1,18 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router';
 
-import {
-  useCreateFocus,
-  selectClasses,
-  priorityLabel,
-  confidenceHint,
-} from "../hooks/focuses/focuses.hooks.ts";
-import { PageHeader } from "../components/page-header.tsx";
-import { Input } from "../components/input.tsx";
-import { Textarea } from "../components/textarea.tsx";
-import { Button } from "../components/button.tsx";
-import { Checkbox } from "../components/checkbox.tsx";
-import { Separator } from "../components/separator.tsx";
-import { IconPicker } from "../components/icon-picker.tsx";
+import { useCreateFocus, selectClasses, priorityLabel, confidenceHint } from '../hooks/focuses/focuses.hooks.ts';
+import { PageHeader } from '../components/page-header.tsx';
+import { Input } from '../components/input.tsx';
+import { Textarea } from '../components/textarea.tsx';
+import { Button } from '../components/button.tsx';
+import { Checkbox } from '../components/checkbox.tsx';
+import { Separator } from '../components/separator.tsx';
+import { IconPicker } from '../components/icon-picker.tsx';
 
 const NewFocusPage = (): React.ReactNode => {
   const {
@@ -35,17 +30,12 @@ const NewFocusPage = (): React.ReactNode => {
     headers,
   } = useCreateFocus();
 
-  const {
-    allSources,
-    loadingSources,
-    selectedSources,
-    selectedIds,
-    toggleSource,
-    changeMode,
-    changeWeight,
-  } = sourceSelection;
+  const { allSources, loadingSources, selectedSources, selectedIds, toggleSource, changeMode, changeWeight } =
+    sourceSelection;
 
-  if (!headers) return null;
+  if (!headers) {
+    return null;
+  }
 
   if (loadingSources) {
     return <div className="text-sm text-ink-tertiary py-12 text-center">Loading…</div>;
@@ -61,12 +51,23 @@ const NewFocusPage = (): React.ReactNode => {
       <PageHeader title="New topic" subtitle="A topic that shapes what appears in your editions" />
 
       {error && (
-        <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6" data-ai-id="focus-form-error" data-ai-role="error" data-ai-error={error}>
+        <div
+          className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6"
+          data-ai-id="focus-form-error"
+          data-ai-role="error"
+          data-ai-error={error}
+        >
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="max-w-lg flex flex-col gap-6" data-ai-id="focus-form" data-ai-role="form" data-ai-label="New focus form">
+      <form
+        onSubmit={handleSubmit}
+        className="max-w-lg flex flex-col gap-6"
+        data-ai-id="focus-form"
+        data-ai-role="form"
+        data-ai-label="New focus form"
+      >
         <div className="flex flex-col gap-5">
           <Input
             label="Name"
@@ -95,11 +96,10 @@ const NewFocusPage = (): React.ReactNode => {
 
           {/* Match strength */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-ink">
-              How closely articles must match
-            </label>
+            <label className="text-sm font-medium text-ink">How closely articles must match</label>
             <p className="text-xs text-ink-tertiary -mt-0.5">
-              Raise this to only include articles that are clearly a strong match. At 0%, anything potentially relevant is included.
+              Raise this to only include articles that are clearly a strong match. At 0%, anything potentially relevant
+              is included.
             </p>
             <div className="flex items-center gap-3">
               <input
@@ -112,16 +112,14 @@ const NewFocusPage = (): React.ReactNode => {
                 className="flex-1 accent-accent"
               />
               <span className="text-sm text-ink-secondary tabular-nums w-24 text-right">
-                {minConfidence === 0 ? "All articles" : `${minConfidence}% — ${confidenceHint(minConfidence)}`}
+                {minConfidence === 0 ? 'All articles' : `${minConfidence}% — ${confidenceHint(minConfidence)}`}
               </span>
             </div>
           </div>
 
           {/* Reading time */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-ink">
-              Reading time
-            </label>
+            <label className="text-sm font-medium text-ink">Reading time</label>
             <p className="text-xs text-ink-tertiary -mt-0.5">
               Only include articles within this length. Leave blank for any length.
             </p>
@@ -170,11 +168,11 @@ const NewFocusPage = (): React.ReactNode => {
                 return (
                   <div
                     key={source.id}
-                    className={`rounded-md transition-colors duration-fast ${isSelected ? "bg-surface-sunken/50 p-3" : "px-3 py-2"}`}
+                    className={`rounded-md transition-colors duration-fast ${isSelected ? 'bg-surface-sunken/50 p-3' : 'px-3 py-2'}`}
                     data-ai-id={`focus-source-${source.id}`}
                     data-ai-role="checkbox"
                     data-ai-label={source.name}
-                    data-ai-state={isSelected ? "checked" : "unchecked"}
+                    data-ai-state={isSelected ? 'checked' : 'unchecked'}
                   >
                     <div className="flex items-center justify-between">
                       <Checkbox
@@ -185,7 +183,7 @@ const NewFocusPage = (): React.ReactNode => {
                       {isSelected && selection && (
                         <select
                           value={selection.mode}
-                          onChange={(e) => changeMode(source.id, e.target.value as "always" | "match")}
+                          onChange={(e) => changeMode(source.id, e.target.value as 'always' | 'match')}
                           className={selectClasses}
                           data-ai-id={`focus-source-${source.id}-mode`}
                           data-ai-role="input"
@@ -226,8 +224,16 @@ const NewFocusPage = (): React.ReactNode => {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button variant="primary" type="submit" disabled={isPending} data-ai-id="focus-submit" data-ai-role="button" data-ai-label="Create topic" data-ai-state={isPending ? "loading" : "idle"}>
-            {isPending ? "Creating…" : "Create topic"}
+          <Button
+            variant="primary"
+            type="submit"
+            disabled={isPending}
+            data-ai-id="focus-submit"
+            data-ai-role="button"
+            data-ai-label="Create topic"
+            data-ai-state={isPending ? 'loading' : 'idle'}
+          >
+            {isPending ? 'Creating…' : 'Create topic'}
           </Button>
           <Button
             variant="ghost"
@@ -245,7 +251,7 @@ const NewFocusPage = (): React.ReactNode => {
   );
 };
 
-const Route = createFileRoute("/focuses/new")({
+const Route = createFileRoute('/focuses/new')({
   component: NewFocusPage,
 });
 

@@ -1,13 +1,12 @@
-import { z } from "zod/v4";
+import { z } from 'zod/v4';
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
-import { AnalysisService } from "../analysis/analysis.ts";
-import { createAuthHook } from "../auth/auth.middleware.ts";
-import { JobService } from "../jobs/jobs.ts";
-import { SourceNotFoundError, SourcesService } from "../sources/sources.ts";
-
-import type { RefreshSourcePayload } from "../jobs/jobs.handlers.ts";
-import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
-import type { Services } from "../services/services.ts";
+import { AnalysisService } from '../analysis/analysis.ts';
+import { createAuthHook } from '../auth/auth.middleware.ts';
+import { JobService } from '../jobs/jobs.ts';
+import { SourceNotFoundError, SourcesService } from '../sources/sources.ts';
+import type { RefreshSourcePayload } from '../jobs/jobs.handlers.ts';
+import type { Services } from '../services/services.ts';
 
 // --- Schemas ---
 
@@ -28,14 +27,14 @@ const sourceSchema = z.object({
 const createSourceSchema = z.object({
   name: z.string().min(1).max(256),
   url: z.url(),
-  type: z.enum(["rss", "podcast", "mastodon", "bluesky", "youtube", "custom"]).default("rss"),
-  direction: z.enum(["newest", "oldest"]).default("newest"),
+  type: z.enum(['rss', 'podcast', 'mastodon', 'bluesky', 'youtube', 'custom']).default('rss'),
+  direction: z.enum(['newest', 'oldest']).default('newest'),
 });
 
 const updateSourceSchema = z.object({
   name: z.string().min(1).max(256).optional(),
   url: z.url().optional(),
-  direction: z.enum(["newest", "oldest"]).optional(),
+  direction: z.enum(['newest', 'oldest']).optional(),
 });
 
 const errorResponseSchema = z.object({
@@ -104,14 +103,15 @@ const jobResponseSchema = z.object({
 
 // --- Routes ---
 
-const createSourcesRoutes = (services: Services): FastifyPluginAsyncZod =>
+const createSourcesRoutes =
+  (services: Services): FastifyPluginAsyncZod =>
   async (fastify) => {
     const authenticate = createAuthHook(services);
 
     // List sources
     fastify.route({
-      method: "GET",
-      url: "/sources",
+      method: 'GET',
+      url: '/sources',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -127,8 +127,8 @@ const createSourcesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Get source
     fastify.route({
-      method: "GET",
-      url: "/sources/:id",
+      method: 'GET',
+      url: '/sources/:id',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -153,8 +153,8 @@ const createSourcesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Create source
     fastify.route({
-      method: "POST",
-      url: "/sources",
+      method: 'POST',
+      url: '/sources',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -178,8 +178,8 @@ const createSourcesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Update source
     fastify.route({
-      method: "PATCH",
-      url: "/sources/:id",
+      method: 'PATCH',
+      url: '/sources/:id',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -205,8 +205,8 @@ const createSourcesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Delete source
     fastify.route({
-      method: "DELETE",
-      url: "/sources/:id",
+      method: 'DELETE',
+      url: '/sources/:id',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -221,8 +221,8 @@ const createSourcesRoutes = (services: Services): FastifyPluginAsyncZod =>
         const sources = services.get(SourcesService);
         try {
           const source = await sources.get(req.user.sub, req.params.id);
-          if (source.type === "bookmarks") {
-            return reply.code(400).send({ error: "Cannot delete the built-in bookmarks source" });
+          if (source.type === 'bookmarks') {
+            return reply.code(400).send({ error: 'Cannot delete the built-in bookmarks source' });
           }
           await sources.delete(req.user.sub, req.params.id);
           return reply.code(204).send();
@@ -237,8 +237,8 @@ const createSourcesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // List articles for a source
     fastify.route({
-      method: "GET",
-      url: "/sources/:id/articles",
+      method: 'GET',
+      url: '/sources/:id/articles',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -267,8 +267,8 @@ const createSourcesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Get single article
     fastify.route({
-      method: "GET",
-      url: "/sources/:id/articles/:articleId",
+      method: 'GET',
+      url: '/sources/:id/articles/:articleId',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -293,8 +293,8 @@ const createSourcesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Toggle article read status
     fastify.route({
-      method: "PUT",
-      url: "/sources/:id/articles/:articleId/read",
+      method: 'PUT',
+      url: '/sources/:id/articles/:articleId/read',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -308,11 +308,7 @@ const createSourcesRoutes = (services: Services): FastifyPluginAsyncZod =>
       handler: async (req, reply) => {
         const sources = services.get(SourcesService);
         try {
-          return await sources.setArticleReadStatus(
-            req.user.sub,
-            req.params.articleId,
-            req.body.read,
-          );
+          return await sources.setArticleReadStatus(req.user.sub, req.params.articleId, req.body.read);
         } catch (err) {
           if (err instanceof SourceNotFoundError) {
             return reply.code(404).send({ error: err.message });
@@ -324,8 +320,8 @@ const createSourcesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Fetch source (trigger RSS fetch)
     fastify.route({
-      method: "POST",
-      url: "/sources/:id/fetch",
+      method: 'POST',
+      url: '/sources/:id/fetch',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -348,15 +344,19 @@ const createSourcesRoutes = (services: Services): FastifyPluginAsyncZod =>
           throw err;
         }
 
-        if (source.type === "bookmarks") {
-          return reply.code(400).send({ error: "Cannot fetch a bookmarks source" });
+        if (source.type === 'bookmarks') {
+          return reply.code(400).send({ error: 'Cannot fetch a bookmarks source' });
         }
 
         const jobService = services.get(JobService);
-        const job = jobService.enqueue<RefreshSourcePayload>("refresh_source", {
-          sourceId: req.params.id,
-          userId: req.user.sub,
-        }, { userId: req.user.sub, affects: { sourceIds: [req.params.id] } });
+        const job = jobService.enqueue<RefreshSourcePayload>(
+          'refresh_source',
+          {
+            sourceId: req.params.id,
+            userId: req.user.sub,
+          },
+          { userId: req.user.sub, affects: { sourceIds: [req.params.id] } },
+        );
 
         return reply.code(202).send({ jobId: job.id, status: job.status });
       },
@@ -364,8 +364,8 @@ const createSourcesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Reanalyse all articles in a source
     fastify.route({
-      method: "POST",
-      url: "/sources/:id/reanalyse",
+      method: 'POST',
+      url: '/sources/:id/reanalyse',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -394,8 +394,8 @@ const createSourcesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Reanalyse all articles across all sources
     fastify.route({
-      method: "POST",
-      url: "/sources/reanalyse-all",
+      method: 'POST',
+      url: '/sources/reanalyse-all',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -409,7 +409,6 @@ const createSourcesRoutes = (services: Services): FastifyPluginAsyncZod =>
         return reply.code(202).send({ enqueued: count });
       },
     });
-
   };
 
 export { createSourcesRoutes };

@@ -1,10 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from '@tanstack/react-router';
 
-import { useSourcesList } from "../hooks/sources/sources.hooks.ts";
-import { PageHeader } from "../components/page-header.tsx";
-import { SourceCard } from "../components/source-card.tsx";
-import { EmptyState } from "../components/empty-state.tsx";
-import { Button } from "../components/button.tsx";
+import { useSourcesList } from '../hooks/sources/sources.hooks.ts';
+import { PageHeader } from '../components/page-header.tsx';
+import { SourceCard } from '../components/source-card.tsx';
+import { EmptyState } from '../components/empty-state.tsx';
+import { Button } from '../components/button.tsx';
 
 const SourcesPage = (): React.ReactNode => {
   const { sources, loading, reanalyseMutation } = useSourcesList();
@@ -13,7 +13,7 @@ const SourcesPage = (): React.ReactNode => {
     <>
       <PageHeader
         title="Sources"
-        subtitle={loading ? "Loading..." : `${sources.length} feeds configured`}
+        subtitle={loading ? 'Loading...' : `${sources.length} feeds configured`}
         actions={
           <div className="flex items-center gap-2">
             <Button
@@ -22,10 +22,12 @@ const SourcesPage = (): React.ReactNode => {
               disabled={reanalyseMutation.isPending}
               onClick={() => reanalyseMutation.mutate()}
             >
-              {reanalyseMutation.isPending ? "Reanalysing..." : "Reanalyse all"}
+              {reanalyseMutation.isPending ? 'Reanalysing...' : 'Reanalyse all'}
             </Button>
             <Link to="/sources/new" data-ai-id="add-source-btn" data-ai-role="button" data-ai-label="Add source">
-              <Button variant="primary" size="sm">Add source</Button>
+              <Button variant="primary" size="sm">
+                Add source
+              </Button>
             </Link>
           </div>
         }
@@ -60,7 +62,7 @@ const SourcesPage = (): React.ReactNode => {
   );
 };
 
-const Route = createFileRoute("/sources/")({
+const Route = createFileRoute('/sources/')({
   component: SourcesPage,
 });
 

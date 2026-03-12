@@ -1,8 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { createTestApp } from "../test-helpers.ts";
-
-import type { TestContext } from "../test-helpers.ts";
+import { createTestApp } from '../test-helpers.ts';
+import type { TestContext } from '../test-helpers.ts';
 
 let t: TestContext;
 
@@ -14,13 +13,13 @@ afterEach(async () => {
   await t.stop();
 });
 
-describe("focuses CRUD", () => {
-  it("returns empty list when no focuses", async () => {
+describe('focuses CRUD', () => {
+  it('returns empty list when no focuses', async () => {
     const { headers } = await t.register();
 
     const res = await t.inject({
-      method: "GET",
-      url: "/api/focuses",
+      method: 'GET',
+      url: '/api/focuses',
       headers,
     });
 
@@ -28,109 +27,109 @@ describe("focuses CRUD", () => {
     expect(JSON.parse(res.body)).toEqual([]);
   });
 
-  it("creates a focus", async () => {
+  it('creates a focus', async () => {
     const { headers } = await t.register();
 
     const res = await t.inject({
-      method: "POST",
-      url: "/api/focuses",
+      method: 'POST',
+      url: '/api/focuses',
       headers,
-      payload: { name: "Technology" },
+      payload: { name: 'Technology' },
     });
 
     expect(res.statusCode).toBe(201);
     const body = JSON.parse(res.body);
-    expect(body.name).toBe("Technology");
+    expect(body.name).toBe('Technology');
     expect(body.description).toBeNull();
     expect(body.sources).toEqual([]);
   });
 
-  it("creates a focus with description", async () => {
+  it('creates a focus with description', async () => {
     const { headers } = await t.register();
 
     const res = await t.inject({
-      method: "POST",
-      url: "/api/focuses",
+      method: 'POST',
+      url: '/api/focuses',
       headers,
-      payload: { name: "Science", description: "Natural sciences and research" },
+      payload: { name: 'Science', description: 'Natural sciences and research' },
     });
 
     expect(res.statusCode).toBe(201);
     const body = JSON.parse(res.body);
-    expect(body.name).toBe("Science");
-    expect(body.description).toBe("Natural sciences and research");
+    expect(body.name).toBe('Science');
+    expect(body.description).toBe('Natural sciences and research');
   });
 
-  it("gets a focus by id", async () => {
+  it('gets a focus by id', async () => {
     const { headers } = await t.register();
 
     const createRes = await t.inject({
-      method: "POST",
-      url: "/api/focuses",
+      method: 'POST',
+      url: '/api/focuses',
       headers,
-      payload: { name: "Technology" },
+      payload: { name: 'Technology' },
     });
     const { id } = JSON.parse(createRes.body);
 
     const res = await t.inject({
-      method: "GET",
+      method: 'GET',
       url: `/api/focuses/${id}`,
       headers,
     });
 
     expect(res.statusCode).toBe(200);
-    expect(JSON.parse(res.body).name).toBe("Technology");
+    expect(JSON.parse(res.body).name).toBe('Technology');
   });
 
-  it("returns 404 for nonexistent focus", async () => {
+  it('returns 404 for nonexistent focus', async () => {
     const { headers } = await t.register();
 
     const res = await t.inject({
-      method: "GET",
-      url: "/api/focuses/nonexistent",
+      method: 'GET',
+      url: '/api/focuses/nonexistent',
       headers,
     });
 
     expect(res.statusCode).toBe(404);
   });
 
-  it("updates a focus", async () => {
+  it('updates a focus', async () => {
     const { headers } = await t.register();
 
     const createRes = await t.inject({
-      method: "POST",
-      url: "/api/focuses",
+      method: 'POST',
+      url: '/api/focuses',
       headers,
-      payload: { name: "Tech" },
+      payload: { name: 'Tech' },
     });
     const { id } = JSON.parse(createRes.body);
 
     const res = await t.inject({
-      method: "PATCH",
+      method: 'PATCH',
       url: `/api/focuses/${id}`,
       headers,
-      payload: { name: "Technology", description: "Tech news" },
+      payload: { name: 'Technology', description: 'Tech news' },
     });
 
     expect(res.statusCode).toBe(200);
     const body = JSON.parse(res.body);
-    expect(body.name).toBe("Technology");
-    expect(body.description).toBe("Tech news");
+    expect(body.name).toBe('Technology');
+    expect(body.description).toBe('Tech news');
   });
 
-  it("clears description with null", async () => {
+  it('clears description with null', async () => {
     const { headers } = await t.register();
 
     const createRes = await t.inject({
-      method: "POST",
-      url: "/api/focuses",
+      method: 'POST',
+      url: '/api/focuses',
       headers,
-      payload: { name: "Tech", description: "Some desc" },
+      payload: { name: 'Tech', description: 'Some desc' },
     });
     const { id } = JSON.parse(createRes.body);
 
     const res = await t.inject({
-      method: "PATCH",
+      method: 'PATCH',
       url: `/api/focuses/${id}`,
       headers,
       payload: { description: null },
@@ -140,46 +139,46 @@ describe("focuses CRUD", () => {
     expect(JSON.parse(res.body).description).toBeNull();
   });
 
-  it("deletes a focus", async () => {
+  it('deletes a focus', async () => {
     const { headers } = await t.register();
 
     const createRes = await t.inject({
-      method: "POST",
-      url: "/api/focuses",
+      method: 'POST',
+      url: '/api/focuses',
       headers,
-      payload: { name: "Technology" },
+      payload: { name: 'Technology' },
     });
     const { id } = JSON.parse(createRes.body);
 
     const delRes = await t.inject({
-      method: "DELETE",
+      method: 'DELETE',
       url: `/api/focuses/${id}`,
       headers,
     });
     expect(delRes.statusCode).toBe(204);
 
     const getRes = await t.inject({
-      method: "GET",
+      method: 'GET',
       url: `/api/focuses/${id}`,
       headers,
     });
     expect(getRes.statusCode).toBe(404);
   });
 
-  it("isolates focuses between users", async () => {
+  it('isolates focuses between users', async () => {
     const { headers } = await t.register();
-    const { headers: otherHeaders } = await t.register("otheruser", "password456");
+    const { headers: otherHeaders } = await t.register('otheruser', 'password456');
 
     await t.inject({
-      method: "POST",
-      url: "/api/focuses",
+      method: 'POST',
+      url: '/api/focuses',
       headers,
-      payload: { name: "User1 Focus" },
+      payload: { name: 'User1 Focus' },
     });
 
     const res = await t.inject({
-      method: "GET",
-      url: "/api/focuses",
+      method: 'GET',
+      url: '/api/focuses',
       headers: otherHeaders,
     });
 
@@ -188,102 +187,102 @@ describe("focuses CRUD", () => {
   });
 });
 
-describe("focus sources", () => {
+describe('focus sources', () => {
   const createSource = async (headers: { authorization: string }, name: string): Promise<string> => {
     const res = await t.inject({
-      method: "POST",
-      url: "/api/sources",
+      method: 'POST',
+      url: '/api/sources',
       headers,
       payload: { name, url: `https://example.com/${name}/feed.xml` },
     });
     return (JSON.parse(res.body) as { id: string }).id;
   };
 
-  it("sets sources on a focus", async () => {
+  it('sets sources on a focus', async () => {
     const { headers } = await t.register();
 
     const createRes = await t.inject({
-      method: "POST",
-      url: "/api/focuses",
+      method: 'POST',
+      url: '/api/focuses',
       headers,
-      payload: { name: "Technology" },
+      payload: { name: 'Technology' },
     });
     const focusId = (JSON.parse(createRes.body) as { id: string }).id;
 
-    const sourceId = await createSource(headers, "hn");
+    const sourceId = await createSource(headers, 'hn');
 
     const res = await t.inject({
-      method: "PUT",
+      method: 'PUT',
       url: `/api/focuses/${focusId}/sources`,
       headers,
       payload: {
-        sources: [{ sourceId, mode: "always" }],
+        sources: [{ sourceId, mode: 'always' }],
       },
     });
 
     expect(res.statusCode).toBe(200);
     const body = JSON.parse(res.body);
-    expect(body.sources).toEqual([{ sourceId, mode: "always", weight: 1 }]);
+    expect(body.sources).toEqual([{ sourceId, mode: 'always', weight: 1 }]);
   });
 
-  it("replaces sources on a focus", async () => {
+  it('replaces sources on a focus', async () => {
     const { headers } = await t.register();
 
     const createRes = await t.inject({
-      method: "POST",
-      url: "/api/focuses",
+      method: 'POST',
+      url: '/api/focuses',
       headers,
-      payload: { name: "Technology" },
+      payload: { name: 'Technology' },
     });
     const focusId = (JSON.parse(createRes.body) as { id: string }).id;
 
-    const source1 = await createSource(headers, "source1");
-    const source2 = await createSource(headers, "source2");
+    const source1 = await createSource(headers, 'source1');
+    const source2 = await createSource(headers, 'source2');
 
     // Set first source
     await t.inject({
-      method: "PUT",
+      method: 'PUT',
       url: `/api/focuses/${focusId}/sources`,
       headers,
-      payload: { sources: [{ sourceId: source1, mode: "always" }] },
+      payload: { sources: [{ sourceId: source1, mode: 'always' }] },
     });
 
     // Replace with second source
     const res = await t.inject({
-      method: "PUT",
+      method: 'PUT',
       url: `/api/focuses/${focusId}/sources`,
       headers,
-      payload: { sources: [{ sourceId: source2, mode: "match" }] },
+      payload: { sources: [{ sourceId: source2, mode: 'match' }] },
     });
 
     expect(res.statusCode).toBe(200);
     const body = JSON.parse(res.body);
     expect(body.sources).toHaveLength(1);
-    expect(body.sources[0]).toEqual({ sourceId: source2, mode: "match", weight: 1 });
+    expect(body.sources[0]).toEqual({ sourceId: source2, mode: 'match', weight: 1 });
   });
 
-  it("clears sources with empty array", async () => {
+  it('clears sources with empty array', async () => {
     const { headers } = await t.register();
 
     const createRes = await t.inject({
-      method: "POST",
-      url: "/api/focuses",
+      method: 'POST',
+      url: '/api/focuses',
       headers,
-      payload: { name: "Technology" },
+      payload: { name: 'Technology' },
     });
     const focusId = (JSON.parse(createRes.body) as { id: string }).id;
 
-    const sourceId = await createSource(headers, "hn");
+    const sourceId = await createSource(headers, 'hn');
 
     await t.inject({
-      method: "PUT",
+      method: 'PUT',
       url: `/api/focuses/${focusId}/sources`,
       headers,
-      payload: { sources: [{ sourceId, mode: "always" }] },
+      payload: { sources: [{ sourceId, mode: 'always' }] },
     });
 
     const res = await t.inject({
-      method: "PUT",
+      method: 'PUT',
       url: `/api/focuses/${focusId}/sources`,
       headers,
       payload: { sources: [] },
@@ -293,28 +292,28 @@ describe("focus sources", () => {
     expect(JSON.parse(res.body).sources).toEqual([]);
   });
 
-  it("supports mixed modes", async () => {
+  it('supports mixed modes', async () => {
     const { headers } = await t.register();
 
     const createRes = await t.inject({
-      method: "POST",
-      url: "/api/focuses",
+      method: 'POST',
+      url: '/api/focuses',
       headers,
-      payload: { name: "Technology" },
+      payload: { name: 'Technology' },
     });
     const focusId = (JSON.parse(createRes.body) as { id: string }).id;
 
-    const source1 = await createSource(headers, "source1");
-    const source2 = await createSource(headers, "source2");
+    const source1 = await createSource(headers, 'source1');
+    const source2 = await createSource(headers, 'source2');
 
     const res = await t.inject({
-      method: "PUT",
+      method: 'PUT',
       url: `/api/focuses/${focusId}/sources`,
       headers,
       payload: {
         sources: [
-          { sourceId: source1, mode: "always" },
-          { sourceId: source2, mode: "match" },
+          { sourceId: source1, mode: 'always' },
+          { sourceId: source2, mode: 'match' },
         ],
       },
     });
@@ -324,37 +323,37 @@ describe("focus sources", () => {
     expect(body.sources).toHaveLength(2);
 
     const modes = new Set(body.sources.map((s: { mode: string }) => s.mode));
-    expect(modes).toEqual(new Set(["always", "match"]));
+    expect(modes).toEqual(new Set(['always', 'match']));
   });
 
-  it("includes sources in list response", async () => {
+  it('includes sources in list response', async () => {
     const { headers } = await t.register();
 
     const createRes = await t.inject({
-      method: "POST",
-      url: "/api/focuses",
+      method: 'POST',
+      url: '/api/focuses',
       headers,
-      payload: { name: "Technology" },
+      payload: { name: 'Technology' },
     });
     const focusId = (JSON.parse(createRes.body) as { id: string }).id;
 
-    const sourceId = await createSource(headers, "hn");
+    const sourceId = await createSource(headers, 'hn');
 
     await t.inject({
-      method: "PUT",
+      method: 'PUT',
       url: `/api/focuses/${focusId}/sources`,
       headers,
-      payload: { sources: [{ sourceId, mode: "always" }] },
+      payload: { sources: [{ sourceId, mode: 'always' }] },
     });
 
     const res = await t.inject({
-      method: "GET",
-      url: "/api/focuses",
+      method: 'GET',
+      url: '/api/focuses',
       headers,
     });
 
     expect(res.statusCode).toBe(200);
     const focuses = JSON.parse(res.body);
-    expect(focuses[0].sources).toEqual([{ sourceId, mode: "always", weight: 1 }]);
+    expect(focuses[0].sources).toEqual([{ sourceId, mode: 'always', weight: 1 }]);
   });
 });

@@ -1,12 +1,11 @@
-import { Cron } from "croner";
+import { Cron } from 'croner';
 
-import { DatabaseService } from "../database/database.ts";
-import { EditionsService } from "../editions/editions.ts";
-import { JobService } from "../jobs/jobs.ts";
-import { destroySymbol } from "../services/services.ts";
-
-import type { RefreshSourcePayload } from "../jobs/jobs.handlers.ts";
-import type { Services } from "../services/services.ts";
+import { DatabaseService } from '../database/database.ts';
+import { EditionsService } from '../editions/editions.ts';
+import { JobService } from '../jobs/jobs.ts';
+import { destroySymbol } from '../services/services.ts';
+import type { RefreshSourcePayload } from '../jobs/jobs.handlers.ts';
+import type { Services } from '../services/services.ts';
 
 // --- Types ---
 
@@ -37,13 +36,11 @@ class SchedulerService {
 
   start = (): void => {
     if (!this.#config.enabled) {
-      this.#log.info("Scheduler disabled");
+      this.#log.info('Scheduler disabled');
       return;
     }
 
-    this.#log.info(
-      `Scheduler started (fetch interval: ${this.#config.fetchIntervalMinutes}m)`,
-    );
+    this.#log.info(`Scheduler started (fetch interval: ${this.#config.fetchIntervalMinutes}m)`);
 
     // Run immediately on start, then every 60 seconds
     void this.#tick();
@@ -51,16 +48,16 @@ class SchedulerService {
   };
 
   #tick = async (): Promise<void> => {
-    if (this.#running) return;
+    if (this.#running) {
+      return;
+    }
     this.#running = true;
 
     try {
       await this.#fetchDueSources();
       await this.#generateDueEditions();
     } catch (err) {
-      this.#log.error(
-        `Scheduler tick failed: ${err instanceof Error ? err.message : String(err)}`,
-      );
+      this.#log.error(`Scheduler tick failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       this.#running = false;
     }
@@ -70,26 +67,19 @@ class SchedulerService {
     const db = await this.#services.get(DatabaseService).getInstance();
     const jobService = this.#services.get(JobService);
 
-    const cutoff = new Date(
-      Date.now() - this.#config.fetchIntervalMinutes * 60 * 1000,
-    ).toISOString();
+    const cutoff = new Date(Date.now() - this.#config.fetchIntervalMinutes * 60 * 1000).toISOString();
 
     // Find all RSS sources that haven't been fetched recently
     const dueSources = await db
-      .selectFrom("sources")
-      .select(["id", "user_id", "name"])
-      .where("type", "=", "rss")
-      .where((eb) =>
-        eb.or([
-          eb("last_fetched_at", "is", null),
-          eb("last_fetched_at", "<", cutoff),
-        ]),
-      )
+      .selectFrom('sources')
+      .select(['id', 'user_id', 'name'])
+      .where('type', '=', 'rss')
+      .where((eb) => eb.or([eb('last_fetched_at', 'is', null), eb('last_fetched_at', '<', cutoff)]))
       .execute();
 
     for (const source of dueSources) {
       jobService.enqueue<RefreshSourcePayload>(
-        "refresh_source",
+        'refresh_source',
         { sourceId: source.id, userId: source.user_id },
         { userId: source.user_id, affects: { sourceIds: [source.id] } },
       );
@@ -106,41 +96,41 @@ class SchedulerService {
 
     // Find all enabled edition configs
     const configs = await db
-      .selectFrom("edition_configs")
-      .select(["id", "user_id", "name", "schedule"])
-      .where("enabled", "=", 1)
+      .selectFrom('edition_configs')
+      .select(['id', 'user_id', 'name', 'schedule'])
+      .where('enabled', '=', 1)
       .execute();
 
     const now = new Date();
 
     for (const config of configs) {
       try {
-        if (!config.schedule) continue;
+        if (!config.schedule) {
+          continue;
+        }
 
         const cron = new Cron(config.schedule);
 
         // Find the most recent edition for this config
         const lastEdition = await db
-          .selectFrom("editions")
-          .select("published_at")
-          .where("edition_config_id", "=", config.id)
-          .orderBy("published_at", "desc")
+          .selectFrom('editions')
+          .select('published_at')
+          .where('edition_config_id', '=', config.id)
+          .orderBy('published_at', 'desc')
           .limit(1)
           .executeTakeFirst();
 
-        const since = lastEdition
-          ? new Date(lastEdition.published_at)
-          : new Date(now.getTime() - 24 * 60 * 60 * 1000); // default: look back 24h
+        const since = lastEdition ? new Date(lastEdition.published_at) : new Date(now.getTime() - 24 * 60 * 60 * 1000); // default: look back 24h
 
         // Check if the cron should have fired between the last edition and now
         const nextRun = cron.nextRun(since);
-        if (!nextRun || nextRun > now) continue;
+        if (!nextRun || nextRun > now) {
+          continue;
+        }
 
         this.#log.info(`Generating edition for "${config.name}"`);
         const edition = await editionsService.generate(config.user_id, config.id);
-        this.#log.info(
-          `Generated "${edition.title}" (${edition.articleCount} articles)`,
-        );
+        this.#log.info(`Generated "${edition.title}" (${edition.articleCount} articles)`);
       } catch (err) {
         this.#log.error(
           `Failed to generate edition "${config.name}": ${err instanceof Error ? err.message : String(err)}`,

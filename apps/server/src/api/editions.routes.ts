@@ -1,19 +1,15 @@
-import { z } from "zod/v4";
+import { z } from 'zod/v4';
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
-import { createAuthHook } from "../auth/auth.middleware.ts";
+import { createAuthHook } from '../auth/auth.middleware.ts';
 import {
   EditionConfigNotFoundError,
   EditionError,
   EditionNotFoundError,
   EditionsService,
-} from "../editions/editions.ts";
-import {
-  ArticleNotFoundForVoteError,
-  VotesService,
-} from "../votes/votes.ts";
-
-import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
-import type { Services } from "../services/services.ts";
+} from '../editions/editions.ts';
+import { ArticleNotFoundForVoteError, VotesService } from '../votes/votes.ts';
+import type { Services } from '../services/services.ts';
 
 // --- Schemas ---
 
@@ -21,7 +17,7 @@ const editionConfigFocusSchema = z.object({
   focusId: z.string(),
   focusName: z.string(),
   position: z.number(),
-  budgetType: z.enum(["time", "count"]),
+  budgetType: z.enum(['time', 'count']),
   budgetValue: z.number(),
   lookbackHours: z.number().nullable(),
   excludePriorEditions: z.boolean().nullable(),
@@ -45,7 +41,7 @@ const editionConfigSchema = z.object({
 const createEditionConfigFocusSchema = z.object({
   focusId: z.string(),
   position: z.number().int().min(0),
-  budgetType: z.enum(["time", "count"]),
+  budgetType: z.enum(['time', 'count']),
   budgetValue: z.number().int().min(1),
   lookbackHours: z.number().int().min(1).nullable().optional(),
   excludePriorEditions: z.boolean().nullable().optional(),
@@ -142,7 +138,8 @@ const updateProgressSchema = z.object({
 
 // --- Routes ---
 
-const createEditionsRoutes = (services: Services): FastifyPluginAsyncZod =>
+const createEditionsRoutes =
+  (services: Services): FastifyPluginAsyncZod =>
   async (fastify) => {
     const authenticate = createAuthHook(services);
 
@@ -150,8 +147,8 @@ const createEditionsRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // List edition configs
     fastify.route({
-      method: "GET",
-      url: "/editions/configs",
+      method: 'GET',
+      url: '/editions/configs',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -167,8 +164,8 @@ const createEditionsRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Get edition config
     fastify.route({
-      method: "GET",
-      url: "/editions/configs/:configId",
+      method: 'GET',
+      url: '/editions/configs/:configId',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -193,8 +190,8 @@ const createEditionsRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Create edition config
     fastify.route({
-      method: "POST",
-      url: "/editions/configs",
+      method: 'POST',
+      url: '/editions/configs',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -215,8 +212,8 @@ const createEditionsRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Update edition config
     fastify.route({
-      method: "PATCH",
-      url: "/editions/configs/:configId",
+      method: 'PATCH',
+      url: '/editions/configs/:configId',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -242,8 +239,8 @@ const createEditionsRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Delete edition config
     fastify.route({
-      method: "DELETE",
-      url: "/editions/configs/:configId",
+      method: 'DELETE',
+      url: '/editions/configs/:configId',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -270,8 +267,8 @@ const createEditionsRoutes = (services: Services): FastifyPluginAsyncZod =>
     // --- Generate Edition ---
 
     fastify.route({
-      method: "POST",
-      url: "/editions/configs/:configId/generate",
+      method: 'POST',
+      url: '/editions/configs/:configId/generate',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -303,8 +300,8 @@ const createEditionsRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // List editions for a config
     fastify.route({
-      method: "GET",
-      url: "/editions/configs/:configId/editions",
+      method: 'GET',
+      url: '/editions/configs/:configId/editions',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -329,8 +326,8 @@ const createEditionsRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Get a generated edition
     fastify.route({
-      method: "GET",
-      url: "/editions/:editionId",
+      method: 'GET',
+      url: '/editions/:editionId',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -355,8 +352,8 @@ const createEditionsRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Delete a generated edition
     fastify.route({
-      method: "DELETE",
-      url: "/editions/:editionId",
+      method: 'DELETE',
+      url: '/editions/:editionId',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -382,8 +379,8 @@ const createEditionsRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Update reading progress
     fastify.route({
-      method: "PATCH",
-      url: "/editions/:editionId/progress",
+      method: 'PATCH',
+      url: '/editions/:editionId/progress',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -397,11 +394,7 @@ const createEditionsRoutes = (services: Services): FastifyPluginAsyncZod =>
       handler: async (req, reply) => {
         const editions = services.get(EditionsService);
         try {
-          return await editions.updateEditionProgress(
-            req.user.sub,
-            req.params.editionId,
-            req.body.currentPosition,
-          );
+          return await editions.updateEditionProgress(req.user.sub, req.params.editionId, req.body.currentPosition);
         } catch (err) {
           if (err instanceof EditionNotFoundError) {
             return reply.code(404).send({ error: err.message });
@@ -413,8 +406,8 @@ const createEditionsRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Toggle edition read status
     fastify.route({
-      method: "PUT",
-      url: "/editions/:editionId/read",
+      method: 'PUT',
+      url: '/editions/:editionId/read',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -428,11 +421,7 @@ const createEditionsRoutes = (services: Services): FastifyPluginAsyncZod =>
       handler: async (req, reply) => {
         const editions = services.get(EditionsService);
         try {
-          return await editions.setEditionReadStatus(
-            req.user.sub,
-            req.params.editionId,
-            req.body.read,
-          );
+          return await editions.setEditionReadStatus(req.user.sub, req.params.editionId, req.body.read);
         } catch (err) {
           if (err instanceof EditionNotFoundError) {
             return reply.code(404).send({ error: err.message });
@@ -446,8 +435,8 @@ const createEditionsRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Upsert edition-scoped vote on an article
     fastify.route({
-      method: "PUT",
-      url: "/editions/:editionId/articles/:articleId/vote",
+      method: 'PUT',
+      url: '/editions/:editionId/articles/:articleId/vote',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -489,8 +478,8 @@ const createEditionsRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Remove edition-scoped vote on an article
     fastify.route({
-      method: "DELETE",
-      url: "/editions/:editionId/articles/:articleId/vote",
+      method: 'DELETE',
+      url: '/editions/:editionId/articles/:articleId/vote',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -501,12 +490,7 @@ const createEditionsRoutes = (services: Services): FastifyPluginAsyncZod =>
       },
       handler: async (req, reply) => {
         const votesService = services.get(VotesService);
-        await votesService.remove(
-          req.user.sub,
-          req.params.articleId,
-          null,
-          req.params.editionId,
-        );
+        await votesService.remove(req.user.sub, req.params.articleId, null, req.params.editionId);
         return reply.code(204).send();
       },
     });

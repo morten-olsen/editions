@@ -1,10 +1,9 @@
-import { z } from "zod/v4";
+import { z } from 'zod/v4';
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
-import { createAuthHook } from "../auth/auth.middleware.ts";
-import { VotesService } from "../votes/votes.ts";
-
-import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
-import type { Services } from "../services/services.ts";
+import { createAuthHook } from '../auth/auth.middleware.ts';
+import { VotesService } from '../votes/votes.ts';
+import type { Services } from '../services/services.ts';
 
 // --- Schemas ---
 
@@ -31,8 +30,11 @@ const votesPageSchema = z.object({
 const listVotesQuerySchema = z.object({
   offset: z.coerce.number().int().min(0).default(0),
   limit: z.coerce.number().int().min(1).max(100).default(50),
-  scope: z.enum(["global", "focus", "edition"]).optional(),
-  value: z.coerce.number().pipe(z.union([z.literal(1), z.literal(-1)])).optional(),
+  scope: z.enum(['global', 'focus', 'edition']).optional(),
+  value: z.coerce
+    .number()
+    .pipe(z.union([z.literal(1), z.literal(-1)]))
+    .optional(),
 });
 
 const voteIdParamsSchema = z.object({
@@ -41,14 +43,15 @@ const voteIdParamsSchema = z.object({
 
 // --- Routes ---
 
-const createVotesRoutes = (services: Services): FastifyPluginAsyncZod =>
+const createVotesRoutes =
+  (services: Services): FastifyPluginAsyncZod =>
   async (fastify) => {
     const authenticate = createAuthHook(services);
 
     // List all votes for the current user
     fastify.route({
-      method: "GET",
-      url: "/votes",
+      method: 'GET',
+      url: '/votes',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -70,8 +73,8 @@ const createVotesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Delete a vote by id
     fastify.route({
-      method: "DELETE",
-      url: "/votes/:voteId",
+      method: 'DELETE',
+      url: '/votes/:voteId',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -85,7 +88,7 @@ const createVotesRoutes = (services: Services): FastifyPluginAsyncZod =>
         const votesService = services.get(VotesService);
         const deleted = await votesService.removeById(req.user.sub, req.params.voteId);
         if (!deleted) {
-          return reply.code(404).send({ error: "Vote not found" });
+          return reply.code(404).send({ error: 'Vote not found' });
         }
         return reply.code(204).send();
       },

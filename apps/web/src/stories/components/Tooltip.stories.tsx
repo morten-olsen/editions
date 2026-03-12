@@ -1,10 +1,11 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Tooltip, TooltipProvider } from "../../components/tooltip.tsx";
-import { Button } from "../../components/button.tsx";
+import type { Meta, StoryObj } from '@storybook/react-vite';
+
+import { Tooltip, TooltipProvider } from '../../components/tooltip.tsx';
+import { Button } from '../../components/button.tsx';
 
 const meta: Meta = {
-  title: "Design System/Components/Tooltip",
-  parameters: { layout: "centered" },
+  title: 'Design System/Components/Tooltip',
+  parameters: { layout: 'centered' },
   decorators: [
     (Story) => (
       <TooltipProvider>
@@ -26,7 +27,7 @@ const Default: Story = {
 
 const Sides: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "2rem", padding: "4rem" }}>
+    <div style={{ display: 'flex', gap: '2rem', padding: '4rem' }}>
       <Tooltip content="Top" side="top">
         <Button variant="ghost">Top</Button>
       </Tooltip>

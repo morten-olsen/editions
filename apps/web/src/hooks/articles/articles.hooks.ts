@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
-import { client } from "../../api/api.ts";
-import { useAuthHeaders } from "../../api/api.hooks.ts";
+import { client } from '../../api/api.ts';
+import { useAuthHeaders } from '../../api/api.hooks.ts';
 
 type VoteValue = 1 | -1 | null;
 
@@ -51,16 +51,18 @@ type UseArticleDetailResult = {
 
 const formatConsumptionTime = (seconds: number, sourceType: string): string => {
   const minutes = Math.round(seconds / 60);
-  const suffix = sourceType === "podcast" ? "listen" : "read";
-  if (minutes < 1) return `< 1 min ${suffix}`;
+  const suffix = sourceType === 'podcast' ? 'listen' : 'read';
+  if (minutes < 1) {
+    return `< 1 min ${suffix}`;
+  }
   return `${minutes} min ${suffix}`;
 };
 
 const formatPublishedDate = (iso: string): string =>
-  new Date(iso).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
+  new Date(iso).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
   });
 
 const useArticleDetail = ({ sourceId, articleId }: UseArticleDetailParams): UseArticleDetailResult => {
@@ -71,34 +73,30 @@ const useArticleDetail = ({ sourceId, articleId }: UseArticleDetailParams): UseA
   const [initialized, setInitialized] = useState(false);
 
   const { data, isLoading, error } = useQuery<ArticleData>({
-    queryKey: ["sources", sourceId, "articles", articleId],
+    queryKey: ['sources', sourceId, 'articles', articleId],
     queryFn: async (): Promise<ArticleData> => {
       const [articleRes, voteRes, bookmarkRes] = await Promise.all([
-        client.GET("/api/sources/{id}/articles/{articleId}", {
+        client.GET('/api/sources/{id}/articles/{articleId}', {
           params: { path: { id: sourceId, articleId } },
           headers,
         }),
-        client.GET("/api/articles/{articleId}/vote", {
+        client.GET('/api/articles/{articleId}/vote', {
           params: { path: { articleId } },
           headers,
         }),
-        client.GET("/api/articles/{articleId}/bookmark", {
+        client.GET('/api/articles/{articleId}/bookmark', {
           params: { path: { articleId } },
           headers,
         }),
       ]);
 
       if (articleRes.error) {
-        throw new Error("Article not found");
+        throw new Error('Article not found');
       }
 
       const article = articleRes.data as ArticleDetail;
-      const voteValue = voteRes.data
-        ? (voteRes.data as { value: 1 | -1 }).value
-        : null;
-      const isBookmarked = bookmarkRes.data
-        ? (bookmarkRes.data as { bookmarked: boolean }).bookmarked
-        : false;
+      const voteValue = voteRes.data ? (voteRes.data as { value: 1 | -1 }).value : null;
+      const isBookmarked = bookmarkRes.data ? (bookmarkRes.data as { bookmarked: boolean }).bookmarked : false;
 
       return { article, vote: voteValue, bookmarked: isBookmarked };
     },
@@ -119,12 +117,12 @@ const useArticleDetail = ({ sourceId, articleId }: UseArticleDetailParams): UseA
     setVote(value);
 
     if (value === null) {
-      await client.DELETE("/api/articles/{articleId}/vote", {
+      await client.DELETE('/api/articles/{articleId}/vote', {
         params: { path: { articleId } },
         headers,
       });
     } else {
-      await client.PUT("/api/articles/{articleId}/vote", {
+      await client.PUT('/api/articles/{articleId}/vote', {
         params: { path: { articleId } },
         body: { value },
         headers,
@@ -137,12 +135,12 @@ const useArticleDetail = ({ sourceId, articleId }: UseArticleDetailParams): UseA
     setBookmarked(newBookmarked);
 
     if (newBookmarked) {
-      await client.PUT("/api/articles/{articleId}/bookmark", {
+      await client.PUT('/api/articles/{articleId}/bookmark', {
         params: { path: { articleId } },
         headers,
       });
     } else {
-      await client.DELETE("/api/articles/{articleId}/bookmark", {
+      await client.DELETE('/api/articles/{articleId}/bookmark', {
         params: { path: { articleId } },
         headers,
       });
@@ -152,7 +150,7 @@ const useArticleDetail = ({ sourceId, articleId }: UseArticleDetailParams): UseA
   const handleToggleRead = async (): Promise<void> => {
     const newRead = !isRead;
     setIsRead(newRead);
-    await client.PUT("/api/sources/{id}/articles/{articleId}/read", {
+    await client.PUT('/api/sources/{id}/articles/{articleId}/read', {
       params: { path: { id: sourceId, articleId } },
       body: { read: newRead },
       headers,
@@ -162,7 +160,7 @@ const useArticleDetail = ({ sourceId, articleId }: UseArticleDetailParams): UseA
   const handleMarkDoneAndBack = async (goBack: () => void): Promise<void> => {
     if (!isRead) {
       setIsRead(true);
-      await client.PUT("/api/sources/{id}/articles/{articleId}/read", {
+      await client.PUT('/api/sources/{id}/articles/{articleId}/read', {
         params: { path: { id: sourceId, articleId } },
         body: { read: true },
         headers,

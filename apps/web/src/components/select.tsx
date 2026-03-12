@@ -1,36 +1,21 @@
-import * as React from "react";
-import { Select as BaseSelect } from "@base-ui/react/select";
+import * as React from 'react';
+import { Select as BaseSelect } from '@base-ui/react/select';
 
 const Root = BaseSelect.Root;
 
 const CheckIcon = (): React.ReactElement => (
   <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-    <path
-      d="M10 3L4.5 8.5L2 6"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
+    <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
 const ChevronIcon = (): React.ReactElement => (
   <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-ink-tertiary">
-    <path
-      d="M3 4.5L6 7.5L9 4.5"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
+    <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
-const Trigger = ({
-  className = "",
-  ...props
-}: React.ComponentProps<typeof BaseSelect.Trigger>): React.ReactElement => (
+const Trigger = ({ className = '', ...props }: React.ComponentProps<typeof BaseSelect.Trigger>): React.ReactElement => (
   <BaseSelect.Trigger
     className={`inline-flex h-10 items-center justify-between gap-2 rounded-md border border-border bg-surface-raised px-3.5 text-sm text-ink outline-none transition-colors duration-fast ease-gentle focus:border-accent focus:ring-2 focus:ring-accent/20 data-[popup-open]:border-accent data-[popup-open]:ring-2 data-[popup-open]:ring-accent/20 cursor-pointer ${className}`}
     {...props}
@@ -44,7 +29,7 @@ const Trigger = ({
 
 const Content = ({
   children,
-  className = "",
+  className = '',
 }: {
   children: React.ReactNode;
   className?: string;
@@ -61,7 +46,7 @@ const Content = ({
 );
 
 const Item = ({
-  className = "",
+  className = '',
   children,
   ...props
 }: React.ComponentProps<typeof BaseSelect.Item>): React.ReactElement => (
@@ -78,7 +63,7 @@ const Item = ({
 
 const Group = BaseSelect.Group;
 const GroupLabel = ({
-  className = "",
+  className = '',
   ...props
 }: React.ComponentProps<typeof BaseSelect.GroupLabel>): React.ReactElement => (
   <BaseSelect.GroupLabel

@@ -1,14 +1,14 @@
-import { useState, useCallback, useRef } from "react";
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useCallback, useRef } from 'react';
+import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { client } from "../api/api.ts";
-import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
-import { ReadingShell } from "../components/app-shell.tsx";
-import { Button } from "../components/button.tsx";
-import { Separator } from "../components/separator.tsx";
-import { ArticleCard } from "../components/article-card.tsx";
-import type { VoteValue } from "../components/vote-controls.tsx";
+import { client } from '../api/api.ts';
+import { useAuthHeaders, queryKeys } from '../api/api.hooks.ts';
+import { ReadingShell } from '../components/app-shell.tsx';
+import { Button } from '../components/button.tsx';
+import { Separator } from '../components/separator.tsx';
+import { ArticleCard } from '../components/article-card.tsx';
+import type { VoteValue } from '../components/vote-controls.tsx';
 import {
   MagazineLayout,
   MagazineCover,
@@ -17,7 +17,7 @@ import {
   MagazineArticle,
   MagazineFinale,
   type TocEntry,
-} from "../components/magazine/magazine.tsx";
+} from '../components/magazine/magazine.tsx';
 
 /* ── Types ────────────────────────────────────────────────────────── */
 
@@ -61,13 +61,13 @@ type FocusSection = {
   articles: EditionArticle[];
 };
 
-type ViewMode = "list" | "magazine";
+type ViewMode = 'list' | 'magazine';
 
 /* ── Helpers ──────────────────────────────────────────────────────── */
 
 const formatTime = (seconds: number): string => {
   const minutes = Math.round(seconds / 60);
-  return minutes < 1 ? "< 1 min" : `${minutes} min read`;
+  return minutes < 1 ? '< 1 min' : `${minutes} min read`;
 };
 
 const groupByFocus = (articles: EditionArticle[]): FocusSection[] => {
@@ -97,7 +97,15 @@ type MagazineViewProps = {
   onMarkDone: () => void;
 };
 
-const MagazineView = ({ edition, sections, votes, onVote, onMarkArticleViewed, onExit, onMarkDone }: MagazineViewProps): React.ReactElement => {
+const MagazineView = ({
+  edition,
+  sections,
+  votes,
+  onVote,
+  onMarkArticleViewed,
+  onExit,
+  onMarkDone,
+}: MagazineViewProps): React.ReactElement => {
   const [page, setPage] = useState(0);
   const pageRef = useRef(page);
 
@@ -133,17 +141,20 @@ const MagazineView = ({ edition, sections, votes, onVote, onMarkArticleViewed, o
   });
 
   // Intercept all page changes — mark the current page's article as viewed before advancing
-  const handlePageChange = useCallback((newPage: number): void => {
-    const articleInfo = pageArticleMap.current.get(pageRef.current);
-    if (articleInfo && newPage !== pageRef.current) {
-      onMarkArticleViewed(articleInfo.sourceId, articleInfo.articleId);
-    }
-    pageRef.current = newPage;
-    setPage(newPage);
-  }, [onMarkArticleViewed]);
+  const handlePageChange = useCallback(
+    (newPage: number): void => {
+      const articleInfo = pageArticleMap.current.get(pageRef.current);
+      if (articleInfo && newPage !== pageRef.current) {
+        onMarkArticleViewed(articleInfo.sourceId, articleInfo.articleId);
+      }
+      pageRef.current = newPage;
+      setPage(newPage);
+    },
+    [onMarkArticleViewed],
+  );
 
   // Cover
-  const leadArticle = edition.articles[0] ?? { title: edition.title, sourceName: "" };
+  const leadArticle = edition.articles[0] ?? { title: edition.title, sourceName: '' };
   const highlightArticles = sections
     .slice(1, 3)
     .map((s) => s.articles[0])
@@ -164,12 +175,7 @@ const MagazineView = ({ edition, sections, votes, onVote, onMarkArticleViewed, o
 
   // TOC
   pages.push(
-    <MagazineToc
-      key="toc"
-      editionTitle={edition.title}
-      sections={tocSections}
-      onNavigate={handlePageChange}
-    />,
+    <MagazineToc key="toc" editionTitle={edition.title} sections={tocSections} onNavigate={handlePageChange} />,
   );
 
   // Sections + articles
@@ -252,20 +258,24 @@ const EditionViewPage = (): React.ReactNode => {
   const { configId, editionId } = Route.useParams();
   const [isRead, setIsRead] = useState(false);
   const [votes, setVotes] = useState<Record<string, VoteValue>>({});
-  const [view, setView] = useState<ViewMode>("list");
+  const [view, setView] = useState<ViewMode>('list');
 
   const queryKey = queryKeys.editions.detail(editionId);
 
-  const { data: edition, isLoading, error } = useQuery<EditionDetail>({
+  const {
+    data: edition,
+    isLoading,
+    error,
+  } = useQuery<EditionDetail>({
     queryKey,
     queryFn: async (): Promise<EditionDetail> => {
-      const { data, error: err } = await client.GET("/api/editions/{editionId}", {
+      const { data, error: err } = await client.GET('/api/editions/{editionId}', {
         params: { path: { editionId } },
         headers,
       });
 
       if (err) {
-        throw new Error("Edition not found");
+        throw new Error('Edition not found');
       }
 
       return data as EditionDetail;
@@ -281,10 +291,12 @@ const EditionViewPage = (): React.ReactNode => {
   }
 
   const handleToggleRead = async (): Promise<void> => {
-    if (!edition) return;
+    if (!edition) {
+      return;
+    }
     const newRead = !isRead;
     setIsRead(newRead);
-    await client.PUT("/api/editions/{editionId}/read", {
+    await client.PUT('/api/editions/{editionId}/read', {
       params: { path: { editionId } },
       body: { read: newRead },
       headers,
@@ -292,46 +304,52 @@ const EditionViewPage = (): React.ReactNode => {
   };
 
   const handleMarkDoneAndBack = async (): Promise<void> => {
-    if (!edition) return;
+    if (!edition) {
+      return;
+    }
     if (!isRead) {
       setIsRead(true);
-      await client.PUT("/api/editions/{editionId}/read", {
+      await client.PUT('/api/editions/{editionId}/read', {
         params: { path: { editionId } },
         body: { read: true },
         headers,
       });
     }
-    await navigate({ to: "/editions/$configId", params: { configId } });
+    await navigate({ to: '/editions/$configId', params: { configId } });
   };
 
   const deleteMutation = useMutation({
     mutationFn: async (): Promise<void> => {
-      await client.DELETE("/api/editions/{editionId}", {
+      await client.DELETE('/api/editions/{editionId}', {
         params: { path: { editionId } },
         headers,
       });
     },
     onSuccess: (): void => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.editions.forConfig(configId) });
-      void navigate({ to: "/editions/$configId", params: { configId } });
+      void navigate({ to: '/editions/$configId', params: { configId } });
     },
   });
 
   const handleDelete = (): void => {
-    if (!edition) return;
-    if (!confirm(`Delete "${edition.title}"?`)) return;
+    if (!edition) {
+      return;
+    }
+    if (!confirm(`Delete "${edition.title}"?`)) {
+      return;
+    }
     deleteMutation.mutate();
   };
 
   const handleEditionVote = async (articleId: string, value: VoteValue): Promise<void> => {
     setVotes((prev) => ({ ...prev, [articleId]: value }));
     if (value === null) {
-      await client.DELETE("/api/editions/{editionId}/articles/{articleId}/vote", {
+      await client.DELETE('/api/editions/{editionId}/articles/{articleId}/vote', {
         params: { path: { editionId, articleId } },
         headers,
       });
     } else {
-      await client.PUT("/api/editions/{editionId}/articles/{articleId}/vote", {
+      await client.PUT('/api/editions/{editionId}/articles/{articleId}/vote', {
         params: { path: { editionId, articleId } },
         body: { value },
         headers,
@@ -340,14 +358,14 @@ const EditionViewPage = (): React.ReactNode => {
   };
 
   const handleMarkArticleViewed = async (sourceId: string, articleId: string): Promise<void> => {
-    await client.PUT("/api/sources/{id}/articles/{articleId}/read", {
+    await client.PUT('/api/sources/{id}/articles/{articleId}/read', {
       params: { path: { id: sourceId, articleId } },
       body: { read: true },
       headers,
     });
   };
 
-  const handleExitMagazine = useCallback((): void => setView("list"), []);
+  const handleExitMagazine = useCallback((): void => setView('list'), []);
 
   if (!headers || isLoading) {
     return (
@@ -362,9 +380,11 @@ const EditionViewPage = (): React.ReactNode => {
       <div className="flex min-h-dvh items-center justify-center bg-surface">
         <div className="text-center">
           <div className="font-serif text-xl text-ink mb-2">
-            {error instanceof Error ? error.message : "Edition not found"}
+            {error instanceof Error ? error.message : 'Edition not found'}
           </div>
-          <Button variant="ghost" size="sm" onClick={() => router.history.back()}>Go back</Button>
+          <Button variant="ghost" size="sm" onClick={() => router.history.back()}>
+            Go back
+          </Button>
         </div>
       </div>
     );
@@ -374,7 +394,7 @@ const EditionViewPage = (): React.ReactNode => {
 
   /* ── Magazine view ──────────────────────────────────────────────── */
 
-  if (view === "magazine") {
+  if (view === 'magazine') {
     return (
       <MagazineView
         edition={edition}
@@ -393,7 +413,9 @@ const EditionViewPage = (): React.ReactNode => {
   const editionHeader = (
     <header className="border-b border-border bg-surface">
       <div className="max-w-prose mx-auto px-4 py-4 md:px-6 flex items-center justify-between gap-3">
-        <Button variant="ghost" size="sm" onClick={() => router.history.back()}>← Back</Button>
+        <Button variant="ghost" size="sm" onClick={() => router.history.back()}>
+          ← Back
+        </Button>
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="hidden sm:block text-xs text-ink-tertiary">
             {edition.articleCount} articles
@@ -404,7 +426,7 @@ const EditionViewPage = (): React.ReactNode => {
             onClick={() => void handleToggleRead()}
             className="text-xs text-ink-tertiary hover:text-ink transition-colors duration-fast cursor-pointer"
           >
-            {isRead ? "Mark unread" : "Mark read"}
+            {isRead ? 'Mark unread' : 'Mark read'}
           </button>
           <button
             type="button"
@@ -426,7 +448,7 @@ const EditionViewPage = (): React.ReactNode => {
       {/* Magazine promo — prominent entry point */}
       {edition.articles.length > 0 && (
         <button
-          onClick={() => setView("magazine")}
+          onClick={() => setView('magazine')}
           className="group relative w-full rounded-lg overflow-hidden mb-12 text-left cursor-pointer transition-shadow duration-normal hover:shadow-lg"
         >
           {/* Background image */}
@@ -438,26 +460,28 @@ const EditionViewPage = (): React.ReactNode => {
           )}
 
           {/* Fallback solid background when no image */}
-          {!promoImage && (
-            <div className="absolute inset-0 bg-linear-to-r from-accent/15 to-accent/5" />
-          )}
+          {!promoImage && <div className="absolute inset-0 bg-linear-to-r from-accent/15 to-accent/5" />}
 
-          <div className={`relative flex items-center justify-between gap-6 px-6 py-5 ${promoImage ? "text-white" : ""}`}>
+          <div
+            className={`relative flex items-center justify-between gap-6 px-6 py-5 ${promoImage ? 'text-white' : ''}`}
+          >
             <div className="min-w-0">
-              <div className={`text-xs font-mono tracking-wide mb-1.5 ${promoImage ? "text-white/60" : "text-accent"}`}>
+              <div className={`text-xs font-mono tracking-wide mb-1.5 ${promoImage ? 'text-white/60' : 'text-accent'}`}>
                 Magazine experience
               </div>
-              <div className={`font-serif text-lg leading-snug ${promoImage ? "text-white" : "text-ink"}`}>
+              <div className={`font-serif text-lg leading-snug ${promoImage ? 'text-white' : 'text-ink'}`}>
                 Read this edition as an immersive magazine
               </div>
-              <div className={`text-xs mt-1 ${promoImage ? "text-white/50" : "text-ink-tertiary"}`}>
-                {edition.articleCount} articles · {edition.totalReadingMinutes ?? "?"} min · page-by-page
+              <div className={`text-xs mt-1 ${promoImage ? 'text-white/50' : 'text-ink-tertiary'}`}>
+                {edition.articleCount} articles · {edition.totalReadingMinutes ?? '?'} min · page-by-page
               </div>
             </div>
-            <div className={`shrink-0 text-sm font-medium tracking-wide px-4 py-2 rounded-full transition-all duration-normal
-              ${promoImage
-                ? "bg-white/15 text-white group-hover:bg-white/25 border border-white/20"
-                : "bg-accent text-accent-ink group-hover:bg-accent-hover"
+            <div
+              className={`shrink-0 text-sm font-medium tracking-wide px-4 py-2 rounded-full transition-all duration-normal
+              ${
+                promoImage
+                  ? 'bg-white/15 text-white group-hover:bg-white/25 border border-white/20'
+                  : 'bg-accent text-accent-ink group-hover:bg-accent-hover'
               }`}
             >
               Open →
@@ -469,18 +493,16 @@ const EditionViewPage = (): React.ReactNode => {
       {/* Edition title */}
       <div className="mb-12">
         <div className="text-xs text-ink-tertiary tracking-wide uppercase mb-3">
-          {new Date(edition.publishedAt).toLocaleDateString("en-GB", {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-            year: "numeric",
+          {new Date(edition.publishedAt).toLocaleDateString('en-GB', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
           })}
         </div>
-        <h1 className="font-serif text-4xl font-medium tracking-tight text-ink leading-tight mb-3">
-          {edition.title}
-        </h1>
+        <h1 className="font-serif text-4xl font-medium tracking-tight text-ink leading-tight mb-3">{edition.title}</h1>
         <div className="text-sm text-ink-secondary">
-          {edition.articleCount} articles across {sections.length} {sections.length === 1 ? "focus" : "focuses"}
+          {edition.articleCount} articles across {sections.length} {sections.length === 1 ? 'focus' : 'focuses'}
           {edition.totalReadingMinutes && ` · approximately ${edition.totalReadingMinutes} minutes`}
         </div>
       </div>
@@ -492,10 +514,7 @@ const EditionViewPage = (): React.ReactNode => {
         </div>
       ) : (
         sections.map((section, i) => {
-          const totalSeconds = section.articles.reduce(
-            (sum, a) => sum + (a.consumptionTimeSeconds ?? 0),
-            0,
-          );
+          const totalSeconds = section.articles.reduce((sum, a) => sum + (a.consumptionTimeSeconds ?? 0), 0);
 
           return (
             <div key={section.focusId}>
@@ -504,14 +523,12 @@ const EditionViewPage = (): React.ReactNode => {
                 <div className="flex items-baseline justify-between mb-2">
                   <div className="flex items-baseline gap-3">
                     <span className="text-xs font-mono text-accent tracking-wide">
-                      {String(i + 1).padStart(2, "0")}
+                      {String(i + 1).padStart(2, '0')}
                     </span>
-                    <h2 className="font-serif text-xl font-medium tracking-tight text-ink">
-                      {section.focusName}
-                    </h2>
+                    <h2 className="font-serif text-xl font-medium tracking-tight text-ink">{section.focusName}</h2>
                   </div>
                   <div className="text-xs text-ink-tertiary">
-                    {section.articles.length} {section.articles.length === 1 ? "article" : "articles"}
+                    {section.articles.length} {section.articles.length === 1 ? 'article' : 'articles'}
                     {totalSeconds > 0 && ` · ${formatTime(totalSeconds)}`}
                   </div>
                 </div>
@@ -544,9 +561,7 @@ const EditionViewPage = (): React.ReactNode => {
       {/* Completion */}
       <Separator soft className="mt-12" />
       <div className="py-10 text-center">
-        <div className="font-serif text-xl text-ink mb-3">
-          End of edition
-        </div>
+        <div className="font-serif text-xl text-ink mb-3">End of edition</div>
         <div className="text-sm text-ink-tertiary mb-6">
           {edition.articleCount} articles
           {edition.totalReadingMinutes && ` · ${edition.totalReadingMinutes} minutes`}
@@ -559,7 +574,7 @@ const EditionViewPage = (): React.ReactNode => {
   );
 };
 
-const Route = createFileRoute("/editions/$configId/issues/$editionId/")({
+const Route = createFileRoute('/editions/$configId/issues/$editionId/')({
   component: EditionViewPage,
 });
 

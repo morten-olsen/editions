@@ -1,17 +1,10 @@
-import { z } from "zod/v4";
+import { z } from 'zod/v4';
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
-import { createAuthHook } from "../auth/auth.middleware.ts";
-import {
-  SourceNotFoundError,
-  SourcesService,
-} from "../sources/sources.ts";
-import {
-  ArticleNotFoundForVoteError,
-  VotesService,
-} from "../votes/votes.ts";
-
-import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
-import type { Services } from "../services/services.ts";
+import { createAuthHook } from '../auth/auth.middleware.ts';
+import { SourceNotFoundError, SourcesService } from '../sources/sources.ts';
+import { ArticleNotFoundForVoteError, VotesService } from '../votes/votes.ts';
+import type { Services } from '../services/services.ts';
 
 // --- Schemas ---
 
@@ -48,14 +41,15 @@ const errorResponseSchema = z.object({
 
 // --- Routes ---
 
-const createArticlesRoutes = (services: Services): FastifyPluginAsyncZod =>
+const createArticlesRoutes =
+  (services: Services): FastifyPluginAsyncZod =>
   async (fastify) => {
     const authenticate = createAuthHook(services);
 
     // Get global vote on an article
     fastify.route({
-      method: "GET",
-      url: "/articles/:articleId/vote",
+      method: 'GET',
+      url: '/articles/:articleId/vote',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -67,11 +61,7 @@ const createArticlesRoutes = (services: Services): FastifyPluginAsyncZod =>
       },
       handler: async (req, reply) => {
         const votesService = services.get(VotesService);
-        const vote = await votesService.getForArticle(
-          req.user.sub,
-          req.params.articleId,
-          null,
-        );
+        const vote = await votesService.getForArticle(req.user.sub, req.params.articleId, null);
         if (!vote) {
           return reply.code(204).send();
         }
@@ -81,8 +71,8 @@ const createArticlesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Upsert global vote on an article
     fastify.route({
-      method: "PUT",
-      url: "/articles/:articleId/vote",
+      method: 'PUT',
+      url: '/articles/:articleId/vote',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -114,8 +104,8 @@ const createArticlesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Remove global vote on an article
     fastify.route({
-      method: "DELETE",
-      url: "/articles/:articleId/vote",
+      method: 'DELETE',
+      url: '/articles/:articleId/vote',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -133,8 +123,8 @@ const createArticlesRoutes = (services: Services): FastifyPluginAsyncZod =>
 
     // Update playback / reading progress on an article (0.0–1.0)
     fastify.route({
-      method: "PATCH",
-      url: "/articles/:articleId/progress",
+      method: 'PATCH',
+      url: '/articles/:articleId/progress',
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],
@@ -148,11 +138,7 @@ const createArticlesRoutes = (services: Services): FastifyPluginAsyncZod =>
       handler: async (req, reply) => {
         const sources = services.get(SourcesService);
         try {
-          const article = await sources.setArticleProgress(
-            req.user.sub,
-            req.params.articleId,
-            req.body.progress,
-          );
+          const article = await sources.setArticleProgress(req.user.sub, req.params.articleId, req.body.progress);
           return { id: article.id, progress: article.progress };
         } catch (err) {
           if (err instanceof SourceNotFoundError) {

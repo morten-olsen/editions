@@ -1,9 +1,11 @@
-import * as React from "react";
-import { motion } from "motion/react";
-import { MediaPlayer, waveformHeights } from "../media-player.tsx";
-import { VoteControls } from "../vote-controls.tsx";
-import type { VoteValue } from "../vote-controls.tsx";
-import { MagazinePage, useMagazineNav } from "./magazine.layout.tsx";
+import * as React from 'react';
+import { motion } from 'motion/react';
+
+import { MediaPlayer, waveformHeights } from '../media-player.tsx';
+import { VoteControls } from '../vote-controls.tsx';
+import type { VoteValue } from '../vote-controls.tsx';
+
+import { MagazinePage, useMagazineNav } from './magazine.layout.tsx';
 
 /* ── Types ────────────────────────────────────────────────────────── */
 
@@ -40,13 +42,15 @@ const easeOut = [0, 0, 0.15, 1] as const;
 
 const formatArticleDate = (iso: string): string => {
   const d = new Date(iso);
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
 const formatReadingTime = (seconds: number, sourceType?: string | null): string => {
   const min = Math.round(seconds / 60);
-  if (min < 1) return "< 1 min";
-  const suffix = sourceType === "podcast" ? "listen" : "read";
+  if (min < 1) {
+    return '< 1 min';
+  }
+  const suffix = sourceType === 'podcast' ? 'listen' : 'read';
   return `${min} min ${suffix}`;
 };
 
@@ -91,7 +95,9 @@ const NextPrompt = ({ delay = 0.6 }: NextPromptProps): React.ReactElement => {
   const canAdvance = nav !== null && nav.page < nav.total - 1;
 
   const handleClick = (): void => {
-    if (nav) nav.onPageChange(nav.page + 1);
+    if (nav) {
+      nav.onPageChange(nav.page + 1);
+    }
   };
 
   return (
@@ -110,9 +116,7 @@ const NextPrompt = ({ delay = 0.6 }: NextPromptProps): React.ReactElement => {
           Continue to next article →
         </button>
       ) : (
-        <div className="text-xs font-mono tracking-wide text-ink-faint">
-          End of edition
-        </div>
+        <div className="text-xs font-mono tracking-wide text-ink-faint">End of edition</div>
       )}
     </motion.div>
   );
@@ -160,7 +164,7 @@ const Byline = ({
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     transition={{ duration: 0.4, ease: easeOut, delay }}
-    className={`flex items-center gap-3 text-xs text-ink-tertiary ${centered ? "justify-center" : ""}`}
+    className={`flex items-center gap-3 text-xs text-ink-tertiary ${centered ? 'justify-center' : ''}`}
   >
     {author && <span>By {author}</span>}
     {publishedAt && (
@@ -194,11 +198,7 @@ const Waveform = ({ delay = 0.3 }: { delay?: number }): React.ReactElement => (
   >
     <div className="flex items-center gap-[2px] h-9">
       {waveformHeights.map((h, i) => (
-        <div
-          key={i}
-          className="w-[3px] rounded-full bg-accent/20"
-          style={{ height: h }}
-        />
+        <div key={i} className="w-[3px] rounded-full bg-accent/20" style={{ height: h }} />
       ))}
     </div>
   </motion.div>
@@ -218,7 +218,19 @@ const Waveform = ({ delay = 0.3 }: { delay?: number }): React.ReactElement => (
  */
 
 const HeroLayout = (props: MagazineArticleProps): React.ReactElement => {
-  const { title, sourceName, author, summary, publishedAt, consumptionTimeSeconds, imageUrl, sourceType, content, focusVote, onFocusVote } = props;
+  const {
+    title,
+    sourceName,
+    author,
+    summary,
+    publishedAt,
+    consumptionTimeSeconds,
+    imageUrl,
+    sourceType,
+    content,
+    focusVote,
+    onFocusVote,
+  } = props;
   const hasContent = !!content;
 
   return (
@@ -296,11 +308,23 @@ const HeroLayout = (props: MagazineArticleProps): React.ReactElement => {
 };
 
 const EditorialLayout = (props: MagazineArticleProps): React.ReactElement => {
-  const { title, sourceName, author, summary, publishedAt, consumptionTimeSeconds, imageUrl, sourceType, content, focusVote, onFocusVote } = props;
+  const {
+    title,
+    sourceName,
+    author,
+    summary,
+    publishedAt,
+    consumptionTimeSeconds,
+    imageUrl,
+    sourceType,
+    content,
+    focusVote,
+    onFocusVote,
+  } = props;
   const hasContent = !!content;
 
   return (
-    <MagazinePage className={hasContent ? "" : "items-center"} flow={hasContent}>
+    <MagazinePage className={hasContent ? '' : 'items-center'} flow={hasContent}>
       <div className="max-w-prose mx-auto w-full">
         {/* Source badge */}
         <motion.div
@@ -372,16 +396,26 @@ const EditorialLayout = (props: MagazineArticleProps): React.ReactElement => {
             <NextPrompt delay={0.7} />
           </>
         )}
-        {!hasContent && onFocusVote && (
-          <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} delay={0.5} />
-        )}
+        {!hasContent && onFocusVote && <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} delay={0.5} />}
       </div>
     </MagazinePage>
   );
 };
 
 const CompactLayout = (props: MagazineArticleProps): React.ReactElement => {
-  const { title, sourceName, author, summary, publishedAt, consumptionTimeSeconds, imageUrl, sourceType, content, focusVote, onFocusVote } = props;
+  const {
+    title,
+    sourceName,
+    author,
+    summary,
+    publishedAt,
+    consumptionTimeSeconds,
+    imageUrl,
+    sourceType,
+    content,
+    focusVote,
+    onFocusVote,
+  } = props;
   const hasContent = !!content;
 
   return (
@@ -406,14 +440,8 @@ const CompactLayout = (props: MagazineArticleProps): React.ReactElement => {
                 transition={{ duration: 0.4, ease: easeOut }}
                 className="py-4 border-t-2 border-accent"
               >
-                <div className="text-xs font-mono tracking-wide text-accent uppercase">
-                  {sourceName}
-                </div>
-                {publishedAt && (
-                  <div className="text-xs text-ink-tertiary mt-1">
-                    {formatArticleDate(publishedAt)}
-                  </div>
-                )}
+                <div className="text-xs font-mono tracking-wide text-accent uppercase">{sourceName}</div>
+                {publishedAt && <div className="text-xs text-ink-tertiary mt-1">{formatArticleDate(publishedAt)}</div>}
               </motion.div>
             )}
           </div>
@@ -481,12 +509,27 @@ const CompactLayout = (props: MagazineArticleProps): React.ReactElement => {
  * at moderate scale, a decorative waveform, and prominent listen time.
  */
 const PodcastLayout = (props: MagazineArticleProps): React.ReactElement => {
-  const { articleId, title, sourceName, author, summary, publishedAt, consumptionTimeSeconds, imageUrl, mediaUrl, mediaType, progress, content, focusVote, onFocusVote } = props;
+  const {
+    articleId,
+    title,
+    sourceName,
+    author,
+    summary,
+    publishedAt,
+    consumptionTimeSeconds,
+    imageUrl,
+    mediaUrl,
+    mediaType,
+    progress,
+    content,
+    focusVote,
+    onFocusVote,
+  } = props;
   const hasContent = !!content;
   const listenMin = consumptionTimeSeconds ? Math.round(consumptionTimeSeconds / 60) : null;
 
   return (
-    <MagazinePage className={hasContent ? "" : "items-center"} flow={hasContent}>
+    <MagazinePage className={hasContent ? '' : 'items-center'} flow={hasContent}>
       <div className="max-w-prose mx-auto w-full">
         {/* Type label */}
         <motion.div
@@ -525,7 +568,13 @@ const PodcastLayout = (props: MagazineArticleProps): React.ReactElement => {
         {/* Media player or waveform + listen time fallback */}
         {mediaUrl ? (
           <div className="mb-8">
-            <MediaPlayer mediaUrl={mediaUrl} mediaType={mediaType} articleId={articleId} initialProgress={progress} delay={0.25} />
+            <MediaPlayer
+              mediaUrl={mediaUrl}
+              mediaType={mediaType}
+              articleId={articleId}
+              initialProgress={progress}
+              delay={0.25}
+            />
           </div>
         ) : (
           <>
@@ -561,18 +610,15 @@ const PodcastLayout = (props: MagazineArticleProps): React.ReactElement => {
         )}
 
         {/* Author / date byline */}
-        <Byline
-          author={author}
-          publishedAt={publishedAt}
-          centered={!hasContent}
-          delay={mediaUrl ? 0.4 : 0.45}
-        />
+        <Byline author={author} publishedAt={publishedAt} centered={!hasContent} delay={mediaUrl ? 0.4 : 0.45} />
 
         {/* Show notes / transcript */}
         {hasContent && (
           <>
             <ArticleBody content={content} delay={mediaUrl ? 0.5 : 0.55} />
-            {onFocusVote && <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} delay={mediaUrl ? 0.6 : 0.65} />}
+            {onFocusVote && (
+              <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} delay={mediaUrl ? 0.6 : 0.65} />
+            )}
             <NextPrompt delay={mediaUrl ? 0.65 : 0.7} />
           </>
         )}
@@ -587,13 +633,19 @@ const PodcastLayout = (props: MagazineArticleProps): React.ReactElement => {
 /* ── MagazineArticle (selects layout variant) ─────────────────────── */
 
 const MagazineArticle = (props: MagazineArticleProps): React.ReactElement => {
-  if (props.sourceType === "podcast") return <PodcastLayout {...props} />;
+  if (props.sourceType === 'podcast') {
+    return <PodcastLayout {...props} />;
+  }
 
   const pos = props.positionInSection ?? 0;
   const variant = pos % 3;
 
-  if (variant === 0) return <HeroLayout {...props} />;
-  if (variant === 1) return <EditorialLayout {...props} />;
+  if (variant === 0) {
+    return <HeroLayout {...props} />;
+  }
+  if (variant === 1) {
+    return <EditorialLayout {...props} />;
+  }
   return <CompactLayout {...props} />;
 };
 

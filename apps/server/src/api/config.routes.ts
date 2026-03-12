@@ -1,19 +1,19 @@
-import { z } from "zod/v4";
+import { z } from 'zod/v4';
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
-import { ConfigService } from "../config/config.ts";
-
-import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
-import type { Services } from "../services/services.ts";
+import { ConfigService } from '../config/config.ts';
+import type { Services } from '../services/services.ts';
 
 const publicConfigSchema = z.object({
   allowSignups: z.boolean(),
 });
 
-const createConfigRoutes = (services: Services): FastifyPluginAsyncZod =>
+const createConfigRoutes =
+  (services: Services): FastifyPluginAsyncZod =>
   async (fastify) => {
     fastify.route({
-      method: "GET",
-      url: "/config",
+      method: 'GET',
+      url: '/config',
       schema: {
         response: {
           200: publicConfigSchema,

@@ -1,6 +1,6 @@
-import * as React from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { List } from "lucide-react";
+import * as React from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { List } from 'lucide-react';
 
 /* ── Types ────────────────────────────────────────────────────────── */
 
@@ -30,8 +30,7 @@ type MagazineNavContext = {
 const MagazineNavCtx = React.createContext<MagazineNavContext | null>(null);
 
 /** Navigate within a MagazineLayout from any descendant component. Returns null outside a layout. */
-const useMagazineNav = (): MagazineNavContext | null =>
-  React.useContext(MagazineNavCtx);
+const useMagazineNav = (): MagazineNavContext | null => React.useContext(MagazineNavCtx);
 
 /* ── Constants ────────────────────────────────────────────────────── */
 
@@ -49,13 +48,9 @@ type MagazinePageProps = {
   flow?: boolean;
 };
 
-const MagazinePage = ({
-  children,
-  className = "",
-  flow = false,
-}: MagazinePageProps): React.ReactElement => (
+const MagazinePage = ({ children, className = '', flow = false }: MagazinePageProps): React.ReactElement => (
   <div
-    className={`min-h-screen flex flex-col px-6 py-12 md:px-12 lg:px-20 ${flow ? "justify-start pt-16 md:pt-20" : "justify-center"} ${className}`}
+    className={`min-h-screen flex flex-col px-6 py-12 md:px-12 lg:px-20 ${flow ? 'justify-start pt-16 md:pt-20' : 'justify-center'} ${className}`}
   >
     {children}
   </div>
@@ -70,12 +65,7 @@ type PageIndicatorProps = {
   toc?: TocEntry[];
 };
 
-const PageIndicator = ({
-  current,
-  total,
-  onPageChange,
-  toc,
-}: PageIndicatorProps): React.ReactElement => {
+const PageIndicator = ({ current, total, onPageChange, toc }: PageIndicatorProps): React.ReactElement => {
   const [tocOpen, setTocOpen] = React.useState(false);
 
   const handleNavigate = (page: number): void => {
@@ -109,9 +99,7 @@ const PageIndicator = ({
               className="mx-4 mb-2 rounded-xl bg-surface border border-border shadow-xl max-h-[55vh] overflow-y-auto"
             >
               <div className="px-5 py-4">
-                <div className="text-[10px] font-mono tracking-widest text-ink-faint uppercase mb-4">
-                  Contents
-                </div>
+                <div className="text-[10px] font-mono tracking-widest text-ink-faint uppercase mb-4">Contents</div>
                 <div className="grid gap-5">
                   {toc.map((section) => (
                     <div key={section.sectionName}>
@@ -124,7 +112,7 @@ const PageIndicator = ({
                         </span>
                         <span className="flex-1 border-b border-dotted border-border min-w-4 translate-y-[-2px]" />
                         <span className="text-[10px] font-mono text-ink-faint shrink-0">
-                          p. {String(section.sectionPage + 1).padStart(2, "0")}
+                          p. {String(section.sectionPage + 1).padStart(2, '0')}
                         </span>
                       </button>
                       <div className="grid gap-1.5 pl-3 border-l border-border">
@@ -139,7 +127,7 @@ const PageIndicator = ({
                             </span>
                             <span className="flex-1 border-b border-dotted border-border/50 min-w-4 translate-y-[-2px]" />
                             <span className="text-[10px] font-mono text-ink-faint shrink-0">
-                              {String(article.page + 1).padStart(2, "0")}
+                              {String(article.page + 1).padStart(2, '0')}
                             </span>
                           </button>
                         ))}
@@ -159,7 +147,7 @@ const PageIndicator = ({
           <button
             onClick={() => setTocOpen((o) => !o)}
             aria-label="Table of contents"
-            className={`transition-colors duration-fast ${tocOpen ? "text-accent" : "text-ink-tertiary hover:text-ink"}`}
+            className={`transition-colors duration-fast ${tocOpen ? 'text-accent' : 'text-ink-tertiary hover:text-ink'}`}
           >
             <List size={14} strokeWidth={1.75} />
           </button>
@@ -172,7 +160,7 @@ const PageIndicator = ({
           Prev
         </button>
         <span className="text-xs font-mono tracking-wide text-ink-tertiary tabular-nums">
-          {String(current + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+          {String(current + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
         </span>
         <button
           onClick={() => onPageChange(Math.min(total - 1, current + 1))}
@@ -215,17 +203,23 @@ const useTouchNav = (
 
   React.useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
 
     const onTouchStart = (e: TouchEvent): void => {
       const t = e.touches[0];
-      if (e.touches.length !== 1 || !t) return;
+      if (e.touches.length !== 1 || !t) {
+        return;
+      }
       touch.current = { startX: t.clientX, startY: t.clientY, startTime: Date.now() };
     };
 
     const onTouchEnd = (e: TouchEvent): void => {
       const t = e.changedTouches[0];
-      if (!touch.current || e.changedTouches.length !== 1 || !t) return;
+      if (!touch.current || e.changedTouches.length !== 1 || !t) {
+        return;
+      }
       const dx = t.clientX - touch.current.startX;
       const dy = t.clientY - touch.current.startY;
       const elapsed = Date.now() - touch.current.startTime;
@@ -236,8 +230,12 @@ const useTouchNav = (
 
       /* ── Swipe detection ── */
       if (absDx >= SWIPE_THRESHOLD && absDx > absDy * 1.2) {
-        if (dx < 0 && page < total - 1) onPageChange(page + 1);    // swipe left → next
-        else if (dx > 0 && page > 0) onPageChange(page - 1);        // swipe right → prev
+        if (dx < 0 && page < total - 1) {
+          onPageChange(page + 1);
+        } // swipe left → next
+        else if (dx > 0 && page > 0) {
+          onPageChange(page - 1);
+        } // swipe right → prev
         return;
       }
 
@@ -245,40 +243,45 @@ const useTouchNav = (
       if (elapsed < 300 && absDx < 10 && absDy < 10) {
         /* Ignore taps on interactive elements */
         const target = e.target as HTMLElement;
-        if (target.closest("a, button, audio, video, input, textarea, [role='button']")) return;
+        if (target.closest("a, button, audio, video, input, textarea, [role='button']")) {
+          return;
+        }
 
         const x = t.clientX;
         const width = window.innerWidth;
         let navigated = false;
-        if (x < width * TAP_ZONE && page > 0) { onPageChange(page - 1); navigated = true; }
-        else if (x > width * (1 - TAP_ZONE) && page < total - 1) { onPageChange(page + 1); navigated = true; }
+        if (x < width * TAP_ZONE && page > 0) {
+          onPageChange(page - 1);
+          navigated = true;
+        } else if (x > width * (1 - TAP_ZONE) && page < total - 1) {
+          onPageChange(page + 1);
+          navigated = true;
+        }
 
         /* Swallow the click event that follows touchend so it doesn't activate
            whatever element sits underneath (e.g. a ToC link). */
         if (navigated) {
-          const suppress = (ev: Event): void => { ev.preventDefault(); ev.stopPropagation(); };
-          el.addEventListener("click", suppress, { capture: true, once: true });
+          const suppress = (ev: Event): void => {
+            ev.preventDefault();
+            ev.stopPropagation();
+          };
+          el.addEventListener('click', suppress, { capture: true, once: true });
         }
       }
     };
 
-    el.addEventListener("touchstart", onTouchStart, { passive: true });
-    el.addEventListener("touchend", onTouchEnd, { passive: true });
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchend', onTouchEnd, { passive: true });
     return () => {
-      el.removeEventListener("touchstart", onTouchStart);
-      el.removeEventListener("touchend", onTouchEnd);
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchend', onTouchEnd);
     };
   }, [ref, page, total, onPageChange]);
 };
 
 /* ── MagazineLayout ───────────────────────────────────────────────── */
 
-const MagazineLayout = ({
-  children,
-  page,
-  onPageChange,
-  toc,
-}: MagazineLayoutProps): React.ReactElement => {
+const MagazineLayout = ({ children, page, onPageChange, toc }: MagazineLayoutProps): React.ReactElement => {
   const pages = React.Children.toArray(children);
   const total = pages.length;
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -286,16 +289,16 @@ const MagazineLayout = ({
   /* Left/Right arrows navigate pages; Up/Down scroll naturally */
   React.useEffect(() => {
     const handleKey = (e: KeyboardEvent): void => {
-      if (e.key === "ArrowRight") {
+      if (e.key === 'ArrowRight') {
         e.preventDefault();
         onPageChange(Math.min(total - 1, page + 1));
-      } else if (e.key === "ArrowLeft") {
+      } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
         onPageChange(Math.max(0, page - 1));
       }
     };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
   }, [page, total, onPageChange]);
 
   /* Swipe and edge-tap navigation for touch devices */
@@ -314,10 +317,7 @@ const MagazineLayout = ({
     prevPage.current = page;
   }
 
-  const navCtx = React.useMemo<MagazineNavContext>(
-    () => ({ page, total, onPageChange }),
-    [page, total, onPageChange],
-  );
+  const navCtx = React.useMemo<MagazineNavContext>(() => ({ page, total, onPageChange }), [page, total, onPageChange]);
 
   const dir = direction.current;
 

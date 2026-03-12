@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { client } from "../../api/api.ts";
-import { useAuthHeaders, queryKeys } from "../../api/api.hooks.ts";
-import { usePagination } from "../utilities/use-pagination.ts";
+import { client } from '../../api/api.ts';
+import { useAuthHeaders, queryKeys } from '../../api/api.hooks.ts';
+import { usePagination } from '../utilities/use-pagination.ts';
 
 type FeedArticle = {
   id: string;
@@ -34,9 +34,9 @@ type FeedData = {
   bookmarkedIds: Set<string>;
 };
 
-type SortMode = "top" | "recent";
-type ReadStatus = "all" | "unread" | "read";
-type TimeWindow = "today" | "week" | "all";
+type SortMode = 'top' | 'recent';
+type ReadStatus = 'all' | 'unread' | 'read';
+type TimeWindow = 'today' | 'week' | 'all';
 type VoteValue = 1 | -1 | null;
 
 type UseFeedResult = {
@@ -55,11 +55,7 @@ type UseFeedResult = {
     goNext: () => void;
     goPrev: () => void;
   };
-  changeFilter: (params?: {
-    sort?: SortMode;
-    status?: ReadStatus;
-    window?: TimeWindow;
-  }) => void;
+  changeFilter: (params?: { sort?: SortMode; status?: ReadStatus; window?: TimeWindow }) => void;
   vote: (articleId: string, value: VoteValue) => void;
   toggleBookmark: (articleId: string) => void;
 };
@@ -67,17 +63,19 @@ type UseFeedResult = {
 const PAGE_SIZE = 20;
 
 const windowToRange = (w: TimeWindow): { from?: string } => {
-  if (w === "all") return {};
-  const ms = w === "today" ? 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000;
+  if (w === 'all') {
+    return {};
+  }
+  const ms = w === 'today' ? 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000;
   return { from: new Date(Date.now() - ms).toISOString() };
 };
 
 const useFeed = (): UseFeedResult => {
   const headers = useAuthHeaders();
   const queryClient = useQueryClient();
-  const [sort, setSort] = useState<SortMode>("top");
-  const [status, setStatus] = useState<ReadStatus>("unread");
-  const [window, setWindow] = useState<TimeWindow>("all");
+  const [sort, setSort] = useState<SortMode>('top');
+  const [status, setStatus] = useState<ReadStatus>('unread');
+  const [window, setWindow] = useState<TimeWindow>('all');
   const [total, setTotal] = useState(0);
 
   const pagination = usePagination({ pageSize: PAGE_SIZE, total });
@@ -87,7 +85,7 @@ const useFeed = (): UseFeedResult => {
   const feedQuery = useQuery<FeedData>({
     queryKey,
     queryFn: async (): Promise<FeedData> => {
-      const { data: feedData } = await client.GET("/api/feed", {
+      const { data: feedData } = await client.GET('/api/feed', {
         params: {
           query: {
             offset: pagination.offset,
@@ -107,14 +105,12 @@ const useFeed = (): UseFeedResult => {
 
       const articleIds = page.articles.map((a) => a.id);
       if (articleIds.length > 0) {
-        const { data: bmData } = await client.POST("/api/bookmarks/check", {
+        const { data: bmData } = await client.POST('/api/bookmarks/check', {
           body: { articleIds },
           headers,
         });
         if (bmData) {
-          bookmarkedIds = new Set(
-            (bmData as { bookmarkedIds: string[] }).bookmarkedIds,
-          );
+          bookmarkedIds = new Set((bmData as { bookmarkedIds: string[] }).bookmarkedIds);
         }
       }
 
@@ -127,20 +123,14 @@ const useFeed = (): UseFeedResult => {
   const bookmarkedIds = feedQuery.data?.bookmarkedIds ?? new Set<string>();
 
   const voteMutation = useMutation({
-    mutationFn: async ({
-      articleId,
-      value,
-    }: {
-      articleId: string;
-      value: VoteValue;
-    }): Promise<void> => {
+    mutationFn: async ({ articleId, value }: { articleId: string; value: VoteValue }): Promise<void> => {
       if (value === null) {
-        await client.DELETE("/api/articles/{articleId}/vote", {
+        await client.DELETE('/api/articles/{articleId}/vote', {
           params: { path: { articleId } },
           headers,
         });
       } else {
-        await client.PUT("/api/articles/{articleId}/vote", {
+        await client.PUT('/api/articles/{articleId}/vote', {
           params: { path: { articleId } },
           body: { value },
           headers,
@@ -150,14 +140,14 @@ const useFeed = (): UseFeedResult => {
     onMutate: async ({ articleId, value }): Promise<void> => {
       await queryClient.cancelQueries({ queryKey });
       queryClient.setQueryData<FeedData>(queryKey, (old) => {
-        if (!old) return old;
+        if (!old) {
+          return old;
+        }
         return {
           ...old,
           feedPage: {
             ...old.feedPage,
-            articles: old.feedPage.articles.map((a) =>
-              a.id === articleId ? { ...a, vote: value } : a,
-            ),
+            articles: old.feedPage.articles.map((a) => (a.id === articleId ? { ...a, vote: value } : a)),
           },
         };
       });
@@ -165,20 +155,14 @@ const useFeed = (): UseFeedResult => {
   });
 
   const bookmarkMutation = useMutation({
-    mutationFn: async ({
-      articleId,
-      bookmarked,
-    }: {
-      articleId: string;
-      bookmarked: boolean;
-    }): Promise<void> => {
+    mutationFn: async ({ articleId, bookmarked }: { articleId: string; bookmarked: boolean }): Promise<void> => {
       if (bookmarked) {
-        await client.DELETE("/api/articles/{articleId}/bookmark", {
+        await client.DELETE('/api/articles/{articleId}/bookmark', {
           params: { path: { articleId } },
           headers,
         });
       } else {
-        await client.PUT("/api/articles/{articleId}/bookmark", {
+        await client.PUT('/api/articles/{articleId}/bookmark', {
           params: { path: { articleId } },
           headers,
         });
@@ -187,7 +171,9 @@ const useFeed = (): UseFeedResult => {
     onMutate: async ({ articleId, bookmarked }): Promise<void> => {
       await queryClient.cancelQueries({ queryKey });
       queryClient.setQueryData<FeedData>(queryKey, (old) => {
-        if (!old) return old;
+        if (!old) {
+          return old;
+        }
         const next = new Set(old.bookmarkedIds);
         if (bookmarked) {
           next.delete(articleId);
@@ -199,14 +185,16 @@ const useFeed = (): UseFeedResult => {
     },
   });
 
-  const changeFilter = (params?: {
-    sort?: SortMode;
-    status?: ReadStatus;
-    window?: TimeWindow;
-  }): void => {
-    if (params?.sort !== undefined) setSort(params.sort);
-    if (params?.status !== undefined) setStatus(params.status);
-    if (params?.window !== undefined) setWindow(params.window);
+  const changeFilter = (params?: { sort?: SortMode; status?: ReadStatus; window?: TimeWindow }): void => {
+    if (params?.sort !== undefined) {
+      setSort(params.sort);
+    }
+    if (params?.status !== undefined) {
+      setStatus(params.status);
+    }
+    if (params?.window !== undefined) {
+      setWindow(params.window);
+    }
     pagination.reset();
   };
 
@@ -243,14 +231,5 @@ const useFeed = (): UseFeedResult => {
   };
 };
 
-export type {
-  FeedArticle,
-  FeedPage,
-  FeedData,
-  SortMode,
-  ReadStatus,
-  TimeWindow,
-  VoteValue,
-  UseFeedResult,
-};
+export type { FeedArticle, FeedPage, FeedData, SortMode, ReadStatus, TimeWindow, VoteValue, UseFeedResult };
 export { useFeed, PAGE_SIZE };

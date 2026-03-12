@@ -1,10 +1,9 @@
-import { z } from "zod/v4";
+import { z } from 'zod/v4';
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
-import { createAuthHook } from "../auth/auth.middleware.ts";
-import { HomeService } from "../editions/editions.home.ts";
-
-import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
-import type { Services } from "../services/services.ts";
+import { createAuthHook } from '../auth/auth.middleware.ts';
+import { HomeService } from '../editions/editions.home.ts';
+import type { Services } from '../services/services.ts';
 
 // --- Schemas ---
 
@@ -59,8 +58,8 @@ const createHomeRoutes = (services: Services): FastifyPluginAsyncZod => {
 
   return async (fastify) => {
     fastify.route({
-      method: "GET",
-      url: "/home",
+      method: 'GET',
+      url: '/home',
       schema: {
         response: {
           200: homeDataSchema,

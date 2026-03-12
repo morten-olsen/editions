@@ -1,10 +1,10 @@
-import { useState, useCallback, useRef } from "react";
-import { useNavigate, useRouter } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useCallback, useRef } from 'react';
+import { useNavigate, useRouter } from '@tanstack/react-router';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { client } from "../../api/api.ts";
-import { useAuthHeaders, queryKeys } from "../../api/api.hooks.ts";
-import { useFormPopulation } from "../utilities/use-form-population.ts";
+import { client } from '../../api/api.ts';
+import { useAuthHeaders, queryKeys } from '../../api/api.hooks.ts';
+import { useFormPopulation } from '../utilities/use-form-population.ts';
 
 /* ── Types ────────────────────────────────────────────────────────── */
 
@@ -54,7 +54,7 @@ type EditionConfigFocus = {
   focusId: string;
   focusName: string;
   position: number;
-  budgetType: "time" | "count";
+  budgetType: 'time' | 'count';
   budgetValue: number;
   lookbackHours: number | null;
   excludePriorEditions: boolean | null;
@@ -89,7 +89,7 @@ type EditionSummary = {
 type FocusConfig = {
   focusId: string;
   position: number;
-  budgetType: "time" | "count";
+  budgetType: 'time' | 'count';
   budgetValue: number;
   lookbackHours: number | null;
   excludePriorEditions: boolean | null;
@@ -102,43 +102,53 @@ type Focus = {
   description: string | null;
 };
 
-type ViewMode = "list" | "magazine";
+type ViewMode = 'list' | 'magazine';
 
 /* ── Shared constants ─────────────────────────────────────────────── */
 
 const SCHEDULE_PRESETS = [
-  { label: "Daily at 7am", value: "0 7 * * *" },
-  { label: "Daily at 8am", value: "0 8 * * *" },
-  { label: "Daily at noon", value: "0 12 * * *" },
-  { label: "Weekdays at 7am", value: "0 7 * * 1-5" },
-  { label: "Weekdays at 8am", value: "0 8 * * 1-5" },
-  { label: "Every Monday at 8am", value: "0 8 * * 1" },
-  { label: "Every Friday at 5pm", value: "0 17 * * 5" },
-  { label: "Custom…", value: "__custom__" },
+  { label: 'Daily at 7am', value: '0 7 * * *' },
+  { label: 'Daily at 8am', value: '0 8 * * *' },
+  { label: 'Daily at noon', value: '0 12 * * *' },
+  { label: 'Weekdays at 7am', value: '0 7 * * 1-5' },
+  { label: 'Weekdays at 8am', value: '0 8 * * 1-5' },
+  { label: 'Every Monday at 8am', value: '0 8 * * 1' },
+  { label: 'Every Friday at 5pm', value: '0 17 * * 5' },
+  { label: 'Custom…', value: '__custom__' },
 ] as const;
 
 const selectClasses =
-  "rounded-md border border-border bg-surface-raised px-2.5 py-2 text-sm text-ink focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20";
+  'rounded-md border border-border bg-surface-raised px-2.5 py-2 text-sm text-ink focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20';
 
 /* ── Shared helpers ───────────────────────────────────────────────── */
 
 const priorityLabel = (w: number): string => {
-  if (w <= 0.1) return "Off";
-  if (w < 0.75) return "Low";
-  if (w <= 1.25) return "Normal";
-  if (w <= 2.1) return "High";
-  return "Top";
+  if (w <= 0.1) {
+    return 'Off';
+  }
+  if (w < 0.75) {
+    return 'Low';
+  }
+  if (w <= 1.25) {
+    return 'Normal';
+  }
+  if (w <= 2.1) {
+    return 'High';
+  }
+  return 'Top';
 };
 
 const formatLookback = (hours: number): string => {
-  if (hours < 24) return `${hours}h`;
+  if (hours < 24) {
+    return `${hours}h`;
+  }
   const days = Math.round(hours / 24);
-  return days === 7 ? "1 week" : `${days}d`;
+  return days === 7 ? '1 week' : `${days}d`;
 };
 
 const formatTime = (seconds: number): string => {
   const minutes = Math.round(seconds / 60);
-  return minutes < 1 ? "< 1 min" : `${minutes} min read`;
+  return minutes < 1 ? '< 1 min' : `${minutes} min read`;
 };
 
 const groupByFocus = (articles: EditionArticle[]): FocusSection[] => {
@@ -173,7 +183,7 @@ const useEditionConfigs = (): UseEditionConfigsReturn => {
   const configsQuery = useQuery({
     queryKey: queryKeys.editions.configs,
     queryFn: async (): Promise<EditionConfig[]> => {
-      const { data } = await client.GET("/api/editions/configs", { headers });
+      const { data } = await client.GET('/api/editions/configs', { headers });
       return (data ?? []) as EditionConfig[];
     },
     enabled: !!headers,
@@ -181,7 +191,7 @@ const useEditionConfigs = (): UseEditionConfigsReturn => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      await client.DELETE("/api/editions/configs/{configId}", {
+      await client.DELETE('/api/editions/configs/{configId}', {
         params: { path: { configId: id } },
         headers,
       });
@@ -193,7 +203,9 @@ const useEditionConfigs = (): UseEditionConfigsReturn => {
   });
 
   const handleDelete = (id: string, name: string): void => {
-    if (!confirm(`Delete "${name}"? This will also delete all generated editions.`)) return;
+    if (!confirm(`Delete "${name}"? This will also delete all generated editions.`)) {
+      return;
+    }
     setDeletingId(id);
     deleteMutation.mutate(id, { onSettled: () => setDeletingId(null) });
   };
@@ -217,7 +229,7 @@ type UseEditionFocusSelectionReturn = {
   toggleFocus: (focusId: string) => void;
   updateFocusField: (
     focusId: string,
-    field: "budgetType" | "budgetValue" | "lookbackHours" | "excludePriorEditions" | "weight",
+    field: 'budgetType' | 'budgetValue' | 'lookbackHours' | 'excludePriorEditions' | 'weight',
     value: string | number | boolean | null,
   ) => void;
   moveFocus: (focusId: string, direction: -1 | 1) => void;
@@ -232,7 +244,7 @@ const useEditionFocusSelection = (): UseEditionFocusSelectionReturn => {
   const focusesQuery = useQuery({
     queryKey: queryKeys.focuses.all,
     queryFn: async (): Promise<Focus[]> => {
-      const { data } = await client.GET("/api/focuses", { headers });
+      const { data } = await client.GET('/api/focuses', { headers });
       return (data ?? []) as Focus[];
     },
     enabled: !!headers,
@@ -243,30 +255,42 @@ const useEditionFocusSelection = (): UseEditionFocusSelectionReturn => {
   const toggleFocus = (focusId: string): void => {
     setSelectedFocuses((prev) => {
       const existing = prev.find((f) => f.focusId === focusId);
-      if (existing) return prev.filter((f) => f.focusId !== focusId);
+      if (existing) {
+        return prev.filter((f) => f.focusId !== focusId);
+      }
       return [
         ...prev,
-        { focusId, position: prev.length, budgetType: "count" as const, budgetValue: 5, lookbackHours: null, excludePriorEditions: null, weight: 1 },
+        {
+          focusId,
+          position: prev.length,
+          budgetType: 'count' as const,
+          budgetValue: 5,
+          lookbackHours: null,
+          excludePriorEditions: null,
+          weight: 1,
+        },
       ];
     });
   };
 
   const updateFocusField = (
     focusId: string,
-    field: "budgetType" | "budgetValue" | "lookbackHours" | "excludePriorEditions" | "weight",
+    field: 'budgetType' | 'budgetValue' | 'lookbackHours' | 'excludePriorEditions' | 'weight',
     value: string | number | boolean | null,
   ): void => {
-    setSelectedFocuses((prev) =>
-      prev.map((f) => (f.focusId === focusId ? { ...f, [field]: value } : f)),
-    );
+    setSelectedFocuses((prev) => prev.map((f) => (f.focusId === focusId ? { ...f, [field]: value } : f)));
   };
 
   const moveFocus = (focusId: string, direction: -1 | 1): void => {
     setSelectedFocuses((prev) => {
       const idx = prev.findIndex((f) => f.focusId === focusId);
-      if (idx < 0) return prev;
+      if (idx < 0) {
+        return prev;
+      }
       const newIdx = idx + direction;
-      if (newIdx < 0 || newIdx >= prev.length) return prev;
+      if (newIdx < 0 || newIdx >= prev.length) {
+        return prev;
+      }
       const arr = [...prev];
       const a = arr[idx]!;
       const b = arr[newIdx]!;
@@ -277,10 +301,9 @@ const useEditionFocusSelection = (): UseEditionFocusSelectionReturn => {
   };
 
   const isPresetSchedule = (schedule: string): boolean =>
-    SCHEDULE_PRESETS.some((p) => p.value !== "__custom__" && p.value === schedule);
+    SCHEDULE_PRESETS.some((p) => p.value !== '__custom__' && p.value === schedule);
 
-  const scheduleSelectValue = (schedule: string): string =>
-    isPresetSchedule(schedule) ? schedule : "__custom__";
+  const scheduleSelectValue = (schedule: string): string => (isPresetSchedule(schedule) ? schedule : '__custom__');
 
   return {
     allFocuses: focusesQuery.data ?? [],
@@ -320,9 +343,9 @@ const useCreateEditionConfig = (): UseCreateEditionConfigReturn => {
   const headers = useAuthHeaders();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [name, setName] = useState("");
+  const [name, setName] = useState('');
   const [icon, setIcon] = useState<string | null>(null);
-  const [schedule, setSchedule] = useState("0 7 * * *");
+  const [schedule, setSchedule] = useState('0 7 * * *');
   const [lookbackHours, setLookbackHours] = useState(24);
   const [excludePriorEditions, setExcludePriorEditions] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -340,24 +363,24 @@ const useCreateEditionConfig = (): UseCreateEditionConfigReturn => {
       focuses: {
         focusId: string;
         position: number;
-        budgetType: "time" | "count";
+        budgetType: 'time' | 'count';
         budgetValue: number;
         lookbackHours?: number | null;
         weight?: number;
       }[];
     }): Promise<void> => {
-      const { error: err } = await client.POST("/api/editions/configs", {
+      const { error: err } = await client.POST('/api/editions/configs', {
         body,
         headers,
       });
       if (err) {
-        throw new Error("error" in err ? (err as { error: string }).error : "Failed to create edition");
+        throw new Error('error' in err ? (err as { error: string }).error : 'Failed to create edition');
       }
     },
     onSuccess: (): void => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.editions.configs });
       void queryClient.invalidateQueries({ queryKey: queryKeys.nav });
-      void navigate({ to: "/editions" });
+      void navigate({ to: '/editions' });
     },
     onError: (err: Error): void => {
       setError(err.message);
@@ -387,7 +410,7 @@ const useCreateEditionConfig = (): UseCreateEditionConfigReturn => {
   };
 
   const handleCancel = (): void => {
-    void navigate({ to: "/editions" });
+    void navigate({ to: '/editions' });
   };
 
   return {
@@ -437,9 +460,9 @@ const useEditEditionConfig = (configId: string): UseEditEditionConfigReturn => {
   const headers = useAuthHeaders();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [name, setName] = useState("");
+  const [name, setName] = useState('');
   const [icon, setIcon] = useState<string | null>(null);
-  const [schedule, setSchedule] = useState("");
+  const [schedule, setSchedule] = useState('');
   const [lookbackHours, setLookbackHours] = useState(24);
   const [excludePriorEditions, setExcludePriorEditions] = useState(false);
   const [enabled, setEnabled] = useState(true);
@@ -450,52 +473,59 @@ const useEditEditionConfig = (configId: string): UseEditEditionConfigReturn => {
   const configQuery = useQuery({
     queryKey: queryKeys.editions.config(configId),
     queryFn: async (): Promise<EditionConfig> => {
-      const { data, error: err } = await client.GET("/api/editions/configs/{configId}", {
+      const { data, error: err } = await client.GET('/api/editions/configs/{configId}', {
         params: { path: { configId } },
         headers,
       });
-      if (err) throw new Error("Edition config not found");
+      if (err) {
+        throw new Error('Edition config not found');
+      }
       return data as unknown as EditionConfig;
     },
     enabled: !!headers,
   });
 
   // Populate form state when config data loads
-  useFormPopulation(configQuery.data, useCallback((c: EditionConfig): void => {
-    setName(c.name);
-    setIcon(c.icon);
-    setSchedule(c.schedule);
-    setLookbackHours(c.lookbackHours);
-    setExcludePriorEditions(c.excludePriorEditions);
-    setEnabled(c.enabled);
-    focusSelection.setSelectedFocuses(
-      c.focuses.map((f) => ({
-        focusId: f.focusId,
-        position: f.position,
-        budgetType: f.budgetType,
-        budgetValue: f.budgetValue,
-        lookbackHours: f.lookbackHours,
-        excludePriorEditions: f.excludePriorEditions,
-        weight: f.weight,
-      })),
-    );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []));
+  useFormPopulation(
+    configQuery.data,
+    useCallback((c: EditionConfig): void => {
+      setName(c.name);
+      setIcon(c.icon);
+      setSchedule(c.schedule);
+      setLookbackHours(c.lookbackHours);
+      setExcludePriorEditions(c.excludePriorEditions);
+      setEnabled(c.enabled);
+      focusSelection.setSelectedFocuses(
+        c.focuses.map((f) => ({
+          focusId: f.focusId,
+          position: f.position,
+          budgetType: f.budgetType,
+          budgetValue: f.budgetValue,
+          lookbackHours: f.lookbackHours,
+          excludePriorEditions: f.excludePriorEditions,
+          weight: f.weight,
+        })),
+      );
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
+  );
 
   const updateMutation = useMutation({
     mutationFn: async (body: Record<string, unknown>): Promise<void> => {
-      const { error: err } = await client.PATCH("/api/editions/configs/{configId}", {
+      const { error: err } = await client.PATCH('/api/editions/configs/{configId}', {
         params: { path: { configId } },
         body,
         headers,
       });
-      if (err) throw new Error("Failed to update edition config");
+      if (err) {
+        throw new Error('Failed to update edition config');
+      }
     },
     onSuccess: (): void => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.editions.configs });
       void queryClient.invalidateQueries({ queryKey: queryKeys.editions.config(configId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.nav });
-      void navigate({ to: "/editions/$configId", params: { configId } });
+      void navigate({ to: '/editions/$configId', params: { configId } });
     },
     onError: (err: Error): void => {
       setError(err.message);
@@ -508,17 +538,30 @@ const useEditEditionConfig = (configId: string): UseEditEditionConfigReturn => {
     e.preventDefault();
     setError(null);
 
-    if (!config) return;
+    if (!config) {
+      return;
+    }
 
     const body: Record<string, unknown> = {};
 
-    if (name !== config.name) body.name = name;
-    if (icon !== config.icon) body.icon = icon;
-    if (schedule !== config.schedule) body.schedule = schedule;
-    if (lookbackHours !== config.lookbackHours) body.lookbackHours = lookbackHours;
-    if (excludePriorEditions !== config.excludePriorEditions)
+    if (name !== config.name) {
+      body.name = name;
+    }
+    if (icon !== config.icon) {
+      body.icon = icon;
+    }
+    if (schedule !== config.schedule) {
+      body.schedule = schedule;
+    }
+    if (lookbackHours !== config.lookbackHours) {
+      body.lookbackHours = lookbackHours;
+    }
+    if (excludePriorEditions !== config.excludePriorEditions) {
       body.excludePriorEditions = excludePriorEditions;
-    if (enabled !== config.enabled) body.enabled = enabled;
+    }
+    if (enabled !== config.enabled) {
+      body.enabled = enabled;
+    }
 
     const focusesChanged =
       JSON.stringify(focusSelection.selectedFocuses) !==
@@ -547,7 +590,7 @@ const useEditEditionConfig = (configId: string): UseEditEditionConfigReturn => {
     }
 
     if (Object.keys(body).length === 0) {
-      void navigate({ to: "/editions/$configId", params: { configId } });
+      void navigate({ to: '/editions/$configId', params: { configId } });
       return;
     }
 
@@ -555,7 +598,7 @@ const useEditEditionConfig = (configId: string): UseEditEditionConfigReturn => {
   };
 
   const handleCancel = (): void => {
-    void navigate({ to: "/editions/$configId", params: { configId } });
+    void navigate({ to: '/editions/$configId', params: { configId } });
   };
 
   return {
@@ -589,8 +632,8 @@ type UseEditionConfigDetailReturn = {
   filtered: EditionSummary[];
   loading: boolean;
   error: string | null;
-  readFilter: "unread" | "all" | "read";
-  setReadFilter: React.Dispatch<React.SetStateAction<"unread" | "all" | "read">>;
+  readFilter: 'unread' | 'all' | 'read';
+  setReadFilter: React.Dispatch<React.SetStateAction<'unread' | 'all' | 'read'>>;
   generatePending: boolean;
   handleGenerate: () => void;
   handleDeleteEdition: (editionId: string, title: string) => void;
@@ -602,16 +645,18 @@ const useEditionConfigDetail = (configId: string): UseEditionConfigDetailReturn 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
-  const [readFilter, setReadFilter] = useState<"unread" | "all" | "read">("unread");
+  const [readFilter, setReadFilter] = useState<'unread' | 'all' | 'read'>('unread');
 
   const configQuery = useQuery({
     queryKey: queryKeys.editions.config(configId),
     queryFn: async (): Promise<EditionConfig> => {
-      const { data, error: err } = await client.GET("/api/editions/configs/{configId}", {
+      const { data, error: err } = await client.GET('/api/editions/configs/{configId}', {
         params: { path: { configId } },
         headers,
       });
-      if (err) throw new Error("Edition config not found");
+      if (err) {
+        throw new Error('Edition config not found');
+      }
       return data as EditionConfig;
     },
     enabled: !!headers,
@@ -620,7 +665,7 @@ const useEditionConfigDetail = (configId: string): UseEditionConfigDetailReturn 
   const editionsQuery = useQuery({
     queryKey: queryKeys.editions.forConfig(configId),
     queryFn: async (): Promise<EditionSummary[]> => {
-      const { data } = await client.GET("/api/editions/configs/{configId}/editions", {
+      const { data } = await client.GET('/api/editions/configs/{configId}/editions', {
         params: { path: { configId } },
         headers,
       });
@@ -631,12 +676,12 @@ const useEditionConfigDetail = (configId: string): UseEditionConfigDetailReturn 
 
   const generateMutation = useMutation({
     mutationFn: async (): Promise<{ id: string }> => {
-      const { data, error: err } = await client.POST("/api/editions/configs/{configId}/generate", {
+      const { data, error: err } = await client.POST('/api/editions/configs/{configId}/generate', {
         params: { path: { configId } },
         headers,
       });
       if (err) {
-        throw new Error("error" in err ? (err as { error: string }).error : "Failed to generate edition");
+        throw new Error('error' in err ? (err as { error: string }).error : 'Failed to generate edition');
       }
       return data as { id: string };
     },
@@ -644,7 +689,7 @@ const useEditionConfigDetail = (configId: string): UseEditionConfigDetailReturn 
       void queryClient.invalidateQueries({ queryKey: queryKeys.editions.forConfig(configId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.nav });
       void navigate({
-        to: "/editions/$configId/issues/$editionId",
+        to: '/editions/$configId/issues/$editionId',
         params: { configId, editionId: data.id },
       });
     },
@@ -655,7 +700,7 @@ const useEditionConfigDetail = (configId: string): UseEditionConfigDetailReturn 
 
   const deleteMutation = useMutation({
     mutationFn: async (editionId: string): Promise<string> => {
-      await client.DELETE("/api/editions/{editionId}", {
+      await client.DELETE('/api/editions/{editionId}', {
         params: { path: { editionId } },
         headers,
       });
@@ -670,7 +715,11 @@ const useEditionConfigDetail = (configId: string): UseEditionConfigDetailReturn 
       );
       return { previous };
     },
-    onError: (_err: unknown, _editionId: string, context: { previous: EditionSummary[] | undefined } | undefined): void => {
+    onError: (
+      _err: unknown,
+      _editionId: string,
+      context: { previous: EditionSummary[] | undefined } | undefined,
+    ): void => {
       if (context?.previous) {
         queryClient.setQueryData(queryKeys.editions.forConfig(configId), context.previous);
       }
@@ -684,8 +733,12 @@ const useEditionConfigDetail = (configId: string): UseEditionConfigDetailReturn 
   const editions = editionsQuery.data ?? [];
 
   const filtered = editions.filter((e) => {
-    if (readFilter === "unread") return !e.readAt;
-    if (readFilter === "read") return !!e.readAt;
+    if (readFilter === 'unread') {
+      return !e.readAt;
+    }
+    if (readFilter === 'read') {
+      return !!e.readAt;
+    }
     return true;
   });
 
@@ -695,7 +748,9 @@ const useEditionConfigDetail = (configId: string): UseEditionConfigDetailReturn 
   };
 
   const handleDeleteEdition = (editionId: string, title: string): void => {
-    if (!confirm(`Delete "${title}"?`)) return;
+    if (!confirm(`Delete "${title}"?`)) {
+      return;
+    }
     deleteMutation.mutate(editionId);
   };
 
@@ -741,18 +796,24 @@ const useEditionView = ({ configId, editionId }: { configId: string; editionId: 
   const navigate = useNavigate();
   const [isRead, setIsRead] = useState(false);
   const [votes, setVotes] = useState<Record<string, VoteValue>>({});
-  const [view, setView] = useState<ViewMode>("list");
+  const [view, setView] = useState<ViewMode>('list');
 
   const queryKey = queryKeys.editions.detail(editionId);
 
-  const { data: edition, isLoading, error } = useQuery<EditionDetail>({
+  const {
+    data: edition,
+    isLoading,
+    error,
+  } = useQuery<EditionDetail>({
     queryKey,
     queryFn: async (): Promise<EditionDetail> => {
-      const { data, error: err } = await client.GET("/api/editions/{editionId}", {
+      const { data, error: err } = await client.GET('/api/editions/{editionId}', {
         params: { path: { editionId } },
         headers,
       });
-      if (err) throw new Error("Edition not found");
+      if (err) {
+        throw new Error('Edition not found');
+      }
       return data as EditionDetail;
     },
     enabled: !!headers,
@@ -768,10 +829,12 @@ const useEditionView = ({ configId, editionId }: { configId: string; editionId: 
   const sections = edition ? groupByFocus(edition.articles) : [];
 
   const handleToggleRead = async (): Promise<void> => {
-    if (!edition) return;
+    if (!edition) {
+      return;
+    }
     const newRead = !isRead;
     setIsRead(newRead);
-    await client.PUT("/api/editions/{editionId}/read", {
+    await client.PUT('/api/editions/{editionId}/read', {
       params: { path: { editionId } },
       body: { read: newRead },
       headers,
@@ -779,46 +842,52 @@ const useEditionView = ({ configId, editionId }: { configId: string; editionId: 
   };
 
   const handleMarkDoneAndBack = async (): Promise<void> => {
-    if (!edition) return;
+    if (!edition) {
+      return;
+    }
     if (!isRead) {
       setIsRead(true);
-      await client.PUT("/api/editions/{editionId}/read", {
+      await client.PUT('/api/editions/{editionId}/read', {
         params: { path: { editionId } },
         body: { read: true },
         headers,
       });
     }
-    await navigate({ to: "/editions/$configId", params: { configId } });
+    await navigate({ to: '/editions/$configId', params: { configId } });
   };
 
   const deleteMutation = useMutation({
     mutationFn: async (): Promise<void> => {
-      await client.DELETE("/api/editions/{editionId}", {
+      await client.DELETE('/api/editions/{editionId}', {
         params: { path: { editionId } },
         headers,
       });
     },
     onSuccess: (): void => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.editions.forConfig(configId) });
-      void navigate({ to: "/editions/$configId", params: { configId } });
+      void navigate({ to: '/editions/$configId', params: { configId } });
     },
   });
 
   const handleDelete = (): void => {
-    if (!edition) return;
-    if (!confirm(`Delete "${edition.title}"?`)) return;
+    if (!edition) {
+      return;
+    }
+    if (!confirm(`Delete "${edition.title}"?`)) {
+      return;
+    }
     deleteMutation.mutate();
   };
 
   const handleEditionVote = async (articleId: string, value: VoteValue): Promise<void> => {
     setVotes((prev) => ({ ...prev, [articleId]: value }));
     if (value === null) {
-      await client.DELETE("/api/editions/{editionId}/articles/{articleId}/vote", {
+      await client.DELETE('/api/editions/{editionId}/articles/{articleId}/vote', {
         params: { path: { editionId, articleId } },
         headers,
       });
     } else {
-      await client.PUT("/api/editions/{editionId}/articles/{articleId}/vote", {
+      await client.PUT('/api/editions/{editionId}/articles/{articleId}/vote', {
         params: { path: { editionId, articleId } },
         body: { value },
         headers,
@@ -827,14 +896,14 @@ const useEditionView = ({ configId, editionId }: { configId: string; editionId: 
   };
 
   const handleMarkArticleViewed = async (sourceId: string, articleId: string): Promise<void> => {
-    await client.PUT("/api/sources/{id}/articles/{articleId}/read", {
+    await client.PUT('/api/sources/{id}/articles/{articleId}/read', {
       params: { path: { id: sourceId, articleId } },
       body: { read: true },
       headers,
     });
   };
 
-  const handleExitMagazine = useCallback((): void => setView("list"), []);
+  const handleExitMagazine = useCallback((): void => setView('list'), []);
 
   const handleGoBack = useCallback((): void => {
     router.history.back();
@@ -884,14 +953,20 @@ const useMagazineView = (editionId: string): UseMagazineViewReturn => {
   const pageRef = useRef(0);
   const [votes, setVotes] = useState<Record<string, VoteValue>>({});
 
-  const { data: edition, isLoading, error } = useQuery<EditionDetail>({
+  const {
+    data: edition,
+    isLoading,
+    error,
+  } = useQuery<EditionDetail>({
     queryKey: queryKeys.editions.detail(editionId),
     queryFn: async (): Promise<EditionDetail> => {
-      const { data, error: err } = await client.GET("/api/editions/{editionId}", {
+      const { data, error: err } = await client.GET('/api/editions/{editionId}', {
         params: { path: { editionId } },
         headers,
       });
-      if (err) throw new Error("Edition not found");
+      if (err) {
+        throw new Error('Edition not found');
+      }
       return data as EditionDetail;
     },
     enabled: !!headers,
@@ -911,33 +986,39 @@ const useMagazineView = (editionId: string): UseMagazineViewReturn => {
     });
   });
 
-  const handleMarkArticleViewed = useCallback(async (sourceId: string, articleId: string): Promise<void> => {
-    await client.PUT("/api/sources/{id}/articles/{articleId}/read", {
-      params: { path: { id: sourceId, articleId } },
-      body: { read: true },
-      headers,
-    });
-  }, [headers]);
+  const handleMarkArticleViewed = useCallback(
+    async (sourceId: string, articleId: string): Promise<void> => {
+      await client.PUT('/api/sources/{id}/articles/{articleId}/read', {
+        params: { path: { id: sourceId, articleId } },
+        body: { read: true },
+        headers,
+      });
+    },
+    [headers],
+  );
 
-  const handlePageChange = useCallback((newPage: number): void => {
-    const articleInfo = pageArticleMap.current.get(pageRef.current);
-    if (articleInfo && newPage !== pageRef.current) {
-      void handleMarkArticleViewed(articleInfo.sourceId, articleInfo.articleId);
-    }
-    pageRef.current = newPage;
-    setPage(newPage);
-  }, [handleMarkArticleViewed]);
+  const handlePageChange = useCallback(
+    (newPage: number): void => {
+      const articleInfo = pageArticleMap.current.get(pageRef.current);
+      if (articleInfo && newPage !== pageRef.current) {
+        void handleMarkArticleViewed(articleInfo.sourceId, articleInfo.articleId);
+      }
+      pageRef.current = newPage;
+      setPage(newPage);
+    },
+    [handleMarkArticleViewed],
+  );
 
   const handleExit = useCallback((): void => {
     if (window.history.length > 1) {
       router.history.back();
     } else {
-      void navigate({ to: "/" });
+      void navigate({ to: '/' });
     }
   }, [router.history, navigate]);
 
   const handleMarkDone = useCallback(async (): Promise<void> => {
-    await client.PUT("/api/editions/{editionId}/read", {
+    await client.PUT('/api/editions/{editionId}/read', {
       params: { path: { editionId } },
       body: { read: true },
       headers,
@@ -945,25 +1026,28 @@ const useMagazineView = (editionId: string): UseMagazineViewReturn => {
     if (window.history.length > 1) {
       router.history.back();
     } else {
-      await navigate({ to: "/" });
+      await navigate({ to: '/' });
     }
   }, [editionId, headers, router.history, navigate]);
 
-  const handleVote = useCallback(async (articleId: string, value: VoteValue): Promise<void> => {
-    setVotes((prev) => ({ ...prev, [articleId]: value }));
-    if (value === null) {
-      await client.DELETE("/api/editions/{editionId}/articles/{articleId}/vote", {
-        params: { path: { editionId, articleId } },
-        headers,
-      });
-    } else {
-      await client.PUT("/api/editions/{editionId}/articles/{articleId}/vote", {
-        params: { path: { editionId, articleId } },
-        body: { value },
-        headers,
-      });
-    }
-  }, [editionId, headers]);
+  const handleVote = useCallback(
+    async (articleId: string, value: VoteValue): Promise<void> => {
+      setVotes((prev) => ({ ...prev, [articleId]: value }));
+      if (value === null) {
+        await client.DELETE('/api/editions/{editionId}/articles/{articleId}/vote', {
+          params: { path: { editionId, articleId } },
+          headers,
+        });
+      } else {
+        await client.PUT('/api/editions/{editionId}/articles/{articleId}/vote', {
+          params: { path: { editionId, articleId } },
+          body: { value },
+          headers,
+        });
+      }
+    },
+    [editionId, headers],
+  );
 
   return {
     edition,

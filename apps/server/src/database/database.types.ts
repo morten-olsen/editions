@@ -1,4 +1,4 @@
-import type { ColumnType } from "kysely";
+import type { ColumnType } from 'kysely';
 
 // --- Column helpers ---
 
@@ -6,7 +6,7 @@ type Timestamp = ColumnType<string, string | undefined, string>;
 
 // --- Table types ---
 
-type UserRole = "admin" | "user";
+type UserRole = 'admin' | 'user';
 
 type UsersTable = {
   id: string;
@@ -18,7 +18,7 @@ type UsersTable = {
   updated_at: Timestamp;
 };
 
-type SourceType = "rss" | "podcast" | "mastodon" | "bluesky" | "youtube" | "custom" | "bookmarks";
+type SourceType = 'rss' | 'podcast' | 'mastodon' | 'bluesky' | 'youtube' | 'custom' | 'bookmarks';
 
 type SourcesTable = {
   id: string;
@@ -69,9 +69,9 @@ type FocusesTable = {
   updated_at: Timestamp;
 };
 
-type FocusSourceMode = "always" | "match";
+type FocusSourceMode = 'always' | 'match';
 
-type EditionBudgetType = "time" | "count";
+type EditionBudgetType = 'time' | 'count';
 
 type FocusSourcesTable = {
   focus_id: string;

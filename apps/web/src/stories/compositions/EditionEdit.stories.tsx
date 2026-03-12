@@ -1,34 +1,42 @@
-import { useState } from "react";
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useState } from 'react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { Input } from "../../components/input.tsx";
-import { Button } from "../../components/button.tsx";
-import { Checkbox } from "../../components/checkbox.tsx";
-import { Separator } from "../../components/separator.tsx";
-import { IconPicker } from "../../components/icon-picker.tsx";
+import { Input } from '../../components/input.tsx';
+import { Button } from '../../components/button.tsx';
+import { Checkbox } from '../../components/checkbox.tsx';
+import { Separator } from '../../components/separator.tsx';
+import { IconPicker } from '../../components/icon-picker.tsx';
 
 // ─── Shared form helpers ────────────────────────────────────────────────────
 
 const SCHEDULE_PRESETS = [
-  { label: "Daily at 7am", value: "0 7 * * *" },
-  { label: "Daily at 8am", value: "0 8 * * *" },
-  { label: "Daily at noon", value: "0 12 * * *" },
-  { label: "Weekdays at 7am", value: "0 7 * * 1-5" },
-  { label: "Weekdays at 8am", value: "0 8 * * 1-5" },
-  { label: "Every Monday at 8am", value: "0 8 * * 1" },
-  { label: "Every Friday at 5pm", value: "0 17 * * 5" },
-  { label: "Custom…", value: "__custom__" },
+  { label: 'Daily at 7am', value: '0 7 * * *' },
+  { label: 'Daily at 8am', value: '0 8 * * *' },
+  { label: 'Daily at noon', value: '0 12 * * *' },
+  { label: 'Weekdays at 7am', value: '0 7 * * 1-5' },
+  { label: 'Weekdays at 8am', value: '0 8 * * 1-5' },
+  { label: 'Every Monday at 8am', value: '0 8 * * 1' },
+  { label: 'Every Friday at 5pm', value: '0 17 * * 5' },
+  { label: 'Custom…', value: '__custom__' },
 ] as const;
 
 const selectClasses =
-  "rounded-md border border-border bg-surface-raised px-2.5 py-2 text-sm text-ink focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20";
+  'rounded-md border border-border bg-surface-raised px-2.5 py-2 text-sm text-ink focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20';
 
 const priorityLabel = (w: number): string => {
-  if (w <= 0.1) return "Off";
-  if (w < 0.75) return "Low";
-  if (w <= 1.25) return "Normal";
-  if (w <= 2.1) return "High";
-  return "Top";
+  if (w <= 0.1) {
+    return 'Off';
+  }
+  if (w < 0.75) {
+    return 'Low';
+  }
+  if (w <= 1.25) {
+    return 'Normal';
+  }
+  if (w <= 2.1) {
+    return 'High';
+  }
+  return 'Top';
 };
 
 // ─── Sample data ─────────────────────────────────────────────────────────────
@@ -36,7 +44,7 @@ const priorityLabel = (w: number): string => {
 type FocusConfig = {
   focusId: string;
   focusName: string;
-  budgetType: "time" | "count";
+  budgetType: 'time' | 'count';
   budgetValue: number;
   lookbackHours: number | null;
   excludePriorEditions: boolean | null;
@@ -44,48 +52,83 @@ type FocusConfig = {
 };
 
 const SAMPLE_FOCUSES: FocusConfig[] = [
-  { focusId: "1", focusName: "Technology", budgetType: "count", budgetValue: 5, lookbackHours: null, excludePriorEditions: null, weight: 1 },
-  { focusId: "2", focusName: "Science", budgetType: "count", budgetValue: 3, lookbackHours: null, excludePriorEditions: true, weight: 2 },
-  { focusId: "3", focusName: "Global News", budgetType: "time", budgetValue: 15, lookbackHours: 168, excludePriorEditions: false, weight: 1 },
+  {
+    focusId: '1',
+    focusName: 'Technology',
+    budgetType: 'count',
+    budgetValue: 5,
+    lookbackHours: null,
+    excludePriorEditions: null,
+    weight: 1,
+  },
+  {
+    focusId: '2',
+    focusName: 'Science',
+    budgetType: 'count',
+    budgetValue: 3,
+    lookbackHours: null,
+    excludePriorEditions: true,
+    weight: 2,
+  },
+  {
+    focusId: '3',
+    focusName: 'Global News',
+    budgetType: 'time',
+    budgetValue: 15,
+    lookbackHours: 168,
+    excludePriorEditions: false,
+    weight: 1,
+  },
 ];
 
 const AVAILABLE_FOCUSES: { id: string; name: string; description: string | null }[] = [
-  { id: "4", name: "Design", description: "Product design, UI, and creative work" },
-  { id: "5", name: "Business", description: "Markets, startups, and economics" },
-  { id: "6", name: "Climate", description: "Climate science, policy, and sustainability" },
+  { id: '4', name: 'Design', description: 'Product design, UI, and creative work' },
+  { id: '5', name: 'Business', description: 'Markets, startups, and economics' },
+  { id: '6', name: 'Climate', description: 'Climate science, policy, and sustainability' },
 ];
 
 // ─── Form component ───────────────────────────────────────────────────────────
 
-const EditionEditForm = ({ mode }: { mode: "create" | "edit" }): React.ReactElement => {
-  const [name, setName] = useState(mode === "edit" ? "Morning Briefing" : "");
-  const [icon, setIcon] = useState<string | null>(mode === "edit" ? "newspaper" : null);
-  const [schedule, setSchedule] = useState("0 7 * * *");
+const EditionEditForm = ({ mode }: { mode: 'create' | 'edit' }): React.ReactElement => {
+  const [name, setName] = useState(mode === 'edit' ? 'Morning Briefing' : '');
+  const [icon, setIcon] = useState<string | null>(mode === 'edit' ? 'newspaper' : null);
+  const [schedule, setSchedule] = useState('0 7 * * *');
   const [lookbackHours, setLookbackHours] = useState(24);
   const [excludePriorEditions, setExcludePriorEditions] = useState(false);
   const [enabled, setEnabled] = useState(true);
-  const [selectedFocuses, setSelectedFocuses] = useState<FocusConfig[]>(
-    mode === "edit" ? SAMPLE_FOCUSES : [],
-  );
-  const [availableFocuses, setAvailableFocuses] = useState<{ id: string; name: string; description: string | null }[]>(AVAILABLE_FOCUSES);
+  const [selectedFocuses, setSelectedFocuses] = useState<FocusConfig[]>(mode === 'edit' ? SAMPLE_FOCUSES : []);
+  const [availableFocuses, setAvailableFocuses] =
+    useState<{ id: string; name: string; description: string | null }[]>(AVAILABLE_FOCUSES);
 
   const selectedIds = new Set(selectedFocuses.map((f) => f.focusId));
-  const isPresetSchedule = SCHEDULE_PRESETS.some((p) => p.value !== "__custom__" && p.value === schedule);
-  const scheduleSelectValue = isPresetSchedule ? schedule : "__custom__";
+  const isPresetSchedule = SCHEDULE_PRESETS.some((p) => p.value !== '__custom__' && p.value === schedule);
+  const scheduleSelectValue = isPresetSchedule ? schedule : '__custom__';
 
   const addFocus = (focusId: string): void => {
     const focus = availableFocuses.find((f) => f.id === focusId);
-    if (!focus) return;
+    if (!focus) {
+      return;
+    }
     setSelectedFocuses((prev) => [
       ...prev,
-      { focusId, focusName: focus.name, budgetType: "count", budgetValue: 5, lookbackHours: null, excludePriorEditions: null, weight: 1 },
+      {
+        focusId,
+        focusName: focus.name,
+        budgetType: 'count',
+        budgetValue: 5,
+        lookbackHours: null,
+        excludePriorEditions: null,
+        weight: 1,
+      },
     ]);
     setAvailableFocuses((prev) => prev.filter((f) => f.id !== focusId));
   };
 
   const removeFocus = (focusId: string): void => {
     const focus = selectedFocuses.find((f) => f.focusId === focusId);
-    if (!focus) return;
+    if (!focus) {
+      return;
+    }
     setSelectedFocuses((prev) => prev.filter((f) => f.focusId !== focusId));
     setAvailableFocuses((prev) => [...prev, { id: focusId, name: focus.focusName, description: null }]);
   };
@@ -93,9 +136,13 @@ const EditionEditForm = ({ mode }: { mode: "create" | "edit" }): React.ReactElem
   const moveFocus = (focusId: string, direction: -1 | 1): void => {
     setSelectedFocuses((prev) => {
       const idx = prev.findIndex((f) => f.focusId === focusId);
-      if (idx < 0) return prev;
+      if (idx < 0) {
+        return prev;
+      }
       const newIdx = idx + direction;
-      if (newIdx < 0 || newIdx >= prev.length) return prev;
+      if (newIdx < 0 || newIdx >= prev.length) {
+        return prev;
+      }
       const arr = [...prev];
       [arr[idx], arr[newIdx]] = [arr[newIdx]!, arr[idx]!];
       return arr;
@@ -104,12 +151,10 @@ const EditionEditForm = ({ mode }: { mode: "create" | "edit" }): React.ReactElem
 
   const updateFocusField = (
     focusId: string,
-    field: keyof Pick<FocusConfig, "budgetType" | "budgetValue" | "lookbackHours" | "excludePriorEditions" | "weight">,
+    field: keyof Pick<FocusConfig, 'budgetType' | 'budgetValue' | 'lookbackHours' | 'excludePriorEditions' | 'weight'>,
     value: string | number | boolean | null,
   ): void => {
-    setSelectedFocuses((prev) =>
-      prev.map((f) => (f.focusId === focusId ? { ...f, [field]: value } : f)),
-    );
+    setSelectedFocuses((prev) => prev.map((f) => (f.focusId === focusId ? { ...f, [field]: value } : f)));
   };
 
   return (
@@ -134,12 +179,16 @@ const EditionEditForm = ({ mode }: { mode: "create" | "edit" }): React.ReactElem
             id="sb-schedule-preset"
             value={scheduleSelectValue}
             onChange={(e) => {
-              if (e.target.value !== "__custom__") setSchedule(e.target.value);
+              if (e.target.value !== '__custom__') {
+                setSchedule(e.target.value);
+              }
             }}
             className={`w-full ${selectClasses}`}
           >
             {SCHEDULE_PRESETS.map((p) => (
-              <option key={p.value} value={p.value}>{p.label}</option>
+              <option key={p.value} value={p.value}>
+                {p.label}
+              </option>
             ))}
           </select>
           {!isPresetSchedule && (
@@ -151,7 +200,8 @@ const EditionEditForm = ({ mode }: { mode: "create" | "edit" }): React.ReactElem
                 placeholder="0 7 * * *"
               />
               <p className="text-xs text-ink-tertiary">
-                Cron expression — e.g. <code className="font-mono bg-surface-sunken px-1 rounded">0 7 * * *</code> means daily at 7am
+                Cron expression — e.g. <code className="font-mono bg-surface-sunken px-1 rounded">0 7 * * *</code> means
+                daily at 7am
               </p>
             </div>
           )}
@@ -183,7 +233,7 @@ const EditionEditForm = ({ mode }: { mode: "create" | "edit" }): React.ReactElem
           checked={excludePriorEditions}
           onCheckedChange={(checked) => setExcludePriorEditions(checked === true)}
         />
-        {mode === "edit" && (
+        {mode === 'edit' && (
           <Checkbox
             label="Active"
             description="When off, this edition won't be generated automatically"
@@ -198,9 +248,14 @@ const EditionEditForm = ({ mode }: { mode: "create" | "edit" }): React.ReactElem
       {/* Topics */}
       <div>
         <div className="text-sm font-medium text-ink mb-0.5">
-          Topics {selectedFocuses.length > 0 && <span className="text-ink-tertiary font-normal">({selectedFocuses.length})</span>}
+          Topics{' '}
+          {selectedFocuses.length > 0 && (
+            <span className="text-ink-tertiary font-normal">({selectedFocuses.length})</span>
+          )}
         </div>
-        <p className="text-xs text-ink-tertiary mb-4">Each topic becomes a section in your edition. Use the arrows ↑↓ to reorder.</p>
+        <p className="text-xs text-ink-tertiary mb-4">
+          Each topic becomes a section in your edition. Use the arrows ↑↓ to reorder.
+        </p>
 
         {selectedFocuses.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border py-6 text-center">
@@ -213,7 +268,7 @@ const EditionEditForm = ({ mode }: { mode: "create" | "edit" }): React.ReactElem
               <div key={config.focusId} className="border border-border rounded-lg p-4">
                 <div className="flex items-center gap-3 mb-4">
                   <span className="text-xs font-mono text-accent w-5 text-center">
-                    {String(idx + 1).padStart(2, "0")}
+                    {String(idx + 1).padStart(2, '0')}
                   </span>
                   <div className="flex-1 text-sm font-medium text-ink">{config.focusName}</div>
                   <div className="flex items-center gap-1">
@@ -254,12 +309,12 @@ const EditionEditForm = ({ mode }: { mode: "create" | "edit" }): React.ReactElem
                         type="number"
                         min={1}
                         value={config.budgetValue}
-                        onChange={(e) => updateFocusField(config.focusId, "budgetValue", Number(e.target.value))}
+                        onChange={(e) => updateFocusField(config.focusId, 'budgetValue', Number(e.target.value))}
                         className="w-16 rounded-md border border-border bg-surface-raised px-2.5 py-1.5 text-sm text-ink focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
                       />
                       <select
                         value={config.budgetType}
-                        onChange={(e) => updateFocusField(config.focusId, "budgetType", e.target.value)}
+                        onChange={(e) => updateFocusField(config.focusId, 'budgetType', e.target.value)}
                         className={selectClasses}
                       >
                         <option value="count">articles</option>
@@ -272,9 +327,13 @@ const EditionEditForm = ({ mode }: { mode: "create" | "edit" }): React.ReactElem
                   <div className="flex flex-col gap-1.5">
                     <span className="text-xs text-ink-tertiary">Age limit</span>
                     <select
-                      value={config.lookbackHours === null ? "" : String(config.lookbackHours)}
+                      value={config.lookbackHours === null ? '' : String(config.lookbackHours)}
                       onChange={(e) =>
-                        updateFocusField(config.focusId, "lookbackHours", e.target.value === "" ? null : Number(e.target.value))
+                        updateFocusField(
+                          config.focusId,
+                          'lookbackHours',
+                          e.target.value === '' ? null : Number(e.target.value),
+                        )
                       }
                       className={selectClasses}
                     >
@@ -291,18 +350,12 @@ const EditionEditForm = ({ mode }: { mode: "create" | "edit" }): React.ReactElem
                   <div className="flex flex-col gap-1.5">
                     <span className="text-xs text-ink-tertiary">Past issue articles</span>
                     <select
-                      value={
-                        config.excludePriorEditions === null
-                          ? ""
-                          : config.excludePriorEditions
-                          ? "true"
-                          : "false"
-                      }
+                      value={config.excludePriorEditions === null ? '' : config.excludePriorEditions ? 'true' : 'false'}
                       onChange={(e) =>
                         updateFocusField(
                           config.focusId,
-                          "excludePriorEditions",
-                          e.target.value === "" ? null : e.target.value === "true",
+                          'excludePriorEditions',
+                          e.target.value === '' ? null : e.target.value === 'true',
                         )
                       }
                       className={selectClasses}
@@ -316,7 +369,9 @@ const EditionEditForm = ({ mode }: { mode: "create" | "edit" }): React.ReactElem
                   {/* Priority */}
                   <div className="flex flex-col gap-1.5">
                     <span className="text-xs text-ink-tertiary">Priority</span>
-                    <p className="text-xs text-ink-faint -mt-1">How much to favour this topic when selecting articles</p>
+                    <p className="text-xs text-ink-faint -mt-1">
+                      How much to favour this topic when selecting articles
+                    </p>
                     <div className="flex items-center gap-3">
                       <input
                         type="range"
@@ -324,7 +379,7 @@ const EditionEditForm = ({ mode }: { mode: "create" | "edit" }): React.ReactElem
                         max={3}
                         step={0.1}
                         value={config.weight}
-                        onChange={(e) => updateFocusField(config.focusId, "weight", Number(e.target.value))}
+                        onChange={(e) => updateFocusField(config.focusId, 'weight', Number(e.target.value))}
                         className="flex-1 accent-accent"
                       />
                       <span className="text-xs font-medium text-ink-secondary tabular-nums w-12 text-right">
@@ -351,9 +406,7 @@ const EditionEditForm = ({ mode }: { mode: "create" | "edit" }): React.ReactElem
                 <div key={focus.id} className="flex items-center justify-between py-2">
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-medium text-ink">{focus.name}</div>
-                    {focus.description && (
-                      <div className="text-xs text-ink-tertiary truncate">{focus.description}</div>
-                    )}
+                    {focus.description && <div className="text-xs text-ink-tertiary truncate">{focus.description}</div>}
                   </div>
                   <Button variant="ghost" size="sm" type="button" onClick={() => addFocus(focus.id)}>
                     Add
@@ -366,7 +419,7 @@ const EditionEditForm = ({ mode }: { mode: "create" | "edit" }): React.ReactElem
 
       <div className="flex items-center gap-3">
         <Button variant="primary" type="submit">
-          {mode === "edit" ? "Save changes" : "Create edition"}
+          {mode === 'edit' ? 'Save changes' : 'Create edition'}
         </Button>
         <Button variant="ghost" type="button">
           Cancel
@@ -379,16 +432,16 @@ const EditionEditForm = ({ mode }: { mode: "create" | "edit" }): React.ReactElem
 // ─── Stories ──────────────────────────────────────────────────────────────────
 
 const meta: Meta = {
-  title: "Design System/Compositions/Edition Edit",
+  title: 'Design System/Compositions/Edition Edit',
   parameters: {
-    layout: "padded",
+    layout: 'padded',
   },
 };
 
 type Story = StoryObj;
 
 const CreateEdition: Story = {
-  name: "Create edition",
+  name: 'Create edition',
   render: () => (
     <div className="py-8 px-6 max-w-2xl">
       <div className="mb-8">
@@ -401,7 +454,7 @@ const CreateEdition: Story = {
 };
 
 const EditEdition: Story = {
-  name: "Edit edition",
+  name: 'Edit edition',
   render: () => (
     <div className="py-8 px-6 max-w-2xl">
       <div className="mb-8">
@@ -414,7 +467,7 @@ const EditEdition: Story = {
 };
 
 const EmptyTopics: Story = {
-  name: "Empty topics state",
+  name: 'Empty topics state',
   render: () => (
     <div className="py-8 px-6 max-w-2xl">
       <div className="mb-8">

@@ -32,10 +32,14 @@ type VoteContext = {
 
 type ScoringCandidate = {
   articleId: string;
-  confidence: number;
+  similarity: number | null;
+  nli: number | null;
   publishedAt: string | null;
   embedding: Float32Array | null;
 };
+
+const effectiveConfidence = (c: { similarity: number | null; nli: number | null }): number =>
+  c.nli ?? c.similarity ?? 0;
 
 // --- Private helpers ---
 
@@ -97,7 +101,7 @@ const computeScore = (
 
   const recency = recencyDecay(candidate.publishedAt);
 
-  return weights.alpha * candidate.confidence + weights.beta * voteSignal + weights.gamma * recency;
+  return weights.alpha * effectiveConfidence(candidate) + weights.beta * voteSignal + weights.gamma * recency;
 };
 
 const rankArticles = <T extends ScoringCandidate>(
@@ -165,6 +169,7 @@ const parseUserScoringWeights = (json: string | null): UserScoringWeights => {
 
 export type { VoteContext, VotedArticle, ScoringCandidate, ScoringWeights, UserScoringWeights };
 export {
+  effectiveConfidence,
   computeScore,
   rankArticles,
   mergeVoteContexts,

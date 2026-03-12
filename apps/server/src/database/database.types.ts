@@ -83,8 +83,8 @@ type FocusSourcesTable = {
 type ArticleFocusesTable = {
   article_id: string;
   focus_id: string;
-  confidence: number;
-  method: string | null;
+  similarity: number | null;
+  nli: number | null;
   assigned_at: Timestamp;
 };
 

@@ -13,12 +13,12 @@ import {
   hasZodFastifySchemaValidationErrors,
 } from "fastify-type-provider-zod";
 
-import { AnalysisService, registerAnalysisTaskHandlers } from "./analysis/analysis.ts";
+import { AnalysisService } from "./analysis/analysis.ts";
 import { registerRoutes } from "./api/api.ts";
 import { ConfigService } from "./config/config.ts";
+import { registerJobHandlers } from "./jobs/jobs.handlers.ts";
 import { SchedulerService } from "./scheduler/scheduler.ts";
 import { Services, destroySymbol } from "./services/services.ts";
-import { registerSourceTaskHandlers } from "./sources/sources.fetch.ts";
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
@@ -95,8 +95,7 @@ const createApp = async ({ logger = true }: { logger?: boolean } = {}): Promise<
     });
   }
 
-  registerSourceTaskHandlers(services);
-  registerAnalysisTaskHandlers(services);
+  registerJobHandlers(services);
 
   // Create scheduler (not started until listen completes)
   const scheduler = new SchedulerService(services, config.scheduler, {

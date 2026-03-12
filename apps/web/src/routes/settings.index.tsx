@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { useAuth } from "../auth/auth.tsx";
 import { useAi } from "../ai/ai.ts";
 import { client } from "../api/api.ts";
+import { useJobs, formatJobType, formatTimeAgo, formatDuration } from "../hooks/jobs/jobs.hooks.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { Button } from "../components/button.tsx";
 import { EmptyState } from "../components/empty-state.tsx";
@@ -12,166 +13,74 @@ import { Input } from "../components/input.tsx";
 
 import type { AiConfig } from "../ai/ai.ts";
 
-// --- Task types & helpers ---
+// --- Jobs section ---
 
-type TaskItem = {
-  id: string;
-  type: string;
-  status: "pending" | "running" | "completed" | "failed";
-  error: string | null;
-  createdAt: number;
-  startedAt: number | null;
-  completedAt: number | null;
-};
-
-type TaskGroup = {
-  type: string;
-  completed: number;
-  failed: number;
-  tasks: TaskItem[];
-};
-
-const POLL_INTERVAL_MS = 3000;
-
-const TASK_TYPE_LABELS: Record<string, string> = {
-  fetch_source: "Fetch feed",
-  extract_article: "Extract article",
-  analyse_article: "Analyse article",
-};
-
-const formatTaskType = (type: string): string =>
-  TASK_TYPE_LABELS[type] ?? type.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-
-const formatTimeAgo = (ms: number): string => {
-  const diffSec = Math.floor((Date.now() - ms) / 1000);
-  if (diffSec < 5) return "just now";
-  if (diffSec < 60) return `${diffSec}s ago`;
-  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
-  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
-  return new Date(ms).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-};
-
-const formatDuration = (start: number, end: number): string => {
-  const sec = Math.round((end - start) / 1000);
-  if (sec < 1) return "<1s";
-  if (sec < 60) return `${sec}s`;
-  return `${Math.floor(sec / 60)}m ${sec % 60}s`;
-};
-
-const groupFinishedTasks = (tasks: TaskItem[]): TaskGroup[] => {
-  const map = new Map<string, TaskGroup>();
-  for (const task of tasks) {
-    let group = map.get(task.type);
-    if (!group) {
-      group = { type: task.type, completed: 0, failed: 0, tasks: [] };
-      map.set(task.type, group);
-    }
-    if (task.status === "completed") group.completed++;
-    else group.failed++;
-    group.tasks.push(task);
-  }
-  return Array.from(map.values());
-};
-
-const TasksSection = ({ token }: { token: string }): React.ReactNode => {
-  const [tasks, setTasks] = useState<TaskItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const loadTasks = useCallback(async (): Promise<void> => {
-    const { data } = await client.GET("/api/tasks", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (data) {
-      setTasks(data.tasks as TaskItem[]);
-    }
-    setLoading(false);
-  }, [token]);
-
-  useEffect(() => {
-    void loadTasks();
-  }, [loadTasks]);
-
-  const hasActive = tasks.some((t) => t.status === "pending" || t.status === "running");
-
-  useEffect(() => {
-    if (hasActive) {
-      intervalRef.current = setInterval(() => void loadTasks(), POLL_INTERVAL_MS);
-    }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [hasActive, loadTasks]);
+const JobsSection = ({ token }: { token: string }): React.ReactNode => {
+  const {
+    loading,
+    jobs,
+    hasActive,
+    activeJobs,
+    finishedGroups,
+    expandedGroups,
+    toggleGroup,
+    counts,
+  } = useJobs(token);
 
   if (loading) {
     return <div className="text-sm text-ink-tertiary py-6 text-center">Loading...</div>;
   }
 
-  if (tasks.length === 0) {
+  if (jobs.length === 0) {
     return (
       <EmptyState
-        title="No tasks"
-        description="Background tasks like source fetching and article analysis will appear here."
+        title="No jobs"
+        description="Background jobs like source fetching and article analysis will appear here."
       />
     );
   }
 
-  const activeTasks = tasks.filter((t) => t.status === "pending" || t.status === "running");
-  const finishedTasks = tasks.filter((t) => t.status === "completed" || t.status === "failed");
-  const groups = groupFinishedTasks(finishedTasks);
-
-  const toggleGroup = (type: string): void => {
-    setExpandedGroups((prev) => {
-      const next = new Set(prev);
-      if (next.has(type)) next.delete(type);
-      else next.add(type);
-      return next;
-    });
-  };
-
-  // Counts for the summary bar
-  const pendingCount = activeTasks.filter((t) => t.status === "pending").length;
-  const runningCount = activeTasks.filter((t) => t.status === "running").length;
-  const completedCount = finishedTasks.filter((t) => t.status === "completed").length;
-  const failedCount = finishedTasks.filter((t) => t.status === "failed").length;
+  const finishedJobs = jobs.filter((j) => j.status === "completed" || j.status === "failed");
 
   return (
     <div className="flex flex-col gap-5">
       {/* Summary bar */}
       <div className="flex items-center gap-4 text-xs">
-        {runningCount > 0 && (
+        {counts.running > 0 && (
           <span className="flex items-center gap-1.5 text-accent">
             <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-            {runningCount} running
+            {counts.running} running
           </span>
         )}
-        {pendingCount > 0 && (
-          <span className="text-ink-tertiary">{pendingCount} queued</span>
+        {counts.pending > 0 && (
+          <span className="text-ink-tertiary">{counts.pending} queued</span>
         )}
-        {completedCount > 0 && (
-          <span className="text-positive">{completedCount} completed</span>
+        {counts.completed > 0 && (
+          <span className="text-positive">{counts.completed} completed</span>
         )}
-        {failedCount > 0 && (
-          <span className="text-critical">{failedCount} failed</span>
+        {counts.failed > 0 && (
+          <span className="text-critical">{counts.failed} failed</span>
         )}
-        {!hasActive && finishedTasks.length > 0 && (
+        {!hasActive && finishedJobs.length > 0 && (
           <span className="text-ink-faint ml-auto">
-            last activity {formatTimeAgo(finishedTasks[0]!.completedAt ?? finishedTasks[0]!.createdAt)}
+            last activity {formatTimeAgo(finishedJobs[0]!.completedAt ?? finishedJobs[0]!.createdAt)}
           </span>
         )}
       </div>
 
-      {/* Active tasks — shown individually */}
-      {activeTasks.length > 0 && (
+      {/* Active jobs — shown individually */}
+      {activeJobs.length > 0 && (
         <div className="rounded-lg border border-border overflow-hidden">
-          {activeTasks.map((task, idx) => (
-            <div key={task.id} className={idx > 0 ? "border-t border-border" : ""}>
+          {activeJobs.map((job, idx) => (
+            <div key={job.id} className={idx > 0 ? "border-t border-border" : ""}>
               <div className="flex items-center gap-3 px-4 py-2.5">
-                <span className={`shrink-0 w-1.5 h-1.5 rounded-full ${task.status === "running" ? "bg-accent animate-pulse" : "bg-ink-faint"}`} />
-                <span className="text-sm text-ink flex-1">{formatTaskType(task.type)}</span>
+                <span className={`shrink-0 w-1.5 h-1.5 rounded-full ${job.status === "running" ? "bg-accent animate-pulse" : "bg-ink-faint"}`} />
+                <span className="text-sm text-ink flex-1">{formatJobType(job.type)}</span>
+                {job.progress && (
+                  <span className="text-xs text-ink-faint">{job.progress.phase}</span>
+                )}
                 <span className="text-xs text-ink-tertiary">
-                  {task.startedAt ? formatTimeAgo(task.startedAt) : "queued"}
+                  {job.startedAt ? formatTimeAgo(job.startedAt) : "queued"}
                 </span>
               </div>
             </div>
@@ -179,12 +88,12 @@ const TasksSection = ({ token }: { token: string }): React.ReactNode => {
         </div>
       )}
 
-      {/* Finished tasks — grouped by type */}
-      {groups.length > 0 && (
+      {/* Finished jobs — grouped by type */}
+      {finishedGroups.length > 0 && (
         <div className="rounded-lg border border-border overflow-hidden">
-          {groups.map((group, idx) => {
+          {finishedGroups.map((group, idx) => {
             const isExpanded = expandedGroups.has(group.type);
-            const failedInGroup = group.tasks.filter((t) => t.status === "failed");
+            const failedInGroup = group.jobs.filter((j) => j.status === "failed");
 
             return (
               <div key={group.type} className={idx > 0 ? "border-t border-border" : ""}>
@@ -193,8 +102,8 @@ const TasksSection = ({ token }: { token: string }): React.ReactNode => {
                   onClick={() => toggleGroup(group.type)}
                   className="flex items-center gap-3 px-4 py-2.5 w-full text-left hover:bg-surface-hover transition-colors duration-fast cursor-pointer"
                 >
-                  <span className="shrink-0 text-xs text-ink-faint">{isExpanded ? "▾" : "▸"}</span>
-                  <span className="text-sm text-ink flex-1">{formatTaskType(group.type)}</span>
+                  <span className="shrink-0 text-xs text-ink-faint">{isExpanded ? "\u25be" : "\u25b8"}</span>
+                  <span className="text-sm text-ink flex-1">{formatJobType(group.type)}</span>
                   <span className="flex items-center gap-2.5 text-xs">
                     {group.completed > 0 && (
                       <span className="text-positive">{group.completed} done</span>
@@ -207,18 +116,18 @@ const TasksSection = ({ token }: { token: string }): React.ReactNode => {
 
                 {isExpanded && failedInGroup.length > 0 && (
                   <div className="border-t border-border bg-surface-sunken">
-                    {failedInGroup.map((task) => (
-                      <div key={task.id} className="px-4 py-2.5 border-b border-border last:border-b-0">
+                    {failedInGroup.map((job) => (
+                      <div key={job.id} className="px-4 py-2.5 border-b border-border last:border-b-0">
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-xs text-critical font-medium">Failed</span>
                           <span className="text-xs text-ink-faint">
-                            {task.completedAt ? formatTimeAgo(task.completedAt) : ""}
-                            {task.startedAt && task.completedAt && ` · ${formatDuration(task.startedAt, task.completedAt)}`}
+                            {job.completedAt ? formatTimeAgo(job.completedAt) : ""}
+                            {job.startedAt && job.completedAt && ` \u00b7 ${formatDuration(job.startedAt, job.completedAt)}`}
                           </span>
                         </div>
-                        {task.error && (
+                        {job.error && (
                           <pre className="text-xs text-critical/80 font-mono whitespace-pre-wrap break-words leading-relaxed line-clamp-4">
-                            {task.error}
+                            {job.error}
                           </pre>
                         )}
                       </div>
@@ -228,7 +137,7 @@ const TasksSection = ({ token }: { token: string }): React.ReactNode => {
 
                 {isExpanded && failedInGroup.length === 0 && (
                   <div className="border-t border-border bg-surface-sunken px-4 py-3">
-                    <span className="text-xs text-ink-tertiary">All {group.completed} tasks completed successfully</span>
+                    <span className="text-xs text-ink-tertiary">All {group.completed} jobs completed successfully</span>
                   </div>
                 )}
               </div>
@@ -705,11 +614,11 @@ const AiSection = (): React.ReactNode => {
   );
 };
 
-type SettingsTab = "tasks" | "votes" | "scoring" | "assistant";
+type SettingsTab = "jobs" | "votes" | "scoring" | "assistant";
 
 const SettingsPage = (): React.ReactNode => {
   const auth = useAuth();
-  const [activeTab, setActiveTab] = useState<SettingsTab>("tasks");
+  const [activeTab, setActiveTab] = useState<SettingsTab>("jobs");
   const [votesPage, setVotesPage] = useState<VotesPage | null>(null);
   const [loading, setLoading] = useState(true);
   const [offset, setOffset] = useState(0);
@@ -786,7 +695,7 @@ const SettingsPage = (): React.ReactNode => {
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
 
   const tabs: { key: SettingsTab; label: string; badge?: string }[] = [
-    { key: "tasks", label: "Tasks" },
+    { key: "jobs", label: "Jobs" },
     { key: "votes", label: "Votes" },
     { key: "scoring", label: "Scoring" },
     { key: "assistant", label: "Assistant", badge: "alpha" },
@@ -815,11 +724,11 @@ const SettingsPage = (): React.ReactNode => {
         ))}
       </div>
 
-      {/* Tasks tab */}
-      {activeTab === "tasks" && (
+      {/* Jobs tab */}
+      {activeTab === "jobs" && (
         <>
-          <p className="text-sm text-ink-secondary mb-6">Running and recent background tasks</p>
-          <TasksSection token={auth.token} />
+          <p className="text-sm text-ink-secondary mb-6">Running and recent background jobs</p>
+          <JobsSection token={auth.token} />
         </>
       )}
 

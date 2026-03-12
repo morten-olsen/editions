@@ -1,5 +1,7 @@
 import crypto from "node:crypto";
 
+import { sql } from "kysely";
+
 import { DatabaseService } from "../database/database.ts";
 import { FocusesService } from "../focuses/focuses.ts";
 import {
@@ -646,7 +648,8 @@ class EditionsService {
           "articles.source_id",
           "articles.published_at",
           "articles.consumption_time_seconds",
-          "article_focuses.confidence",
+          "article_focuses.similarity",
+          "article_focuses.nli",
           "article_embeddings.embedding",
         ])
         .where("article_focuses.focus_id", "=", focusConfig.focusId)
@@ -656,7 +659,7 @@ class EditionsService {
 
       if (focusInfo.minConfidence > 0) {
         candidateQuery = candidateQuery.where(
-          "article_focuses.confidence",
+          sql`COALESCE(article_focuses.nli, article_focuses.similarity)`,
           ">=",
           focusInfo.minConfidence,
         );
@@ -698,6 +701,8 @@ class EditionsService {
         return {
           ...c,
           articleId: c.id,
+          similarity: c.similarity,
+          nli: c.nli,
           publishedAt: c.published_at,
           embedding: embeddingBuf
             ? new Float32Array(

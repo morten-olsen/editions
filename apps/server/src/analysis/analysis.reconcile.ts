@@ -1,62 +1,33 @@
+import { extract } from "@extractus/article-extractor";
+
 import type { Kysely } from "kysely";
 
-import type { DatabaseSchema } from "../database/database.types.ts";
+import type { DatabaseSchema, FocusSourceMode } from "../database/database.types.ts";
 
 // --- Dependency function types ---
 
-/**
- * Produces a normalised embedding vector for text.
- * Typically backed by a worker-thread running a sentence-transformer model.
- */
 type EmbedFn = (text: string) => Promise<Float32Array>;
 
-/**
- * Zero-shot NLI classification: given text and candidate labels,
- * returns scores sorted descending.
- */
 type ClassifyFn = (
   text: string,
   labels: string[],
 ) => Promise<Array<{ label: string; score: number }>>;
 
-// --- Domain types ---
+// --- Step abstraction ---
 
-type FocusTarget = {
-  focusId: string;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ReconcileStep<T = any> = {
   name: string;
-  description: string | null;
+  fetchBatch: () => AsyncGenerator<T[]>;
+  processBatch: (batch: T[]) => Promise<void>;
 };
 
-type PreparedArticle = {
-  id: string;
-  sourceId: string;
-  sourceType: string;
-  title: string;
-  content: string | null;
-  summary: string | null;
-  preparedText: string | null;
-};
+type ReconcileProgress = { phase: string; completed: number; total: number };
+type ProgressCallback = (progress: ReconcileProgress) => void;
 
-type ReconcileResult = {
-  articlesLoaded: number;
-  articlesEmbedded: number;
-  assignmentsCreated: number;
-};
-
-// --- Classifier strategy ---
-
-type ClassifyResult = {
-  focusId: string;
-  confidence: number;
-  method: string;
-};
-
-type ClassifierStrategy = {
-  classify: (params: {
-    text: string | null;
-    embedding: Float32Array | null;
-    focuses: FocusTarget[];
-  }) => Promise<ClassifyResult[]>;
+type ScopeFilter = {
+  sourceIds?: string[];
+  focusIds?: string[];
 };
 
 // --- Text preparation ---
@@ -88,6 +59,16 @@ const dotProduct = (a: Float32Array, b: Float32Array): number => {
 };
 
 // --- Data loading ---
+
+type PreparedArticle = {
+  id: string;
+  sourceId: string;
+  sourceType: string;
+  title: string;
+  content: string | null;
+  summary: string | null;
+  preparedText: string | null;
+};
 
 const loadArticles = async (
   db: Kysely<DatabaseSchema>,
@@ -150,359 +131,540 @@ const loadEmbeddings = async (
 
 // --- Persistence helpers ---
 
-const upsertAssignment = async (
+const WORDS_PER_MINUTE = 238;
+
+const upsertSimilarity = async (
   db: Kysely<DatabaseSchema>,
   articleId: string,
   focusId: string,
-  confidence: number,
-  method: string,
+  similarity: number,
 ): Promise<void> => {
-  const rounded = Math.round(confidence * 1000) / 1000;
+  const rounded = Math.round(similarity * 1000) / 1000;
   await db
     .insertInto("article_focuses")
     .values({
       article_id: articleId,
       focus_id: focusId,
-      confidence: rounded,
-      method,
+      similarity: rounded,
     })
     .onConflict((oc) =>
       oc.columns(["article_id", "focus_id"]).doUpdateSet({
-        confidence: rounded,
-        method,
+        similarity: rounded,
         assigned_at: new Date().toISOString(),
       }),
     )
     .execute();
 };
 
-// --- Reconciliation steps ---
-
-const ensureEmbeddings = async (
-  articles: PreparedArticle[],
+const upsertNli = async (
   db: Kysely<DatabaseSchema>,
-  embedFn: EmbedFn,
-  model: string,
-): Promise<number> => {
-  const embeddable = articles.filter((a) => a.preparedText);
-  if (embeddable.length === 0) return 0;
-
-  const ids = embeddable.map((a) => a.id);
-  const existing = await db
-    .selectFrom("article_embeddings")
-    .select("article_id")
-    .where("article_id", "in", ids)
-    .execute();
-
-  const hasEmbedding = new Set(existing.map((e) => e.article_id));
-  const missing = embeddable.filter((a) => !hasEmbedding.has(a.id));
-  if (missing.length === 0) return 0;
-
-  for (const article of missing) {
-    const embedding = await embedFn(article.preparedText!);
-    const buffer = Buffer.from(embedding.buffer);
-
-    await db
-      .insertInto("article_embeddings")
-      .values({
-        article_id: article.id,
-        embedding: buffer,
-        model,
-      })
-      .onConflict((oc) =>
-        oc.column("article_id").doUpdateSet({
-          embedding: buffer,
-          model,
-          created_at: new Date().toISOString(),
-        }),
-      )
-      .execute();
-  }
-
-  return missing.length;
-};
-
-const ensureFocusClassifications = async (
-  articles: PreparedArticle[],
-  db: Kysely<DatabaseSchema>,
-  strategy: ClassifierStrategy,
-  scopedFocusIds?: string[],
-  forceReclassify?: boolean,
-): Promise<number> => {
-  if (articles.length === 0) return 0;
-
-  const sourceIds = [...new Set(articles.map((a) => a.sourceId))];
-
-  // Load focus–source links (optionally scoped to specific focuses)
-  let linkQuery = db
-    .selectFrom("focus_sources")
-    .innerJoin("focuses", "focuses.id", "focus_sources.focus_id")
-    .select([
-      "focus_sources.focus_id",
-      "focus_sources.source_id",
-      "focus_sources.mode",
-      "focuses.name",
-      "focuses.description",
-    ])
-    .where("focus_sources.source_id", "in", sourceIds);
-
-  if (scopedFocusIds && scopedFocusIds.length > 0) {
-    linkQuery = linkQuery.where(
-      "focus_sources.focus_id",
-      "in",
-      scopedFocusIds,
-    );
-  }
-
-  const links = await linkQuery.execute();
-  if (links.length === 0) return 0;
-
-  // Index: source → its focus links
-  const linksBySource = new Map<string, typeof links>();
-  for (const link of links) {
-    const arr = linksBySource.get(link.source_id) ?? [];
-    arr.push(link);
-    linksBySource.set(link.source_id, arr);
-  }
-
-  // Load existing assignments so we skip articles already classified
-  // (unless forceReclassify is set, in which case we reclassify everything
-  // and upsert over existing values)
-  const articleIds = articles.map((a) => a.id);
-  const assigned = new Set<string>();
-
-  if (!forceReclassify) {
-    const allFocusIds = [...new Set(links.map((l) => l.focus_id))];
-
-    const existingRows = await db
-      .selectFrom("article_focuses")
-      .select(["article_id", "focus_id"])
-      .where("article_id", "in", articleIds)
-      .where("focus_id", "in", allFocusIds)
-      .execute();
-
-    for (const r of existingRows) {
-      assigned.add(`${r.article_id}:${r.focus_id}`);
-    }
-  }
-
-  // Pre-load embeddings for the whole batch (used by similarity / hybrid)
-  const embeddings = await loadEmbeddings(db, articleIds);
-
-  let totalAssigned = 0;
-
-  for (const article of articles) {
-    const sourceLinks = linksBySource.get(article.sourceId) ?? [];
-
-    // "always" mode: assign confidence 1.0, no classifier needed
-    const alwaysNeeded = sourceLinks.filter(
-      (l) =>
-        l.mode === "always" && !assigned.has(`${article.id}:${l.focus_id}`),
-    );
-    for (const link of alwaysNeeded) {
-      await upsertAssignment(db, article.id, link.focus_id, 1.0, "always");
-      totalAssigned++;
-    }
-
-    // "match" mode: classify against all missing focuses at once
-    const matchNeeded = sourceLinks.filter(
-      (l) =>
-        l.mode === "match" && !assigned.has(`${article.id}:${l.focus_id}`),
-    );
-    if (matchNeeded.length === 0 || !article.preparedText) continue;
-
-    const focusTargets: FocusTarget[] = matchNeeded.map((l) => ({
-      focusId: l.focus_id,
-      name: l.name,
-      description: l.description,
-    }));
-
-    const embedding = embeddings.get(article.id) ?? null;
-    const results = await strategy.classify({
-      text: article.preparedText,
-      embedding,
-      focuses: focusTargets,
-    });
-
-    for (const { focusId, confidence, method } of results) {
-      await upsertAssignment(db, article.id, focusId, confidence, method);
-      totalAssigned++;
-    }
-  }
-
-  return totalAssigned;
-};
-
-// --- Main reconcile function ---
-
-const reconcile = async (
-  articleIds: string[],
-  db: Kysely<DatabaseSchema>,
-  embedFn: EmbedFn,
-  strategy: ClassifierStrategy,
-  options: {
-    embeddingModel: string;
-    focusIds?: string[];
-    skipEmbedding?: boolean;
-    forceReclassify?: boolean;
-  },
-): Promise<ReconcileResult> => {
-  const articles = await loadArticles(db, articleIds);
-  if (articles.length === 0) {
-    return { articlesLoaded: 0, articlesEmbedded: 0, assignmentsCreated: 0 };
-  }
-
-  // Step 1: ensure every article with text has an embedding
-  let articlesEmbedded = 0;
-  if (!options.skipEmbedding) {
-    articlesEmbedded = await ensureEmbeddings(
-      articles,
-      db,
-      embedFn,
-      options.embeddingModel,
-    );
-  }
-
-  // Step 2: ensure every article is classified for every linked focus
-  const assignmentsCreated = await ensureFocusClassifications(
-    articles,
-    db,
-    strategy,
-    options.focusIds,
-    options.forceReclassify,
-  );
-
-  // Step 3: mark articles as analysed
-  const loadedIds = articles.map((a) => a.id);
+  articleId: string,
+  focusId: string,
+  nli: number,
+): Promise<void> => {
+  const rounded = Math.round(nli * 1000) / 1000;
   await db
-    .updateTable("articles")
-    .set({ analysed_at: new Date().toISOString() })
-    .where("id", "in", loadedIds)
+    .insertInto("article_focuses")
+    .values({
+      article_id: articleId,
+      focus_id: focusId,
+      nli: rounded,
+    })
+    .onConflict((oc) =>
+      oc.columns(["article_id", "focus_id"]).doUpdateSet({
+        nli: rounded,
+        assigned_at: new Date().toISOString(),
+      }),
+    )
     .execute();
+};
+
+// --- Step runner ---
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const runReconcileSteps = async (
+  steps: ReconcileStep<any>[],
+  onProgress?: ProgressCallback,
+): Promise<void> => {
+  for (const step of steps) {
+    let completed = 0;
+    for await (const batch of step.fetchBatch()) {
+      await step.processBatch(batch);
+      completed += batch.length;
+      onProgress?.({ phase: step.name, completed, total: 0 });
+    }
+  }
+};
+
+// --- Step factories ---
+
+type ExtractItem = {
+  id: string;
+  url: string;
+  title: string;
+  content: string | null;
+  sourceType: string;
+};
+
+const createExtractStep = (params: {
+  db: Kysely<DatabaseSchema>;
+  scopeFilter?: ScopeFilter;
+  batchSize?: number;
+}): ReconcileStep<ExtractItem> => {
+  const { db, scopeFilter, batchSize = 4 } = params;
 
   return {
-    articlesLoaded: articles.length,
-    articlesEmbedded,
-    assignmentsCreated,
+    name: "extract",
+    fetchBatch: async function* (): AsyncGenerator<ExtractItem[]> {
+      let lastId = "";
+      while (true) {
+        let q = db
+          .selectFrom("articles")
+          .innerJoin("sources", "sources.id", "articles.source_id")
+          .select([
+            "articles.id",
+            "articles.url",
+            "articles.title",
+            "articles.content",
+            "sources.type as source_type",
+          ])
+          .where("articles.extracted_at", "is", null)
+          .where("articles.url", "is not", null)
+          .where("articles.id", ">", lastId)
+          .orderBy("articles.id")
+          .limit(batchSize);
+
+        if (scopeFilter?.sourceIds && scopeFilter.sourceIds.length > 0) {
+          q = q.where("articles.source_id", "in", scopeFilter.sourceIds);
+        }
+
+        const rows = await q.execute();
+        if (rows.length === 0) break;
+
+        const items: ExtractItem[] = rows
+          .filter((r) => r.url !== null)
+          .map((r) => ({
+            id: r.id,
+            url: r.url!,
+            title: r.title,
+            content: r.content,
+            sourceType: r.source_type,
+          }));
+
+        if (items.length > 0) yield items;
+        lastId = rows[rows.length - 1]!.id;
+        if (rows.length < batchSize) break;
+      }
+    },
+    processBatch: async (batch: ExtractItem[]): Promise<void> => {
+      await Promise.all(
+        batch.map(async (item) => {
+          // Podcast episodes are handled at fetch time
+          if (item.sourceType === "podcast") return;
+
+          try {
+            const result = await extract(item.url);
+            if (result?.content) {
+              const wordCount = result.content.replace(/<[^>]*>/g, "").split(/\s+/).filter(Boolean).length;
+              const consumptionTimeSeconds = Math.ceil((wordCount / WORDS_PER_MINUTE) * 60);
+
+              const updates: Record<string, unknown> = {
+                content: result.content,
+                consumption_time_seconds: consumptionTimeSeconds,
+                image_url: result.image ?? undefined,
+                extracted_at: new Date().toISOString(),
+              };
+
+              if (result.title && item.title === item.url) {
+                updates.title = result.title;
+              }
+              if (result.author) updates.author = result.author;
+              if (result.description) updates.summary = result.description;
+
+              await db
+                .updateTable("articles")
+                .set(updates)
+                .where("id", "=", item.id)
+                .execute();
+            } else if (item.content) {
+              const wordCount = item.content.replace(/<[^>]*>/g, "").split(/\s+/).filter(Boolean).length;
+              const consumptionTimeSeconds = Math.ceil((wordCount / WORDS_PER_MINUTE) * 60);
+
+              await db
+                .updateTable("articles")
+                .set({
+                  consumption_time_seconds: consumptionTimeSeconds,
+                  extracted_at: new Date().toISOString(),
+                })
+                .where("id", "=", item.id)
+                .execute();
+            }
+          } catch {
+            if (item.content) {
+              const wordCount = item.content.replace(/<[^>]*>/g, "").split(/\s+/).filter(Boolean).length;
+              const consumptionTimeSeconds = Math.ceil((wordCount / WORDS_PER_MINUTE) * 60);
+
+              await db
+                .updateTable("articles")
+                .set({
+                  consumption_time_seconds: consumptionTimeSeconds,
+                  extracted_at: new Date().toISOString(),
+                })
+                .where("id", "=", item.id)
+                .execute();
+            }
+          }
+        }),
+      );
+    },
   };
 };
 
-// --- Classifier strategies ---
+type EmbedItem = {
+  id: string;
+  preparedText: string;
+};
 
-/**
- * Zero-shot NLI: classifies article text against focus labels.
- * Most accurate, but slowest (~0.5s per article per focus set).
- */
-const createNliStrategy = (classifyFn: ClassifyFn): ClassifierStrategy => ({
-  classify: async ({ text, focuses }) => {
-    if (!text || focuses.length === 0) return [];
+const createEmbedStep = (params: {
+  db: Kysely<DatabaseSchema>;
+  embedFn: EmbedFn;
+  embeddingModel: string;
+  scopeFilter?: ScopeFilter;
+  batchSize?: number;
+}): ReconcileStep<EmbedItem> => {
+  const { db, embedFn, embeddingModel, scopeFilter, batchSize = 32 } = params;
 
-    const labels = focuses.map((f) =>
-      f.description ? `${f.name}: ${f.description}` : f.name,
-    );
+  return {
+    name: "embed",
+    fetchBatch: async function* (): AsyncGenerator<EmbedItem[]> {
+      let lastId = "";
+      while (true) {
+        let q = db
+          .selectFrom("articles")
+          .innerJoin("sources", "sources.id", "articles.source_id")
+          .leftJoin("article_embeddings", "article_embeddings.article_id", "articles.id")
+          .select([
+            "articles.id",
+            "articles.title",
+            "articles.content",
+            "articles.summary",
+            "sources.type as source_type",
+          ])
+          .where("articles.extracted_at", "is not", null)
+          .where("article_embeddings.article_id", "is", null)
+          .where("articles.id", ">", lastId)
+          .orderBy("articles.id")
+          .limit(batchSize);
 
-    const results = await classifyFn(text, labels);
+        if (scopeFilter?.sourceIds && scopeFilter.sourceIds.length > 0) {
+          q = q.where("articles.source_id", "in", scopeFilter.sourceIds);
+        }
 
-    return results
-      .map(({ label, score }) => {
-        const idx = labels.indexOf(label);
-        if (idx === -1) return null;
-        return { focusId: focuses[idx]!.focusId, confidence: score, method: "nli" };
-      })
-      .filter((r): r is ClassifyResult => r !== null);
-  },
-});
+        const rows = await q.execute();
+        if (rows.length === 0) break;
 
-/**
- * Embedding similarity: cosine similarity between article and focus embeddings.
- * Very fast (~sub-ms per article) but less nuanced than NLI.
- * Requires articles to already have embeddings stored.
- * Focus label embeddings are cached for the lifetime of the strategy instance.
- */
-const createSimilarityStrategy = (embedFn: EmbedFn): ClassifierStrategy => {
+        const items: EmbedItem[] = [];
+        for (const row of rows) {
+          const text = prepareText({
+            title: row.title,
+            content: row.content,
+            summary: row.summary,
+            sourceType: row.source_type,
+          });
+          if (text) items.push({ id: row.id, preparedText: text });
+        }
+
+        if (items.length > 0) yield items;
+        lastId = rows[rows.length - 1]!.id;
+        if (rows.length < batchSize) break;
+      }
+    },
+    processBatch: async (batch: EmbedItem[]): Promise<void> => {
+      for (const item of batch) {
+        const embedding = await embedFn(item.preparedText);
+        const buffer = Buffer.from(embedding.buffer);
+
+        await db
+          .insertInto("article_embeddings")
+          .values({
+            article_id: item.id,
+            embedding: buffer,
+            model: embeddingModel,
+          })
+          .onConflict((oc) =>
+            oc.column("article_id").doUpdateSet({
+              embedding: buffer,
+              model: embeddingModel,
+              created_at: new Date().toISOString(),
+            }),
+          )
+          .execute();
+      }
+    },
+  };
+};
+
+type SimilarityItem = {
+  articleId: string;
+  focusId: string;
+  mode: FocusSourceMode;
+  focusLabel: string;
+  embedding: Float32Array | null;
+};
+
+const createSimilarityStep = (params: {
+  db: Kysely<DatabaseSchema>;
+  embedFn: EmbedFn;
+  scopeFilter?: ScopeFilter;
+  batchSize?: number;
+}): ReconcileStep<SimilarityItem> => {
+  const { db, embedFn, scopeFilter, batchSize = 100 } = params;
   const focusEmbeddingCache = new Map<string, Float32Array>();
 
   return {
-    classify: async ({ embedding, focuses }) => {
-      if (!embedding || focuses.length === 0) return [];
+    name: "similarity",
+    fetchBatch: async function* (): AsyncGenerator<SimilarityItem[]> {
+      // Find all (article, focus) pairs that need similarity scores
+      // This includes "always" mode pairs (similarity = 1.0) and "match" mode pairs
+      let offset = 0;
+      while (true) {
+        let q = db
+          .selectFrom("focus_sources")
+          .innerJoin("articles", "articles.source_id", "focus_sources.source_id")
+          .innerJoin("focuses", "focuses.id", "focus_sources.focus_id")
+          .leftJoin("article_focuses", (join) =>
+            join
+              .onRef("article_focuses.article_id", "=", "articles.id")
+              .onRef("article_focuses.focus_id", "=", "focus_sources.focus_id"),
+          )
+          .leftJoin("article_embeddings", "article_embeddings.article_id", "articles.id")
+          .select([
+            "articles.id as article_id",
+            "focus_sources.focus_id",
+            "focus_sources.mode",
+            "focuses.name",
+            "focuses.description",
+            "article_embeddings.embedding",
+          ])
+          .where("articles.extracted_at", "is not", null)
+          .where("article_focuses.similarity", "is", null)
+          .limit(batchSize)
+          .offset(offset);
 
-      const results: ClassifyResult[] = [];
-      for (const focus of focuses) {
-        const label = focus.description
-          ? `${focus.name}: ${focus.description}`
-          : focus.name;
-
-        let focusEmbedding = focusEmbeddingCache.get(label);
-        if (!focusEmbedding) {
-          focusEmbedding = await embedFn(label);
-          focusEmbeddingCache.set(label, focusEmbedding);
+        if (scopeFilter?.focusIds && scopeFilter.focusIds.length > 0) {
+          q = q.where("focus_sources.focus_id", "in", scopeFilter.focusIds);
+        }
+        if (scopeFilter?.sourceIds && scopeFilter.sourceIds.length > 0) {
+          q = q.where("focus_sources.source_id", "in", scopeFilter.sourceIds);
         }
 
-        results.push({
-          focusId: focus.focusId,
-          confidence: dotProduct(embedding, focusEmbedding),
-          method: "similarity",
-        });
-      }
+        const rows = await q.execute();
+        if (rows.length === 0) break;
 
-      return results;
+        const items: SimilarityItem[] = rows.map((row) => {
+          const embeddingBuf = row.embedding as Buffer | null;
+          return {
+            articleId: row.article_id,
+            focusId: row.focus_id,
+            mode: row.mode as FocusSourceMode,
+            focusLabel: row.description ? `${row.name}: ${row.description}` : row.name,
+            embedding: embeddingBuf
+              ? new Float32Array(embeddingBuf.buffer, embeddingBuf.byteOffset, embeddingBuf.byteLength / 4)
+              : null,
+          };
+        });
+
+        yield items;
+        // Don't increment offset because processed items won't match the WHERE clause next time
+        if (rows.length < batchSize) break;
+      }
+    },
+    processBatch: async (batch: SimilarityItem[]): Promise<void> => {
+      for (const item of batch) {
+        if (item.mode === "always") {
+          await upsertSimilarity(db, item.articleId, item.focusId, 1.0);
+          continue;
+        }
+
+        // "match" mode: compute cosine similarity
+        if (!item.embedding) continue;
+
+        let focusEmbedding = focusEmbeddingCache.get(item.focusLabel);
+        if (!focusEmbedding) {
+          focusEmbedding = await embedFn(item.focusLabel);
+          focusEmbeddingCache.set(item.focusLabel, focusEmbedding);
+        }
+
+        const sim = dotProduct(item.embedding, focusEmbedding);
+        await upsertSimilarity(db, item.articleId, item.focusId, sim);
+      }
     },
   };
 };
 
-/**
- * Hybrid: fast similarity pass, then NLI refinement for ambiguous results.
- *
- * Articles clearly above or below the ambiguous range keep their similarity
- * scores (fast). Articles in the ambiguous zone get a second NLI pass for
- * higher accuracy. This gives near-instant results for most articles while
- * preserving NLI quality where it matters.
- */
-const createHybridStrategy = (
-  embedFn: EmbedFn,
-  classifyFn: ClassifyFn,
-  ambiguousRange: [number, number] = [0.1, 0.65],
-): ClassifierStrategy => {
-  const similarity = createSimilarityStrategy(embedFn);
-  const nli = createNliStrategy(classifyFn);
+type NliItem = {
+  articleId: string;
+  focusId: string;
+  focusLabel: string;
+  preparedText: string;
+};
+
+const createNliStep = (params: {
+  db: Kysely<DatabaseSchema>;
+  classifyFn: ClassifyFn;
+  scopeFilter?: ScopeFilter;
+  batchSize?: number;
+}): ReconcileStep<NliItem> => {
+  const { db, classifyFn, scopeFilter, batchSize = 16 } = params;
 
   return {
-    classify: async (params) => {
-      // No embedding → fall back to NLI only
-      if (!params.embedding) {
-        return nli.classify(params);
+    name: "nli",
+    fetchBatch: async function* (): AsyncGenerator<NliItem[]> {
+      while (true) {
+        let q = db
+          .selectFrom("focus_sources")
+          .innerJoin("articles", "articles.source_id", "focus_sources.source_id")
+          .innerJoin("focuses", "focuses.id", "focus_sources.focus_id")
+          .innerJoin("sources", "sources.id", "articles.source_id")
+          .leftJoin("article_focuses", (join) =>
+            join
+              .onRef("article_focuses.article_id", "=", "articles.id")
+              .onRef("article_focuses.focus_id", "=", "focus_sources.focus_id"),
+          )
+          .select([
+            "articles.id as article_id",
+            "articles.title",
+            "articles.content",
+            "articles.summary",
+            "sources.type as source_type",
+            "focus_sources.focus_id",
+            "focus_sources.mode",
+            "focuses.name",
+            "focuses.description",
+          ])
+          .where("articles.extracted_at", "is not", null)
+          .where("focus_sources.mode", "=", "match")
+          // Only items that have a similarity score but no NLI score yet
+          .where("article_focuses.similarity", "is not", null)
+          .where("article_focuses.nli", "is", null)
+          .limit(batchSize);
+
+        if (scopeFilter?.focusIds && scopeFilter.focusIds.length > 0) {
+          q = q.where("focus_sources.focus_id", "in", scopeFilter.focusIds);
+        }
+        if (scopeFilter?.sourceIds && scopeFilter.sourceIds.length > 0) {
+          q = q.where("focus_sources.source_id", "in", scopeFilter.sourceIds);
+        }
+
+        const rows = await q.execute();
+        if (rows.length === 0) break;
+
+        const items: NliItem[] = [];
+        for (const row of rows) {
+          const text = prepareText({
+            title: row.title,
+            content: row.content,
+            summary: row.summary,
+            sourceType: row.source_type,
+          });
+          if (text) {
+            items.push({
+              articleId: row.article_id,
+              focusId: row.focus_id,
+              focusLabel: row.description ? `${row.name}: ${row.description}` : row.name,
+              preparedText: text,
+            });
+          }
+        }
+
+        if (items.length > 0) yield items;
+        if (rows.length < batchSize) break;
       }
-
-      // Phase 1: similarity (fast)
-      const simResults = await similarity.classify(params);
-
-      // No text available → can't refine with NLI
-      if (!params.text) return simResults;
-
-      // Phase 2: NLI for ambiguous results only
-      const [lo, hi] = ambiguousRange;
-      const ambiguousFocuses = params.focuses.filter((f) => {
-        const sim = simResults.find((r) => r.focusId === f.focusId);
-        return sim && sim.confidence >= lo && sim.confidence <= hi;
-      });
-
-      if (ambiguousFocuses.length === 0) return simResults;
-
-      const nliResults = await nli.classify({
-        ...params,
-        focuses: ambiguousFocuses,
-      });
-
-      // Merge: NLI results replace similarity results for ambiguous focuses
-      const nliMap = new Map(
-        nliResults.map((r) => [r.focusId, r]),
-      );
-      return simResults.map((r) => {
-        const refined = nliMap.get(r.focusId);
-        return refined ?? r;
-      });
+    },
+    processBatch: async (batch: NliItem[]): Promise<void> => {
+      for (const item of batch) {
+        const results = await classifyFn(item.preparedText, [item.focusLabel]);
+        const score = results[0]?.score ?? 0;
+        await upsertNli(db, item.articleId, item.focusId, score);
+      }
     },
   };
+};
+
+// --- Mark analysed step ---
+
+const createMarkAnalysedStep = (params: {
+  db: Kysely<DatabaseSchema>;
+  scopeFilter?: ScopeFilter;
+  batchSize?: number;
+}): ReconcileStep<{ id: string }> => {
+  const { db, scopeFilter, batchSize = 100 } = params;
+
+  return {
+    name: "mark_analysed",
+    fetchBatch: async function* (): AsyncGenerator<{ id: string }[]> {
+      while (true) {
+        let q = db
+          .selectFrom("articles")
+          .select("articles.id")
+          .where("articles.extracted_at", "is not", null)
+          .where("articles.analysed_at", "is", null)
+          .limit(batchSize);
+
+        if (scopeFilter?.sourceIds && scopeFilter.sourceIds.length > 0) {
+          q = q.where("articles.source_id", "in", scopeFilter.sourceIds);
+        }
+
+        const rows = await q.execute();
+        if (rows.length === 0) break;
+        yield rows.map((r) => ({ id: r.id }));
+        if (rows.length < batchSize) break;
+      }
+    },
+    processBatch: async (batch: { id: string }[]): Promise<void> => {
+      const ids = batch.map((b) => b.id);
+      await db
+        .updateTable("articles")
+        .set({ analysed_at: new Date().toISOString() })
+        .where("id", "in", ids)
+        .execute();
+    },
+  };
+};
+
+// --- Factory: build all steps based on config ---
+
+type ReconcileStepConfig = {
+  db: Kysely<DatabaseSchema>;
+  embedFn: EmbedFn;
+  classifyFn?: ClassifyFn;
+  embeddingModel: string;
+  classifier: "nli" | "similarity" | "hybrid";
+  scopeFilter?: ScopeFilter;
+  skipExtract?: boolean;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const createReconcileSteps = (params: ReconcileStepConfig): ReconcileStep<any>[] => {
+  const { db, embedFn, classifyFn, embeddingModel, classifier, scopeFilter, skipExtract } = params;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const steps: ReconcileStep<any>[] = [];
+
+  if (!skipExtract) {
+    steps.push(createExtractStep({ db, scopeFilter }));
+  }
+
+  steps.push(createEmbedStep({ db, embedFn, embeddingModel, scopeFilter }));
+  steps.push(createSimilarityStep({ db, embedFn, scopeFilter }));
+
+  if ((classifier === "nli" || classifier === "hybrid") && classifyFn) {
+    steps.push(createNliStep({ db, classifyFn, scopeFilter }));
+  }
+
+  steps.push(createMarkAnalysedStep({ db, scopeFilter }));
+
+  return steps;
 };
 
 // --- Exports ---
@@ -510,22 +672,18 @@ const createHybridStrategy = (
 export type {
   EmbedFn,
   ClassifyFn,
-  FocusTarget,
-  PreparedArticle,
-  ClassifyResult,
-  ClassifierStrategy,
-  ReconcileResult,
+  ReconcileStep,
+  ReconcileProgress,
+  ProgressCallback,
+  ScopeFilter,
+  ReconcileStepConfig,
 };
 export {
-  reconcile,
-  prepareText,
-  stripHtml,
-  dotProduct,
-  loadArticles,
-  loadEmbeddings,
-  ensureEmbeddings,
-  ensureFocusClassifications,
-  createNliStrategy,
-  createSimilarityStrategy,
-  createHybridStrategy,
+  runReconcileSteps,
+  createReconcileSteps,
+  createExtractStep,
+  createEmbedStep,
+  createSimilarityStep,
+  createNliStep,
+  createMarkAnalysedStep,
 };

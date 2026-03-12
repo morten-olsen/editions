@@ -311,6 +311,6 @@ describe("POST /api/sources/:id/fetch", () => {
 
     expect(res.statusCode).toBe(202);
     const body = JSON.parse(res.body);
-    expect(body.taskId).toBeDefined();
+    expect(body.jobId).toBeDefined();
   });
 });

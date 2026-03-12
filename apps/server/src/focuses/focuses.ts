@@ -1,16 +1,18 @@
 import crypto from "node:crypto";
 
+import { sql } from "kysely";
+
 import { DatabaseService } from "../database/database.ts";
-import { TaskService } from "../tasks/tasks.ts";
+import { JobService } from "../jobs/jobs.ts";
 import {
   VotesService,
   mergeVoteContexts,
   rankArticles,
 } from "../votes/votes.ts";
-import { computeScore } from "../votes/votes.scoring.ts";
+import { computeScore, effectiveConfidence } from "../votes/votes.scoring.ts";
 
 import type { FocusSourceMode } from "../database/database.types.ts";
-import type { ReconcileFocusPayload } from "../analysis/analysis.ts";
+import type { ReconcileFocusPayload } from "../jobs/jobs.handlers.ts";
 import type { ScoringCandidate } from "../votes/votes.ts";
 import type { Services } from "../services/services.ts";
 
@@ -83,8 +85,11 @@ class FocusesService {
 
   #enqueueReconcileFocus = (focusId: string, userId?: string, forceReclassify?: boolean): void => {
     this.#services
-      .get(TaskService)
-      .enqueue<ReconcileFocusPayload>("reconcile_focus", { focusId, forceReclassify }, { userId });
+      .get(JobService)
+      .enqueue<ReconcileFocusPayload>("reconcile_focus", { focusId, forceReclassify }, {
+        userId,
+        affects: { focusIds: [focusId] },
+      });
   };
 
   list = async (userId: string): Promise<Focus[]> => {
@@ -360,9 +365,13 @@ class FocusesService {
         .where("article_focuses.focus_id", "=", focusId)
         .where("sources.user_id", "=", userId);
 
-      // Apply confidence threshold
+      // Apply confidence threshold using COALESCE(nli, similarity)
       if (focus.minConfidence > 0) {
-        q = q.where("article_focuses.confidence", ">=", focus.minConfidence);
+        q = q.where(
+          sql`COALESCE(article_focuses.nli, article_focuses.similarity)`,
+          ">=",
+          focus.minConfidence,
+        );
       }
 
       // Date range filter
@@ -416,7 +425,8 @@ class FocusesService {
           "articles.consumption_time_seconds",
           "articles.read_at",
           "articles.created_at",
-          "article_focuses.confidence",
+          "article_focuses.similarity",
+          "article_focuses.nli",
           "sources.name as source_name",
           "sources.type as source_type",
         ])
@@ -437,6 +447,7 @@ class FocusesService {
       return {
         articles: rows.map((row) => {
           const votes = votesMap.get(row.id);
+          const confidence = row.nli ?? row.similarity ?? 0;
           return {
             id: row.id,
             sourceId: row.source_id,
@@ -450,8 +461,8 @@ class FocusesService {
             consumptionTimeSeconds: row.consumption_time_seconds,
             readAt: row.read_at,
             createdAt: row.created_at,
-            confidence: row.confidence,
-            score: row.confidence, // no vote scoring in recent mode
+            confidence,
+            score: confidence, // no vote scoring in recent mode
             vote: votes?.focus ?? null,
             globalVote: votes?.global ?? null,
             sourceName: row.source_name,
@@ -484,7 +495,8 @@ class FocusesService {
         "articles.consumption_time_seconds",
         "articles.read_at",
         "articles.created_at",
-        "article_focuses.confidence",
+        "article_focuses.similarity",
+        "article_focuses.nli",
         "article_embeddings.embedding",
         "sources.name as source_name",
         "sources.type as source_type",
@@ -519,7 +531,8 @@ class FocusesService {
 
       return {
         articleId: row.id,
-        confidence: row.confidence,
+        similarity: row.similarity,
+        nli: row.nli,
         publishedAt: row.published_at,
         embedding,
         sourceId: row.source_id,
@@ -572,7 +585,7 @@ class FocusesService {
           consumptionTimeSeconds: c.consumptionTimeSeconds,
           readAt: c.readAt,
           createdAt: c.createdAt,
-          confidence: c.confidence,
+          confidence: effectiveConfidence(c),
           score: computeScore(c, voteContext, userWeights.focus) * (sourceWeights.get(c.sourceId) ?? 1),
           vote: votes?.focus ?? null,
           globalVote: votes?.global ?? null,

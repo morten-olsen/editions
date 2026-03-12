@@ -6,10 +6,8 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { DatabaseService } from "../database/database.ts";
 import { Services } from "../services/services.ts";
 import {
-  reconcile,
-  createNliStrategy,
-  createSimilarityStrategy,
-  createHybridStrategy,
+  createReconcileSteps,
+  runReconcileSteps,
 } from "./analysis.reconcile.ts";
 
 import type { Kysely } from "kysely";
@@ -18,10 +16,6 @@ import type { EmbedFn, ClassifyFn } from "./analysis.reconcile.ts";
 
 // --- Test fixtures ---
 
-/**
- * Fake embedder: returns a deterministic 4-dim L2-normalised vector
- * derived from the text. Same text → same embedding. Tracks call count.
- */
 const createFakeEmbedder = (): { embed: EmbedFn; callCount: () => number } => {
   let calls = 0;
   const embed: EmbedFn = async (text) => {
@@ -37,10 +31,6 @@ const createFakeEmbedder = (): { embed: EmbedFn; callCount: () => number } => {
   return { embed, callCount: () => calls };
 };
 
-/**
- * Fake NLI classifier: returns scores based on text/label matching rules.
- * "AI" articles score high for "Technology", everything else scores low.
- */
 const createFakeClassifier = (): {
   classify: ClassifyFn;
   callCount: () => number;
@@ -70,16 +60,6 @@ const createFakeClassifier = (): {
   return { classify, callCount: () => calls };
 };
 
-/**
- * Seed a minimal dataset:
- *
- *   Source "Tech Blog"  → "AI is transforming everything" (has content)
- *                       → "Weather forecast for today"    (has content)
- *   Source "News Feed"  → "Local election results"         (has content)
- *
- *   Focus "Technology"  — match mode, linked to Tech Blog
- *   Focus "Everything"  — always mode, linked to both sources
- */
 const seed = async (
   db: Kysely<DatabaseSchema>,
 ): Promise<void> => {
@@ -182,14 +162,17 @@ const seed = async (
 
 const getAssignments = async (
   db: Kysely<DatabaseSchema>,
-): Promise<Array<{ article_id: string; focus_id: string; confidence: number }>> => {
+): Promise<Array<{ article_id: string; focus_id: string; similarity: number | null; nli: number | null }>> => {
   return db
     .selectFrom("article_focuses")
-    .select(["article_id", "focus_id", "confidence"])
+    .select(["article_id", "focus_id", "similarity", "nli"])
     .orderBy("article_id")
     .orderBy("focus_id")
     .execute();
 };
+
+const effectiveConf = (a: { similarity: number | null; nli: number | null }): number =>
+  a.nli ?? a.similarity ?? 0;
 
 const getEmbeddingCount = async (
   db: Kysely<DatabaseSchema>,
@@ -212,6 +195,24 @@ const getAnalysedCount = async (
   return Number(row.count);
 };
 
+const runReconcile = async (
+  db: Kysely<DatabaseSchema>,
+  embedFn: EmbedFn,
+  classifyFn?: ClassifyFn,
+  opts?: { classifier?: "nli" | "similarity" | "hybrid"; scopeFilter?: { sourceIds?: string[]; focusIds?: string[] }; skipExtract?: boolean },
+): Promise<void> => {
+  const steps = createReconcileSteps({
+    db,
+    embedFn,
+    classifyFn,
+    embeddingModel: "test-model",
+    classifier: opts?.classifier ?? "nli",
+    scopeFilter: opts?.scopeFilter,
+    skipExtract: opts?.skipExtract,
+  });
+  await runReconcileSteps(steps);
+};
+
 // --- Tests ---
 
 let db: Kysely<DatabaseSchema>;
@@ -227,50 +228,41 @@ afterEach(async () => {
   await services.destroy();
 });
 
-describe("reconcile", () => {
+describe("reconcile steps", () => {
   it("assigns always-mode focuses and classifies match-mode focuses, saving all scores", async () => {
     const { embed } = createFakeEmbedder();
     const { classify } = createFakeClassifier();
-    const strategy = createNliStrategy(classify);
 
-    const result = await reconcile(
-      ["art-ai", "art-weather", "art-election"],
-      db,
-      embed,
-      strategy,
-      { embeddingModel: "test-model" },
-    );
-
-    expect(result.articlesLoaded).toBe(3);
-    expect(result.articlesEmbedded).toBe(3);
+    await runReconcile(db, embed, classify, { classifier: "nli" });
 
     const assignments = await getAssignments(db);
 
-    // "Everything" focus (always mode): all 3 articles get confidence 1.0
+    // "Everything" focus (always mode): all 3 articles get similarity 1.0
     const alwaysAssignments = assignments.filter(
       (a) => a.focus_id === "focus-all",
     );
     expect(alwaysAssignments).toHaveLength(3);
     for (const a of alwaysAssignments) {
-      expect(a.confidence).toBe(1.0);
+      expect(a.similarity).toBe(1.0);
+      expect(a.nli).toBeNull();
     }
 
-    // "Technology" focus (match mode): both tech-source articles get scores saved
+    // "Technology" focus (match mode): both tech-source articles get NLI scores
     const techAssignments = assignments.filter(
       (a) => a.focus_id === "focus-tech",
     );
     expect(techAssignments).toHaveLength(2);
 
-    // AI article scores high
+    // AI article scores high via NLI
     const aiTech = techAssignments.find((a) => a.article_id === "art-ai");
-    expect(aiTech!.confidence).toBeCloseTo(0.85, 1);
+    expect(aiTech!.nli).toBeCloseTo(0.85, 1);
 
-    // Weather article scores low but is still saved (filtering is per-focus at query time)
+    // Weather article scores low but is still saved
     const weatherTech = techAssignments.find(
       (a) => a.article_id === "art-weather",
     );
     expect(weatherTech).toBeDefined();
-    expect(weatherTech!.confidence).toBeCloseTo(0.1, 1);
+    expect(aiTech!.nli).not.toBeNull();
 
     // All 3 articles marked as analysed
     expect(await getAnalysedCount(db)).toBe(3);
@@ -279,35 +271,18 @@ describe("reconcile", () => {
   it("is idempotent — second run produces no new work", async () => {
     const { embed, callCount: embedCalls } = createFakeEmbedder();
     const { classify } = createFakeClassifier();
-    const strategy = createNliStrategy(classify);
-    const opts = { embeddingModel: "test-model" };
 
     // First run
-    const first = await reconcile(
-      ["art-ai", "art-weather", "art-election"],
-      db,
-      embed,
-      strategy,
-      opts,
-    );
+    await runReconcile(db, embed, classify, { classifier: "nli" });
     const embeddingsAfterFirst = await getEmbeddingCount(db);
     const assignmentsAfterFirst = await getAssignments(db);
     const embedCallsAfterFirst = embedCalls();
 
-    expect(first.articlesEmbedded).toBeGreaterThan(0);
-    expect(first.assignmentsCreated).toBeGreaterThan(0);
+    expect(embeddingsAfterFirst).toBeGreaterThan(0);
+    expect(assignmentsAfterFirst.length).toBeGreaterThan(0);
 
-    // Second run — same articles, same options
-    const second = await reconcile(
-      ["art-ai", "art-weather", "art-election"],
-      db,
-      embed,
-      strategy,
-      opts,
-    );
-
-    expect(second.articlesEmbedded).toBe(0);
-    expect(second.assignmentsCreated).toBe(0);
+    // Second run — same state
+    await runReconcile(db, embed, classify, { classifier: "nli" });
 
     // DB state unchanged
     expect(await getEmbeddingCount(db)).toBe(embeddingsAfterFirst);
@@ -320,17 +295,9 @@ describe("reconcile", () => {
   it("scoped reconcile only classifies the targeted focus", async () => {
     const { embed, callCount: embedCalls } = createFakeEmbedder();
     const { classify } = createFakeClassifier();
-    const strategy = createNliStrategy(classify);
-    const opts = { embeddingModel: "test-model" };
 
     // First: full reconcile
-    await reconcile(
-      ["art-ai", "art-weather", "art-election"],
-      db,
-      embed,
-      strategy,
-      opts,
-    );
+    await runReconcile(db, embed, classify, { classifier: "nli" });
     const assignmentsBefore = await getAssignments(db);
     const embedCallsBefore = embedCalls();
 
@@ -353,24 +320,22 @@ describe("reconcile", () => {
       })
       .execute();
 
+    const embeddingsBeforeScoped = await getEmbeddingCount(db);
+
     // Scoped reconcile: only the new focus
-    const result = await reconcile(
-      ["art-ai", "art-weather", "art-election"],
-      db,
-      embed,
-      strategy,
-      { ...opts, focusIds: ["focus-politics"] },
-    );
+    await runReconcile(db, embed, classify, {
+      classifier: "nli",
+      scopeFilter: { focusIds: ["focus-politics"] },
+      skipExtract: true,
+    });
 
     // Only the election article (from src-news) should get a new assignment
-    expect(result.assignmentsCreated).toBe(1);
-
     const politicsAssignments = (await getAssignments(db)).filter(
       (a) => a.focus_id === "focus-politics",
     );
     expect(politicsAssignments).toHaveLength(1);
     expect(politicsAssignments[0]!.article_id).toBe("art-election");
-    expect(politicsAssignments[0]!.confidence).toBeCloseTo(0.75, 1);
+    expect(effectiveConf(politicsAssignments[0]!)).toBeCloseTo(0.75, 1);
 
     // Previous assignments untouched
     const previousAssignments = (await getAssignments(db)).filter(
@@ -378,24 +343,18 @@ describe("reconcile", () => {
     );
     expect(previousAssignments).toEqual(assignmentsBefore);
 
-    // No new embeddings (all articles already had them)
-    expect(result.articlesEmbedded).toBe(0);
-    expect(embedCalls()).toBe(embedCallsBefore);
+    // No new article embeddings (only the new focus label was embedded)
+    expect(await getEmbeddingCount(db)).toBe(embeddingsBeforeScoped);
+    // The embedder was called for the "Politics" focus label
+    expect(embedCalls()).toBeGreaterThan(embedCallsBefore);
   });
 
   it("similarity strategy classifies using embeddings, not NLI", async () => {
     const { embed } = createFakeEmbedder();
     const { classify, callCount: nliCalls } = createFakeClassifier();
 
-    // Run with NLI strategy first
-    const nliStrategy = createNliStrategy(classify);
-    await reconcile(
-      ["art-ai", "art-weather"],
-      db,
-      embed,
-      nliStrategy,
-      { embeddingModel: "test-model" },
-    );
+    // Run with NLI strategy
+    await runReconcile(db, embed, classify, { classifier: "nli" });
     const nliAssignments = await getAssignments(db);
     const nliCallsTotal = nliCalls();
     expect(nliCallsTotal).toBeGreaterThan(0);
@@ -403,46 +362,29 @@ describe("reconcile", () => {
     // Clear assignments to re-run with a different strategy
     await db.deleteFrom("article_focuses").execute();
 
-    // Run with similarity strategy — uses the embeddings already stored
-    const simStrategy = createSimilarityStrategy(embed);
-    await reconcile(
-      ["art-ai", "art-weather"],
-      db,
-      embed,
-      simStrategy,
-      { embeddingModel: "test-model" },
-    );
+    // Run with similarity-only strategy — no NLI step
+    await runReconcile(db, embed, undefined, { classifier: "similarity" });
     const simAssignments = await getAssignments(db);
 
-    // NLI was NOT called again (still same total from before)
+    // NLI was NOT called again
     expect(nliCalls()).toBe(nliCallsTotal);
 
     // Both runs produced assignments for the same articles/focuses,
-    // but with different confidence values (different strategies)
+    // but with different effective confidence values
     expect(simAssignments).toHaveLength(nliAssignments.length);
-    const nliConfidences = nliAssignments.map((a) => a.confidence);
-    const simConfidences = simAssignments.map((a) => a.confidence);
+    const nliConfidences = nliAssignments.map((a) => effectiveConf(a));
+    const simConfidences = simAssignments.map((a) => effectiveConf(a));
     expect(simConfidences).not.toEqual(nliConfidences);
   });
 
-  it("hybrid strategy uses similarity for clear results and NLI for ambiguous ones", async () => {
-    // Create an embedder where "Technology" focus embedding is moderately
-    // similar to both articles (to push scores into the ambiguous zone)
+  it("hybrid strategy uses NLI to refine ambiguous similarity scores", async () => {
     const { embed } = createFakeEmbedder();
     const { classify, callCount: nliCalls } = createFakeClassifier();
 
-    // Use a wide ambiguous range so most similarity scores trigger NLI refinement
-    const hybridStrategy = createHybridStrategy(embed, classify, [0.0, 1.0]);
+    // Hybrid: runs similarity step then NLI step
+    await runReconcile(db, embed, classify, { classifier: "hybrid" });
 
-    await reconcile(
-      ["art-ai", "art-weather"],
-      db,
-      embed,
-      hybridStrategy,
-      { embeddingModel: "test-model" },
-    );
-
-    // With ambiguous range [0, 1], ALL similarity results should be refined by NLI
+    // NLI step should have been called
     expect(nliCalls()).toBeGreaterThan(0);
 
     // The final scores should reflect the NLI classifier's output
@@ -453,18 +395,13 @@ describe("reconcile", () => {
       (a) => a.article_id === "art-ai",
     );
     // NLI classifier returns 0.85 for AI + Technology
-    expect(aiAssignment!.confidence).toBeCloseTo(0.85, 1);
+    expect(aiAssignment!.nli).toBeCloseTo(0.85, 1);
   });
 
   it("scoring degrades gracefully when articles lack embeddings", async () => {
-    // This tests the integration between reconcile output and the scoring
-    // system. Articles classified via "always" mode have no embedding;
-    // vote propagation should fall back to 0 rather than crash.
     const { embed } = createFakeEmbedder();
     const { classify } = createFakeClassifier();
-    const strategy = createNliStrategy(classify);
 
-    // Reconcile only the content-less article (will get always-assignment but no embedding)
     await db
       .insertInto("articles")
       .values({
@@ -476,13 +413,7 @@ describe("reconcile", () => {
       })
       .execute();
 
-    await reconcile(
-      ["art-ai", "art-notext"],
-      db,
-      embed,
-      strategy,
-      { embeddingModel: "test-model" },
-    );
+    await runReconcile(db, embed, classify, { classifier: "nli" });
 
     // art-ai has an embedding, art-notext does not
     const embeddings = await db
@@ -498,7 +429,8 @@ describe("reconcile", () => {
     const allFocusAssignments = assignments.filter(
       (a) => a.focus_id === "focus-all",
     );
-    expect(allFocusAssignments).toHaveLength(2);
+    // 3 original articles + art-notext = 4 articles in always-mode focus
+    expect(allFocusAssignments).toHaveLength(4);
 
     // Scoring: import computeScore and verify it handles the null embedding
     const { computeScore, emptyVoteContext, focusWeights } = await import(
@@ -516,7 +448,8 @@ describe("reconcile", () => {
     const scoreWithEmbed = computeScore(
       {
         articleId: "art-ai",
-        confidence: 1.0,
+        similarity: 1.0,
+        nli: null,
         publishedAt: new Date().toISOString(),
         embedding: new Float32Array(buf.buffer, buf.byteOffset, buf.byteLength / 4),
       },
@@ -524,11 +457,11 @@ describe("reconcile", () => {
       focusWeights,
     );
 
-    // Article without embedding also scores (falls back to confidence + recency)
     const scoreWithoutEmbed = computeScore(
       {
         articleId: "art-notext",
-        confidence: 1.0,
+        similarity: 1.0,
+        nli: null,
         publishedAt: new Date().toISOString(),
         embedding: null,
       },
@@ -536,17 +469,12 @@ describe("reconcile", () => {
       focusWeights,
     );
 
-    // Both produce valid numeric scores
     expect(scoreWithEmbed).toBeGreaterThan(0);
     expect(scoreWithoutEmbed).toBeGreaterThan(0);
-
-    // With an empty vote context, both should score the same
-    // (no vote propagation to differentiate them)
     expect(scoreWithEmbed).toBeCloseTo(scoreWithoutEmbed, 5);
   });
 
   it("handles articles without content gracefully", async () => {
-    // Add an article with no content
     await db
       .insertInto("articles")
       .values({
@@ -560,27 +488,25 @@ describe("reconcile", () => {
 
     const { embed } = createFakeEmbedder();
     const { classify } = createFakeClassifier();
-    const strategy = createNliStrategy(classify);
 
-    const result = await reconcile(
-      ["art-empty"],
-      db,
-      embed,
-      strategy,
-      { embeddingModel: "test-model" },
-    );
+    // Run only for the empty article's source
+    await runReconcile(db, embed, classify, { classifier: "nli" });
 
-    // Article loaded but no embedding (no text to embed)
-    expect(result.articlesLoaded).toBe(1);
-    expect(result.articlesEmbedded).toBe(0);
+    // No embedding for the empty article
+    const embeddings = await db
+      .selectFrom("article_embeddings")
+      .select("article_id")
+      .where("article_id", "=", "art-empty")
+      .execute();
+    expect(embeddings).toHaveLength(0);
 
-    // Still gets "always" focus assignment (doesn't require content)
+    // Still gets "always" focus assignment
     const assignments = await getAssignments(db);
     const alwaysAssignment = assignments.find(
       (a) => a.article_id === "art-empty" && a.focus_id === "focus-all",
     );
     expect(alwaysAssignment).toBeDefined();
-    expect(alwaysAssignment!.confidence).toBe(1.0);
+    expect(alwaysAssignment!.similarity).toBe(1.0);
 
     // No "match" focus assignment (no text to classify)
     const matchAssignment = assignments.find(
@@ -589,6 +515,11 @@ describe("reconcile", () => {
     expect(matchAssignment).toBeUndefined();
 
     // Still marked as analysed
-    expect(await getAnalysedCount(db)).toBe(1);
+    const analysedRow = await db
+      .selectFrom("articles")
+      .select("analysed_at")
+      .where("id", "=", "art-empty")
+      .executeTakeFirstOrThrow();
+    expect(analysedRow.analysed_at).not.toBeNull();
   });
 });

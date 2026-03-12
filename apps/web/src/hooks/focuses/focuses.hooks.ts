@@ -91,10 +91,11 @@ type SortMode = "top" | "recent";
 type TimeWindow = "today" | "week" | "all";
 type ReadStatus = "all" | "unread" | "read";
 
-type TaskEntry = {
+type JobEntry = {
   id: string;
   type: string;
   status: "pending" | "running" | "completed" | "failed";
+  affects: { sourceIds: string[]; focusIds: string[] };
 };
 
 type VoteOverride = { vote?: VoteValue; globalVote?: VoteValue };
@@ -332,11 +333,12 @@ const useCreateFocus = (): UseCreateFocusResult => {
 
 const PAGE_SIZE = 20;
 
-const ANALYSIS_TASK_TYPES = new Set([
+const ANALYSIS_JOB_TYPES = new Set([
   "reconcile_focus",
   "reanalyse_source",
   "reanalyse_all",
-  "analyse_article",
+  "refresh_source",
+  "extract_and_analyse",
 ]);
 
 const windowToRange = (window: TimeWindow): { from?: string; to?: string } => {
@@ -459,15 +461,17 @@ const useFocusDetail = (focusId: string): UseFocusDetailResult => {
     !loadingArticles && (!articlesPage || articlesPage.articles.length === 0);
 
   const { data: analysisRunning } = useQuery({
-    queryKey: ["tasks", "analysis-running"],
+    queryKey: ["jobs", "analysis-running"],
     queryFn: async (): Promise<boolean> => {
-      const { data } = await client.GET("/api/tasks", { headers });
-      if (!data) return false;
-      const tasks = (data as { tasks: TaskEntry[] }).tasks;
-      return tasks.some(
-        (t) =>
-          ANALYSIS_TASK_TYPES.has(t.type) &&
-          (t.status === "pending" || t.status === "running"),
+      const res = await fetch("/api/jobs?active=true", {
+        headers: headers as Record<string, string>,
+      });
+      if (!res.ok) return false;
+      const body = (await res.json()) as { jobs: JobEntry[] };
+      return body.jobs.some(
+        (j) =>
+          ANALYSIS_JOB_TYPES.has(j.type) &&
+          (j.status === "pending" || j.status === "running"),
       );
     },
     enabled: !!headers && isEmpty,

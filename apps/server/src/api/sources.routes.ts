@@ -2,10 +2,10 @@ import { z } from "zod/v4";
 
 import { AnalysisService } from "../analysis/analysis.ts";
 import { createAuthHook } from "../auth/auth.middleware.ts";
+import { JobService } from "../jobs/jobs.ts";
 import { SourceNotFoundError, SourcesService } from "../sources/sources.ts";
-import { TaskService } from "../tasks/tasks.ts";
 
-import type { FetchSourcePayload } from "../sources/sources.fetch.ts";
+import type { RefreshSourcePayload } from "../jobs/jobs.handlers.ts";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import type { Services } from "../services/services.ts";
 
@@ -97,25 +97,9 @@ const paginationQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 
-const taskResponseSchema = z.object({
-  taskId: z.string(),
+const jobResponseSchema = z.object({
+  jobId: z.string(),
   status: z.string(),
-});
-
-const taskStatusSchema = z.object({
-  id: z.string(),
-  type: z.string(),
-  status: z.string(),
-  result: z.unknown(),
-  error: z.string().nullable(),
-  createdAt: z.number(),
-  startedAt: z.number().nullable(),
-  completedAt: z.number().nullable(),
-});
-
-const taskIdParamSchema = z.object({
-  id: z.string(),
-  taskId: z.string(),
 });
 
 // --- Routes ---
@@ -347,7 +331,7 @@ const createSourcesRoutes = (services: Services): FastifyPluginAsyncZod =>
         security: [{ bearerAuth: [] }],
         params: idParamSchema,
         response: {
-          202: taskResponseSchema,
+          202: jobResponseSchema,
           400: errorResponseSchema,
           404: errorResponseSchema,
         },
@@ -368,13 +352,13 @@ const createSourcesRoutes = (services: Services): FastifyPluginAsyncZod =>
           return reply.code(400).send({ error: "Cannot fetch a bookmarks source" });
         }
 
-        const taskService = services.get(TaskService);
-        const task = taskService.enqueue<FetchSourcePayload>("fetch_source", {
+        const jobService = services.get(JobService);
+        const job = jobService.enqueue<RefreshSourcePayload>("refresh_source", {
           sourceId: req.params.id,
           userId: req.user.sub,
-        }, { userId: req.user.sub });
+        }, { userId: req.user.sub, affects: { sourceIds: [req.params.id] } });
 
-        return reply.code(202).send({ taskId: task.id, status: task.status });
+        return reply.code(202).send({ jobId: job.id, status: job.status });
       },
     });
 
@@ -426,37 +410,6 @@ const createSourcesRoutes = (services: Services): FastifyPluginAsyncZod =>
       },
     });
 
-    // Get task status
-    fastify.route({
-      method: "GET",
-      url: "/sources/:id/tasks/:taskId",
-      onRequest: authenticate,
-      schema: {
-        security: [{ bearerAuth: [] }],
-        params: taskIdParamSchema,
-        response: {
-          200: taskStatusSchema,
-          404: errorResponseSchema,
-        },
-      },
-      handler: async (req, reply) => {
-        const taskService = services.get(TaskService);
-        const task = taskService.get(req.params.taskId);
-        if (!task) {
-          return reply.code(404).send({ error: "Task not found" });
-        }
-        return {
-          id: task.id,
-          type: task.type,
-          status: task.status,
-          result: task.result,
-          error: task.error,
-          createdAt: task.createdAt,
-          startedAt: task.startedAt,
-          completedAt: task.completedAt,
-        };
-      },
-    });
   };
 
 export { createSourcesRoutes };

@@ -207,7 +207,8 @@ const createFeedRoutes = (services: Services): FastifyPluginAsyncZod =>
 
           return {
             articleId: row.id,
-            confidence: 1, // no focus confidence for global feed
+            similarity: 1, // no focus confidence for global feed
+            nli: null,
             publishedAt: row.published_at,
             embedding,
             sourceId: row.source_id,

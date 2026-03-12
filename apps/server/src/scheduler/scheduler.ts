@@ -2,10 +2,10 @@ import { Cron } from "croner";
 
 import { DatabaseService } from "../database/database.ts";
 import { EditionsService } from "../editions/editions.ts";
+import { JobService } from "../jobs/jobs.ts";
 import { destroySymbol } from "../services/services.ts";
-import { TaskService } from "../tasks/tasks.ts";
 
-import type { FetchSourcePayload } from "../sources/sources.fetch.ts";
+import type { RefreshSourcePayload } from "../jobs/jobs.handlers.ts";
 import type { Services } from "../services/services.ts";
 
 // --- Types ---
@@ -68,7 +68,7 @@ class SchedulerService {
 
   #fetchDueSources = async (): Promise<void> => {
     const db = await this.#services.get(DatabaseService).getInstance();
-    const taskService = this.#services.get(TaskService);
+    const jobService = this.#services.get(JobService);
 
     const cutoff = new Date(
       Date.now() - this.#config.fetchIntervalMinutes * 60 * 1000,
@@ -88,10 +88,10 @@ class SchedulerService {
       .execute();
 
     for (const source of dueSources) {
-      taskService.enqueue<FetchSourcePayload>(
-        "fetch_source",
+      jobService.enqueue<RefreshSourcePayload>(
+        "refresh_source",
         { sourceId: source.id, userId: source.user_id },
-        { userId: source.user_id },
+        { userId: source.user_id, affects: { sourceIds: [source.id] } },
       );
     }
 

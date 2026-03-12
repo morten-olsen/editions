@@ -8,8 +8,15 @@ import { DatabaseService } from '../database/database.ts';
 import { Services } from '../services/services.ts';
 import type { DatabaseSchema } from '../database/database.types.ts';
 
-import { createReconcileSteps, runReconcileSteps } from './analysis.reconcile.ts';
-import type { EmbedFn, ClassifyFn } from './analysis.reconcile.ts';
+import { runReconcileSteps } from './reconciler.runner.ts';
+import type { ReconcileStep } from './reconciler.runner.ts';
+import { createEmbedStep } from './reconciler.embed.ts';
+import type { EmbedFn } from './reconciler.embed.ts';
+import { createSimilarityStep } from './reconciler.similarity.ts';
+import { createNliStep } from './reconciler.nli.ts';
+import type { ClassifyFn } from './reconciler.nli.ts';
+import { createMarkAnalysedStep } from './reconciler.mark-analysed.ts';
+import type { ScopeFilter } from './reconciler.utils.ts';
 
 // --- Test fixtures ---
 
@@ -178,26 +185,28 @@ const getAnalysedCount = async (db: Kysely<DatabaseSchema>): Promise<number> => 
   return Number(row.count);
 };
 
-const runReconcile = async (
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const buildSteps = (
   db: Kysely<DatabaseSchema>,
   embedFn: EmbedFn,
   classifyFn?: ClassifyFn,
   opts?: {
     classifier?: 'nli' | 'similarity' | 'hybrid';
-    scopeFilter?: { sourceIds?: string[]; focusIds?: string[] };
+    scopeFilter?: ScopeFilter;
     skipExtract?: boolean;
   },
-): Promise<void> => {
-  const steps = createReconcileSteps({
-    db,
-    embedFn,
-    classifyFn,
-    embeddingModel: 'test-model',
-    classifier: opts?.classifier ?? 'nli',
-    scopeFilter: opts?.scopeFilter,
-    skipExtract: opts?.skipExtract,
-  });
-  await runReconcileSteps(steps);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): ReconcileStep<any>[] => {
+  const classifier = opts?.classifier ?? 'nli';
+  const scopeFilter = opts?.scopeFilter;
+  const useNli = (classifier === 'nli' || classifier === 'hybrid') && classifyFn !== undefined;
+
+  return [
+    createEmbedStep({ db, embedFn, embeddingModel: 'test-model', scopeFilter }),
+    createSimilarityStep({ db, embedFn, scopeFilter }),
+    ...(useNli ? [createNliStep({ db, classifyFn: classifyFn!, scopeFilter })] : []),
+    createMarkAnalysedStep({ db, scopeFilter }),
+  ];
 };
 
 // --- Tests ---
@@ -220,7 +229,7 @@ describe('reconcile steps', () => {
     const { embed } = createFakeEmbedder();
     const { classify } = createFakeClassifier();
 
-    await runReconcile(db, embed, classify, { classifier: 'nli' });
+    await runReconcileSteps(buildSteps(db, embed, classify, { classifier: 'nli' }));
 
     const assignments = await getAssignments(db);
 
@@ -253,8 +262,7 @@ describe('reconcile steps', () => {
     const { embed, callCount: embedCalls } = createFakeEmbedder();
     const { classify } = createFakeClassifier();
 
-    // First run
-    await runReconcile(db, embed, classify, { classifier: 'nli' });
+    await runReconcileSteps(buildSteps(db, embed, classify, { classifier: 'nli' }));
     const embeddingsAfterFirst = await getEmbeddingCount(db);
     const assignmentsAfterFirst = await getAssignments(db);
     const embedCallsAfterFirst = embedCalls();
@@ -262,14 +270,10 @@ describe('reconcile steps', () => {
     expect(embeddingsAfterFirst).toBeGreaterThan(0);
     expect(assignmentsAfterFirst.length).toBeGreaterThan(0);
 
-    // Second run — same state
-    await runReconcile(db, embed, classify, { classifier: 'nli' });
+    await runReconcileSteps(buildSteps(db, embed, classify, { classifier: 'nli' }));
 
-    // DB state unchanged
     expect(await getEmbeddingCount(db)).toBe(embeddingsAfterFirst);
     expect(await getAssignments(db)).toEqual(assignmentsAfterFirst);
-
-    // Embedder was NOT called again
     expect(embedCalls()).toBe(embedCallsAfterFirst);
   });
 
@@ -277,12 +281,10 @@ describe('reconcile steps', () => {
     const { embed, callCount: embedCalls } = createFakeEmbedder();
     const { classify } = createFakeClassifier();
 
-    // First: full reconcile
-    await runReconcile(db, embed, classify, { classifier: 'nli' });
+    await runReconcileSteps(buildSteps(db, embed, classify, { classifier: 'nli' }));
     const assignmentsBefore = await getAssignments(db);
     const embedCallsBefore = embedCalls();
 
-    // Add a new focus linked to the news source
     await db
       .insertInto('focuses')
       .values({
@@ -303,26 +305,22 @@ describe('reconcile steps', () => {
 
     const embeddingsBeforeScoped = await getEmbeddingCount(db);
 
-    // Scoped reconcile: only the new focus
-    await runReconcile(db, embed, classify, {
-      classifier: 'nli',
-      scopeFilter: { focusIds: ['focus-politics'] },
-      skipExtract: true,
-    });
+    await runReconcileSteps(
+      buildSteps(db, embed, classify, {
+        classifier: 'nli',
+        scopeFilter: { focusIds: ['focus-politics'] },
+      }),
+    );
 
-    // Only the election article (from src-news) should get a new assignment
     const politicsAssignments = (await getAssignments(db)).filter((a) => a.focus_id === 'focus-politics');
     expect(politicsAssignments).toHaveLength(1);
     expect(politicsAssignments[0]!.article_id).toBe('art-election');
     expect(effectiveConf(politicsAssignments[0]!)).toBeCloseTo(0.75, 1);
 
-    // Previous assignments untouched
     const previousAssignments = (await getAssignments(db)).filter((a) => a.focus_id !== 'focus-politics');
     expect(previousAssignments).toEqual(assignmentsBefore);
 
-    // No new article embeddings (only the new focus label was embedded)
     expect(await getEmbeddingCount(db)).toBe(embeddingsBeforeScoped);
-    // The embedder was called for the "Politics" focus label
     expect(embedCalls()).toBeGreaterThan(embedCallsBefore);
   });
 
@@ -330,24 +328,18 @@ describe('reconcile steps', () => {
     const { embed } = createFakeEmbedder();
     const { classify, callCount: nliCalls } = createFakeClassifier();
 
-    // Run with NLI strategy
-    await runReconcile(db, embed, classify, { classifier: 'nli' });
+    await runReconcileSteps(buildSteps(db, embed, classify, { classifier: 'nli' }));
     const nliAssignments = await getAssignments(db);
     const nliCallsTotal = nliCalls();
     expect(nliCallsTotal).toBeGreaterThan(0);
 
-    // Clear assignments to re-run with a different strategy
     await db.deleteFrom('article_focuses').execute();
 
-    // Run with similarity-only strategy — no NLI step
-    await runReconcile(db, embed, undefined, { classifier: 'similarity' });
+    await runReconcileSteps(buildSteps(db, embed, undefined, { classifier: 'similarity' }));
     const simAssignments = await getAssignments(db);
 
-    // NLI was NOT called again
     expect(nliCalls()).toBe(nliCallsTotal);
 
-    // Both runs produced assignments for the same articles/focuses,
-    // but with different effective confidence values
     expect(simAssignments).toHaveLength(nliAssignments.length);
     const nliConfidences = nliAssignments.map((a) => effectiveConf(a));
     const simConfidences = simAssignments.map((a) => effectiveConf(a));
@@ -358,16 +350,12 @@ describe('reconcile steps', () => {
     const { embed } = createFakeEmbedder();
     const { classify, callCount: nliCalls } = createFakeClassifier();
 
-    // Hybrid: runs similarity step then NLI step
-    await runReconcile(db, embed, classify, { classifier: 'hybrid' });
+    await runReconcileSteps(buildSteps(db, embed, classify, { classifier: 'hybrid' }));
 
-    // NLI step should have been called
     expect(nliCalls()).toBeGreaterThan(0);
 
-    // The final scores should reflect the NLI classifier's output
     const techAssignments = (await getAssignments(db)).filter((a) => a.focus_id === 'focus-tech');
     const aiAssignment = techAssignments.find((a) => a.article_id === 'art-ai');
-    // NLI classifier returns 0.85 for AI + Technology
     expect(aiAssignment!.nli).toBeCloseTo(0.85, 1);
   });
 
@@ -386,24 +374,19 @@ describe('reconcile steps', () => {
       })
       .execute();
 
-    await runReconcile(db, embed, classify, { classifier: 'nli' });
+    await runReconcileSteps(buildSteps(db, embed, classify, { classifier: 'nli' }));
 
-    // art-ai has an embedding, art-notext does not
     const embeddings = await db.selectFrom('article_embeddings').select('article_id').execute();
     const embeddedIds = embeddings.map((e) => e.article_id);
     expect(embeddedIds).toContain('art-ai');
     expect(embeddedIds).not.toContain('art-notext');
 
-    // Both have "always" assignments in article_focuses
     const assignments = await getAssignments(db);
     const allFocusAssignments = assignments.filter((a) => a.focus_id === 'focus-all');
-    // 3 original articles + art-notext = 4 articles in always-mode focus
     expect(allFocusAssignments).toHaveLength(4);
 
-    // Scoring: import computeScore and verify it handles the null embedding
     const { computeScore, emptyVoteContext, focusWeights } = await import('../votes/votes.scoring.ts');
 
-    // Article with embedding scores normally
     const aiEmbedding = await db
       .selectFrom('article_embeddings')
       .select('embedding')
@@ -455,10 +438,8 @@ describe('reconcile steps', () => {
     const { embed } = createFakeEmbedder();
     const { classify } = createFakeClassifier();
 
-    // Run only for the empty article's source
-    await runReconcile(db, embed, classify, { classifier: 'nli' });
+    await runReconcileSteps(buildSteps(db, embed, classify, { classifier: 'nli' }));
 
-    // No embedding for the empty article
     const embeddings = await db
       .selectFrom('article_embeddings')
       .select('article_id')
@@ -466,17 +447,14 @@ describe('reconcile steps', () => {
       .execute();
     expect(embeddings).toHaveLength(0);
 
-    // Still gets "always" focus assignment
     const assignments = await getAssignments(db);
     const alwaysAssignment = assignments.find((a) => a.article_id === 'art-empty' && a.focus_id === 'focus-all');
     expect(alwaysAssignment).toBeDefined();
     expect(alwaysAssignment!.similarity).toBe(1.0);
 
-    // No "match" focus assignment (no text to classify)
     const matchAssignment = assignments.find((a) => a.article_id === 'art-empty' && a.focus_id === 'focus-tech');
     expect(matchAssignment).toBeUndefined();
 
-    // Still marked as analysed
     const analysedRow = await db
       .selectFrom('articles')
       .select('analysed_at')

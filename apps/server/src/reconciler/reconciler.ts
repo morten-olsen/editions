@@ -3,19 +3,26 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Worker } from 'node:worker_threads';
 
+import { ConfigService } from '../config/config.ts';
 import { DatabaseService } from '../database/database.ts';
-import { JobService } from '../jobs/jobs.ts';
 import { destroySymbol } from '../services/services.ts';
-import type { ReanalyseSourcePayload, ReanalyseAllPayload } from '../jobs/jobs.handlers.ts';
 import type { Services } from '../services/services.ts';
 
-import type { WorkerResponse } from './analysis.worker.ts';
+import { runReconcileSteps } from './reconciler.runner.ts';
+import type { ProgressCallback } from './reconciler.runner.ts';
+import { createExtractStep } from './reconciler.extract.ts';
+import { createEmbedStep } from './reconciler.embed.ts';
+import { createSimilarityStep } from './reconciler.similarity.ts';
+import { createNliStep } from './reconciler.nli.ts';
+import { createMarkAnalysedStep } from './reconciler.mark-analysed.ts';
+import type { ScopeFilter } from './reconciler.utils.ts';
+import type { WorkerResponse } from './reconciler.worker.ts';
 
 // --- Constants ---
 
 const DEFAULT_EMBEDDING_MODEL = 'Xenova/all-MiniLM-L6-v2';
 
-const WORKER_PATH = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'analysis.worker.ts');
+const WORKER_PATH = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'reconciler.worker.ts');
 
 // --- Types ---
 
@@ -24,9 +31,15 @@ type PendingRequest = {
   reject: (reason: Error) => void;
 };
 
+type ReconcileOptions = {
+  scopeFilter?: ScopeFilter;
+  skipExtract?: boolean;
+  onProgress?: ProgressCallback;
+};
+
 // --- Service ---
 
-class AnalysisService {
+class ReconcilerService {
   #services: Services;
   #worker: Worker | null = null;
   #pending = new Map<string, PendingRequest>();
@@ -65,7 +78,7 @@ class AnalysisService {
 
       this.#worker.on('exit', () => {
         for (const [id, pending] of this.#pending) {
-          pending.reject(new Error('Analysis worker exited unexpectedly'));
+          pending.reject(new Error('Reconciler worker exited unexpectedly'));
           this.#pending.delete(id);
         }
         this.#worker = null;
@@ -135,79 +148,24 @@ class AnalysisService {
     return response.results;
   };
 
-  // --- Recovery & bulk re-analysis ---
+  // --- Pipeline ---
 
-  recoverPendingAnalysis = async (): Promise<number> => {
+  reconcile = async (options?: ReconcileOptions): Promise<void> => {
     const db = await this.#services.get(DatabaseService).getInstance();
+    const { config } = this.#services.get(ConfigService);
+    const classifier = config.analysis.classifier;
+    const useNli = (classifier === 'nli' || classifier === 'hybrid');
+    const scopeFilter = options?.scopeFilter;
 
-    const countResult = await db
-      .selectFrom('articles')
-      .select(db.fn.countAll().as('count'))
-      .where('extracted_at', 'is not', null)
-      .where('analysed_at', 'is', null)
-      .executeTakeFirstOrThrow();
+    const steps = [
+      ...(options?.skipExtract ? [] : [createExtractStep({ db, scopeFilter })]),
+      createEmbedStep({ db, embedFn: this.embed, embeddingModel: DEFAULT_EMBEDDING_MODEL, scopeFilter }),
+      createSimilarityStep({ db, embedFn: this.embed, scopeFilter }),
+      ...(useNli ? [createNliStep({ db, classifyFn: this.classify, scopeFilter })] : []),
+      createMarkAnalysedStep({ db, scopeFilter }),
+    ];
 
-    const count = Number(countResult.count);
-    if (count > 0) {
-      const jobService = this.#services.get(JobService);
-      jobService.enqueue<Record<string, never>>('reanalyse_all', {}, {});
-    }
-
-    return count;
-  };
-
-  reanalyseSource = async (sourceId: string, userId?: string): Promise<number> => {
-    const db = await this.#services.get(DatabaseService).getInstance();
-
-    // Backfill extracted_at for articles that have feed content but were
-    // never marked as extracted (e.g. podcast episodes stored before the
-    // podcast feature, or sources created with an incorrect type).
-    await db
-      .updateTable('articles')
-      .set({ extracted_at: new Date().toISOString() })
-      .where('source_id', '=', sourceId)
-      .where('extracted_at', 'is', null)
-      .where((eb) => eb.or([eb('content', 'is not', null), eb('summary', 'is not', null)]))
-      .execute();
-
-    const count = await db
-      .selectFrom('articles')
-      .select(db.fn.countAll().as('count'))
-      .where('source_id', '=', sourceId)
-      .where('extracted_at', 'is not', null)
-      .executeTakeFirstOrThrow();
-
-    if (Number(count.count) === 0) {
-      return 0;
-    }
-
-    this.#services
-      .get(JobService)
-      .enqueue<ReanalyseSourcePayload>(
-        'reanalyse_source',
-        { sourceId },
-        { userId, affects: { sourceIds: [sourceId] } },
-      );
-
-    return Number(count.count);
-  };
-
-  reanalyseAll = async (userId?: string): Promise<number> => {
-    const db = await this.#services.get(DatabaseService).getInstance();
-
-    const count = await db
-      .selectFrom('articles')
-      .select(db.fn.countAll().as('count'))
-      .where('extracted_at', 'is not', null)
-      .executeTakeFirstOrThrow();
-
-    if (Number(count.count) === 0) {
-      return 0;
-    }
-
-    this.#services.get(JobService).enqueue<ReanalyseAllPayload>('reanalyse_all', {}, { userId });
-
-    return Number(count.count);
+    await runReconcileSteps(steps, options?.onProgress);
   };
 
   // --- Cleanup ---
@@ -219,10 +177,11 @@ class AnalysisService {
       this.#worker = null;
     }
     for (const [id, pending] of this.#pending) {
-      pending.reject(new Error('Analysis service destroyed'));
+      pending.reject(new Error('Reconciler service destroyed'));
       this.#pending.delete(id);
     }
   };
 }
 
-export { AnalysisService, DEFAULT_EMBEDDING_MODEL };
+export type { ReconcileOptions };
+export { ReconcilerService, DEFAULT_EMBEDDING_MODEL };

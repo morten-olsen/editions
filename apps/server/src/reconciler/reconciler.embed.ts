@@ -2,10 +2,13 @@ import type { Kysely } from 'kysely';
 
 import type { DatabaseSchema } from '../database/database.types.ts';
 
-import type { EmbedFn, ReconcileStep, ScopeFilter } from './analysis.reconcile.ts';
-import { prepareText } from './analysis.reconcile.ts';
+import type { ReconcileStep } from './reconciler.runner.ts';
+import type { ScopeFilter } from './reconciler.utils.ts';
+import { prepareText } from './reconciler.utils.ts';
 
 // --- Types ---
+
+type EmbedFn = (text: string) => Promise<Float32Array>;
 
 type EmbedItem = {
   id: string;
@@ -103,4 +106,5 @@ const createEmbedStep = (params: {
 
 // --- Exports ---
 
+export type { EmbedFn };
 export { createEmbedStep };

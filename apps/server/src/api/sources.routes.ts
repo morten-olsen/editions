@@ -1,11 +1,11 @@
 import { z } from 'zod/v4';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
-import { AnalysisService } from '../analysis/analysis.ts';
 import { createAuthHook } from '../auth/auth.middleware.ts';
+import { DatabaseService } from '../database/database.ts';
 import { JobService } from '../jobs/jobs.ts';
 import { SourceNotFoundError, SourcesService } from '../sources/sources.ts';
-import type { RefreshSourcePayload } from '../jobs/jobs.handlers.ts';
+import type { RefreshSourcePayload, ReanalyseSourcePayload, ReanalyseAllPayload } from '../jobs/jobs.handlers.ts';
 import type { Services } from '../services/services.ts';
 
 // --- Schemas ---
@@ -376,9 +376,9 @@ const createSourcesRoutes =
         },
       },
       handler: async (req, reply) => {
-        const sources = services.get(SourcesService);
+        const sourcesService = services.get(SourcesService);
         try {
-          await sources.get(req.user.sub, req.params.id);
+          await sourcesService.get(req.user.sub, req.params.id);
         } catch (err) {
           if (err instanceof SourceNotFoundError) {
             return reply.code(404).send({ error: err.message });
@@ -386,8 +386,23 @@ const createSourcesRoutes =
           throw err;
         }
 
-        const analysisService = services.get(AnalysisService);
-        const count = await analysisService.reanalyseSource(req.params.id, req.user.sub);
+        const db = await services.get(DatabaseService).getInstance();
+        const result = await db
+          .selectFrom('articles')
+          .select(db.fn.countAll().as('count'))
+          .where('source_id', '=', req.params.id)
+          .where('extracted_at', 'is not', null)
+          .executeTakeFirstOrThrow();
+
+        const count = Number(result.count);
+        if (count > 0) {
+          services.get(JobService).enqueue<ReanalyseSourcePayload>(
+            'reanalyse_source',
+            { sourceId: req.params.id },
+            { userId: req.user.sub, affects: { sourceIds: [req.params.id] } },
+          );
+        }
+
         return reply.code(202).send({ enqueued: count });
       },
     });
@@ -404,8 +419,18 @@ const createSourcesRoutes =
         },
       },
       handler: async (req, reply) => {
-        const analysisService = services.get(AnalysisService);
-        const count = await analysisService.reanalyseAll(req.user.sub);
+        const db = await services.get(DatabaseService).getInstance();
+        const result = await db
+          .selectFrom('articles')
+          .select(db.fn.countAll().as('count'))
+          .where('extracted_at', 'is not', null)
+          .executeTakeFirstOrThrow();
+
+        const count = Number(result.count);
+        if (count > 0) {
+          services.get(JobService).enqueue<ReanalyseAllPayload>('reanalyse_all', {}, { userId: req.user.sub });
+        }
+
         return reply.code(202).send({ enqueued: count });
       },
     });

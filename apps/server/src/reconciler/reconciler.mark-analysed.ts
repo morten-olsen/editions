@@ -2,7 +2,8 @@ import type { Kysely } from 'kysely';
 
 import type { DatabaseSchema } from '../database/database.types.ts';
 
-import type { ReconcileStep, ScopeFilter } from './analysis.reconcile.ts';
+import type { ReconcileStep } from './reconciler.runner.ts';
+import type { ScopeFilter } from './reconciler.utils.ts';
 
 // --- Step factory ---
 

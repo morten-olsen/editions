@@ -2,8 +2,9 @@ import type { Kysely } from 'kysely';
 
 import type { DatabaseSchema, FocusSourceMode } from '../database/database.types.ts';
 
-import type { EmbedFn, ReconcileStep, ScopeFilter } from './analysis.reconcile.ts';
-import { dotProduct, upsertSimilarity } from './analysis.reconcile.ts';
+import type { ReconcileStep } from './reconciler.runner.ts';
+import type { ScopeFilter } from './reconciler.utils.ts';
+import type { EmbedFn } from './reconciler.embed.ts';
 
 // --- Types ---
 
@@ -13,6 +14,41 @@ type SimilarityItem = {
   mode: FocusSourceMode;
   focusLabel: string;
   embedding: Float32Array | null;
+};
+
+// --- Math ---
+
+const dotProduct = (a: Float32Array, b: Float32Array): number => {
+  let sum = 0;
+  for (let i = 0; i < a.length; i++) {
+    sum += a[i]! * b[i]!;
+  }
+  return sum;
+};
+
+// --- Persistence ---
+
+const upsertSimilarity = async (
+  db: Kysely<DatabaseSchema>,
+  articleId: string,
+  focusId: string,
+  similarity: number,
+): Promise<void> => {
+  const rounded = Math.round(similarity * 1000) / 1000;
+  await db
+    .insertInto('article_focuses')
+    .values({
+      article_id: articleId,
+      focus_id: focusId,
+      similarity: rounded,
+    })
+    .onConflict((oc) =>
+      oc.columns(['article_id', 'focus_id']).doUpdateSet({
+        similarity: rounded,
+        assigned_at: new Date().toISOString(),
+      }),
+    )
+    .execute();
 };
 
 // --- Step factory ---
@@ -29,9 +65,6 @@ const createSimilarityStep = (params: {
   return {
     name: 'similarity',
     fetchBatch: async function* (): AsyncGenerator<SimilarityItem[]> {
-      // Find all (article, focus) pairs that need similarity scores
-      // This includes "always" mode pairs (similarity = 1.0) and "match" mode pairs
-      const offset = 0;
       while (true) {
         let q = db
           .selectFrom('focus_sources')
@@ -53,8 +86,7 @@ const createSimilarityStep = (params: {
           ])
           .where('articles.extracted_at', 'is not', null)
           .where('article_focuses.similarity', 'is', null)
-          .limit(batchSize)
-          .offset(offset);
+          .limit(batchSize);
 
         if (scopeFilter?.focusIds && scopeFilter.focusIds.length > 0) {
           q = q.where('focus_sources.focus_id', 'in', scopeFilter.focusIds);
@@ -82,7 +114,6 @@ const createSimilarityStep = (params: {
         });
 
         yield items;
-        // Don't increment offset because processed items won't match the WHERE clause next time
         if (rows.length < batchSize) {
           break;
         }
@@ -95,7 +126,6 @@ const createSimilarityStep = (params: {
           continue;
         }
 
-        // "match" mode: compute cosine similarity
         if (!item.embedding) {
           continue;
         }

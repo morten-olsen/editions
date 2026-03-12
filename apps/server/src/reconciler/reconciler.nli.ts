@@ -2,16 +2,44 @@ import type { Kysely } from 'kysely';
 
 import type { DatabaseSchema } from '../database/database.types.ts';
 
-import type { ClassifyFn, ReconcileStep, ScopeFilter } from './analysis.reconcile.ts';
-import { prepareText, upsertNli } from './analysis.reconcile.ts';
+import type { ReconcileStep } from './reconciler.runner.ts';
+import type { ScopeFilter } from './reconciler.utils.ts';
+import { prepareText } from './reconciler.utils.ts';
 
 // --- Types ---
+
+type ClassifyFn = (text: string, labels: string[]) => Promise<{ label: string; score: number }[]>;
 
 type NliItem = {
   articleId: string;
   focusId: string;
   focusLabel: string;
   preparedText: string;
+};
+
+// --- Persistence ---
+
+const upsertNli = async (
+  db: Kysely<DatabaseSchema>,
+  articleId: string,
+  focusId: string,
+  nli: number,
+): Promise<void> => {
+  const rounded = Math.round(nli * 1000) / 1000;
+  await db
+    .insertInto('article_focuses')
+    .values({
+      article_id: articleId,
+      focus_id: focusId,
+      nli: rounded,
+    })
+    .onConflict((oc) =>
+      oc.columns(['article_id', 'focus_id']).doUpdateSet({
+        nli: rounded,
+        assigned_at: new Date().toISOString(),
+      }),
+    )
+    .execute();
 };
 
 // --- Step factory ---
@@ -51,7 +79,6 @@ const createNliStep = (params: {
           ])
           .where('articles.extracted_at', 'is not', null)
           .where('focus_sources.mode', '=', 'match')
-          // Only items that have a similarity score but no NLI score yet
           .where('article_focuses.similarity', 'is not', null)
           .where('article_focuses.nli', 'is', null)
           .limit(batchSize);
@@ -106,4 +133,5 @@ const createNliStep = (params: {
 
 // --- Exports ---
 
+export type { ClassifyFn };
 export { createNliStep };

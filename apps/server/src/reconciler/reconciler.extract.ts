@@ -3,7 +3,8 @@ import type { Kysely } from 'kysely';
 
 import type { DatabaseSchema } from '../database/database.types.ts';
 
-import type { ReconcileStep, ScopeFilter } from './analysis.reconcile.ts';
+import type { ReconcileStep } from './reconciler.runner.ts';
+import type { ScopeFilter } from './reconciler.utils.ts';
 
 // --- Types ---
 
@@ -74,7 +75,6 @@ const createExtractStep = (params: {
     processBatch: async (batch: ExtractItem[]): Promise<void> => {
       await Promise.all(
         batch.map(async (item) => {
-          // Podcast episodes are handled at fetch time
           if (item.sourceType === 'podcast') {
             return;
           }

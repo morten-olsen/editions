@@ -1,13 +1,11 @@
 import crypto from 'node:crypto';
 
-import { AnalysisService } from '../analysis/analysis.ts';
-import { ConfigService } from '../config/config.ts';
 import { DatabaseService } from '../database/database.ts';
+import { ReconcilerService } from '../reconciler/reconciler.ts';
 import { SourcesService } from '../sources/sources.ts';
-import { runReconcileSteps, createReconcileSteps } from '../analysis/analysis.reconcile.ts';
 import { parseRssFeed } from '../sources/sources.fetch.ts';
 import type { Services } from '../services/services.ts';
-import type { ProgressCallback } from '../analysis/analysis.reconcile.ts';
+import type { ProgressCallback } from '../reconciler/reconciler.runner.ts';
 
 import type { Job } from './jobs.ts';
 import { JobService } from './jobs.ts';
@@ -109,69 +107,48 @@ const handleRefreshSource = async (payload: RefreshSourcePayload, services: Serv
       .execute();
   }
 
-  // Run reconcile steps for this source
-  const analysis = services.get(AnalysisService);
-  const { config } = services.get(ConfigService);
-
-  // Find focus IDs linked to this source
+  // Resolve affects hint
   const focusLinks = await db
     .selectFrom('focus_sources')
     .select('focus_id')
     .where('source_id', '=', source.id)
     .execute();
-
-  const steps = createReconcileSteps({
-    db,
-    embedFn: analysis.embed,
-    classifyFn: analysis.classify,
-    embeddingModel: 'Xenova/all-MiniLM-L6-v2',
-    classifier: config.analysis.classifier,
-    scopeFilter: { sourceIds: [source.id] },
-  });
-
-  await runReconcileSteps(steps, jobProgress(job));
-
-  // Update affects with linked focuses
   job.affects.focusIds = focusLinks.map((l) => l.focus_id);
+
+  // Reconcile
+  const analysis = services.get(ReconcilerService);
+  await analysis.reconcile({
+    scopeFilter: { sourceIds: [source.id] },
+    onProgress: jobProgress(job),
+  });
 };
 
 const handleReconcileFocus = async (payload: ReconcileFocusPayload, services: Services, job: Job): Promise<void> => {
   const db = await services.get(DatabaseService).getInstance();
-  const analysis = services.get(AnalysisService);
-  const { config } = services.get(ConfigService);
 
   if (payload.forceReclassify) {
-    // Clear existing classifications for this focus so they'll be recomputed
     await db.deleteFrom('article_focuses').where('focus_id', '=', payload.focusId).execute();
   }
 
-  // Find sources linked to this focus
+  // Resolve affects hint
   const sourceLinks = await db
     .selectFrom('focus_sources')
     .select('source_id')
     .where('focus_id', '=', payload.focusId)
     .execute();
+  job.affects.sourceIds = sourceLinks.map((l) => l.source_id);
 
-  const sourceIds = sourceLinks.map((l) => l.source_id);
-  job.affects.sourceIds = sourceIds;
-
-  const steps = createReconcileSteps({
-    db,
-    embedFn: analysis.embed,
-    classifyFn: analysis.classify,
-    embeddingModel: 'Xenova/all-MiniLM-L6-v2',
-    classifier: config.analysis.classifier,
+  // Reconcile
+  const analysis = services.get(ReconcilerService);
+  await analysis.reconcile({
     scopeFilter: { focusIds: [payload.focusId] },
     skipExtract: true,
+    onProgress: jobProgress(job),
   });
-
-  await runReconcileSteps(steps, jobProgress(job));
 };
 
 const handleReanalyseSource = async (payload: ReanalyseSourcePayload, services: Services, job: Job): Promise<void> => {
   const db = await services.get(DatabaseService).getInstance();
-  const analysis = services.get(AnalysisService);
-  const { config } = services.get(ConfigService);
 
   // Backfill extracted_at for articles that have content but were never marked
   await db
@@ -196,7 +173,7 @@ const handleReanalyseSource = async (payload: ReanalyseSourcePayload, services: 
     await db.updateTable('articles').set({ analysed_at: null }).where('id', 'in', ids).execute();
   }
 
-  // Find focus IDs linked to this source
+  // Resolve affects hint
   const focusLinks = await db
     .selectFrom('focus_sources')
     .select('focus_id')
@@ -204,22 +181,16 @@ const handleReanalyseSource = async (payload: ReanalyseSourcePayload, services: 
     .execute();
   job.affects.focusIds = focusLinks.map((l) => l.focus_id);
 
-  const steps = createReconcileSteps({
-    db,
-    embedFn: analysis.embed,
-    classifyFn: analysis.classify,
-    embeddingModel: 'Xenova/all-MiniLM-L6-v2',
-    classifier: config.analysis.classifier,
+  // Reconcile
+  const analysis = services.get(ReconcilerService);
+  await analysis.reconcile({
     scopeFilter: { sourceIds: [payload.sourceId] },
+    onProgress: jobProgress(job),
   });
-
-  await runReconcileSteps(steps, jobProgress(job));
 };
 
 const handleReanalyseAll = async (_payload: ReanalyseAllPayload, services: Services, job: Job): Promise<void> => {
   const db = await services.get(DatabaseService).getInstance();
-  const analysis = services.get(AnalysisService);
-  const { config } = services.get(ConfigService);
 
   const articleIds = await db.selectFrom('articles').select('id').where('extracted_at', 'is not', null).execute();
 
@@ -229,15 +200,11 @@ const handleReanalyseAll = async (_payload: ReanalyseAllPayload, services: Servi
     await db.updateTable('articles').set({ analysed_at: null }).where('id', 'in', ids).execute();
   }
 
-  const steps = createReconcileSteps({
-    db,
-    embedFn: analysis.embed,
-    classifyFn: analysis.classify,
-    embeddingModel: 'Xenova/all-MiniLM-L6-v2',
-    classifier: config.analysis.classifier,
+  // Reconcile
+  const analysis = services.get(ReconcilerService);
+  await analysis.reconcile({
+    onProgress: jobProgress(job),
   });
-
-  await runReconcileSteps(steps, jobProgress(job));
 };
 
 const handleExtractAndAnalyse = async (
@@ -245,20 +212,11 @@ const handleExtractAndAnalyse = async (
   services: Services,
   job: Job,
 ): Promise<void> => {
-  const db = await services.get(DatabaseService).getInstance();
-  const analysis = services.get(AnalysisService);
-  const { config } = services.get(ConfigService);
-
-  const steps = createReconcileSteps({
-    db,
-    embedFn: analysis.embed,
-    classifyFn: analysis.classify,
-    embeddingModel: 'Xenova/all-MiniLM-L6-v2',
-    classifier: config.analysis.classifier,
+  const analysis = services.get(ReconcilerService);
+  await analysis.reconcile({
     scopeFilter: { sourceIds: [payload.sourceId] },
+    onProgress: jobProgress(job),
   });
-
-  await runReconcileSteps(steps, jobProgress(job));
 };
 
 // --- Registration ---

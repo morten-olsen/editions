@@ -15,10 +15,11 @@ import {
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 
-import { AnalysisService } from './analysis/analysis.ts';
 import { registerRoutes } from './api/api.ts';
 import { ConfigService } from './config/config.ts';
+import { DatabaseService } from './database/database.ts';
 import { registerJobHandlers } from './jobs/jobs.handlers.ts';
+import { JobService } from './jobs/jobs.ts';
 import { SchedulerService } from './scheduler/scheduler.ts';
 import { Services, destroySymbol } from './services/services.ts';
 
@@ -106,9 +107,16 @@ const createApp = async ({ logger = true }: { logger?: boolean } = {}): Promise<
     await fastify.listen({ host: config.server.host, port: config.server.port });
 
     // Recover any articles that were extracted but not yet analysed
-    const analysisService = services.get(AnalysisService);
-    const recovered = await analysisService.recoverPendingAnalysis();
+    const db = await services.get(DatabaseService).getInstance();
+    const result = await db
+      .selectFrom('articles')
+      .select(db.fn.countAll().as('count'))
+      .where('extracted_at', 'is not', null)
+      .where('analysed_at', 'is', null)
+      .executeTakeFirstOrThrow();
+    const recovered = Number(result.count);
     if (recovered > 0) {
+      services.get(JobService).enqueue<Record<string, never>>('reanalyse_all', {}, {});
       fastify.log.info(`Enqueued ${recovered} articles for analysis recovery`);
     }
 

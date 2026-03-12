@@ -5,52 +5,14 @@ import { client } from '../api/api.ts';
 import { useAuthHeaders } from '../api/api.hooks.ts';
 import { Button } from '../components/button.tsx';
 import { SlideIn, StaggerList, StaggerItem, FadeIn } from '../components/animate.tsx';
+import { CoverCard, EditionTeaser } from '../views/home/home-cards.tsx';
+import type { HomeEdition } from '../views/home/home-cards.tsx';
 
 // --- Types (match GET /api/home response) ---
 
-type HomeConfig = {
-  id: string;
-  name: string;
-  icon: string | null;
-};
+type HomeConfig = { id: string; name: string; icon: string | null };
 
-type HomeEditionSection = {
-  focusName: string;
-  articleCount: number;
-};
-
-type HomeEditionLead = {
-  title: string;
-  sourceName: string;
-  imageUrl: string | null;
-  consumptionTimeSeconds: number | null;
-};
-
-type HomeEditionHighlight = {
-  title: string;
-  sourceName: string;
-};
-
-type HomeEdition = {
-  id: string;
-  editionConfigId: string;
-  title: string;
-  totalReadingMinutes: number | null;
-  articleCount: number;
-  publishedAt: string;
-  configName: string;
-  configIcon: string | null;
-  sections: HomeEditionSection[];
-  lead: HomeEditionLead | null;
-  highlights: HomeEditionHighlight[];
-};
-
-type HomeData = {
-  sourcesCount: number;
-  focusesCount: number;
-  configs: HomeConfig[];
-  editions: HomeEdition[];
-};
+type HomeData = { sourcesCount: number; focusesCount: number; configs: HomeConfig[]; editions: HomeEdition[] };
 
 // --- Data hook ---
 
@@ -110,41 +72,33 @@ const CheckIcon = (): React.ReactElement => (
   </svg>
 );
 
-const SetupStep = ({
-  number,
-  title,
-  description,
-  done,
-  active,
-  href,
-  actionLabel,
-}: SetupStepProps): React.ReactElement => (
+const SetupStep = (p: SetupStepProps): React.ReactElement => (
   <div className="py-5 border-t border-border">
     <div className="flex items-start gap-5">
       <div className="shrink-0 w-7 pt-0.5">
-        {done ? (
+        {p.done ? (
           <span className="text-accent">
             <CheckIcon />
           </span>
         ) : (
-          <span className={`font-mono text-sm ${active ? 'text-ink-faint' : 'text-ink-faint/40'}`}>
-            {String(number).padStart(2, '0')}
+          <span className={`font-mono text-sm ${p.active ? 'text-ink-faint' : 'text-ink-faint/40'}`}>
+            {String(p.number).padStart(2, '0')}
           </span>
         )}
       </div>
       <div className="flex-1 min-w-0">
         <div
-          className={`font-serif text-lg font-medium tracking-tight ${done ? 'text-ink-tertiary' : active ? 'text-ink' : 'text-ink-faint'}`}
+          className={`font-serif text-lg font-medium tracking-tight ${p.done ? 'text-ink-tertiary' : p.active ? 'text-ink' : 'text-ink-faint'}`}
         >
-          {title}
+          {p.title}
         </div>
-        <div className={`text-sm mt-1 leading-relaxed ${done || active ? 'text-ink-tertiary' : 'text-ink-faint'}`}>
-          {description}
+        <div className={`text-sm mt-1 leading-relaxed ${p.done || p.active ? 'text-ink-tertiary' : 'text-ink-faint'}`}>
+          {p.description}
         </div>
-        {!done && active && (
-          <Link to={href} className="inline-block mt-4">
+        {!p.done && p.active && (
+          <Link to={p.href} className="inline-block mt-4">
             <Button variant="primary" size="sm">
-              {actionLabel}
+              {p.actionLabel}
             </Button>
           </Link>
         )}
@@ -217,221 +171,86 @@ const SetupGuide = ({ data }: { data: HomeData }): React.ReactElement => {
   );
 };
 
-/* ---------- Magazine cover card ---------- */
-
-const formatPubDate = (iso: string): string =>
-  new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-
-const CoverCard = ({ edition }: { edition: HomeEdition }): React.ReactElement => {
-  const hasImage = !!edition.lead?.imageUrl;
-
-  return (
-    <Link
-      to="/editions/$configId/issues/$editionId/magazine"
-      params={{ configId: edition.editionConfigId, editionId: edition.id }}
-      className="group block rounded-lg overflow-hidden relative isolate"
-    >
-      <CoverBackground imageUrl={edition.lead?.imageUrl ?? null} />
-      <div className={`flex flex-col justify-between p-5 min-h-56 ${hasImage ? 'text-white' : ''}`}>
-        <CoverTopBar configName={edition.configName} publishedAt={edition.publishedAt} hasImage={hasImage} />
-        <CoverContent edition={edition} hasImage={hasImage} />
-      </div>
-    </Link>
-  );
-};
-
-const CoverBackground = ({ imageUrl }: { imageUrl: string | null }): React.ReactElement => {
-  if (imageUrl) {
-    return (
-      <div className="absolute inset-0 -z-10">
-        <img
-          src={imageUrl}
-          alt=""
-          className="w-full h-full object-cover transition-transform duration-slow ease-gentle group-hover:scale-[1.03]"
-        />
-        <div className="absolute inset-0 bg-linear-to-b from-black/60 via-black/40 to-black/80" />
-      </div>
-    );
-  }
-  return (
-    <div className="absolute inset-0 -z-10 bg-surface-sunken group-hover:bg-surface-raised transition-colors duration-fast" />
-  );
-};
-
-const CoverTopBar = ({
-  configName,
-  publishedAt,
-  hasImage,
-}: {
-  configName: string;
-  publishedAt: string;
-  hasImage: boolean;
-}): React.ReactElement => (
-  <div className="flex items-baseline justify-between gap-3">
-    <span className={`font-mono text-xs tracking-wide uppercase ${hasImage ? 'text-white/80' : 'text-accent'}`}>
-      {configName}
-    </span>
-    <span className={`font-mono text-xs tracking-wide ${hasImage ? 'text-white/50' : 'text-ink-faint'}`}>
-      {formatPubDate(publishedAt)}
-    </span>
-  </div>
-);
-
-const CoverContent = ({ edition, hasImage }: { edition: HomeEdition; hasImage: boolean }): React.ReactElement => (
-  <div className="mt-auto pt-4">
-    {edition.lead && (
-      <>
-        <div className={`font-mono text-xs tracking-wide mb-2 ${hasImage ? 'text-white/60' : 'text-ink-faint'}`}>
-          {edition.lead.sourceName}
-        </div>
-        <h3
-          className={`font-serif text-xl md:text-2xl font-medium tracking-tight leading-snug mb-3 ${hasImage ? 'text-white' : 'text-ink'}`}
-        >
-          {edition.lead.title}
-        </h3>
-      </>
-    )}
-    {edition.sections.length > 0 && (
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        {edition.sections.map((s) => (
-          <span
-            key={s.focusName}
-            className={`text-xs px-2 py-0.5 rounded-full ${hasImage ? 'bg-white/15 text-white/80' : 'bg-surface-sunken text-ink-tertiary'}`}
-          >
-            {s.focusName}
-          </span>
-        ))}
-      </div>
-    )}
-    <div
-      className={`font-mono text-xs tracking-wide flex items-center gap-3 ${hasImage ? 'text-white/50' : 'text-ink-faint'}`}
-    >
-      <span>{edition.articleCount} articles</span>
-      {edition.totalReadingMinutes != null && (
-        <>
-          <span className={hasImage ? 'text-white/30' : 'text-ink-faint'}>·</span>
-          <span>{edition.totalReadingMinutes} min</span>
-        </>
-      )}
-      <span className={hasImage ? 'text-white/30' : 'text-ink-faint'}>·</span>
-      <span>{edition.sections.length} sections</span>
-    </div>
-  </div>
-);
-
-/* ---------- Highlight teaser (secondary editions) ---------- */
-
-const EditionTeaser = ({ edition }: { edition: HomeEdition }): React.ReactElement => (
-  <Link
-    to="/editions/$configId/issues/$editionId"
-    params={{ configId: edition.editionConfigId, editionId: edition.id }}
-    className="group block py-4 border-t border-border hover:border-accent transition-colors duration-fast"
-  >
-    <div className="flex items-start justify-between gap-4">
-      <div className="min-w-0 flex-1">
-        <div className="font-mono text-xs tracking-wide text-accent uppercase mb-1.5">
-          {edition.configName} · {formatPubDate(edition.publishedAt)}
-        </div>
-        <div className="font-serif text-lg font-medium tracking-tight text-ink group-hover:text-accent transition-colors duration-fast leading-snug">
-          {edition.title}
-        </div>
-        <div className="font-mono text-xs text-ink-faint mt-1.5 tracking-wide">
-          {edition.articleCount} articles
-          {edition.totalReadingMinutes != null && ` · ${edition.totalReadingMinutes} min`}
-        </div>
-      </div>
-      {edition.lead?.imageUrl && (
-        <div className="shrink-0 w-16 h-16 rounded-md overflow-hidden bg-surface-sunken">
-          <img src={edition.lead.imageUrl} alt="" className="w-full h-full object-cover" />
-        </div>
-      )}
-    </div>
-  </Link>
-);
-
 /* ---------- Configured home (the newsstand) ---------- */
 
-const ConfiguredHome = ({ data }: { data: HomeData }): React.ReactElement => {
-  const { editions, configs } = data;
+const AllReadState = (): React.ReactElement => (
+  <div className="py-12 text-center">
+    <div className="text-4xl text-accent/20 mb-4 select-none" aria-hidden="true">
+      ~
+    </div>
+    <h1 className="font-serif text-2xl font-medium tracking-tight text-ink mb-2">All read</h1>
+    <p className="text-sm text-ink-tertiary leading-relaxed">
+      You're up to date. New editions will appear here when they're generated.
+    </p>
+  </div>
+);
 
-  // The first edition gets the full cover card treatment
+const QuickLinks = ({ configs }: { configs: HomeConfig[] }): React.ReactElement => (
+  <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2">
+    <Link
+      to="/feed"
+      className="font-mono text-xs tracking-wide text-ink-tertiary hover:text-ink transition-colors duration-fast"
+    >
+      Browse feed
+    </Link>
+    <Link
+      to="/bookmarks"
+      className="font-mono text-xs tracking-wide text-ink-tertiary hover:text-ink transition-colors duration-fast"
+    >
+      Bookmarks
+    </Link>
+    {configs.map((cfg) => (
+      <Link
+        key={cfg.id}
+        to="/editions/$configId"
+        params={{ configId: cfg.id }}
+        className="font-mono text-xs tracking-wide text-ink-tertiary hover:text-ink transition-colors duration-fast"
+      >
+        {cfg.name}
+      </Link>
+    ))}
+  </div>
+);
+
+const EditionsList = ({ editions }: { editions: HomeEdition[] }): React.ReactElement => {
   const featured = editions[0];
   const rest = editions.slice(1);
-
   return (
-    <SlideIn from="up" distance={12}>
-      <Masthead />
-
-      {editions.length > 0 ? (
-        <div>
-          <div className="mb-6">
-            <h1 className="font-serif text-3xl font-medium tracking-tight text-ink mb-2">Your reading list</h1>
-            <p className="text-sm text-ink-tertiary">
-              {editions.length === 1 ? 'One edition waiting.' : `${editions.length} editions waiting.`}
-            </p>
-          </div>
-
-          {/* Featured: full cover card */}
-          {featured && (
-            <StaggerList>
-              <StaggerItem>
-                <CoverCard edition={featured} />
-              </StaggerItem>
-            </StaggerList>
-          )}
-
-          {/* Remaining editions: compact teasers */}
-          {rest.length > 0 && (
-            <StaggerList className="mt-2">
-              {rest.map((edition) => (
-                <StaggerItem key={edition.id}>
-                  <EditionTeaser edition={edition} />
-                </StaggerItem>
-              ))}
-              <div className="h-px bg-border" />
-            </StaggerList>
-          )}
-        </div>
-      ) : (
-        <div className="py-12 text-center">
-          <div className="text-4xl text-accent/20 mb-4 select-none" aria-hidden="true">
-            ~
-          </div>
-          <h1 className="font-serif text-2xl font-medium tracking-tight text-ink mb-2">All read</h1>
-          <p className="text-sm text-ink-tertiary leading-relaxed">
-            You're up to date. New editions will appear here when they're generated.
-          </p>
-        </div>
-      )}
-
-      {/* Quick links */}
-      <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2">
-        <Link
-          to="/feed"
-          className="font-mono text-xs tracking-wide text-ink-tertiary hover:text-ink transition-colors duration-fast"
-        >
-          Browse feed
-        </Link>
-        <Link
-          to="/bookmarks"
-          className="font-mono text-xs tracking-wide text-ink-tertiary hover:text-ink transition-colors duration-fast"
-        >
-          Bookmarks
-        </Link>
-        {configs.map((cfg) => (
-          <Link
-            key={cfg.id}
-            to="/editions/$configId"
-            params={{ configId: cfg.id }}
-            className="font-mono text-xs tracking-wide text-ink-tertiary hover:text-ink transition-colors duration-fast"
-          >
-            {cfg.name}
-          </Link>
-        ))}
+    <div>
+      <div className="mb-6">
+        <h1 className="font-serif text-3xl font-medium tracking-tight text-ink mb-2">Your reading list</h1>
+        <p className="text-sm text-ink-tertiary">
+          {editions.length === 1 ? 'One edition waiting.' : `${editions.length} editions waiting.`}
+        </p>
       </div>
-    </SlideIn>
+      {featured && (
+        <StaggerList>
+          <StaggerItem>
+            <CoverCard edition={featured} />
+          </StaggerItem>
+        </StaggerList>
+      )}
+      {rest.length > 0 && (
+        <StaggerList className="mt-2">
+          {rest.map((edition) => (
+            <StaggerItem key={edition.id}>
+              <EditionTeaser edition={edition} />
+            </StaggerItem>
+          ))}
+          <div className="h-px bg-border" />
+        </StaggerList>
+      )}
+    </div>
   );
 };
+
+const ConfiguredHome = ({ data }: { data: HomeData }): React.ReactElement => (
+  <SlideIn from="up" distance={12}>
+    <Masthead />
+    {data.editions.length > 0 ? <EditionsList editions={data.editions} /> : <AllReadState />}
+    <QuickLinks configs={data.configs} />
+  </SlideIn>
+);
 
 /* ---------- Home page ---------- */
 

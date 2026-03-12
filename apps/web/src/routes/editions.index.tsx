@@ -61,55 +61,66 @@ const EditionConfigsList = ({
       data-ai-label={`${configs.length} edition configurations`}
     >
       {configs.map((config) => (
-        <div
-          key={config.id}
-          className="flex items-center justify-between py-4 border-b border-border last:border-b-0"
-          data-ai-id={`edition-config-${config.id}`}
-          data-ai-role="section"
-          data-ai-label={config.name}
-        >
-          <div className="min-w-0 flex-1">
-            <Link
-              to="/editions/$configId"
-              params={{ configId: config.id }}
-              className="font-serif text-lg font-medium tracking-tight text-ink hover:text-accent transition-colors duration-fast"
-              data-ai-id={`edition-config-${config.id}-link`}
-              data-ai-role="link"
-              data-ai-label={config.name}
-            >
-              {config.name}
-            </Link>
-            <div className="flex items-center gap-2 text-xs text-ink-tertiary mt-1">
-              <span>{formatLookback(config.lookbackHours)} window</span>
-              <span className="text-ink-faint">·</span>
-              <span>
-                {config.focuses.length === 0
-                  ? 'No focuses'
-                  : `${config.focuses.length} focus${config.focuses.length === 1 ? '' : 'es'}`}
-              </span>
-              {!config.enabled && (
-                <>
-                  <span className="text-ink-faint">·</span>
-                  <span className="text-caution">disabled</span>
-                </>
-              )}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => onDelete(config.id, config.name)}
-            className="text-xs text-ink-tertiary hover:text-critical transition-colors duration-fast cursor-pointer ml-4"
-            data-ai-id={`edition-config-${config.id}-delete`}
-            data-ai-role="button"
-            data-ai-label={`Delete ${config.name}`}
-          >
-            {deletingId === config.id ? 'Deleting...' : 'Delete'}
-          </button>
-        </div>
+        <ConfigRow key={config.id} config={config} deletingId={deletingId} onDelete={onDelete} />
       ))}
     </div>
   );
 };
+
+const ConfigRow = ({
+  config,
+  deletingId,
+  onDelete,
+}: {
+  config: ConfigItem;
+  deletingId: string | null;
+  onDelete: (id: string, name: string) => void;
+}): React.ReactNode => (
+  <div
+    className="flex items-center justify-between py-4 border-b border-border last:border-b-0"
+    data-ai-id={`edition-config-${config.id}`}
+    data-ai-role="section"
+    data-ai-label={config.name}
+  >
+    <div className="min-w-0 flex-1">
+      <Link
+        to="/editions/$configId"
+        params={{ configId: config.id }}
+        className="font-serif text-lg font-medium tracking-tight text-ink hover:text-accent transition-colors duration-fast"
+        data-ai-id={`edition-config-${config.id}-link`}
+        data-ai-role="link"
+        data-ai-label={config.name}
+      >
+        {config.name}
+      </Link>
+      <div className="flex items-center gap-2 text-xs text-ink-tertiary mt-1">
+        <span>{formatLookback(config.lookbackHours)} window</span>
+        <span className="text-ink-faint">·</span>
+        <span>
+          {config.focuses.length === 0
+            ? 'No focuses'
+            : `${config.focuses.length} focus${config.focuses.length === 1 ? '' : 'es'}`}
+        </span>
+        {!config.enabled && (
+          <>
+            <span className="text-ink-faint">·</span>
+            <span className="text-caution">disabled</span>
+          </>
+        )}
+      </div>
+    </div>
+    <button
+      type="button"
+      onClick={() => onDelete(config.id, config.name)}
+      className="text-xs text-ink-tertiary hover:text-critical transition-colors duration-fast cursor-pointer ml-4"
+      data-ai-id={`edition-config-${config.id}-delete`}
+      data-ai-role="button"
+      data-ai-label={`Delete ${config.name}`}
+    >
+      {deletingId === config.id ? 'Deleting...' : 'Delete'}
+    </button>
+  </div>
+);
 
 const Route = createFileRoute('/editions/')({
   component: EditionsPage,

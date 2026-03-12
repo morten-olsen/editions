@@ -1,29 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 
 import { useAuthHeaders, queryKeys } from '../../api/api.hooks.ts';
 import { client } from '../../api/api.ts';
-import { useOptimisticMap } from '../utilities/use-optimistic-map.ts';
-import { useFormPopulation } from '../utilities/use-form-population.ts';
 
-import { PAGE_SIZE, ANALYSIS_JOB_TYPES, windowToRange } from './focuses.utils.ts';
-import type {
-  VoteValue,
-  SourceMode,
-  SourceSelection,
-  Source,
-  FocusListItem,
-  FocusDetail,
-  FocusEditable,
-  FocusArticlesPage,
-  ArticlesWithBookmarks,
-  SortMode,
-  TimeWindow,
-  ReadStatus,
-  JobEntry,
-  VoteOverride,
-} from './focuses.types.ts';
+import type { SourceMode, SourceSelection, Source, FocusListItem } from './focuses.types.ts';
 
 // ---------------------------------------------------------------------------
 // useFocusesList
@@ -269,10 +251,12 @@ export type {
   UseCreateFocusResult,
 };
 
-export type { UseFocusDetailResult, UseEditFocusResult } from './focuses.detail-hooks.ts';
+export type { UseFocusDetailResult } from './focuses.detail-hooks.ts';
+export type { UseEditFocusResult } from './focuses.edit-hooks.ts';
 
 export { selectClasses, priorityLabel, confidenceHint, PAGE_SIZE } from './focuses.utils.ts';
 
-export { useFocusDetail, useEditFocus } from './focuses.detail-hooks.ts';
+export { useFocusDetail } from './focuses.detail-hooks.ts';
+export { useEditFocus } from './focuses.edit-hooks.ts';
 
 export { useFocusesList, useFocusSourceSelection, useCreateFocus };

@@ -1,120 +1,7 @@
 import * as React from 'react';
 import { motion } from 'motion/react';
 
-import { client } from '../api/api.ts';
-
-/* ── Playback progress persistence ───────────────────────────────── */
-
-const PROGRESS_PREFIX = 'editions:media-progress:';
-const SAVE_INTERVAL_MS = 3000;
-
-/** Save progress to server — fire-and-forget. */
-const saveProgressToServer = (articleId: string, ratio: number): void => {
-  client
-    .PATCH('/api/articles/{articleId}/progress', {
-      params: { path: { articleId } },
-      body: { progress: ratio },
-    })
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    .catch(() => {});
-};
-
-/** Save current playback position to localStorage and optionally to the server. */
-const persistPosition = (el: HTMLMediaElement, localKey: string, articleId?: string | null): void => {
-  try {
-    localStorage.setItem(localKey, String(el.currentTime));
-  } catch {
-    /* ignore */
-  }
-  if (articleId && el.duration > 0) {
-    saveProgressToServer(articleId, Math.min(1, el.currentTime / el.duration));
-  }
-};
-
-/** Restore playback position from localStorage or server progress. */
-const restorePosition = (el: HTMLMediaElement, localKey: string, initialProgress?: number | null): void => {
-  const saved = localStorage.getItem(localKey);
-  if (saved) {
-    const t = parseFloat(saved);
-    if (Number.isFinite(t) && t > 0 && t < el.duration) {
-      el.currentTime = t;
-      return;
-    }
-  }
-  if (initialProgress && initialProgress > 0 && initialProgress < 1) {
-    el.currentTime = initialProgress * el.duration;
-  }
-};
-
-/**
- * Persists and restores playback position for a media element.
- *
- * Two layers:
- * - **localStorage** — fast cache keyed by media URL
- * - **Server API** — `PATCH /api/articles/:articleId/progress`
- */
-const usePlaybackProgress = (
-  mediaRef: React.RefObject<HTMLMediaElement | null>,
-  src: string,
-  articleId?: string | null,
-  initialProgress?: number | null,
-): void => {
-  const localKey = PROGRESS_PREFIX + src;
-  const lastSave = React.useRef(0);
-
-  React.useEffect(() => {
-    const el = mediaRef.current;
-    if (!el) {
-      return;
-    }
-
-    const restore = (): void => restorePosition(el, localKey, initialProgress);
-
-    el.addEventListener('loadedmetadata', restore, { once: true });
-    if (el.readyState >= 1) {
-      restore();
-    }
-
-    return () => el.removeEventListener('loadedmetadata', restore);
-  }, [localKey, mediaRef, initialProgress]);
-
-  React.useEffect(() => {
-    const el = mediaRef.current;
-    if (!el) {
-      return;
-    }
-
-    const save = (): void => {
-      const now = Date.now();
-      if (now - lastSave.current < SAVE_INTERVAL_MS) {
-        return;
-      }
-      lastSave.current = now;
-      persistPosition(el, localKey, articleId);
-    };
-
-    const onEnded = (): void => {
-      try {
-        localStorage.removeItem(localKey);
-      } catch {
-        /* ignore */
-      }
-      if (articleId) {
-        saveProgressToServer(articleId, 1);
-      }
-    };
-
-    el.addEventListener('timeupdate', save);
-    el.addEventListener('ended', onEnded);
-    return () => {
-      el.removeEventListener('timeupdate', save);
-      el.removeEventListener('ended', onEnded);
-      if (el.currentTime > 0 && !el.ended) {
-        persistPosition(el, localKey, articleId);
-      }
-    };
-  }, [localKey, articleId, mediaRef]);
-};
+import { usePlaybackProgress } from './media-player.progress.ts';
 
 /* ── Helpers ──────────────────────────────────────────────────────── */
 
@@ -264,13 +151,39 @@ const WaveformSeek = ({
   );
 };
 
-/* ── AudioPlayer ─────────────────────────────────────────────────── */
+/* ── Audio player state hook ──────────────────────────────────────── */
 
-const AudioPlayer = ({ src, articleId, initialProgress, delay = 0.35 }: AudioPlayerProps): React.ReactElement => {
+type AudioPlayerState = {
+  audioRef: React.RefObject<HTMLAudioElement | null>;
+  waveRef: React.RefObject<HTMLDivElement | null>;
+  playing: boolean;
+  currentTime: number;
+  duration: number;
+  progress: number;
+  hoverRatio: number | null;
+  dragging: boolean;
+  toggle: () => void;
+  setPlaying: (v: boolean) => void;
+  setCurrentTime: (v: number) => void;
+  setDuration: (v: number) => void;
+  setHoverRatio: (v: number | null) => void;
+  setDragging: (v: boolean) => void;
+  ratioFromEvent: (e: { clientX: number }) => number;
+  seekTo: (ratio: number) => void;
+};
+
+const useAudioPlayerState = (
+  src: string,
+  articleId?: string | null,
+  initialProgress?: number | null,
+): AudioPlayerState => {
   const audioRef = React.useRef<HTMLAudioElement>(null);
+  const waveRef = React.useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = React.useState(false);
   const [currentTime, setCurrentTime] = React.useState(0);
   const [duration, setDuration] = React.useState(0);
+  const [hoverRatio, setHoverRatio] = React.useState<number | null>(null);
+  const [dragging, setDragging] = React.useState(false);
 
   usePlaybackProgress(audioRef, src, articleId, initialProgress);
 
@@ -288,10 +201,6 @@ const AudioPlayer = ({ src, articleId, initialProgress, delay = 0.35 }: AudioPla
     }
   };
 
-  const waveRef = React.useRef<HTMLDivElement>(null);
-  const [hoverRatio, setHoverRatio] = React.useState<number | null>(null);
-  const [dragging, setDragging] = React.useState(false);
-
   const ratioFromEvent = (e: { clientX: number }): number => {
     const rect = waveRef.current?.getBoundingClientRect();
     if (!rect) {
@@ -308,6 +217,65 @@ const AudioPlayer = ({ src, articleId, initialProgress, delay = 0.35 }: AudioPla
     el.currentTime = ratio * duration;
   };
 
+  return {
+    audioRef,
+    waveRef,
+    playing,
+    currentTime,
+    duration,
+    progress,
+    hoverRatio,
+    dragging,
+    toggle,
+    setPlaying,
+    setCurrentTime,
+    setDuration,
+    setHoverRatio,
+    setDragging,
+    ratioFromEvent,
+    seekTo,
+  };
+};
+
+/* ── Audio player seek handlers ──────────────────────────────────── */
+
+type SeekHandlers = {
+  onPointerDown: (e: React.PointerEvent<HTMLDivElement>) => void;
+  onPointerMove: (e: React.PointerEvent<HTMLDivElement>) => void;
+  onPointerUp: () => void;
+  onPointerLeave: () => void;
+};
+
+const buildSeekHandlers = (state: AudioPlayerState): SeekHandlers => ({
+  onPointerDown: (e) => {
+    if (!state.duration) {
+      return;
+    }
+    state.setDragging(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
+    state.seekTo(state.ratioFromEvent(e));
+  },
+  onPointerMove: (e) => {
+    const ratio = state.ratioFromEvent(e);
+    state.setHoverRatio(ratio);
+    if (state.dragging) {
+      state.seekTo(ratio);
+    }
+  },
+  onPointerUp: () => state.setDragging(false),
+  onPointerLeave: () => {
+    if (!state.dragging) {
+      state.setHoverRatio(null);
+    }
+  },
+});
+
+/* ── AudioPlayer ─────────────────────────────────────────────────── */
+
+const AudioPlayer = ({ src, articleId, initialProgress, delay = 0.35 }: AudioPlayerProps): React.ReactElement => {
+  const state = useAudioPlayerState(src, articleId, initialProgress);
+  const handlers = buildSeekHandlers(state);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -315,45 +283,25 @@ const AudioPlayer = ({ src, articleId, initialProgress, delay = 0.35 }: AudioPla
       transition={{ duration: 0.4, ease: easeOut, delay }}
     >
       <audio
-        ref={audioRef}
+        ref={state.audioRef}
         src={src}
         preload="metadata"
-        onLoadedMetadata={() => setDuration(audioRef.current?.duration ?? 0)}
-        onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime ?? 0)}
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-        onEnded={() => setPlaying(false)}
+        onLoadedMetadata={() => state.setDuration(state.audioRef.current?.duration ?? 0)}
+        onTimeUpdate={() => state.setCurrentTime(state.audioRef.current?.currentTime ?? 0)}
+        onPlay={() => state.setPlaying(true)}
+        onPause={() => state.setPlaying(false)}
+        onEnded={() => state.setPlaying(false)}
       />
       <div className="flex flex-col items-center gap-5">
-        <PlayPauseButton playing={playing} onToggle={toggle} />
+        <PlayPauseButton playing={state.playing} onToggle={state.toggle} />
         <WaveformSeek
-          waveRef={waveRef}
-          progress={progress}
-          duration={duration}
-          currentTime={currentTime}
-          hoverRatio={hoverRatio}
-          dragging={dragging}
-          onPointerDown={(e) => {
-            if (!duration) {
-              return;
-            }
-            setDragging(true);
-            e.currentTarget.setPointerCapture(e.pointerId);
-            seekTo(ratioFromEvent(e));
-          }}
-          onPointerMove={(e) => {
-            const ratio = ratioFromEvent(e);
-            setHoverRatio(ratio);
-            if (dragging) {
-              seekTo(ratio);
-            }
-          }}
-          onPointerUp={() => setDragging(false)}
-          onPointerLeave={() => {
-            if (!dragging) {
-              setHoverRatio(null);
-            }
-          }}
+          waveRef={state.waveRef}
+          progress={state.progress}
+          duration={state.duration}
+          currentTime={state.currentTime}
+          hoverRatio={state.hoverRatio}
+          dragging={state.dragging}
+          {...handlers}
         />
       </div>
     </motion.div>

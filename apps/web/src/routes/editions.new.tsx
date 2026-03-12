@@ -7,7 +7,7 @@ import { Button } from '../components/button.tsx';
 import { Checkbox } from '../components/checkbox.tsx';
 import { Separator } from '../components/separator.tsx';
 import { IconPicker } from '../components/icon-picker.tsx';
-import { FocusConfigCard, AvailableFocusesList, priorityLabel } from '../views/editions/focus-config-card.tsx';
+import { FocusConfigCard, AvailableFocusesList } from '../views/editions/focus-config-card.tsx';
 
 const NewEditionConfigPage = (): React.ReactNode => {
   const hook = useCreateEditionConfig();
@@ -72,7 +72,6 @@ const NewEditionFields = ({ hook }: { hook: EditionHook }): React.ReactNode => {
     setExcludePriorEditions,
     focusSelection,
   } = hook;
-  const { isPresetSchedule, scheduleSelectValue } = focusSelection;
 
   return (
     <div className="flex flex-col gap-5">
@@ -88,72 +87,8 @@ const NewEditionFields = ({ hook }: { hook: EditionHook }): React.ReactNode => {
         data-ai-value={name}
       />
       <IconPicker value={icon} onChange={setIcon} />
-
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="schedule-preset" className="text-sm font-medium text-ink">
-          Delivery schedule
-        </label>
-        <p className="text-xs text-ink-tertiary -mt-0.5">When this edition is automatically generated</p>
-        <select
-          id="schedule-preset"
-          value={scheduleSelectValue(schedule)}
-          onChange={(e) => {
-            if (e.target.value !== '__custom__') {
-              setSchedule(e.target.value);
-            }
-          }}
-          className={`w-full ${selectClasses}`}
-          data-ai-id="edition-schedule"
-          data-ai-role="select"
-          data-ai-label="Delivery schedule"
-          data-ai-value={schedule}
-        >
-          {SCHEDULE_PRESETS.map((p) => (
-            <option key={p.value} value={p.value}>
-              {p.label}
-            </option>
-          ))}
-        </select>
-        {!isPresetSchedule(schedule) && (
-          <div className="flex flex-col gap-1.5 mt-1">
-            <Input
-              value={schedule}
-              onChange={(e) => setSchedule(e.target.value)}
-              className="font-mono"
-              placeholder="0 7 * * *"
-              required
-            />
-            <p className="text-xs text-ink-tertiary">
-              Cron expression — e.g. <code className="font-mono bg-surface-sunken px-1 rounded">0 7 * * *</code> means
-              daily at 7am
-            </p>
-          </div>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="lookback" className="text-sm font-medium text-ink">
-          How far back to look
-        </label>
-        <p className="text-xs text-ink-tertiary -mt-0.5">How old an article can be to appear in this edition</p>
-        <select
-          id="lookback"
-          value={lookbackHours}
-          onChange={(e) => setLookbackHours(Number(e.target.value))}
-          className={`w-full ${selectClasses}`}
-          data-ai-id="edition-lookback"
-          data-ai-role="select"
-          data-ai-label="How far back to look"
-          data-ai-value={String(lookbackHours)}
-        >
-          <option value={1}>Last hour</option>
-          <option value={24}>Last 24 hours</option>
-          <option value={168}>Last week</option>
-          <option value={730}>Last month</option>
-          <option value={8760}>Last year</option>
-        </select>
-      </div>
-
+      <NewScheduleField schedule={schedule} setSchedule={setSchedule} focusSelection={focusSelection} />
+      <NewLookbackField lookbackHours={lookbackHours} setLookbackHours={setLookbackHours} />
       <Checkbox
         label="Don't repeat articles across editions"
         description="Articles that appeared in a previous issue of this digest won't be included again"
@@ -167,6 +102,89 @@ const NewEditionFields = ({ hook }: { hook: EditionHook }): React.ReactNode => {
     </div>
   );
 };
+
+const NewScheduleField = ({
+  schedule,
+  setSchedule,
+  focusSelection,
+}: {
+  schedule: string;
+  setSchedule: (v: string) => void;
+  focusSelection: FocusSelection;
+}): React.ReactNode => (
+  <div className="flex flex-col gap-1.5">
+    <label htmlFor="schedule-preset" className="text-sm font-medium text-ink">
+      Delivery schedule
+    </label>
+    <p className="text-xs text-ink-tertiary -mt-0.5">When this edition is automatically generated</p>
+    <select
+      id="schedule-preset"
+      value={focusSelection.scheduleSelectValue(schedule)}
+      onChange={(e) => {
+        if (e.target.value !== '__custom__') {
+          setSchedule(e.target.value);
+        }
+      }}
+      className={`w-full ${selectClasses}`}
+      data-ai-id="edition-schedule"
+      data-ai-role="select"
+      data-ai-label="Delivery schedule"
+      data-ai-value={schedule}
+    >
+      {SCHEDULE_PRESETS.map((p) => (
+        <option key={p.value} value={p.value}>
+          {p.label}
+        </option>
+      ))}
+    </select>
+    {!focusSelection.isPresetSchedule(schedule) && (
+      <div className="flex flex-col gap-1.5 mt-1">
+        <Input
+          value={schedule}
+          onChange={(e) => setSchedule(e.target.value)}
+          className="font-mono"
+          placeholder="0 7 * * *"
+          required
+        />
+        <p className="text-xs text-ink-tertiary">
+          Cron expression — e.g. <code className="font-mono bg-surface-sunken px-1 rounded">0 7 * * *</code> means daily
+          at 7am
+        </p>
+      </div>
+    )}
+  </div>
+);
+
+const NewLookbackField = ({
+  lookbackHours,
+  setLookbackHours,
+}: {
+  lookbackHours: number;
+  setLookbackHours: (v: number) => void;
+}): React.ReactNode => (
+  <div className="flex flex-col gap-1.5">
+    <label htmlFor="lookback" className="text-sm font-medium text-ink">
+      How far back to look
+    </label>
+    <p className="text-xs text-ink-tertiary -mt-0.5">How old an article can be to appear in this edition</p>
+    <select
+      id="lookback"
+      value={lookbackHours}
+      onChange={(e) => setLookbackHours(Number(e.target.value))}
+      className={`w-full ${selectClasses}`}
+      data-ai-id="edition-lookback"
+      data-ai-role="select"
+      data-ai-label="How far back to look"
+      data-ai-value={String(lookbackHours)}
+    >
+      <option value={1}>Last hour</option>
+      <option value={24}>Last 24 hours</option>
+      <option value={168}>Last week</option>
+      <option value={730}>Last month</option>
+      <option value={8760}>Last year</option>
+    </select>
+  </div>
+);
 
 /* ---- Selected topics section ---- */
 

@@ -3,9 +3,17 @@ import { useState } from 'react';
 import { useAi } from '../../ai/ai.ts';
 import { Button } from '../../components/button.tsx';
 import { Input } from '../../components/input.tsx';
-import type { AiConfig } from '../../ai/ai.ts';
 
-const AiSection = (): React.ReactNode => {
+const useAiForm = (): {
+  endpoint: string;
+  apiKey: string;
+  model: string;
+  dirty: boolean;
+  isEnabled: boolean;
+  handleChange: (field: 'endpoint' | 'apiKey' | 'model', value: string) => void;
+  handleSave: () => void;
+  handleRemove: () => void;
+} => {
   const { config, setConfig, removeConfig, isEnabled } = useAi();
   const [endpoint, setEndpoint] = useState(config?.endpoint ?? '');
   const [apiKey, setApiKey] = useState(config?.apiKey ?? '');
@@ -16,12 +24,7 @@ const AiSection = (): React.ReactNode => {
     if (!endpoint.trim() || !apiKey.trim() || !model.trim()) {
       return;
     }
-    const newConfig: AiConfig = {
-      endpoint: endpoint.trim(),
-      apiKey: apiKey.trim(),
-      model: model.trim(),
-    };
-    setConfig(newConfig);
+    setConfig({ endpoint: endpoint.trim(), apiKey: apiKey.trim(), model: model.trim() });
     setDirty(false);
   };
 
@@ -46,6 +49,12 @@ const AiSection = (): React.ReactNode => {
     setDirty(true);
   };
 
+  return { endpoint, apiKey, model, dirty, isEnabled, handleChange, handleSave, handleRemove };
+};
+
+const AiSection = (): React.ReactNode => {
+  const form = useAiForm();
+
   return (
     <div
       className="flex flex-col gap-6"
@@ -63,35 +72,10 @@ const AiSection = (): React.ReactNode => {
         </p>
       </div>
 
-      <AiFormFields endpoint={endpoint} apiKey={apiKey} model={model} onChange={handleChange} />
+      <AiFormFields endpoint={form.endpoint} apiKey={form.apiKey} model={form.model} onChange={form.handleChange} />
+      <AiActions form={form} />
 
-      <div className="flex items-center gap-3">
-        <Button
-          variant="primary"
-          size="sm"
-          disabled={!dirty || !endpoint.trim() || !apiKey.trim() || !model.trim()}
-          onClick={handleSave}
-          data-ai-id="settings-ai-save"
-          data-ai-role="button"
-          data-ai-label={isEnabled ? 'Update assistant' : 'Enable assistant'}
-        >
-          {isEnabled ? 'Update' : 'Enable assistant'}
-        </Button>
-        {isEnabled && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleRemove}
-            data-ai-id="settings-ai-disable"
-            data-ai-role="button"
-            data-ai-label="Disable assistant"
-          >
-            Disable assistant
-          </Button>
-        )}
-      </div>
-
-      {isEnabled && (
+      {form.isEnabled && (
         <div
           className="rounded-md bg-positive-subtle px-3.5 py-2.5 text-xs text-positive"
           data-ai-id="settings-ai-status"
@@ -104,6 +88,34 @@ const AiSection = (): React.ReactNode => {
     </div>
   );
 };
+
+const AiActions = ({ form }: { form: ReturnType<typeof useAiForm> }): React.ReactNode => (
+  <div className="flex items-center gap-3">
+    <Button
+      variant="primary"
+      size="sm"
+      disabled={!form.dirty || !form.endpoint.trim() || !form.apiKey.trim() || !form.model.trim()}
+      onClick={form.handleSave}
+      data-ai-id="settings-ai-save"
+      data-ai-role="button"
+      data-ai-label={form.isEnabled ? 'Update assistant' : 'Enable assistant'}
+    >
+      {form.isEnabled ? 'Update' : 'Enable assistant'}
+    </Button>
+    {form.isEnabled && (
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={form.handleRemove}
+        data-ai-id="settings-ai-disable"
+        data-ai-role="button"
+        data-ai-label="Disable assistant"
+      >
+        Disable assistant
+      </Button>
+    )}
+  </div>
+);
 
 const AiFormFields = ({
   endpoint,

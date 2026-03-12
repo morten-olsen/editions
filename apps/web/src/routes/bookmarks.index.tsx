@@ -6,6 +6,95 @@ import { EmptyState } from '../components/empty-state.tsx';
 import { ArticleCard } from '../components/article-card.tsx';
 import { Button } from '../components/button.tsx';
 
+const BookmarkSaveForm = ({
+  saveUrl,
+  setSaveUrl,
+  isSaving,
+  onSubmit,
+}: {
+  saveUrl: string;
+  setSaveUrl: (v: string) => void;
+  isSaving: boolean;
+  onSubmit: (e: React.FormEvent) => void;
+}): React.ReactNode => (
+  <form
+    onSubmit={onSubmit}
+    className="flex gap-2 mb-6"
+    data-ai-id="bookmark-save-form"
+    data-ai-role="form"
+    data-ai-label="Save article by URL"
+  >
+    <input
+      type="url"
+      placeholder="Paste a URL to save an article..."
+      value={saveUrl}
+      onChange={(e) => setSaveUrl(e.target.value)}
+      required
+      className="flex-1 h-10 rounded-md border border-border bg-surface-raised px-3.5 text-sm text-ink placeholder:text-ink-faint outline-none transition-colors duration-fast ease-gentle focus:border-accent focus:ring-2 focus:ring-accent/20"
+      data-ai-id="bookmark-save-url"
+      data-ai-role="input"
+      data-ai-label="Article URL"
+      data-ai-value={saveUrl}
+    />
+    <Button
+      variant="primary"
+      size="sm"
+      type="submit"
+      disabled={isSaving}
+      data-ai-id="bookmark-save-submit"
+      data-ai-role="button"
+      data-ai-label="Save bookmark"
+      data-ai-state={isSaving ? 'loading' : 'idle'}
+    >
+      {isSaving ? 'Saving...' : 'Save'}
+    </Button>
+  </form>
+);
+
+const BookmarkPagination = ({
+  pagination,
+}: {
+  pagination: ReturnType<typeof useBookmarks>['pagination'];
+}): React.ReactNode => {
+  if (pagination.totalPages <= 1) {
+    return null;
+  }
+  return (
+    <div
+      className="flex items-center justify-between mt-4 pt-4 border-t border-border"
+      data-ai-id="bookmark-pagination"
+      data-ai-role="info"
+      data-ai-label={`Page ${pagination.currentPage} of ${pagination.totalPages}`}
+    >
+      <Button
+        variant="ghost"
+        size="sm"
+        disabled={!pagination.hasPrev}
+        onClick={() => pagination.goPrev()}
+        data-ai-id="bookmark-prev-page"
+        data-ai-role="button"
+        data-ai-label="Previous page"
+      >
+        Previous
+      </Button>
+      <span className="text-xs text-ink-tertiary">
+        Page {pagination.currentPage} of {pagination.totalPages}
+      </span>
+      <Button
+        variant="ghost"
+        size="sm"
+        disabled={!pagination.hasNext}
+        onClick={() => pagination.goNext()}
+        data-ai-id="bookmark-next-page"
+        data-ai-role="button"
+        data-ai-label="Next page"
+      >
+        Next
+      </Button>
+    </div>
+  );
+};
+
 const BookmarksIndexPage = (): React.ReactNode => {
   const {
     bookmarks,
@@ -23,39 +112,7 @@ const BookmarksIndexPage = (): React.ReactNode => {
   return (
     <>
       <PageHeader title="Bookmarks" serif />
-
-      <form
-        onSubmit={handleSaveUrl}
-        className="flex gap-2 mb-6"
-        data-ai-id="bookmark-save-form"
-        data-ai-role="form"
-        data-ai-label="Save article by URL"
-      >
-        <input
-          type="url"
-          placeholder="Paste a URL to save an article..."
-          value={saveUrl}
-          onChange={(e) => setSaveUrl(e.target.value)}
-          required
-          className="flex-1 h-10 rounded-md border border-border bg-surface-raised px-3.5 text-sm text-ink placeholder:text-ink-faint outline-none transition-colors duration-fast ease-gentle focus:border-accent focus:ring-2 focus:ring-accent/20"
-          data-ai-id="bookmark-save-url"
-          data-ai-role="input"
-          data-ai-label="Article URL"
-          data-ai-value={saveUrl}
-        />
-        <Button
-          variant="primary"
-          size="sm"
-          type="submit"
-          disabled={isSaving}
-          data-ai-id="bookmark-save-submit"
-          data-ai-role="button"
-          data-ai-label="Save bookmark"
-          data-ai-state={isSaving ? 'loading' : 'idle'}
-        >
-          {isSaving ? 'Saving...' : 'Save'}
-        </Button>
-      </form>
+      <BookmarkSaveForm saveUrl={saveUrl} setSaveUrl={setSaveUrl} isSaving={isSaving} onSubmit={handleSaveUrl} />
 
       {saveError && (
         <div
@@ -101,45 +158,10 @@ const BookmarksIndexPage = (): React.ReactNode => {
               />
             ))}
           </div>
-
           <div className="text-xs text-ink-tertiary mt-4">
             {total} bookmark{total === 1 ? '' : 's'}
           </div>
-
-          {pagination.totalPages > 1 && (
-            <div
-              className="flex items-center justify-between mt-4 pt-4 border-t border-border"
-              data-ai-id="bookmark-pagination"
-              data-ai-role="info"
-              data-ai-label={`Page ${pagination.currentPage} of ${pagination.totalPages}`}
-            >
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={!pagination.hasPrev}
-                onClick={() => pagination.goPrev()}
-                data-ai-id="bookmark-prev-page"
-                data-ai-role="button"
-                data-ai-label="Previous page"
-              >
-                Previous
-              </Button>
-              <span className="text-xs text-ink-tertiary">
-                Page {pagination.currentPage} of {pagination.totalPages}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={!pagination.hasNext}
-                onClick={() => pagination.goNext()}
-                data-ai-id="bookmark-next-page"
-                data-ai-role="button"
-                data-ai-label="Next page"
-              >
-                Next
-              </Button>
-            </div>
-          )}
+          <BookmarkPagination pagination={pagination} />
         </>
       )}
     </>

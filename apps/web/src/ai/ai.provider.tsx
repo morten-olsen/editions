@@ -11,11 +11,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 
 import type { AiConfig, AiChatMessage, AiDisplayMessage } from './ai.types.ts';
-import { toolDefinitions, executeTool, isAgentClick } from './ai.tools.ts';
-import { chatCompletion } from './ai.client.ts';
+import { isAgentClick } from './ai.tools.ts';
 import { buildSystemPrompt } from './ai.prompt.ts';
 import { queryPage } from './ai.descriptor.ts';
 import type { ToolContext } from './ai.tools.ts';
+import { runAgentTurn } from './ai.agent.ts';
 
 const CONFIG_KEY = 'editions_ai_config';
 
@@ -66,126 +66,6 @@ type AiContextValue = {
 };
 
 const AiContext = createContext<AiContextValue | null>(null);
-
-/* ── Agent turn execution ────────────────────────────── */
-
-/** Update the last running action message with a final status. */
-const updateActionStatus = (
-  setDisplayMessages: React.Dispatch<React.SetStateAction<AiDisplayMessage[]>>,
-  toolResult: string,
-): void => {
-  setDisplayMessages((prev) => {
-    const updated = [...prev];
-    let lastAction = -1;
-    for (let i = updated.length - 1; i >= 0; i--) {
-      const item = updated[i];
-      if (item?.type === 'action' && (item as AiDisplayMessage & { type: 'action' }).status === 'running') {
-        lastAction = i;
-        break;
-      }
-    }
-    if (lastAction !== -1) {
-      const msg = updated[lastAction] as AiDisplayMessage & { type: 'action' };
-      const hasError = toolResult.includes('"error"');
-      updated[lastAction] = { ...msg, status: hasError ? 'error' : 'done' };
-    }
-    return updated;
-  });
-};
-
-type AgentState = {
-  messagesRef: React.MutableRefObject<AiChatMessage[]>;
-  abortRef: React.MutableRefObject<boolean>;
-  setDisplayMessages: React.Dispatch<React.SetStateAction<AiDisplayMessage[]>>;
-  setLastActivity: React.Dispatch<React.SetStateAction<string | null>>;
-};
-
-/** Execute a single tool call and record results in the message history. */
-const executeToolCall = async (
-  toolCall: { id: string; name: string; arguments: string },
-  ctx: ToolContext,
-  state: AgentState,
-): Promise<void> => {
-  const { messagesRef, setDisplayMessages, setLastActivity } = state;
-  const toolName = toolCall.name;
-  const isVisualAction = toolName === 'click' || toolName === 'fillInput' || toolName === 'navigate';
-
-  let toolArgs: Record<string, unknown>;
-  try {
-    toolArgs = JSON.parse(toolCall.arguments) as Record<string, unknown>;
-  } catch {
-    const errResult = JSON.stringify({ error: `Invalid tool arguments: ${toolCall.arguments}` });
-    messagesRef.current = [...messagesRef.current, { role: 'tool', content: errResult, toolCallId: toolCall.id }];
-    return;
-  }
-
-  const description = describeAction(toolName, toolArgs);
-  setLastActivity(description);
-
-  if (isVisualAction) {
-    setDisplayMessages((prev) => [...prev, { type: 'action', description, status: 'running' }]);
-  }
-
-  let toolResult: string;
-  let toolError = false;
-  try {
-    toolResult = await executeTool(toolName, toolArgs, ctx);
-  } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : 'Unknown error';
-    toolResult = JSON.stringify({ error: `Tool "${toolName}" failed: ${errorMsg}` });
-    toolError = true;
-  }
-
-  if (isVisualAction) {
-    updateActionStatus(setDisplayMessages, toolResult);
-  }
-
-  if (toolError) {
-    setDisplayMessages((prev) => [...prev, { type: 'assistant', content: `Something went wrong: ${toolResult}` }]);
-  }
-
-  messagesRef.current = [...messagesRef.current, { role: 'tool', content: toolResult, toolCallId: toolCall.id }];
-};
-
-/**
- * Run a single LLM turn: call the model, process tool calls. Returns
- * true when the loop should stop (no more tool calls or error).
- */
-const runAgentTurn = async (currentConfig: AiConfig, ctx: ToolContext, state: AgentState): Promise<boolean> => {
-  const { messagesRef, abortRef, setDisplayMessages } = state;
-  let result;
-  try {
-    result = await chatCompletion(currentConfig, messagesRef.current, toolDefinitions);
-  } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : 'Unknown error';
-    setDisplayMessages((prev) => [...prev, { type: 'assistant', content: `Something went wrong: ${errorMsg}` }]);
-    return true;
-  }
-
-  const assistantMsg: AiChatMessage = {
-    role: 'assistant',
-    content: result.content ?? '',
-    toolCalls: result.toolCalls.length > 0 ? result.toolCalls : undefined,
-  };
-  messagesRef.current = [...messagesRef.current, assistantMsg];
-
-  if (result.content) {
-    setDisplayMessages((prev) => [...prev, { type: 'assistant', content: result.content ?? '' }]);
-  }
-
-  if (result.toolCalls.length === 0) {
-    return true;
-  }
-
-  for (const toolCall of result.toolCalls) {
-    if (abortRef.current) {
-      break;
-    }
-    await executeToolCall(toolCall, ctx, state);
-  }
-
-  return false;
-};
 
 /* ── Stop-on-interaction effect ──────────────────────── */
 
@@ -242,24 +122,21 @@ const useCursorState = (): CursorState => {
   return { cursorTargetId, cursorVisible, moveCursor, resetCursor };
 };
 
-/* ── Provider component ──────────────────────────────── */
+/* ── Config state hook ───────────────────────────────── */
 
-const AiProvider = ({ children }: { children: React.ReactNode }): React.ReactNode => {
-  const queryClient = useQueryClient();
-  const routerNavigate = useNavigate();
+type ConfigState = {
+  config: AiConfig | null;
+  isEnabled: boolean;
+  setConfig: (c: AiConfig) => void;
+  removeConfig: () => void;
+};
 
+const useConfigState = (
+  setDisplayMessages: React.Dispatch<React.SetStateAction<AiDisplayMessage[]>>,
+  messagesRef: React.MutableRefObject<AiChatMessage[]>,
+): ConfigState => {
   const [config, setConfigState] = useState<AiConfig | null>(loadConfig);
   const isEnabled = config !== null;
-
-  const [isOpen, setIsOpen] = useState(false);
-  const [displayMessages, setDisplayMessages] = useState<AiDisplayMessage[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [lastActivity, setLastActivity] = useState<string | null>(null);
-  const [turnCount, setTurnCount] = useState(0);
-
-  const messagesRef = useRef<AiChatMessage[]>([]);
-  const abortRef = useRef<boolean>(false);
-  const { cursorTargetId, cursorVisible, moveCursor, resetCursor } = useCursorState();
 
   const setConfig = useCallback((c: AiConfig): void => {
     saveConfig(c);
@@ -271,16 +148,45 @@ const AiProvider = ({ children }: { children: React.ReactNode }): React.ReactNod
     setConfigState(null);
     setDisplayMessages([]);
     messagesRef.current = [];
-  }, []);
+  }, [setDisplayMessages, messagesRef]);
 
-  const toggleOpen = useCallback((): void => setIsOpen((prev) => !prev), []);
+  return { config, isEnabled, setConfig, removeConfig };
+};
+
+/* ── Agent loop hook ─────────────────────────────────── */
+
+type AgentLoopControls = {
+  isProcessing: boolean;
+  lastActivity: string | null;
+  turnCount: number;
+  sendMessage: (content: string) => void;
+  stopProcessing: () => void;
+  clearConversation: () => void;
+};
+
+type AgentLoopRefs = {
+  messagesRef: React.MutableRefObject<AiChatMessage[]>;
+  abortRef: React.MutableRefObject<boolean>;
+  setDisplayMessages: React.Dispatch<React.SetStateAction<AiDisplayMessage[]>>;
+};
+
+const useAgentLoop = (
+  config: AiConfig | null,
+  refs: AgentLoopRefs,
+  resetCursor: () => void,
+  getToolContext: () => ToolContext,
+): AgentLoopControls => {
+  const { messagesRef, abortRef, setDisplayMessages } = refs;
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [lastActivity, setLastActivity] = useState<string | null>(null);
+  const [turnCount, setTurnCount] = useState(0);
 
   const stopProcessing = useCallback((): void => {
     abortRef.current = true;
     setIsProcessing(false);
     setLastActivity(null);
     resetCursor();
-  }, [resetCursor]);
+  }, [abortRef, resetCursor]);
 
   useStopOnInteraction(isProcessing, stopProcessing);
 
@@ -291,18 +197,7 @@ const AiProvider = ({ children }: { children: React.ReactNode }): React.ReactNod
     setDisplayMessages([]);
     messagesRef.current = [];
     resetCursor();
-  }, [resetCursor]);
-
-  const getToolContext = useCallback(
-    (): ToolContext => ({
-      queryClient,
-      navigate: (path: string) => {
-        void routerNavigate({ to: path });
-      },
-      moveCursor,
-    }),
-    [queryClient, routerNavigate, moveCursor],
-  );
+  }, [abortRef, setDisplayMessages, messagesRef, resetCursor]);
 
   const runAgentLoop = useCallback(
     async (currentConfig: AiConfig): Promise<void> => {
@@ -322,10 +217,42 @@ const AiProvider = ({ children }: { children: React.ReactNode }): React.ReactNod
         }
       }
     },
-    [getToolContext],
+    [abortRef, messagesRef, setDisplayMessages, getToolContext],
   );
 
-  const sendMessage = useCallback(
+  const sendMessage = useSendMessage({
+    config,
+    isProcessing,
+    refs,
+    runAgentLoop,
+    resetCursor,
+    setIsProcessing,
+    setLastActivity,
+    setTurnCount,
+  });
+
+  return { isProcessing, lastActivity, turnCount, sendMessage, stopProcessing, clearConversation };
+};
+
+/* ── Send message hook ───────────────────────────────── */
+
+type SendMessageDeps = {
+  config: AiConfig | null;
+  isProcessing: boolean;
+  refs: AgentLoopRefs;
+  runAgentLoop: (cfg: AiConfig) => Promise<void>;
+  resetCursor: () => void;
+  setIsProcessing: React.Dispatch<React.SetStateAction<boolean>>;
+  setLastActivity: React.Dispatch<React.SetStateAction<string | null>>;
+  setTurnCount: React.Dispatch<React.SetStateAction<number>>;
+};
+
+const useSendMessage = (deps: SendMessageDeps): ((content: string) => void) => {
+  const { config, isProcessing, refs, runAgentLoop, resetCursor, setIsProcessing, setLastActivity, setTurnCount } =
+    deps;
+  const { messagesRef, abortRef, setDisplayMessages } = refs;
+
+  return useCallback(
     (content: string): void => {
       if (!config || isProcessing) {
         return;
@@ -352,7 +279,53 @@ const AiProvider = ({ children }: { children: React.ReactNode }): React.ReactNod
         resetCursor();
       });
     },
-    [config, isProcessing, runAgentLoop, resetCursor],
+    [
+      config,
+      isProcessing,
+      abortRef,
+      setDisplayMessages,
+      messagesRef,
+      runAgentLoop,
+      resetCursor,
+      setIsProcessing,
+      setLastActivity,
+      setTurnCount,
+    ],
+  );
+};
+
+/* ── Provider component ──────────────────────────────── */
+
+const AiProvider = ({ children }: { children: React.ReactNode }): React.ReactNode => {
+  const queryClient = useQueryClient();
+  const routerNavigate = useNavigate();
+
+  const [displayMessages, setDisplayMessages] = useState<AiDisplayMessage[]>([]);
+  const messagesRef = useRef<AiChatMessage[]>([]);
+  const abortRef = useRef<boolean>(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const { config, isEnabled, setConfig, removeConfig } = useConfigState(setDisplayMessages, messagesRef);
+  const { cursorTargetId, cursorVisible, moveCursor, resetCursor } = useCursorState();
+  const toggleOpen = useCallback((): void => setIsOpen((prev) => !prev), []);
+
+  const getToolContext = useCallback(
+    (): ToolContext => ({
+      queryClient,
+      navigate: (path: string) => {
+        void routerNavigate({ to: path });
+      },
+      moveCursor,
+    }),
+    [queryClient, routerNavigate, moveCursor],
+  );
+
+  const refs: AgentLoopRefs = { messagesRef, abortRef, setDisplayMessages };
+  const { isProcessing, lastActivity, turnCount, sendMessage, stopProcessing, clearConversation } = useAgentLoop(
+    config,
+    refs,
+    resetCursor,
+    getToolContext,
   );
 
   const value = useMemo(
@@ -403,29 +376,6 @@ const useAi = (): AiContextValue => {
     throw new Error('useAi must be used within an AiProvider');
   }
   return context;
-};
-
-/* ── Helpers ──────────────────────────────────────────── */
-
-const describeAction = (name: string, args: Record<string, unknown>): string => {
-  switch (name) {
-    case 'click':
-      return `Clicking "${args.id}"`;
-    case 'fillInput':
-      return `Typing into "${args.id}"`;
-    case 'navigate':
-      return `Navigating to ${args.path}`;
-    case 'queryPage':
-      return 'Reading the page';
-    case 'queryElement':
-      return `Inspecting "${args.id}"`;
-    case 'getElementHtml':
-      return `Reading HTML of "${args.id}"`;
-    case 'getTutorial':
-      return `Loading tutorial: ${args.id}`;
-    default:
-      return name;
-  }
 };
 
 export { AiProvider, useAi };

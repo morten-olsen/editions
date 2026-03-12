@@ -13,42 +13,94 @@ import { EditionListView } from '../views/editions/edition-list-view.tsx';
 
 type ViewMode = 'list' | 'magazine';
 
-const EditionViewPage = (): React.ReactNode => {
-  const headers = useAuthHeaders();
-  const queryClient = useQueryClient();
-  const router = useRouter();
-  const navigate = useNavigate();
-  const { configId, editionId } = Route.useParams();
-  const [isRead, setIsRead] = useState(false);
-  const [votes, setVotes] = useState<Record<string, VoteValue>>({});
-  const [view, setView] = useState<ViewMode>('list');
-
-  const queryKey = queryKeys.editions.detail(editionId);
-
-  const {
-    data: edition,
-    isLoading,
-    error,
-  } = useQuery<EditionDetail>({
-    queryKey,
+const useEditionViewData = (
+  editionId: string,
+  headers: Record<string, string> | undefined,
+): { edition: EditionDetail | undefined; isLoading: boolean; error: Error | null } => {
+  const { data, isLoading, error } = useQuery<EditionDetail>({
+    queryKey: queryKeys.editions.detail(editionId),
     queryFn: async (): Promise<EditionDetail> => {
-      const { data, error: err } = await client.GET('/api/editions/{editionId}', {
+      const { data: d, error: err } = await client.GET('/api/editions/{editionId}', {
         params: { path: { editionId } },
         headers,
       });
       if (err) {
         throw new Error('Edition not found');
       }
-      return data as EditionDetail;
+      return d as EditionDetail;
     },
     enabled: !!headers,
   });
+  return { edition: data, isLoading, error };
+};
 
+type EditionActionsResult = {
+  isRead: boolean;
+  votes: Record<string, VoteValue>;
+  handleToggleRead: () => Promise<void>;
+  handleMarkDoneAndBack: () => Promise<void>;
+  handleDelete: () => void;
+  handleEditionVote: (articleId: string, value: VoteValue) => Promise<void>;
+  handleMarkArticleViewed: (sourceId: string, articleId: string) => Promise<void>;
+};
+
+const useEditionReadState = (
+  edition: EditionDetail | undefined,
+): { isRead: boolean; setIsRead: (v: boolean) => void } => {
+  const [isRead, setIsRead] = useState(false);
   const [initialized, setInitialized] = useState(false);
   if (edition && !initialized) {
     setIsRead(!!edition.readAt);
     setInitialized(true);
   }
+  return { isRead, setIsRead };
+};
+
+const useEditionVotes = (
+  editionId: string,
+  headers: Record<string, string> | undefined,
+): { votes: Record<string, VoteValue>; handleEditionVote: (articleId: string, value: VoteValue) => Promise<void> } => {
+  const [votes, setVotes] = useState<Record<string, VoteValue>>({});
+
+  const handleEditionVote = async (articleId: string, value: VoteValue): Promise<void> => {
+    setVotes((prev) => ({ ...prev, [articleId]: value }));
+    if (value === null) {
+      await client.DELETE('/api/editions/{editionId}/articles/{articleId}/vote', {
+        params: { path: { editionId, articleId } },
+        headers,
+      });
+    } else {
+      await client.PUT('/api/editions/{editionId}/articles/{articleId}/vote', {
+        params: { path: { editionId, articleId } },
+        body: { value },
+        headers,
+      });
+    }
+  };
+
+  return { votes, handleEditionVote };
+};
+
+const useEditionActions = (
+  configId: string,
+  editionId: string,
+  headers: Record<string, string> | undefined,
+  edition: EditionDetail | undefined,
+): EditionActionsResult => {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { isRead, setIsRead } = useEditionReadState(edition);
+  const { votes, handleEditionVote } = useEditionVotes(editionId, headers);
+
+  const deleteMutation = useMutation({
+    mutationFn: async (): Promise<void> => {
+      await client.DELETE('/api/editions/{editionId}', { params: { path: { editionId } }, headers });
+    },
+    onSuccess: (): void => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.editions.forConfig(configId) });
+      void navigate({ to: '/editions/$configId', params: { configId } });
+    },
+  });
 
   const handleToggleRead = async (): Promise<void> => {
     if (!edition) {
@@ -78,43 +130,11 @@ const EditionViewPage = (): React.ReactNode => {
     await navigate({ to: '/editions/$configId', params: { configId } });
   };
 
-  const deleteMutation = useMutation({
-    mutationFn: async (): Promise<void> => {
-      await client.DELETE('/api/editions/{editionId}', {
-        params: { path: { editionId } },
-        headers,
-      });
-    },
-    onSuccess: (): void => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.editions.forConfig(configId) });
-      void navigate({ to: '/editions/$configId', params: { configId } });
-    },
-  });
-
   const handleDelete = (): void => {
-    if (!edition) {
-      return;
-    }
-    if (!confirm(`Delete "${edition.title}"?`)) {
+    if (!edition || !confirm(`Delete "${edition.title}"?`)) {
       return;
     }
     deleteMutation.mutate();
-  };
-
-  const handleEditionVote = async (articleId: string, value: VoteValue): Promise<void> => {
-    setVotes((prev) => ({ ...prev, [articleId]: value }));
-    if (value === null) {
-      await client.DELETE('/api/editions/{editionId}/articles/{articleId}/vote', {
-        params: { path: { editionId, articleId } },
-        headers,
-      });
-    } else {
-      await client.PUT('/api/editions/{editionId}/articles/{articleId}/vote', {
-        params: { path: { editionId, articleId } },
-        body: { value },
-        headers,
-      });
-    }
   };
 
   const handleMarkArticleViewed = async (sourceId: string, articleId: string): Promise<void> => {
@@ -125,6 +145,25 @@ const EditionViewPage = (): React.ReactNode => {
     });
   };
 
+  return {
+    isRead,
+    votes,
+    handleToggleRead,
+    handleMarkDoneAndBack,
+    handleDelete,
+    handleEditionVote,
+    handleMarkArticleViewed,
+  };
+};
+
+const EditionViewPage = (): React.ReactNode => {
+  const headers = useAuthHeaders();
+  const router = useRouter();
+  const { configId, editionId } = Route.useParams();
+  const [view, setView] = useState<ViewMode>('list');
+
+  const { edition, isLoading, error } = useEditionViewData(editionId, headers);
+  const actions = useEditionActions(configId, editionId, headers, edition);
   const handleExitMagazine = useCallback((): void => setView('list'), []);
 
   if (!headers || isLoading) {
@@ -157,11 +196,11 @@ const EditionViewPage = (): React.ReactNode => {
       <MagazineView
         edition={edition}
         sections={sections}
-        votes={votes}
-        onVote={(articleId, value) => void handleEditionVote(articleId, value)}
-        onMarkArticleViewed={(sourceId, articleId) => void handleMarkArticleViewed(sourceId, articleId)}
+        votes={actions.votes}
+        onVote={(articleId, value) => void actions.handleEditionVote(articleId, value)}
+        onMarkArticleViewed={(sourceId, articleId) => void actions.handleMarkArticleViewed(sourceId, articleId)}
         onExit={handleExitMagazine}
-        onMarkDone={() => void handleMarkDoneAndBack()}
+        onMarkDone={() => void actions.handleMarkDoneAndBack()}
       />
     );
   }
@@ -170,12 +209,12 @@ const EditionViewPage = (): React.ReactNode => {
     <EditionListView
       edition={edition}
       sections={sections}
-      votes={votes}
-      isRead={isRead}
-      onToggleRead={() => void handleToggleRead()}
-      onDelete={handleDelete}
-      onVote={(articleId, value) => void handleEditionVote(articleId, value)}
-      onMarkDone={() => void handleMarkDoneAndBack()}
+      votes={actions.votes}
+      isRead={actions.isRead}
+      onToggleRead={() => void actions.handleToggleRead()}
+      onDelete={actions.handleDelete}
+      onVote={(articleId, value) => void actions.handleEditionVote(articleId, value)}
+      onMarkDone={() => void actions.handleMarkDoneAndBack()}
       onOpenMagazine={() => setView('magazine')}
       onBack={() => router.history.back()}
     />

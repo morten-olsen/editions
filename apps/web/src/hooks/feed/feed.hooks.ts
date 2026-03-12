@@ -104,31 +104,14 @@ const fetchFeedWithBookmarks = async (
   return { feedPage: page, bookmarkedIds };
 };
 
-const useFeed = (): UseFeedResult => {
-  const headers = useAuthHeaders();
-  const queryClient = useQueryClient();
-  const [sort, setSort] = useState<SortMode>('top');
-  const [status, setStatus] = useState<ReadStatus>('unread');
-  const [window, setWindow] = useState<TimeWindow>('all');
-  const [total, setTotal] = useState(0);
+// -- Feed mutations --
 
-  const pagination = usePagination({ pageSize: PAGE_SIZE, total });
-  const queryKey = queryKeys.feed({ sort, status, window, offset: pagination.offset });
-
-  const feedQuery = useQuery<FeedData>({
-    queryKey,
-    queryFn: async (): Promise<FeedData> => {
-      const result = await fetchFeedWithBookmarks(headers, { offset: pagination.offset, sort, status, window });
-      setTotal(result.feedPage.total);
-      return result;
-    },
-    enabled: !!headers,
-  });
-
-  const feedPage = feedQuery.data?.feedPage ?? null;
-  const bookmarkedIds = feedQuery.data?.bookmarkedIds ?? new Set<string>();
-
-  const voteMutation = useMutation({
+const useFeedVoteMutation = (
+  headers: Record<string, string> | undefined,
+  queryClient: ReturnType<typeof useQueryClient>,
+  queryKey: readonly unknown[],
+): ReturnType<typeof useMutation<void, Error, { articleId: string; value: VoteValue }>> =>
+  useMutation({
     mutationFn: async ({ articleId, value }: { articleId: string; value: VoteValue }): Promise<void> => {
       if (value === null) {
         await client.DELETE('/api/articles/{articleId}/vote', { params: { path: { articleId } }, headers });
@@ -157,7 +140,12 @@ const useFeed = (): UseFeedResult => {
     },
   });
 
-  const bookmarkMutation = useMutation({
+const useFeedBookmarkMutation = (
+  headers: Record<string, string> | undefined,
+  queryClient: ReturnType<typeof useQueryClient>,
+  queryKey: readonly unknown[],
+): ReturnType<typeof useMutation<void, Error, { articleId: string; bookmarked: boolean }>> =>
+  useMutation({
     mutationFn: async ({ articleId, bookmarked }: { articleId: string; bookmarked: boolean }): Promise<void> => {
       if (bookmarked) {
         await client.DELETE('/api/articles/{articleId}/bookmark', { params: { path: { articleId } }, headers });
@@ -181,6 +169,35 @@ const useFeed = (): UseFeedResult => {
       });
     },
   });
+
+// -- useFeed --
+
+const useFeed = (): UseFeedResult => {
+  const headers = useAuthHeaders();
+  const queryClient = useQueryClient();
+  const [sort, setSort] = useState<SortMode>('top');
+  const [status, setStatus] = useState<ReadStatus>('unread');
+  const [window, setWindow] = useState<TimeWindow>('all');
+  const [total, setTotal] = useState(0);
+
+  const pagination = usePagination({ pageSize: PAGE_SIZE, total });
+  const queryKey = queryKeys.feed({ sort, status, window, offset: pagination.offset });
+
+  const feedQuery = useQuery<FeedData>({
+    queryKey,
+    queryFn: async (): Promise<FeedData> => {
+      const result = await fetchFeedWithBookmarks(headers, { offset: pagination.offset, sort, status, window });
+      setTotal(result.feedPage.total);
+      return result;
+    },
+    enabled: !!headers,
+  });
+
+  const feedPage = feedQuery.data?.feedPage ?? null;
+  const bookmarkedIds = feedQuery.data?.bookmarkedIds ?? new Set<string>();
+
+  const voteMutation = useFeedVoteMutation(headers, queryClient, queryKey);
+  const bookmarkMutation = useFeedBookmarkMutation(headers, queryClient, queryKey);
 
   const changeFilter = (params?: { sort?: SortMode; status?: ReadStatus; window?: TimeWindow }): void => {
     if (params?.sort !== undefined) {

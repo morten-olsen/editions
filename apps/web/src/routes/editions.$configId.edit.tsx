@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { client } from '../api/api.ts';
 import { useAuthHeaders, queryKeys } from '../api/api.hooks.ts';
@@ -10,105 +10,29 @@ import { Button } from '../components/button.tsx';
 import { Checkbox } from '../components/checkbox.tsx';
 import { Separator } from '../components/separator.tsx';
 import { IconPicker } from '../components/icon-picker.tsx';
-import { FocusConfigCard, AvailableFocusesList, selectClasses } from '../views/editions/focus-config-card.tsx';
+import { FocusConfigCard, AvailableFocusesList } from '../views/editions/focus-config-card.tsx';
 import type { FocusConfig, Focus } from '../views/editions/focus-config-card.tsx';
+import { ScheduleField, LookbackField } from '../views/editions/edition-form-fields.tsx';
+import {
+  useEditEditionData,
+  useEditEditionForm,
+  buildPatchBody,
+  isPresetSchedule,
+  scheduleSelectValue,
+} from '../hooks/editions/editions.edit-hooks.ts';
+import type { EditionConfig, EditEditionFormResult } from '../hooks/editions/editions.edit-hooks.ts';
 
-type EditionConfigFocus = {
-  focusId: string;
-  focusName: string;
-  position: number;
-  budgetType: 'time' | 'count';
-  budgetValue: number;
-  lookbackHours: number | null;
-  excludePriorEditions: boolean | null;
-  weight: number;
-};
+/* ---- Mutation hook ---- */
 
-type EditionConfig = {
-  id: string;
-  name: string;
-  icon: string | null;
-  schedule: string;
-  lookbackHours: number;
-  excludePriorEditions: boolean;
-  enabled: boolean;
-  focuses: EditionConfigFocus[];
-};
-
-const SCHEDULE_PRESETS = [
-  { label: 'Daily at 7am', value: '0 7 * * *' },
-  { label: 'Daily at 8am', value: '0 8 * * *' },
-  { label: 'Daily at noon', value: '0 12 * * *' },
-  { label: 'Weekdays at 7am', value: '0 7 * * 1-5' },
-  { label: 'Weekdays at 8am', value: '0 8 * * 1-5' },
-  { label: 'Every Monday at 8am', value: '0 8 * * 1' },
-  { label: 'Every Friday at 5pm', value: '0 17 * * 5' },
-  { label: 'Custom…', value: '__custom__' },
-] as const;
-
-const EditEditionConfigPage = (): React.ReactNode => {
-  const headers = useAuthHeaders();
+const useUpdateEditionConfig = (
+  configId: string,
+  headers: Record<string, string> | undefined,
+): { mutate: (body: Record<string, unknown>) => void; isPending: boolean; error: string | null } => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { configId } = Route.useParams();
-  const [name, setName] = useState('');
-  const [icon, setIcon] = useState<string | null>(null);
-  const [schedule, setSchedule] = useState('');
-  const [lookbackHours, setLookbackHours] = useState(24);
-  const [excludePriorEditions, setExcludePriorEditions] = useState(false);
-  const [enabled, setEnabled] = useState(true);
-  const [selectedFocuses, setSelectedFocuses] = useState<FocusConfig[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const configQuery = useQuery({
-    queryKey: queryKeys.editions.config(configId),
-    queryFn: async (): Promise<EditionConfig> => {
-      const { data, error: err } = await client.GET('/api/editions/configs/{configId}', {
-        params: { path: { configId } },
-        headers,
-      });
-      if (err) {
-        throw new Error('Edition config not found');
-      }
-      return data as unknown as EditionConfig;
-    },
-    enabled: !!headers,
-  });
-
-  const focusesQuery = useQuery({
-    queryKey: queryKeys.focuses.all,
-    queryFn: async (): Promise<Focus[]> => {
-      const { data } = await client.GET('/api/focuses', { headers });
-      return (data ?? []) as Focus[];
-    },
-    enabled: !!headers,
-  });
-
-  useEffect(() => {
-    if (!configQuery.data) {
-      return;
-    }
-    const c = configQuery.data;
-    setName(c.name);
-    setIcon(c.icon);
-    setSchedule(c.schedule);
-    setLookbackHours(c.lookbackHours);
-    setExcludePriorEditions(c.excludePriorEditions);
-    setEnabled(c.enabled);
-    setSelectedFocuses(
-      c.focuses.map((f) => ({
-        focusId: f.focusId,
-        position: f.position,
-        budgetType: f.budgetType,
-        budgetValue: f.budgetValue,
-        lookbackHours: f.lookbackHours,
-        excludePriorEditions: f.excludePriorEditions,
-        weight: f.weight,
-      })),
-    );
-  }, [configQuery.data]);
-
-  const updateMutation = useMutation({
+  const mutation = useMutation({
     mutationFn: async (body: Record<string, unknown>): Promise<void> => {
       const { error: err } = await client.PATCH('/api/editions/configs/{configId}', {
         params: { path: { configId } },
@@ -130,319 +54,197 @@ const EditEditionConfigPage = (): React.ReactNode => {
     },
   });
 
+  return { mutate: mutation.mutate, isPending: mutation.isPending, error };
+};
+
+/* ---- Main page component ---- */
+
+const EditEditionConfigPage = (): React.ReactNode => {
+  const headers = useAuthHeaders();
+  const navigate = useNavigate();
+  const { configId } = Route.useParams();
+
+  const { configQuery, focusesQuery } = useEditEditionData(configId, headers);
+  const form = useEditEditionForm(configQuery.data);
+  const update = useUpdateEditionConfig(configId, headers);
+
   if (!headers) {
     return null;
   }
 
-  const loading = configQuery.isLoading || focusesQuery.isLoading;
-  const config = configQuery.data ?? null;
-  const allFocuses = focusesQuery.data ?? [];
-
-  if (loading) {
+  if (configQuery.isLoading || focusesQuery.isLoading) {
     return <div className="text-sm text-ink-tertiary py-12 text-center">Loading…</div>;
   }
 
+  const config = configQuery.data ?? null;
   if (!config) {
     return (
       <div className="py-12 text-center">
-        <div className="text-sm text-critical">{error ?? configQuery.error?.message ?? 'Edition config not found'}</div>
+        <div className="text-sm text-critical">
+          {update.error ?? configQuery.error?.message ?? 'Edition config not found'}
+        </div>
       </div>
     );
   }
 
-  const selectedIds = new Set(selectedFocuses.map((f) => f.focusId));
-  const isPresetSchedule = SCHEDULE_PRESETS.some((p) => p.value !== '__custom__' && p.value === schedule);
-  const scheduleSelectValue = isPresetSchedule ? schedule : '__custom__';
-
-  const toggleFocus = (focusId: string): void => {
-    setSelectedFocuses((prev) => {
-      const existing = prev.find((f) => f.focusId === focusId);
-      if (existing) {
-        return prev.filter((f) => f.focusId !== focusId);
-      }
-      return [
-        ...prev,
-        {
-          focusId,
-          position: prev.length,
-          budgetType: 'count' as const,
-          budgetValue: 5,
-          lookbackHours: null,
-          excludePriorEditions: null,
-          weight: 1,
-        },
-      ];
-    });
-  };
-
-  const updateFocusField = (
-    focusId: string,
-    field: 'budgetType' | 'budgetValue' | 'lookbackHours' | 'excludePriorEditions' | 'weight',
-    value: string | number | boolean | null,
-  ): void => {
-    setSelectedFocuses((prev) => prev.map((f) => (f.focusId === focusId ? { ...f, [field]: value } : f)));
-  };
-
-  const moveFocus = (focusId: string, direction: -1 | 1): void => {
-    setSelectedFocuses((prev) => {
-      const idx = prev.findIndex((f) => f.focusId === focusId);
-      if (idx < 0) {
-        return prev;
-      }
-      const newIdx = idx + direction;
-      if (newIdx < 0 || newIdx >= prev.length) {
-        return prev;
-      }
-      const arr = [...prev];
-      const a = arr[idx];
-      const b = arr[newIdx];
-      if (!a || !b) {
-        return prev;
-      }
-      arr[idx] = b;
-      arr[newIdx] = a;
-      return arr.map((f, i) => ({ ...f, position: i }));
-    });
-  };
-
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
-    setError(null);
-    const body = buildPatchBody(config, {
-      name,
-      icon,
-      schedule,
-      lookbackHours,
-      excludePriorEditions,
-      enabled,
-      selectedFocuses,
-    });
+    const body = buildPatchBody(config, form);
     if (Object.keys(body).length === 0) {
       void navigate({ to: '/editions/$configId', params: { configId } });
       return;
     }
-    updateMutation.mutate(body);
+    update.mutate(body);
   };
+
+  return (
+    <EditEditionForm
+      form={form}
+      config={config}
+      allFocuses={focusesQuery.data ?? []}
+      isPending={update.isPending}
+      error={update.error}
+      onSubmit={handleSubmit}
+      onCancel={() => void navigate({ to: '/editions/$configId', params: { configId } })}
+    />
+  );
+};
+
+/* ---- Form layout ---- */
+
+type EditEditionFormProps = {
+  form: EditEditionFormResult;
+  config: EditionConfig;
+  allFocuses: Focus[];
+  isPending: boolean;
+  error: string | null;
+  onSubmit: (e: React.FormEvent) => void;
+  onCancel: () => void;
+};
+
+const EditEditionForm = ({
+  form,
+  config: _config,
+  allFocuses,
+  isPending,
+  error,
+  onSubmit,
+  onCancel,
+}: EditEditionFormProps): React.ReactNode => {
+  const selectedIds = new Set(form.selectedFocuses.map((f) => f.focusId));
 
   return (
     <>
       <PageHeader title="Edit edition" />
-
-      {error && (
-        <div
-          className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6"
-          data-ai-id="edit-edition-error"
-          data-ai-role="error"
-          data-ai-error={error}
-        >
-          {error}
-        </div>
-      )}
-
+      {error && <FormError error={error} />}
       <form
-        onSubmit={handleSubmit}
+        onSubmit={onSubmit}
         className="max-w-lg flex flex-col gap-6"
         data-ai-id="edit-edition-form"
         data-ai-role="form"
         data-ai-label="Edit edition form"
       >
-        <EditEditionFields
-          name={name}
-          setName={setName}
-          icon={icon}
-          setIcon={setIcon}
-          schedule={schedule}
-          setSchedule={setSchedule}
-          lookbackHours={lookbackHours}
-          setLookbackHours={setLookbackHours}
-          excludePriorEditions={excludePriorEditions}
-          setExcludePriorEditions={setExcludePriorEditions}
-          enabled={enabled}
-          setEnabled={setEnabled}
-          isPresetSchedule={isPresetSchedule}
-          scheduleSelectValue={scheduleSelectValue}
-        />
-
+        <EditEditionFields form={form} />
         <Separator soft />
-
         <FocusesSection
-          selectedFocuses={selectedFocuses}
+          selectedFocuses={form.selectedFocuses}
           allFocuses={allFocuses}
-          selectedIds={selectedIds}
-          toggleFocus={toggleFocus}
-          updateFocusField={updateFocusField}
-          moveFocus={moveFocus}
+          toggleFocus={form.toggleFocus}
+          updateFocusField={form.updateFocusField}
+          moveFocus={form.moveFocus}
         />
-
         <AvailableFocusesList
           allFocuses={allFocuses}
           selectedIds={selectedIds}
-          onToggle={toggleFocus}
+          onToggle={form.toggleFocus}
           idPrefix="edit-edition"
         />
-
-        <div className="flex items-center gap-3">
-          <Button
-            variant="primary"
-            type="submit"
-            disabled={updateMutation.isPending}
-            data-ai-id="edit-edition-submit"
-            data-ai-role="button"
-            data-ai-label="Save changes"
-            data-ai-state={updateMutation.isPending ? 'loading' : 'idle'}
-          >
-            {updateMutation.isPending ? 'Saving…' : 'Save changes'}
-          </Button>
-          <Button
-            variant="ghost"
-            type="button"
-            onClick={() => void navigate({ to: '/editions/$configId', params: { configId } })}
-            data-ai-id="edit-edition-cancel"
-            data-ai-role="button"
-            data-ai-label="Cancel"
-          >
-            Cancel
-          </Button>
-        </div>
+        <FormActions isPending={isPending} onCancel={onCancel} />
       </form>
     </>
   );
 };
 
-/* ---- Form fields sub-component ---- */
+/* ---- Small presentational components ---- */
 
-const EditEditionFields = ({
-  name,
-  setName,
-  icon,
-  setIcon,
-  schedule,
-  setSchedule,
-  lookbackHours,
-  setLookbackHours,
-  excludePriorEditions,
-  setExcludePriorEditions,
-  enabled,
-  setEnabled,
-  isPresetSchedule,
-  scheduleSelectValue,
-}: {
-  name: string;
-  setName: (v: string) => void;
-  icon: string | null;
-  setIcon: (v: string | null) => void;
-  schedule: string;
-  setSchedule: (v: string) => void;
-  lookbackHours: number;
-  setLookbackHours: (v: number) => void;
-  excludePriorEditions: boolean;
-  setExcludePriorEditions: (v: boolean) => void;
-  enabled: boolean;
-  setEnabled: (v: boolean) => void;
-  isPresetSchedule: boolean;
-  scheduleSelectValue: string;
-}): React.ReactNode => (
+const FormError = ({ error }: { error: string }): React.ReactNode => (
+  <div
+    className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6"
+    data-ai-id="edit-edition-error"
+    data-ai-role="error"
+    data-ai-error={error}
+  >
+    {error}
+  </div>
+);
+
+const FormActions = ({ isPending, onCancel }: { isPending: boolean; onCancel: () => void }): React.ReactNode => (
+  <div className="flex items-center gap-3">
+    <Button
+      variant="primary"
+      type="submit"
+      disabled={isPending}
+      data-ai-id="edit-edition-submit"
+      data-ai-role="button"
+      data-ai-label="Save changes"
+      data-ai-state={isPending ? 'loading' : 'idle'}
+    >
+      {isPending ? 'Saving…' : 'Save changes'}
+    </Button>
+    <Button
+      variant="ghost"
+      type="button"
+      onClick={onCancel}
+      data-ai-id="edit-edition-cancel"
+      data-ai-role="button"
+      data-ai-label="Cancel"
+    >
+      Cancel
+    </Button>
+  </div>
+);
+
+/* ---- Form fields ---- */
+
+const EditEditionFields = ({ form }: { form: EditEditionFormResult }): React.ReactNode => (
   <div className="flex flex-col gap-5">
     <Input
       label="Name"
       required
-      value={name}
-      onChange={(e) => setName(e.target.value)}
+      value={form.name}
+      onChange={(e) => form.setName(e.target.value)}
       data-ai-id="edit-edition-name"
       data-ai-role="input"
       data-ai-label="Edition name"
-      data-ai-value={name}
+      data-ai-value={form.name}
     />
-    <IconPicker value={icon} onChange={setIcon} />
-
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor="schedule-preset" className="text-sm font-medium text-ink">
-        Delivery schedule
-      </label>
-      <p className="text-xs text-ink-tertiary -mt-0.5">When this edition is automatically generated</p>
-      <select
-        id="schedule-preset"
-        value={scheduleSelectValue}
-        onChange={(e) => {
-          if (e.target.value !== '__custom__') {
-            setSchedule(e.target.value);
-          }
-        }}
-        className={`w-full ${selectClasses}`}
-        data-ai-id="edit-edition-schedule"
-        data-ai-role="select"
-        data-ai-label="Delivery schedule"
-        data-ai-value={schedule}
-      >
-        {SCHEDULE_PRESETS.map((p) => (
-          <option key={p.value} value={p.value}>
-            {p.label}
-          </option>
-        ))}
-      </select>
-      {!isPresetSchedule && (
-        <div className="flex flex-col gap-1.5 mt-1">
-          <Input
-            value={schedule}
-            onChange={(e) => setSchedule(e.target.value)}
-            className="font-mono"
-            placeholder="0 7 * * *"
-            required
-            data-ai-id="edit-edition-schedule-custom"
-            data-ai-role="input"
-            data-ai-label="Custom cron expression"
-            data-ai-value={schedule}
-          />
-          <p className="text-xs text-ink-tertiary">
-            Cron expression — e.g. <code className="font-mono bg-surface-sunken px-1 rounded">0 7 * * *</code> means
-            daily at 7am
-          </p>
-        </div>
-      )}
-    </div>
-
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor="lookback" className="text-sm font-medium text-ink">
-        How far back to look
-      </label>
-      <p className="text-xs text-ink-tertiary -mt-0.5">How old an article can be to appear in this edition</p>
-      <select
-        id="lookback"
-        value={lookbackHours}
-        onChange={(e) => setLookbackHours(Number(e.target.value))}
-        className={`w-full ${selectClasses}`}
-        data-ai-id="edit-edition-lookback"
-        data-ai-role="select"
-        data-ai-label="How far back to look"
-        data-ai-value={String(lookbackHours)}
-      >
-        <option value={1}>Last hour</option>
-        <option value={24}>Last 24 hours</option>
-        <option value={168}>Last week</option>
-        <option value={730}>Last month</option>
-        <option value={8760}>Last year</option>
-      </select>
-    </div>
-
+    <IconPicker value={form.icon} onChange={form.setIcon} />
+    <ScheduleField
+      schedule={form.schedule}
+      setSchedule={form.setSchedule}
+      isPresetSchedule={isPresetSchedule(form.schedule)}
+      scheduleSelectValue={scheduleSelectValue(form.schedule)}
+    />
+    <LookbackField lookbackHours={form.lookbackHours} setLookbackHours={form.setLookbackHours} />
     <Checkbox
       label="Don't repeat articles across editions"
       description="Articles that appeared in a previous issue of this digest won't be included again"
-      checked={excludePriorEditions}
-      onCheckedChange={(checked) => setExcludePriorEditions(checked === true)}
+      checked={form.excludePriorEditions}
+      onCheckedChange={(checked) => form.setExcludePriorEditions(checked === true)}
       data-ai-id="edit-edition-exclude-prior"
       data-ai-role="checkbox"
       data-ai-label="Don't repeat articles across editions"
-      data-ai-state={excludePriorEditions ? 'checked' : 'unchecked'}
+      data-ai-state={form.excludePriorEditions ? 'checked' : 'unchecked'}
     />
     <Checkbox
       label="Active"
       description="When off, this edition won't be generated automatically"
-      checked={enabled}
-      onCheckedChange={(checked) => setEnabled(checked === true)}
+      checked={form.enabled}
+      onCheckedChange={(checked) => form.setEnabled(checked === true)}
       data-ai-id="edit-edition-enabled"
       data-ai-role="checkbox"
       data-ai-label="Active"
-      data-ai-state={enabled ? 'checked' : 'unchecked'}
+      data-ai-state={form.enabled ? 'checked' : 'unchecked'}
     />
   </div>
 );
@@ -452,14 +254,12 @@ const EditEditionFields = ({
 const FocusesSection = ({
   selectedFocuses,
   allFocuses,
-  selectedIds,
   toggleFocus,
   updateFocusField,
   moveFocus,
 }: {
   selectedFocuses: FocusConfig[];
   allFocuses: Focus[];
-  selectedIds: Set<string>;
   toggleFocus: (focusId: string) => void;
   updateFocusField: (
     focusId: string,
@@ -477,10 +277,7 @@ const FocusesSection = ({
       Each topic becomes a section in your edition. Use the arrows to reorder.
     </p>
     {selectedFocuses.length === 0 ? (
-      <div className="rounded-lg border border-dashed border-border py-6 text-center">
-        <p className="text-sm text-ink-tertiary">No topics added yet.</p>
-        <p className="text-xs text-ink-faint mt-1">Choose from the list below to get started.</p>
-      </div>
+      <FocusesEmptyState />
     ) : (
       <div className="flex flex-col gap-3">
         {selectedFocuses.map((fc, idx) => {
@@ -506,68 +303,12 @@ const FocusesSection = ({
   </div>
 );
 
-/* ---- Build PATCH body helper ---- */
-
-const buildPatchBody = (
-  config: EditionConfig,
-  state: {
-    name: string;
-    icon: string | null;
-    schedule: string;
-    lookbackHours: number;
-    excludePriorEditions: boolean;
-    enabled: boolean;
-    selectedFocuses: FocusConfig[];
-  },
-): Record<string, unknown> => {
-  const body: Record<string, unknown> = {};
-  if (state.name !== config.name) {
-    body.name = state.name;
-  }
-  if (state.icon !== config.icon) {
-    body.icon = state.icon;
-  }
-  if (state.schedule !== config.schedule) {
-    body.schedule = state.schedule;
-  }
-  if (state.lookbackHours !== config.lookbackHours) {
-    body.lookbackHours = state.lookbackHours;
-  }
-  if (state.excludePriorEditions !== config.excludePriorEditions) {
-    body.excludePriorEditions = state.excludePriorEditions;
-  }
-  if (state.enabled !== config.enabled) {
-    body.enabled = state.enabled;
-  }
-
-  const focusesChanged =
-    JSON.stringify(state.selectedFocuses) !==
-    JSON.stringify(
-      config.focuses.map((f) => ({
-        focusId: f.focusId,
-        position: f.position,
-        budgetType: f.budgetType,
-        budgetValue: f.budgetValue,
-        lookbackHours: f.lookbackHours,
-        excludePriorEditions: f.excludePriorEditions,
-        weight: f.weight,
-      })),
-    );
-
-  if (focusesChanged) {
-    body.focuses = state.selectedFocuses.map((f, i) => ({
-      focusId: f.focusId,
-      position: i,
-      budgetType: f.budgetType,
-      budgetValue: f.budgetValue,
-      lookbackHours: f.lookbackHours,
-      excludePriorEditions: f.excludePriorEditions,
-      weight: f.weight,
-    }));
-  }
-
-  return body;
-};
+const FocusesEmptyState = (): React.ReactNode => (
+  <div className="rounded-lg border border-dashed border-border py-6 text-center">
+    <p className="text-sm text-ink-tertiary">No topics added yet.</p>
+    <p className="text-xs text-ink-faint mt-1">Choose from the list below to get started.</p>
+  </div>
+);
 
 const Route = createFileRoute('/editions/$configId/edit')({
   component: EditEditionConfigPage,

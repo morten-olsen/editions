@@ -1,41 +1,17 @@
 import { useState } from 'react';
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { createFileRoute, Link } from '@tanstack/react-router';
 
-import { client } from '../api/api.ts';
-import { useAuthHeaders, queryKeys } from '../api/api.hooks.ts';
+import { useAuthHeaders } from '../api/api.hooks.ts';
 import { Button } from '../components/button.tsx';
 import { EmptyState } from '../components/empty-state.tsx';
+import {
+  useConfigDetailData,
+  useConfigDetailMutations,
+  filterEditions,
+} from '../hooks/editions/editions.config-detail-hooks.ts';
+import type { EditionConfig, EditionSummary } from '../hooks/editions/editions.config-detail-hooks.ts';
 
-type EditionConfig = {
-  id: string;
-  name: string;
-  schedule: string;
-  lookbackHours: number;
-  excludePriorEditions: boolean;
-  enabled: boolean;
-  focuses: {
-    focusId: string;
-    focusName: string;
-    position: number;
-    budgetType: 'time' | 'count';
-    budgetValue: number;
-  }[];
-  createdAt: string;
-  updatedAt: string;
-};
-
-type EditionSummary = {
-  id: string;
-  editionConfigId: string;
-  title: string;
-  totalReadingMinutes: number | null;
-  articleCount: number;
-  currentPosition: number;
-  readAt: string | null;
-  publishedAt: string;
-  configName: string;
-};
+/* ---- Icons ---- */
 
 const CogIcon = (): React.ReactElement => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
@@ -47,86 +23,15 @@ const CogIcon = (): React.ReactElement => (
   </svg>
 );
 
+/* ---- Page component ---- */
+
 const EditionConfigDetailPage = (): React.ReactNode => {
   const headers = useAuthHeaders();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { configId } = Route.useParams();
-  const [error, setError] = useState<string | null>(null);
   const [readFilter, setReadFilter] = useState<'unread' | 'all' | 'read'>('unread');
 
-  const configQuery = useQuery({
-    queryKey: queryKeys.editions.config(configId),
-    queryFn: async (): Promise<EditionConfig> => {
-      const { data, error: err } = await client.GET('/api/editions/configs/{configId}', {
-        params: { path: { configId } },
-        headers,
-      });
-      if (err) {
-        throw new Error('Edition config not found');
-      }
-      return data as EditionConfig;
-    },
-    enabled: !!headers,
-  });
-
-  const editionsQuery = useQuery({
-    queryKey: queryKeys.editions.forConfig(configId),
-    queryFn: async (): Promise<EditionSummary[]> => {
-      const { data } = await client.GET('/api/editions/configs/{configId}/editions', {
-        params: { path: { configId } },
-        headers,
-      });
-      return (data ?? []) as EditionSummary[];
-    },
-    enabled: !!headers,
-  });
-
-  const generateMutation = useMutation({
-    mutationFn: async (): Promise<{ id: string }> => {
-      const { data, error: err } = await client.POST('/api/editions/configs/{configId}/generate', {
-        params: { path: { configId } },
-        headers,
-      });
-      if (err) {
-        throw new Error('error' in err ? (err as { error: string }).error : 'Failed to generate edition');
-      }
-      return data as { id: string };
-    },
-    onSuccess: (data): void => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.editions.forConfig(configId) });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.nav });
-      void navigate({ to: '/editions/$configId/issues/$editionId', params: { configId, editionId: data.id } });
-    },
-    onError: (err: Error): void => {
-      setError(err.message);
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (editionId: string): Promise<string> => {
-      await client.DELETE('/api/editions/{editionId}', { params: { path: { editionId } }, headers });
-      return editionId;
-    },
-    onMutate: async (editionId): Promise<{ previous: EditionSummary[] | undefined }> => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.editions.forConfig(configId) });
-      const previous = queryClient.getQueryData<EditionSummary[]>(queryKeys.editions.forConfig(configId));
-      queryClient.setQueryData<EditionSummary[]>(
-        queryKeys.editions.forConfig(configId),
-        (old) => old?.filter((e) => e.id !== editionId) ?? [],
-      );
-      return { previous };
-    },
-    onError: (_err, _editionId, context): void => {
-      if (context?.previous) {
-        queryClient.setQueryData(queryKeys.editions.forConfig(configId), context.previous);
-      }
-    },
-    onSettled: (): void => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.editions.forConfig(configId) });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.nav });
-    },
-  });
+  const { configQuery, editionsQuery } = useConfigDetailData(configId, headers);
+  const { error, isGenerating, handleGenerate, handleDeleteEdition } = useConfigDetailMutations(configId, headers);
 
   if (!headers) {
     return null;
@@ -135,17 +40,6 @@ const EditionConfigDetailPage = (): React.ReactNode => {
   const loading = configQuery.isLoading || editionsQuery.isLoading;
   const config = configQuery.data ?? null;
   const editions = editionsQuery.data ?? [];
-
-  const handleGenerate = (): void => {
-    setError(null);
-    generateMutation.mutate();
-  };
-  const handleDeleteEdition = (editionId: string, title: string): void => {
-    if (!confirm(`Delete "${title}"?`)) {
-      return;
-    }
-    deleteMutation.mutate(editionId);
-  };
 
   if (loading) {
     return <div className="text-sm text-ink-tertiary py-12 text-center">Loading...</div>;
@@ -158,24 +52,11 @@ const EditionConfigDetailPage = (): React.ReactNode => {
     );
   }
 
-  const filtered = editions.filter((e) => {
-    if (readFilter === 'unread') {
-      return !e.readAt;
-    }
-    if (readFilter === 'read') {
-      return !!e.readAt;
-    }
-    return true;
-  });
+  const filtered = filterEditions(editions, readFilter);
 
   return (
     <>
-      <ConfigHeader
-        config={config}
-        configId={configId}
-        generating={generateMutation.isPending}
-        onGenerate={handleGenerate}
-      />
+      <ConfigHeader config={config} configId={configId} generating={isGenerating} onGenerate={handleGenerate} />
       {error && (
         <div
           className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6"
@@ -192,7 +73,7 @@ const EditionConfigDetailPage = (): React.ReactNode => {
         filtered={filtered}
         readFilter={readFilter}
         configId={configId}
-        generating={generateMutation.isPending}
+        generating={isGenerating}
         onGenerate={handleGenerate}
         onDelete={handleDeleteEdition}
       />
@@ -331,6 +212,29 @@ const IssuesList = ({
 
 /* ---- Single edition row ---- */
 
+const formatEditionDate = (iso: string): string =>
+  new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+const EditionRowMeta = ({ edition }: { edition: EditionSummary }): React.ReactNode => (
+  <div className={`flex items-center gap-2 text-xs mt-0.5 ${!edition.readAt ? 'ml-3.5' : ''} text-ink-tertiary`}>
+    <span>{edition.articleCount} articles</span>
+    {edition.totalReadingMinutes && (
+      <>
+        <span className="text-ink-faint">·</span>
+        <span>{edition.totalReadingMinutes} min</span>
+      </>
+    )}
+    <span className="text-ink-faint">·</span>
+    <span>{formatEditionDate(edition.publishedAt)}</span>
+    {edition.currentPosition > 0 && (
+      <>
+        <span className="text-ink-faint">·</span>
+        <span className="text-accent">resumed</span>
+      </>
+    )}
+  </div>
+);
+
 const EditionRow = ({
   edition,
   configId,
@@ -360,29 +264,7 @@ const EditionRow = ({
           {edition.title}
         </Link>
       </div>
-      <div className={`flex items-center gap-2 text-xs mt-0.5 ${!edition.readAt ? 'ml-3.5' : ''} text-ink-tertiary`}>
-        <span>{edition.articleCount} articles</span>
-        {edition.totalReadingMinutes && (
-          <>
-            <span className="text-ink-faint">·</span>
-            <span>{edition.totalReadingMinutes} min</span>
-          </>
-        )}
-        <span className="text-ink-faint">·</span>
-        <span>
-          {new Date(edition.publishedAt).toLocaleDateString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-          })}
-        </span>
-        {edition.currentPosition > 0 && (
-          <>
-            <span className="text-ink-faint">·</span>
-            <span className="text-accent">resumed</span>
-          </>
-        )}
-      </div>
+      <EditionRowMeta edition={edition} />
     </div>
     <button
       type="button"

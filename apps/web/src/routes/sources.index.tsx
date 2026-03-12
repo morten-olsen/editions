@@ -1,43 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useMutation } from "@tanstack/react-query";
 
-import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
-import { client } from "../api/api.ts";
+import { useSourcesList } from "../hooks/sources/sources.hooks.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { SourceCard } from "../components/source-card.tsx";
 import { EmptyState } from "../components/empty-state.tsx";
 import { Button } from "../components/button.tsx";
 
-type Source = {
-  id: string;
-  name: string;
-  url: string;
-  type: string;
-  lastFetchedAt: string | null;
-  fetchError: string | null;
-  createdAt: string;
-};
-
 const SourcesPage = (): React.ReactNode => {
-  const headers = useAuthHeaders();
-
-  const sourcesQuery = useQuery({
-    queryKey: queryKeys.sources.all,
-    queryFn: async (): Promise<Source[]> => {
-      const { data } = await client.GET("/api/sources", { headers });
-      return ((data as Source[]) ?? []).filter((s) => s.type !== "bookmarks");
-    },
-    enabled: !!headers,
-  });
-
-  const reanalyseMutation = useMutation({
-    mutationFn: async (): Promise<void> => {
-      await client.POST("/api/sources/reanalyse-all", { headers });
-    },
-  });
-
-  const sources = sourcesQuery.data ?? [];
-  const loading = sourcesQuery.isLoading;
+  const { sources, loading, reanalyseMutation } = useSourcesList();
 
   return (
     <>

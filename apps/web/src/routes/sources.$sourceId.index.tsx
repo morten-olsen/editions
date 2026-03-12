@@ -1,164 +1,34 @@
-import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
-import { client } from "../api/api.ts";
+import { useSourceDetail } from "../hooks/sources/sources.hooks.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { Button } from "../components/button.tsx";
 import { EmptyState } from "../components/empty-state.tsx";
 import { Separator } from "../components/separator.tsx";
 import { ArticleCard } from "../components/article-card.tsx";
 
-type Source = {
-  id: string;
-  name: string;
-  url: string;
-  type: string;
-  lastFetchedAt: string | null;
-  fetchError: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
-
-type Article = {
-  id: string;
-  title: string;
-  url: string | null;
-  author: string | null;
-  summary: string | null;
-  imageUrl: string | null;
-  publishedAt: string | null;
-};
-
-type ArticlesPage = {
-  articles: Article[];
-  total: number;
-  offset: number;
-  limit: number;
-};
-
-const PAGE_SIZE = 20;
-
 const SourceDetailPage = (): React.ReactNode => {
-  const headers = useAuthHeaders();
-  const queryClient = useQueryClient();
   const { sourceId } = Route.useParams();
-  const [offset, setOffset] = useState(0);
-  const [fetchResult, setFetchResult] = useState<string | null>(null);
-  const [reanalyseResult, setReanalyseResult] = useState<string | null>(null);
+  const {
+    source,
+    articlesPage,
+    loading,
+    sourceQuery,
+    pagination,
+    fetchMutation,
+    fetchResult,
+    reanalyseMutation,
+    reanalyseResult,
+    handleFetch,
+    handleReanalyse,
+    ready,
+  } = useSourceDetail({ sourceId });
 
-  const sourceQuery = useQuery({
-    queryKey: queryKeys.sources.detail(sourceId),
-    queryFn: async (): Promise<Source> => {
-      const { data, error: err } = await client.GET("/api/sources/{id}", {
-        params: { path: { id: sourceId } },
-        headers,
-      });
-      if (err) throw new Error("Source not found");
-      return data as Source;
-    },
-    enabled: !!headers,
-  });
-
-  const articlesQuery = useQuery({
-    queryKey: queryKeys.sources.articles(sourceId, offset),
-    queryFn: async (): Promise<ArticlesPage> => {
-      const { data } = await client.GET("/api/sources/{id}/articles", {
-        params: { path: { id: sourceId }, query: { offset, limit: PAGE_SIZE } },
-        headers,
-      });
-      return data as ArticlesPage;
-    },
-    enabled: !!headers,
-  });
-
-  const fetchMutation = useMutation({
-    mutationFn: async (): Promise<string> => {
-      const { data, error: err } = await client.POST("/api/sources/{id}/fetch", {
-        params: { path: { id: sourceId } },
-        headers,
-      });
-
-      if (err || !data) throw new Error("Failed to start fetch");
-
-      const taskId = (data as { taskId: string }).taskId;
-
-      // Poll task status until completion
-      const poll = (): Promise<string> =>
-        new Promise((resolve, reject) => {
-          const check = async (): Promise<void> => {
-            const { data: task } = await client.GET("/api/sources/{id}/tasks/{taskId}", {
-              params: { path: { id: sourceId, taskId } },
-              headers,
-            });
-
-            if (!task) {
-              reject(new Error("Lost track of task"));
-              return;
-            }
-
-            const t = task as { status: string; result: unknown; error: string | null };
-
-            if (t.status === "completed") {
-              const result = t.result as { newArticles: number; totalItems: number } | null;
-              resolve(
-                result
-                  ? `Fetched ${result.totalItems} items, ${result.newArticles} new`
-                  : "Fetch completed",
-              );
-            } else if (t.status === "failed") {
-              reject(new Error(t.error ?? "Fetch failed"));
-            } else {
-              setTimeout(() => void check(), 500);
-            }
-          };
-
-          void check();
-        });
-
-      return poll();
-    },
-    onSuccess: (message: string): void => {
-      setFetchResult(message);
-      void queryClient.invalidateQueries({ queryKey: queryKeys.sources.detail(sourceId) });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.sources.articles(sourceId, offset) });
-    },
-    onError: (err: Error): void => {
-      setFetchResult(err.message);
-      void queryClient.invalidateQueries({ queryKey: queryKeys.sources.detail(sourceId) });
-    },
-  });
-
-  const reanalyseMutation = useMutation({
-    mutationFn: async (): Promise<string> => {
-      const { data, error: err } = await client.POST("/api/sources/{id}/reanalyse", {
-        params: { path: { id: sourceId } },
-        headers,
-      });
-
-      if (err || !data) throw new Error("Failed to start reanalysis");
-      const result = data as { enqueued: number };
-      return `Enqueued ${result.enqueued} articles for analysis`;
-    },
-    onSuccess: (message: string): void => {
-      setReanalyseResult(message);
-    },
-    onError: (err: Error): void => {
-      setReanalyseResult(err.message);
-    },
-  });
-
-  if (!headers) return null;
-
-  const loading = sourceQuery.isLoading || articlesQuery.isLoading;
+  if (!ready) return null;
 
   if (loading) {
     return <div className="text-sm text-ink-tertiary py-12 text-center">Loading...</div>;
   }
-
-  const source = sourceQuery.data;
-  const articlesPage = articlesQuery.data ?? null;
 
   if (!source) {
     return (
@@ -167,23 +37,6 @@ const SourceDetailPage = (): React.ReactNode => {
       </div>
     );
   }
-
-  const handlePageChange = (newOffset: number): void => {
-    setOffset(newOffset);
-  };
-
-  const handleFetch = (): void => {
-    setFetchResult(null);
-    fetchMutation.mutate();
-  };
-
-  const handleReanalyse = (): void => {
-    setReanalyseResult(null);
-    reanalyseMutation.mutate();
-  };
-
-  const totalPages = articlesPage ? Math.ceil(articlesPage.total / PAGE_SIZE) : 0;
-  const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
 
   return (
     <>
@@ -276,13 +129,13 @@ const SourceDetailPage = (): React.ReactNode => {
             ))}
           </div>
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-6 pt-6 border-t border-border" data-ai-id="source-pagination" data-ai-role="info" data-ai-label={`Page ${currentPage} of ${totalPages}`}>
+          {pagination.totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6 pt-6 border-t border-border" data-ai-id="source-pagination" data-ai-role="info" data-ai-label={`Page ${pagination.currentPage} of ${pagination.totalPages}`}>
               <Button
                 variant="ghost"
                 size="sm"
-                disabled={offset === 0}
-                onClick={() => handlePageChange(Math.max(0, offset - PAGE_SIZE))}
+                disabled={!pagination.hasPrev}
+                onClick={pagination.goPrev}
                 data-ai-id="source-prev-page"
                 data-ai-role="button"
                 data-ai-label="Previous page"
@@ -290,13 +143,13 @@ const SourceDetailPage = (): React.ReactNode => {
                 Previous
               </Button>
               <span className="text-xs text-ink-tertiary">
-                Page {currentPage} of {totalPages}
+                Page {pagination.currentPage} of {pagination.totalPages}
               </span>
               <Button
                 variant="ghost"
                 size="sm"
-                disabled={offset + PAGE_SIZE >= articlesPage.total}
-                onClick={() => handlePageChange(offset + PAGE_SIZE)}
+                disabled={!pagination.hasNext}
+                onClick={pagination.goNext}
                 data-ai-id="source-next-page"
                 data-ai-role="button"
                 data-ai-label="Next page"

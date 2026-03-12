@@ -1,51 +1,27 @@
-import { useEffect, useState } from "react";
-import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 
-import { client } from "../api/api.ts";
-import { useAuth } from "../auth/auth.tsx";
+import { useLoginForm } from "../hooks/auth/auth.hooks.ts";
 import { Input } from "../components/input.tsx";
 import { Button } from "../components/button.tsx";
 
 const LoginPage = (): React.ReactNode => {
-  const auth = useAuth();
-  const navigate = useNavigate();
-  const [mode, setMode] = useState<"login" | "register">("login");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [allowSignups, setAllowSignups] = useState(true);
+  const {
+    mode,
+    username,
+    setUsername,
+    password,
+    setPassword,
+    error,
+    submitting,
+    allowSignups,
+    isAuthenticated,
+    handleSubmit,
+    toggleMode,
+  } = useLoginForm();
 
-  useEffect(() => {
-    client.GET("/api/config").then(({ data }) => {
-      if (data) {
-        setAllowSignups(data.allowSignups);
-      }
-    });
-  }, []);
-
-  if (auth.status === "authenticated") {
+  if (isAuthenticated) {
     return <Navigate to="/" />;
   }
-
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    setError(null);
-    setSubmitting(true);
-
-    try {
-      if (mode === "login") {
-        await auth.login(username, password);
-      } else {
-        await auth.register(username, password);
-      }
-      await navigate({ to: "/" });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   return (
     <div className="min-h-dvh bg-surface flex items-center justify-center">
@@ -91,10 +67,7 @@ const LoginPage = (): React.ReactNode => {
           <div className="text-center">
             <button
               type="button"
-              onClick={() => {
-                setMode(mode === "login" ? "register" : "login");
-                setError(null);
-              }}
+              onClick={toggleMode}
               className="text-sm text-ink-tertiary hover:text-accent transition-colors duration-fast cursor-pointer"
             >
               {mode === "login"

@@ -1,75 +1,12 @@
-import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { client } from "../api/api.ts";
-import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
+import { useEditionConfigs, formatLookback } from "../hooks/editions/editions.hooks.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { Button } from "../components/button.tsx";
 import { EmptyState } from "../components/empty-state.tsx";
 
-type EditionConfigFocus = {
-  focusId: string;
-  focusName: string;
-  position: number;
-  budgetType: "time" | "count";
-  budgetValue: number;
-};
-
-type EditionConfig = {
-  id: string;
-  name: string;
-  schedule: string;
-  lookbackHours: number;
-  excludePriorEditions: boolean;
-  enabled: boolean;
-  focuses: EditionConfigFocus[];
-  createdAt: string;
-};
-
-const formatLookback = (hours: number): string => {
-  if (hours < 24) return `${hours}h`;
-  const days = Math.round(hours / 24);
-  return days === 7 ? "1 week" : `${days}d`;
-};
-
 const EditionsPage = (): React.ReactNode => {
-  const headers = useAuthHeaders();
-  const queryClient = useQueryClient();
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  const configsQuery = useQuery({
-    queryKey: queryKeys.editions.configs,
-    queryFn: async (): Promise<EditionConfig[]> => {
-      const { data } = await client.GET("/api/editions/configs", { headers });
-      return (data ?? []) as EditionConfig[];
-    },
-    enabled: !!headers,
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string): Promise<void> => {
-      await client.DELETE("/api/editions/configs/{configId}", {
-        params: { path: { configId: id } },
-        headers,
-      });
-    },
-    onSuccess: (): void => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.editions.configs });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.nav });
-    },
-  });
-
-  if (!headers) return null;
-
-  const configs = configsQuery.data ?? [];
-  const loading = configsQuery.isLoading;
-
-  const handleDelete = (id: string, name: string): void => {
-    if (!confirm(`Delete "${name}"? This will also delete all generated editions.`)) return;
-    setDeletingId(id);
-    deleteMutation.mutate(id, { onSettled: () => setDeletingId(null) });
-  };
+  const { configs, loading, deletingId, handleDelete } = useEditionConfigs();
 
   return (
     <>

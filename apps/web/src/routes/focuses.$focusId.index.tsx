@@ -1,72 +1,10 @@
-import { useEffect, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
-import { client } from "../api/api.ts";
+import { useFocusDetail, PAGE_SIZE } from "../hooks/focuses/focuses.hooks.ts";
+import type { TimeWindow, ReadStatus } from "../hooks/focuses/focuses.hooks.ts";
 import { Button } from "../components/button.tsx";
 import { EmptyState } from "../components/empty-state.tsx";
 import { ArticleCard } from "../components/article-card.tsx";
-import type { VoteValue } from "../components/vote-controls.tsx";
-
-type Focus = {
-  id: string;
-  name: string;
-  description: string | null;
-  sources: { sourceId: string; mode: "always" | "match" }[];
-  createdAt: string;
-  updatedAt: string;
-};
-
-type FocusArticle = {
-  id: string;
-  sourceId: string;
-  url: string | null;
-  title: string;
-  author: string | null;
-  summary: string | null;
-  imageUrl: string | null;
-  publishedAt: string | null;
-  consumptionTimeSeconds: number | null;
-  readAt: string | null;
-  confidence: number;
-  score: number;
-  vote: 1 | -1 | null;
-  globalVote: 1 | -1 | null;
-  sourceName: string;
-  sourceType: string;
-};
-
-type FocusArticlesPage = {
-  articles: FocusArticle[];
-  total: number;
-  offset: number;
-  limit: number;
-};
-
-type ArticlesWithBookmarks = {
-  page: FocusArticlesPage;
-  bookmarkedIds: Set<string>;
-};
-
-type SortMode = "top" | "recent";
-type TimeWindow = "today" | "week" | "all";
-type ReadStatus = "all" | "unread" | "read";
-
-const ANALYSIS_TASK_TYPES = new Set([
-  "reconcile_focus",
-  "reanalyse_source",
-  "reanalyse_all",
-  "analyse_article",
-]);
-
-type TaskEntry = {
-  id: string;
-  type: string;
-  status: "pending" | "running" | "completed" | "failed";
-};
-
-const PAGE_SIZE = 20;
 
 const CogIcon = (): React.ReactElement => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
@@ -74,194 +12,32 @@ const CogIcon = (): React.ReactElement => (
   </svg>
 );
 
-const windowToRange = (window: TimeWindow): { from?: string; to?: string } => {
-  if (window === "all") return {};
-  const now = new Date();
-  const from = new Date(
-    now.getTime() - (window === "today" ? 24 : 7 * 24) * 60 * 60 * 1000,
-  );
-  return { from: from.toISOString() };
-};
-
 const FocusDetailPage = (): React.ReactNode => {
-  const headers = useAuthHeaders();
-  const queryClient = useQueryClient();
   const { focusId } = Route.useParams();
-  const [offset, setOffset] = useState(0);
-  const [sort, setSort] = useState<SortMode>("top");
-  const [window, setWindow] = useState<TimeWindow>("all");
-  const [status, setStatus] = useState<ReadStatus>("unread");
 
-  // Local optimistic state for votes and bookmarks
-  const [voteOverrides, setVoteOverrides] = useState<Record<string, { vote?: VoteValue; globalVote?: VoteValue }>>({});
-  const [bookmarkOverrides, setBookmarkOverrides] = useState<Record<string, boolean>>({});
-
-  const { data: focus, isLoading: loadingFocus, error: focusError } = useQuery({
-    queryKey: queryKeys.focuses.detail(focusId),
-    queryFn: async (): Promise<Focus> => {
-      const { data, error: err } = await client.GET("/api/focuses/{id}", {
-        params: { path: { id: focusId } },
-        headers,
-      });
-      if (err) throw new Error("Focus not found");
-      return data as Focus;
-    },
-    enabled: !!headers,
-  });
-
-  const { data: articlesData, isLoading: loadingArticles } = useQuery({
-    queryKey: ["focuses", focusId, "articles", { sort, window, status, offset }],
-    queryFn: async (): Promise<ArticlesWithBookmarks> => {
-      const range = windowToRange(window);
-      const { data } = await client.GET("/api/focuses/{id}/articles", {
-        params: {
-          path: { id: focusId },
-          query: {
-            offset,
-            limit: PAGE_SIZE,
-            sort,
-            status,
-            ...range,
-          },
-        },
-        headers,
-      });
-
-      const page = (data as FocusArticlesPage) ?? { articles: [], total: 0, offset: 0, limit: PAGE_SIZE };
-
-      let bookmarkedIds = new Set<string>();
-      const articleIds = page.articles.map((a) => a.id);
-      if (articleIds.length > 0) {
-        const { data: bmData } = await client.POST("/api/bookmarks/check", {
-          body: { articleIds },
-          headers,
-        });
-        if (bmData) {
-          bookmarkedIds = new Set((bmData as { bookmarkedIds: string[] }).bookmarkedIds);
-        }
-      }
-
-      return { page, bookmarkedIds };
-    },
-    enabled: !!headers,
-  });
-
-  const articlesPage = articlesData?.page ?? null;
-  const serverBookmarkedIds = articlesData?.bookmarkedIds ?? new Set<string>();
-
-  // When the feed is empty, check if analysis tasks are running.
-  // Poll every 2s while active; when tasks finish, refetch articles.
-  const isEmpty = !loadingArticles && (!articlesPage || articlesPage.articles.length === 0);
-
-  const { data: analysisRunning } = useQuery({
-    queryKey: ["tasks", "analysis-running"],
-    queryFn: async (): Promise<boolean> => {
-      const { data } = await client.GET("/api/tasks", { headers });
-      if (!data) return false;
-      const tasks = (data as { tasks: TaskEntry[] }).tasks;
-      return tasks.some(
-        (t) =>
-          ANALYSIS_TASK_TYPES.has(t.type) &&
-          (t.status === "pending" || t.status === "running"),
-      );
-    },
-    enabled: !!headers && isEmpty,
-    refetchInterval: (query) => (query.state.data ? 2000 : false),
-  });
-
-  // When analysis transitions from running → done, refetch articles
-  const wasRunning = useRef(false);
-  useEffect(() => {
-    if (analysisRunning) {
-      wasRunning.current = true;
-    } else if (wasRunning.current && analysisRunning === false) {
-      wasRunning.current = false;
-      void queryClient.invalidateQueries({
-        queryKey: ["focuses", focusId, "articles"],
-      });
-    }
-  }, [analysisRunning, queryClient, focusId]);
+  const {
+    focus,
+    loadingFocus,
+    focusError,
+    articlesPage,
+    loadingArticles,
+    analysisRunning,
+    sort,
+    window,
+    status,
+    pagination,
+    getVoteOverride,
+    getGlobalVoteOverride,
+    isBookmarked,
+    handleFocusVote,
+    handleGlobalVote,
+    handleBookmarkToggle,
+    handleFilterChange,
+    handlePageChange,
+    headers,
+  } = useFocusDetail(focusId);
 
   if (!headers) return null;
-
-  const handleFocusVote = async (articleId: string, value: VoteValue): Promise<void> => {
-    setVoteOverrides((prev) => ({
-      ...prev,
-      [articleId]: { ...prev[articleId], vote: value },
-    }));
-
-    if (value === null) {
-      await client.DELETE("/api/focuses/{id}/articles/{articleId}/vote", {
-        params: { path: { id: focusId, articleId } },
-        headers,
-      });
-    } else {
-      await client.PUT("/api/focuses/{id}/articles/{articleId}/vote", {
-        params: { path: { id: focusId, articleId } },
-        body: { value },
-        headers,
-      });
-    }
-  };
-
-  const handleGlobalVote = async (articleId: string, value: VoteValue): Promise<void> => {
-    setVoteOverrides((prev) => ({
-      ...prev,
-      [articleId]: { ...prev[articleId], globalVote: value },
-    }));
-
-    if (value === null) {
-      await client.DELETE("/api/articles/{articleId}/vote", {
-        params: { path: { articleId } },
-        headers,
-      });
-    } else {
-      await client.PUT("/api/articles/{articleId}/vote", {
-        params: { path: { articleId } },
-        body: { value },
-        headers,
-      });
-    }
-  };
-
-  const handleBookmarkToggle = async (articleId: string): Promise<void> => {
-    const currentlyBookmarked = bookmarkOverrides[articleId] ?? serverBookmarkedIds.has(articleId);
-    setBookmarkOverrides((prev) => ({
-      ...prev,
-      [articleId]: !currentlyBookmarked,
-    }));
-
-    if (currentlyBookmarked) {
-      await client.DELETE("/api/articles/{articleId}/bookmark", {
-        params: { path: { articleId } },
-        headers,
-      });
-    } else {
-      await client.PUT("/api/articles/{articleId}/bookmark", {
-        params: { path: { articleId } },
-        headers,
-      });
-    }
-  };
-
-  const handleFilterChange = (
-    newSort: SortMode = sort,
-    newWindow: TimeWindow = window,
-    newStatus: ReadStatus = status,
-  ): void => {
-    setSort(newSort);
-    setWindow(newWindow);
-    setStatus(newStatus);
-    setOffset(0);
-    setVoteOverrides({});
-    setBookmarkOverrides({});
-  };
-
-  const handlePageChange = (newOffset: number): void => {
-    setOffset(newOffset);
-    setVoteOverrides({});
-    setBookmarkOverrides({});
-  };
 
   const loading = loadingFocus || loadingArticles;
 
@@ -276,9 +52,6 @@ const FocusDetailPage = (): React.ReactNode => {
       </div>
     );
   }
-
-  const totalPages = articlesPage ? Math.ceil(articlesPage.total / PAGE_SIZE) : 0;
-  const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
 
   return (
     <>
@@ -380,10 +153,9 @@ const FocusDetailPage = (): React.ReactNode => {
         <>
           <div className="divide-y divide-border" data-ai-id="focus-articles" data-ai-role="list" data-ai-label={`${articlesPage.total} articles`}>
             {articlesPage.articles.map((article) => {
-              const overrides = voteOverrides[article.id];
-              const focusVote = overrides?.vote !== undefined ? overrides.vote : article.vote;
-              const globalVote = overrides?.globalVote !== undefined ? overrides.globalVote : article.globalVote;
-              const bookmarked = bookmarkOverrides[article.id] ?? serverBookmarkedIds.has(article.id);
+              const focusVote = getVoteOverride(article.id, article.vote);
+              const globalVote = getGlobalVoteOverride(article.id, article.globalVote);
+              const bookmarked = isBookmarked(article.id);
 
               return (
                 <ArticleCard
@@ -414,13 +186,13 @@ const FocusDetailPage = (): React.ReactNode => {
             {articlesPage.total} article{articlesPage.total === 1 ? "" : "s"}
           </div>
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-border" data-ai-id="focus-pagination" data-ai-role="info" data-ai-label={`Page ${currentPage} of ${totalPages}`}>
+          {pagination.totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-border" data-ai-id="focus-pagination" data-ai-role="info" data-ai-label={`Page ${pagination.currentPage} of ${pagination.totalPages}`}>
               <Button
                 variant="ghost"
                 size="sm"
-                disabled={offset === 0}
-                onClick={() => handlePageChange(Math.max(0, offset - PAGE_SIZE))}
+                disabled={!pagination.hasPrev}
+                onClick={() => handlePageChange(Math.max(0, pagination.offset - PAGE_SIZE))}
                 data-ai-id="focus-prev-page"
                 data-ai-role="button"
                 data-ai-label="Previous page"
@@ -428,13 +200,13 @@ const FocusDetailPage = (): React.ReactNode => {
                 Previous
               </Button>
               <span className="text-xs text-ink-tertiary">
-                Page {currentPage} of {totalPages}
+                Page {pagination.currentPage} of {pagination.totalPages}
               </span>
               <Button
                 variant="ghost"
                 size="sm"
-                disabled={offset + PAGE_SIZE >= articlesPage.total}
-                onClick={() => handlePageChange(offset + PAGE_SIZE)}
+                disabled={!pagination.hasNext}
+                onClick={() => handlePageChange(pagination.offset + PAGE_SIZE)}
                 data-ai-id="focus-next-page"
                 data-ai-role="button"
                 data-ai-label="Next page"

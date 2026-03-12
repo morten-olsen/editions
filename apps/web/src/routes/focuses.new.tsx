@@ -1,9 +1,11 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
-import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
-import { client } from "../api/api.ts";
+import {
+  useCreateFocus,
+  selectClasses,
+  priorityLabel,
+  confidenceHint,
+} from "../hooks/focuses/focuses.hooks.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { Input } from "../components/input.tsx";
 import { Textarea } from "../components/textarea.tsx";
@@ -12,97 +14,36 @@ import { Checkbox } from "../components/checkbox.tsx";
 import { Separator } from "../components/separator.tsx";
 import { IconPicker } from "../components/icon-picker.tsx";
 
-type Source = {
-  id: string;
-  name: string;
-  url: string;
-};
-
-type SourceSelection = {
-  sourceId: string;
-  mode: "always" | "match";
-  weight: number;
-};
-
-const selectClasses =
-  "rounded-md border border-border bg-surface px-2 py-1 text-xs text-ink-secondary focus:outline-none focus:ring-1 focus:ring-accent";
-
-const priorityLabel = (w: number): string => {
-  if (w <= 0.1) return "Off";
-  if (w < 0.75) return "Low";
-  if (w <= 1.25) return "Normal";
-  if (w <= 2.1) return "High";
-  return "Top";
-};
-
-const confidenceHint = (v: number): string => {
-  if (v === 0) return "All articles";
-  if (v <= 30) return "Loose match";
-  if (v <= 60) return "Moderate";
-  if (v <= 80) return "Strong match";
-  return "Exact match";
-};
-
 const NewFocusPage = (): React.ReactNode => {
-  const headers = useAuthHeaders();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [icon, setIcon] = useState<string | null>(null);
-  const [minConfidence, setMinConfidence] = useState(0);
-  const [minReadingTime, setMinReadingTime] = useState("");
-  const [maxReadingTime, setMaxReadingTime] = useState("");
-  const [selectedSources, setSelectedSources] = useState<SourceSelection[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    name,
+    setName,
+    description,
+    setDescription,
+    icon,
+    setIcon,
+    minConfidence,
+    setMinConfidence,
+    minReadingTime,
+    setMinReadingTime,
+    maxReadingTime,
+    setMaxReadingTime,
+    error,
+    sourceSelection,
+    isPending,
+    submit,
+    headers,
+  } = useCreateFocus();
 
-  const { data: allSources = [], isLoading: loadingSources } = useQuery({
-    queryKey: queryKeys.sources.all,
-    queryFn: async (): Promise<Source[]> => {
-      const { data } = await client.GET("/api/sources", { headers });
-      return (data as Source[]) ?? [];
-    },
-    enabled: !!headers,
-  });
-
-  const createFocus = useMutation({
-    mutationFn: async (): Promise<void> => {
-      const body: {
-        name: string;
-        description?: string;
-        icon?: string | null;
-        minConfidence?: number;
-        minConsumptionTimeSeconds?: number | null;
-        maxConsumptionTimeSeconds?: number | null;
-        sources?: SourceSelection[];
-      } = { name };
-      if (description.trim()) body.description = description.trim();
-      if (icon) body.icon = icon;
-      if (minConfidence > 0) body.minConfidence = minConfidence / 100;
-      const parsedMin = minReadingTime ? Number(minReadingTime) : null;
-      const parsedMax = maxReadingTime ? Number(maxReadingTime) : null;
-      if (parsedMin !== null) body.minConsumptionTimeSeconds = parsedMin * 60;
-      if (parsedMax !== null) body.maxConsumptionTimeSeconds = parsedMax * 60;
-      if (selectedSources.length > 0) body.sources = selectedSources;
-
-      const { error: err } = await client.POST("/api/focuses", {
-        body,
-        headers,
-      });
-
-      if (err) {
-        throw new Error("error" in err ? (err as { error: string }).error : "Failed to create focus");
-      }
-    },
-    onSuccess: async (): Promise<void> => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.nav });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.focuses.all });
-      await navigate({ to: "/focuses" });
-    },
-    onError: (err: Error): void => {
-      setError(err.message);
-    },
-  });
+  const {
+    allSources,
+    loadingSources,
+    selectedSources,
+    selectedIds,
+    toggleSource,
+    changeMode,
+    changeWeight,
+  } = sourceSelection;
 
   if (!headers) return null;
 
@@ -110,32 +51,9 @@ const NewFocusPage = (): React.ReactNode => {
     return <div className="text-sm text-ink-tertiary py-12 text-center">Loading…</div>;
   }
 
-  const toggleSource = (sourceId: string): void => {
-    setSelectedSources((prev) => {
-      const existing = prev.find((s) => s.sourceId === sourceId);
-      if (existing) return prev.filter((s) => s.sourceId !== sourceId);
-      return [...prev, { sourceId, mode: "always", weight: 1 }];
-    });
-  };
-
-  const changeMode = (sourceId: string, mode: "always" | "match"): void => {
-    setSelectedSources((prev) =>
-      prev.map((s) => (s.sourceId === sourceId ? { ...s, mode } : s)),
-    );
-  };
-
-  const changeWeight = (sourceId: string, weight: number): void => {
-    setSelectedSources((prev) =>
-      prev.map((s) => (s.sourceId === sourceId ? { ...s, weight } : s)),
-    );
-  };
-
-  const selectedIds = new Set(selectedSources.map((s) => s.sourceId));
-
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
+  const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
-    setError(null);
-    createFocus.mutate();
+    submit();
   };
 
   return (
@@ -308,13 +226,13 @@ const NewFocusPage = (): React.ReactNode => {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button variant="primary" type="submit" disabled={createFocus.isPending} data-ai-id="focus-submit" data-ai-role="button" data-ai-label="Create topic" data-ai-state={createFocus.isPending ? "loading" : "idle"}>
-            {createFocus.isPending ? "Creating…" : "Create topic"}
+          <Button variant="primary" type="submit" disabled={isPending} data-ai-id="focus-submit" data-ai-role="button" data-ai-label="Create topic" data-ai-state={isPending ? "loading" : "idle"}>
+            {isPending ? "Creating…" : "Create topic"}
           </Button>
           <Button
             variant="ghost"
             type="button"
-            onClick={() => void navigate({ to: "/focuses" })}
+            onClick={() => void globalThis.history.back()}
             data-ai-id="focus-cancel"
             data-ai-role="button"
             data-ai-label="Cancel"

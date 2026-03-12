@@ -1,60 +1,22 @@
-import { useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
 
-import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
-import { client } from "../api/api.ts";
+import { useCreateSource } from "../hooks/sources/sources.hooks.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { Input } from "../components/input.tsx";
 import { Button } from "../components/button.tsx";
 
 const NewSourcePage = (): React.ReactNode => {
-  const headers = useAuthHeaders();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [name, setName] = useState("");
-  const [url, setUrl] = useState("");
-  const [sourceType, setSourceType] = useState<"rss" | "podcast">("rss");
-  const [direction, setDirection] = useState<"newest" | "oldest">("newest");
-  const [error, setError] = useState<string | null>(null);
+  const { form, createMutation, handleSubmit, navigateToSources, ready } = useCreateSource();
 
-  const createMutation = useMutation({
-    mutationFn: async (body: { name: string; url: string; type: "rss" | "podcast"; direction: "newest" | "oldest" }): Promise<void> => {
-      const { error: err } = await client.POST("/api/sources", {
-        body,
-        headers,
-      });
-      if (err) {
-        throw new Error(
-          "error" in err ? (err as { error: string }).error : "Failed to create source",
-        );
-      }
-    },
-    onSuccess: async (): Promise<void> => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.sources.all });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.nav });
-      await navigate({ to: "/sources" });
-    },
-    onError: (err: Error): void => {
-      setError(err.message);
-    },
-  });
-
-  if (!headers) return null;
-
-  const handleSubmit = (e: React.FormEvent): void => {
-    e.preventDefault();
-    setError(null);
-    createMutation.mutate({ name, url, type: sourceType, direction });
-  };
+  if (!ready) return null;
 
   return (
     <>
-      <PageHeader title="Add source" subtitle={sourceType === "podcast" ? "Add a podcast feed" : "Add a new RSS feed to your collection"} />
+      <PageHeader title="Add source" subtitle={form.sourceType === "podcast" ? "Add a podcast feed" : "Add a new RSS feed to your collection"} />
 
-      {error && (
-        <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6" data-ai-id="source-form-error" data-ai-role="error" data-ai-error={error}>
-          {error}
+      {form.error && (
+        <div className="rounded-md bg-critical-subtle border border-critical/20 p-3 text-sm text-critical mb-6" data-ai-id="source-form-error" data-ai-role="error" data-ai-error={form.error}>
+          {form.error}
         </div>
       )}
 
@@ -66,12 +28,12 @@ const NewSourcePage = (): React.ReactNode => {
               <button
                 key={t}
                 type="button"
-                onClick={() => setSourceType(t)}
+                onClick={() => form.setSourceType(t)}
                 data-ai-id={`source-type-${t}`}
                 data-ai-role="button"
                 data-ai-label={t === "rss" ? "RSS Feed" : "Podcast"}
-                data-ai-state={sourceType === t ? "selected" : "idle"}
-                className={`px-4 py-2 rounded-md text-sm font-medium border transition-colors duration-fast cursor-pointer ${sourceType === t ? "border-accent bg-accent/10 text-accent" : "border-border bg-surface text-ink-secondary hover:border-ink-faint"}`}
+                data-ai-state={form.sourceType === t ? "selected" : "idle"}
+                className={`px-4 py-2 rounded-md text-sm font-medium border transition-colors duration-fast cursor-pointer ${form.sourceType === t ? "border-accent bg-accent/10 text-accent" : "border-border bg-surface text-ink-secondary hover:border-ink-faint"}`}
               >
                 {t === "rss" ? "RSS Feed" : "Podcast"}
               </button>
@@ -80,37 +42,37 @@ const NewSourcePage = (): React.ReactNode => {
         </div>
         <Input
           label="Name"
-          placeholder={sourceType === "podcast" ? "My Favorite Podcast" : "My Favorite Blog"}
+          placeholder={form.sourceType === "podcast" ? "My Favorite Podcast" : "My Favorite Blog"}
           required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={form.name}
+          onChange={(e) => form.setName(e.target.value)}
           data-ai-id="source-name"
           data-ai-role="input"
           data-ai-label="Source name"
-          data-ai-value={name}
+          data-ai-value={form.name}
         />
         <Input
           label="Feed URL"
           type="url"
-          placeholder={sourceType === "podcast" ? "https://example.com/feed.xml" : "https://example.com/feed.xml"}
+          placeholder={form.sourceType === "podcast" ? "https://example.com/feed.xml" : "https://example.com/feed.xml"}
           required
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
+          value={form.url}
+          onChange={(e) => form.setUrl(e.target.value)}
           data-ai-id="source-url"
           data-ai-role="input"
           data-ai-label="Feed URL"
-          data-ai-value={url}
+          data-ai-value={form.url}
         />
         <div>
           <label className="block text-sm font-medium text-ink mb-1.5">Direction</label>
           <select
-            value={direction}
-            onChange={(e) => setDirection(e.target.value as "newest" | "oldest")}
+            value={form.direction}
+            onChange={(e) => form.setDirection(e.target.value as "newest" | "oldest")}
             className="h-10 w-full rounded-md border border-border bg-surface px-3 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent cursor-pointer"
             data-ai-id="source-direction"
             data-ai-role="input"
             data-ai-label="Direction"
-            data-ai-value={direction}
+            data-ai-value={form.direction}
           >
             <option value="newest">Newest first</option>
             <option value="oldest">Oldest first (series)</option>
@@ -126,7 +88,7 @@ const NewSourcePage = (): React.ReactNode => {
           <Button
             variant="ghost"
             type="button"
-            onClick={() => void navigate({ to: "/sources" })}
+            onClick={navigateToSources}
             data-ai-id="source-cancel"
             data-ai-role="button"
             data-ai-label="Cancel"

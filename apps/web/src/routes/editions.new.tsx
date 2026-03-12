@@ -1,9 +1,11 @@
-import { useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
 
-import { client } from "../api/api.ts";
-import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
+import {
+  useCreateEditionConfig,
+  SCHEDULE_PRESETS,
+  selectClasses,
+  priorityLabel,
+} from "../hooks/editions/editions.hooks.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { Input } from "../components/input.tsx";
 import { Button } from "../components/button.tsx";
@@ -11,169 +13,40 @@ import { Checkbox } from "../components/checkbox.tsx";
 import { Separator } from "../components/separator.tsx";
 import { IconPicker } from "../components/icon-picker.tsx";
 
-type Focus = {
-  id: string;
-  name: string;
-  description: string | null;
-};
-
-type FocusConfig = {
-  focusId: string;
-  position: number;
-  budgetType: "time" | "count";
-  budgetValue: number;
-  lookbackHours: number | null;
-  excludePriorEditions: boolean | null;
-  weight: number;
-};
-
-const SCHEDULE_PRESETS = [
-  { label: "Daily at 7am", value: "0 7 * * *" },
-  { label: "Daily at 8am", value: "0 8 * * *" },
-  { label: "Daily at noon", value: "0 12 * * *" },
-  { label: "Weekdays at 7am", value: "0 7 * * 1-5" },
-  { label: "Weekdays at 8am", value: "0 8 * * 1-5" },
-  { label: "Every Monday at 8am", value: "0 8 * * 1" },
-  { label: "Every Friday at 5pm", value: "0 17 * * 5" },
-  { label: "Custom…", value: "__custom__" },
-] as const;
-
-const selectClasses =
-  "rounded-md border border-border bg-surface-raised px-2.5 py-2 text-sm text-ink focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20";
-
-const priorityLabel = (w: number): string => {
-  if (w <= 0.1) return "Off";
-  if (w < 0.75) return "Low";
-  if (w <= 1.25) return "Normal";
-  if (w <= 2.1) return "High";
-  return "Top";
-};
-
 const NewEditionConfigPage = (): React.ReactNode => {
-  const headers = useAuthHeaders();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [name, setName] = useState("");
-  const [icon, setIcon] = useState<string | null>(null);
-  const [schedule, setSchedule] = useState("0 7 * * *");
-  const [lookbackHours, setLookbackHours] = useState(24);
-  const [excludePriorEditions, setExcludePriorEditions] = useState(false);
-  const [selectedFocuses, setSelectedFocuses] = useState<FocusConfig[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    name,
+    setName,
+    icon,
+    setIcon,
+    schedule,
+    setSchedule,
+    lookbackHours,
+    setLookbackHours,
+    excludePriorEditions,
+    setExcludePriorEditions,
+    error,
+    focusSelection,
+    isPending,
+    handleSubmit,
+    handleCancel,
+  } = useCreateEditionConfig();
 
-  const focusesQuery = useQuery({
-    queryKey: queryKeys.focuses.all,
-    queryFn: async (): Promise<Focus[]> => {
-      const { data } = await client.GET("/api/focuses", { headers });
-      return (data ?? []) as Focus[];
-    },
-    enabled: !!headers,
-  });
+  const {
+    allFocuses,
+    focusesLoading,
+    selectedFocuses,
+    selectedIds,
+    toggleFocus,
+    updateFocusField,
+    moveFocus,
+    isPresetSchedule,
+    scheduleSelectValue,
+  } = focusSelection;
 
-  const createMutation = useMutation({
-    mutationFn: async (body: {
-      name: string;
-      icon?: string | null;
-      schedule: string;
-      lookbackHours: number;
-      excludePriorEditions?: boolean;
-      enabled?: boolean;
-      focuses: {
-        focusId: string;
-        position: number;
-        budgetType: "time" | "count";
-        budgetValue: number;
-        lookbackHours?: number | null;
-        weight?: number;
-      }[];
-    }): Promise<void> => {
-      const { error: err } = await client.POST("/api/editions/configs", {
-        body,
-        headers,
-      });
-      if (err) {
-        throw new Error("error" in err ? (err as { error: string }).error : "Failed to create edition");
-      }
-    },
-    onSuccess: (): void => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.editions.configs });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.nav });
-      void navigate({ to: "/editions" });
-    },
-    onError: (err: Error): void => {
-      setError(err.message);
-    },
-  });
-
-  if (!headers) return null;
-
-  const allFocuses = focusesQuery.data ?? [];
-
-  if (focusesQuery.isLoading) {
+  if (focusesLoading) {
     return <div className="text-sm text-ink-tertiary py-12 text-center">Loading…</div>;
   }
-
-  const selectedIds = new Set(selectedFocuses.map((f) => f.focusId));
-  const isPresetSchedule = SCHEDULE_PRESETS.some((p) => p.value !== "__custom__" && p.value === schedule);
-  const scheduleSelectValue = isPresetSchedule ? schedule : "__custom__";
-
-  const toggleFocus = (focusId: string): void => {
-    setSelectedFocuses((prev) => {
-      const existing = prev.find((f) => f.focusId === focusId);
-      if (existing) return prev.filter((f) => f.focusId !== focusId);
-      return [
-        ...prev,
-        { focusId, position: prev.length, budgetType: "count" as const, budgetValue: 5, lookbackHours: null, excludePriorEditions: null, weight: 1 },
-      ];
-    });
-  };
-
-  const updateFocusField = (
-    focusId: string,
-    field: "budgetType" | "budgetValue" | "lookbackHours" | "excludePriorEditions" | "weight",
-    value: string | number | boolean | null,
-  ): void => {
-    setSelectedFocuses((prev) =>
-      prev.map((f) => (f.focusId === focusId ? { ...f, [field]: value } : f)),
-    );
-  };
-
-  const moveFocus = (focusId: string, direction: -1 | 1): void => {
-    setSelectedFocuses((prev) => {
-      const idx = prev.findIndex((f) => f.focusId === focusId);
-      if (idx < 0) return prev;
-      const newIdx = idx + direction;
-      if (newIdx < 0 || newIdx >= prev.length) return prev;
-      const arr = [...prev];
-      const a = arr[idx]!;
-      const b = arr[newIdx]!;
-      arr[idx] = b;
-      arr[newIdx] = a;
-      return arr.map((f, i) => ({ ...f, position: i }));
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent): void => {
-    e.preventDefault();
-    setError(null);
-
-    createMutation.mutate({
-      name,
-      icon,
-      schedule,
-      lookbackHours,
-      excludePriorEditions,
-      focuses: selectedFocuses.map((f, i) => ({
-        focusId: f.focusId,
-        position: i,
-        budgetType: f.budgetType,
-        budgetValue: f.budgetValue,
-        lookbackHours: f.lookbackHours,
-        excludePriorEditions: f.excludePriorEditions,
-        weight: f.weight,
-      })),
-    });
-  };
 
   return (
     <>
@@ -208,7 +81,7 @@ const NewEditionConfigPage = (): React.ReactNode => {
             <p className="text-xs text-ink-tertiary -mt-0.5">When this edition is automatically generated</p>
             <select
               id="schedule-preset"
-              value={scheduleSelectValue}
+              value={scheduleSelectValue(schedule)}
               onChange={(e) => {
                 if (e.target.value !== "__custom__") setSchedule(e.target.value);
               }}
@@ -222,7 +95,7 @@ const NewEditionConfigPage = (): React.ReactNode => {
                 <option key={p.value} value={p.value}>{p.label}</option>
               ))}
             </select>
-            {!isPresetSchedule && (
+            {!isPresetSchedule(schedule) && (
               <div className="flex flex-col gap-1.5 mt-1">
                 <Input
                   value={schedule}
@@ -474,13 +347,13 @@ const NewEditionConfigPage = (): React.ReactNode => {
         )}
 
         <div className="flex items-center gap-3">
-          <Button variant="primary" type="submit" disabled={createMutation.isPending} data-ai-id="edition-submit" data-ai-role="button" data-ai-label="Create edition" data-ai-state={createMutation.isPending ? "loading" : "idle"}>
-            {createMutation.isPending ? "Creating…" : "Create edition"}
+          <Button variant="primary" type="submit" disabled={isPending} data-ai-id="edition-submit" data-ai-role="button" data-ai-label="Create edition" data-ai-state={isPending ? "loading" : "idle"}>
+            {isPending ? "Creating…" : "Create edition"}
           </Button>
           <Button
             variant="ghost"
             type="button"
-            onClick={() => void navigate({ to: "/editions" })}
+            onClick={handleCancel}
             data-ai-id="edition-cancel"
             data-ai-role="button"
             data-ai-label="Cancel"

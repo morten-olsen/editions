@@ -1,36 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { useAuthHeaders, queryKeys } from "../api/api.hooks.ts";
-import { client } from "../api/api.ts";
+import { useFocusesList } from "../hooks/focuses/focuses.hooks.ts";
 import { PageHeader } from "../components/page-header.tsx";
 import { Button } from "../components/button.tsx";
 import { EmptyState } from "../components/empty-state.tsx";
 
-type FocusSource = {
-  sourceId: string;
-  mode: "always" | "match";
-};
-
-type Focus = {
-  id: string;
-  name: string;
-  description: string | null;
-  sources: FocusSource[];
-  createdAt: string;
-};
-
 const FocusesPage = (): React.ReactNode => {
-  const headers = useAuthHeaders();
-
-  const { data: focuses = [], isLoading } = useQuery({
-    queryKey: queryKeys.focuses.all,
-    queryFn: async (): Promise<Focus[]> => {
-      const { data } = await client.GET("/api/focuses", { headers });
-      return (data as Focus[]) ?? [];
-    },
-    enabled: !!headers,
-  });
+  const { focuses, isLoading, headers } = useFocusesList();
 
   if (!headers) return null;
 

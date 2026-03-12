@@ -1,112 +1,31 @@
-import { useState } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 
-import { client } from "../api/api.ts";
-import { useAuthHeaders } from "../api/api.hooks.ts";
+import { useArticleDetail, formatConsumptionTime, formatPublishedDate } from "../hooks/articles/articles.hooks.ts";
 import { BookmarkButton } from "../components/bookmark-button.tsx";
 import { ReadingShell } from "../components/app-shell.tsx";
 import { Button } from "../components/button.tsx";
 import { MediaPlayer } from "../components/media-player.tsx";
 import { Separator } from "../components/separator.tsx";
 import { VoteControls } from "../components/vote-controls.tsx";
-import type { VoteValue } from "../components/vote-controls.tsx";
-
-type ArticleDetail = {
-  id: string;
-  sourceId: string;
-  url: string | null;
-  title: string;
-  author: string | null;
-  summary: string | null;
-  content: string | null;
-  consumptionTimeSeconds: number | null;
-  mediaUrl: string | null;
-  mediaType: string | null;
-  sourceType: string;
-  imageUrl: string | null;
-  publishedAt: string | null;
-  readAt: string | null;
-  extractedAt: string | null;
-  progress: number;
-};
-
-type ArticleData = {
-  article: ArticleDetail;
-  vote: VoteValue;
-  bookmarked: boolean;
-};
-
-const formatConsumptionTime = (seconds: number, sourceType: string): string => {
-  const minutes = Math.round(seconds / 60);
-  const suffix = sourceType === "podcast" ? "listen" : "read";
-  if (minutes < 1) return `< 1 min ${suffix}`;
-  return `${minutes} min ${suffix}`;
-};
-
-const formatPublishedDate = (iso: string): string =>
-  new Date(iso).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
 
 const ArticlePage = (): React.ReactNode => {
-  const headers = useAuthHeaders();
   const router = useRouter();
   const { sourceId, articleId } = Route.useParams();
-  const [vote, setVote] = useState<VoteValue>(null);
-  const [isRead, setIsRead] = useState(false);
-  const [bookmarked, setBookmarked] = useState(false);
 
-  const { data, isLoading, error } = useQuery<ArticleData>({
-    queryKey: ["sources", sourceId, "articles", articleId],
-    queryFn: async (): Promise<ArticleData> => {
-      const [articleRes, voteRes, bookmarkRes] = await Promise.all([
-        client.GET("/api/sources/{id}/articles/{articleId}", {
-          params: { path: { id: sourceId, articleId } },
-          headers,
-        }),
-        client.GET("/api/articles/{articleId}/vote", {
-          params: { path: { articleId } },
-          headers,
-        }),
-        client.GET("/api/articles/{articleId}/bookmark", {
-          params: { path: { articleId } },
-          headers,
-        }),
-      ]);
+  const {
+    article,
+    vote,
+    isRead,
+    bookmarked,
+    isLoading,
+    error,
+    handleVote,
+    handleToggleBookmark,
+    handleToggleRead,
+    handleMarkDoneAndBack,
+  } = useArticleDetail({ sourceId, articleId });
 
-      if (articleRes.error) {
-        throw new Error("Article not found");
-      }
-
-      const article = articleRes.data as ArticleDetail;
-      const voteValue = voteRes.data
-        ? (voteRes.data as { value: 1 | -1 }).value
-        : null;
-      const isBookmarked = bookmarkRes.data
-        ? (bookmarkRes.data as { bookmarked: boolean }).bookmarked
-        : false;
-
-      return { article, vote: voteValue, bookmarked: isBookmarked };
-    },
-    enabled: !!headers,
-  });
-
-  // Sync server state into local state for optimistic updates
-  const article = data?.article ?? null;
-
-  // Initialize local state from query data when it first arrives
-  const [initialized, setInitialized] = useState(false);
-  if (data && !initialized) {
-    setVote(data.vote);
-    setIsRead(!!data.article.readAt);
-    setBookmarked(data.bookmarked);
-    setInitialized(true);
-  }
-
-  if (!headers || isLoading) {
+  if (isLoading) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-surface">
         <div className="font-serif text-lg text-ink-tertiary">Loading...</div>
@@ -128,62 +47,6 @@ const ArticlePage = (): React.ReactNode => {
       </div>
     );
   }
-
-  const handleVote = async (value: VoteValue): Promise<void> => {
-    setVote(value);
-
-    if (value === null) {
-      await client.DELETE("/api/articles/{articleId}/vote", {
-        params: { path: { articleId } },
-        headers,
-      });
-    } else {
-      await client.PUT("/api/articles/{articleId}/vote", {
-        params: { path: { articleId } },
-        body: { value },
-        headers,
-      });
-    }
-  };
-
-  const handleToggleBookmark = async (): Promise<void> => {
-    const newBookmarked = !bookmarked;
-    setBookmarked(newBookmarked);
-
-    if (newBookmarked) {
-      await client.PUT("/api/articles/{articleId}/bookmark", {
-        params: { path: { articleId } },
-        headers,
-      });
-    } else {
-      await client.DELETE("/api/articles/{articleId}/bookmark", {
-        params: { path: { articleId } },
-        headers,
-      });
-    }
-  };
-
-  const handleToggleRead = async (): Promise<void> => {
-    const newRead = !isRead;
-    setIsRead(newRead);
-    await client.PUT("/api/sources/{id}/articles/{articleId}/read", {
-      params: { path: { id: sourceId, articleId } },
-      body: { read: newRead },
-      headers,
-    });
-  };
-
-  const handleMarkDoneAndBack = async (): Promise<void> => {
-    if (!isRead) {
-      setIsRead(true);
-      await client.PUT("/api/sources/{id}/articles/{articleId}/read", {
-        params: { path: { id: sourceId, articleId } },
-        body: { read: true },
-        headers,
-      });
-    }
-    router.history.back();
-  };
 
   // Podcasts use show notes from the feed (summary), not extracted page HTML
   const isPodcast = article.sourceType === "podcast";
@@ -319,7 +182,7 @@ const ArticlePage = (): React.ReactNode => {
         </div>
 
         <div className="flex items-center justify-center gap-3">
-          <Button variant="primary" size="sm" onClick={() => void handleMarkDoneAndBack()}>
+          <Button variant="primary" size="sm" onClick={() => void handleMarkDoneAndBack(() => router.history.back())}>
             Done
           </Button>
           {article.url && (

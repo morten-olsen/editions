@@ -5,7 +5,12 @@ const MAX_VOTE_CONTEXT_SIZE = 200;
 
 // Top-k propagation: only the k most similar voted articles contribute
 const PROPAGATION_TOP_K = 15;
-const PROPAGATION_MIN_SIMILARITY = 0.3;
+const PROPAGATION_MIN_SIMILARITY = 0.4;
+
+// Minimum number of votes before vote signal reaches full weight.
+// With fewer votes, beta is scaled down proportionally to avoid
+// over-weighting sparse signal.
+const VOTE_RAMP_THRESHOLD = 5;
 
 // Per-feed-type weight presets
 type ScoringWeights = {
@@ -48,7 +53,7 @@ const cosineSimilarity = (a: Float32Array, b: Float32Array): number => {
   for (let i = 0; i < a.length; i++) {
     dot += (a[i] as number) * (b[i] as number);
   }
-  // Embeddings from all-MiniLM-L6-v2 are L2-normalized, so dot product = cosine similarity
+  // Embeddings are L2-normalized, so dot product = cosine similarity
   return dot;
 };
 
@@ -102,7 +107,13 @@ const computeScore = (
 
   const recency = recencyDecay(candidate.publishedAt);
 
-  return weights.alpha * effectiveConfidence(candidate) + weights.beta * voteSignal + weights.gamma * recency;
+  // Scale vote weight by how many votes exist — avoids over-weighting sparse signal
+  const voteCount = context.votes.size + context.votedArticles.length;
+  const voteRamp = Math.min(1, voteCount / VOTE_RAMP_THRESHOLD);
+  const effectiveBeta = weights.beta * voteRamp;
+  const effectiveAlpha = weights.alpha + weights.beta * (1 - voteRamp);
+
+  return effectiveAlpha * effectiveConfidence(candidate) + effectiveBeta * voteSignal + weights.gamma * recency;
 };
 
 const rankArticles = <T extends ScoringCandidate>(

@@ -116,17 +116,18 @@ const ArticleImage = ({ url }: { url: string }): React.ReactNode => (
   </div>
 );
 
-const ArticleMedia = ({ article }: { article: ArticleData }): React.ReactNode => (
-  <div className="mb-10">
-    <MediaPlayer
-      mediaUrl={article.mediaUrl}
-      mediaType={article.mediaType}
-      articleId={article.id}
-      initialProgress={article.progress}
-      delay={0}
-    />
-  </div>
-);
+const ArticleMedia = ({ article }: { article: ArticleData }): React.ReactNode =>
+  article.mediaUrl ? (
+    <div className="mb-10">
+      <MediaPlayer
+        mediaUrl={article.mediaUrl}
+        mediaType={article.mediaType}
+        articleId={article.id}
+        initialProgress={article.progress}
+        delay={0}
+      />
+    </div>
+  ) : null;
 
 /* ---- Content body ---- */
 

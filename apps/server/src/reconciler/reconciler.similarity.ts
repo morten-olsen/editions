@@ -42,6 +42,7 @@ const upsertSimilarity = async (
   articleId: string,
   focusId: string,
   similarity: number,
+  model: string,
 ): Promise<void> => {
   const rounded = Math.round(similarity * 1000) / 1000;
   await db
@@ -50,10 +51,12 @@ const upsertSimilarity = async (
       article_id: articleId,
       focus_id: focusId,
       similarity: rounded,
+      similarity_model: model,
     })
     .onConflict((oc) =>
       oc.columns(['article_id', 'focus_id']).doUpdateSet({
         similarity: rounded,
+        similarity_model: model,
         assigned_at: new Date().toISOString(),
       }),
     )
@@ -62,7 +65,12 @@ const upsertSimilarity = async (
 
 // --- Helpers ---
 
-const buildSimilarityQuery = (db: Kysely<DatabaseSchema>, scopeFilter: ScopeFilter | undefined, batchSize: number) => {
+const buildSimilarityQuery = (
+  db: Kysely<DatabaseSchema>,
+  embeddingModel: string,
+  scopeFilter: ScopeFilter | undefined,
+  batchSize: number,
+) => {
   let q = db
     .selectFrom('focus_sources')
     .innerJoin('articles', 'articles.source_id', 'focus_sources.source_id')
@@ -82,7 +90,13 @@ const buildSimilarityQuery = (db: Kysely<DatabaseSchema>, scopeFilter: ScopeFilt
       'article_embeddings.embedding',
     ])
     .where('articles.extracted_at', 'is not', null)
-    .where('article_focuses.similarity', 'is', null)
+    .where((eb) =>
+      eb.or([
+        eb('article_focuses.similarity', 'is', null),
+        eb('article_focuses.similarity_model', 'is', null),
+        eb('article_focuses.similarity_model', '!=', embeddingModel),
+      ]),
+    )
     .limit(batchSize);
 
   if (scopeFilter?.focusIds && scopeFilter.focusIds.length > 0) {
@@ -113,17 +127,18 @@ const rowToSimilarityItem = (row: SimilarityRow): SimilarityItem => {
 const createSimilarityStep = (params: {
   db: Kysely<DatabaseSchema>;
   embedFn: EmbedFn;
+  embeddingModel: string;
   scopeFilter?: ScopeFilter;
   batchSize?: number;
 }): ReconcileStep<SimilarityItem> => {
-  const { db, embedFn, scopeFilter, batchSize = 100 } = params;
+  const { db, embedFn, embeddingModel, scopeFilter, batchSize = 100 } = params;
   const focusEmbeddingCache = new Map<string, Float32Array>();
 
   return {
     name: 'similarity',
     fetchBatch: async function* (): AsyncGenerator<SimilarityItem[]> {
       while (true) {
-        const rows = (await buildSimilarityQuery(db, scopeFilter, batchSize).execute()) as SimilarityRow[];
+        const rows = (await buildSimilarityQuery(db, embeddingModel, scopeFilter, batchSize).execute()) as SimilarityRow[];
         if (rows.length === 0) {
           break;
         }
@@ -137,7 +152,7 @@ const createSimilarityStep = (params: {
     processBatch: async (batch: SimilarityItem[]): Promise<void> => {
       for (const item of batch) {
         if (item.mode === 'always') {
-          await upsertSimilarity(db, item.articleId, item.focusId, 1.0);
+          await upsertSimilarity(db, item.articleId, item.focusId, 1.0, embeddingModel);
           continue;
         }
 
@@ -152,7 +167,7 @@ const createSimilarityStep = (params: {
         }
 
         const sim = dotProduct(item.embedding, focusEmbedding);
-        await upsertSimilarity(db, item.articleId, item.focusId, sim);
+        await upsertSimilarity(db, item.articleId, item.focusId, sim, embeddingModel);
       }
     },
   };

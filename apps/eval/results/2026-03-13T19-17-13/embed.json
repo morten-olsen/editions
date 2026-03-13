@@ -1,0 +1,614 @@
+[
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "avgSameFocusSimilarity": 0.2677651458583689,
+    "avgCrossFocusSimilarity": 0.17188519805779115,
+    "separationRatio": 1.557813871607147,
+    "perFocus": [
+      {
+        "focus": "Science & Space",
+        "avgIntra": 0.16767658278693404,
+        "avgInter": 0.1322572331420604
+      },
+      {
+        "focus": "Computing & Hardware",
+        "avgIntra": 0.3138207593025213,
+        "avgInter": 0.19438302195965546
+      },
+      {
+        "focus": "Electric Vehicles",
+        "avgIntra": 0.5478415117659421,
+        "avgInter": 0.17985058476201332
+      },
+      {
+        "focus": "Cybersecurity & Privacy",
+        "avgIntra": 0.30570948387109215,
+        "avgInter": 0.19501015223821958
+      },
+      {
+        "focus": "Policy & Regulation",
+        "avgIntra": 0.22569110881603538,
+        "avgInter": 0.17128600510439893
+      }
+    ],
+    "durationMs": 1568.723
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "avgSameFocusSimilarity": 0.23047677259216867,
+    "avgCrossFocusSimilarity": 0.13868502871340035,
+    "separationRatio": 1.6618720472594097,
+    "perFocus": [
+      {
+        "focus": "Science & Space",
+        "avgIntra": 0.1581918791902441,
+        "avgInter": 0.10648156899680737
+      },
+      {
+        "focus": "Computing & Hardware",
+        "avgIntra": 0.20777909872391467,
+        "avgInter": 0.14612379906988684
+      },
+      {
+        "focus": "Electric Vehicles",
+        "avgIntra": 0.49688600082368245,
+        "avgInter": 0.13778134816240134
+      },
+      {
+        "focus": "Cybersecurity & Privacy",
+        "avgIntra": 0.2565742235420824,
+        "avgInter": 0.17424639930466018
+      },
+      {
+        "focus": "Policy & Regulation",
+        "avgIntra": 0.20637937446226826,
+        "avgInter": 0.1452993820049271
+      }
+    ],
+    "durationMs": 5706.459000000001
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "avgSameFocusSimilarity": 0.48598649052515347,
+    "avgCrossFocusSimilarity": 0.43894395293949745,
+    "separationRatio": 1.1071720826101463,
+    "perFocus": [
+      {
+        "focus": "Science & Space",
+        "avgIntra": 0.45846343130373046,
+        "avgInter": 0.42833395903651583
+      },
+      {
+        "focus": "Computing & Hardware",
+        "avgIntra": 0.48625544006685334,
+        "avgInter": 0.43041349150761204
+      },
+      {
+        "focus": "Electric Vehicles",
+        "avgIntra": 0.6467943140668262,
+        "avgInter": 0.45443010153561464
+      },
+      {
+        "focus": "Cybersecurity & Privacy",
+        "avgIntra": 0.47473735337193834,
+        "avgInter": 0.44692453091402573
+      },
+      {
+        "focus": "Policy & Regulation",
+        "avgIntra": 0.4616630366930253,
+        "avgInter": 0.4405806178653358
+      }
+    ],
+    "durationMs": 6021.8018329999995
+  },
+  {
+    "model": "Xenova/gte-small",
+    "avgSameFocusSimilarity": 0.7643139050285221,
+    "avgCrossFocusSimilarity": 0.7403497097930352,
+    "separationRatio": 1.032368750765346,
+    "perFocus": [
+      {
+        "focus": "Science & Space",
+        "avgIntra": 0.7485081942610716,
+        "avgInter": 0.7342721948036145
+      },
+      {
+        "focus": "Computing & Hardware",
+        "avgIntra": 0.7723655432297752,
+        "avgInter": 0.7360824699706715
+      },
+      {
+        "focus": "Electric Vehicles",
+        "avgIntra": 0.8462050488292127,
+        "avgInter": 0.7453524921812255
+      },
+      {
+        "focus": "Cybersecurity & Privacy",
+        "avgIntra": 0.7707252956517164,
+        "avgInter": 0.7488415634926201
+      },
+      {
+        "focus": "Policy & Regulation",
+        "avgIntra": 0.749306136179759,
+        "avgInter": 0.7419119160936033
+      }
+    ],
+    "durationMs": 6226.426167
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "avgSameFocusSimilarity": 0.6178004818597063,
+    "avgCrossFocusSimilarity": 0.5886607991650741,
+    "separationRatio": 1.049501653135324,
+    "perFocus": [
+      {
+        "focus": "Science & Space",
+        "avgIntra": 0.5945693002983842,
+        "avgInter": 0.5820702954315238
+      },
+      {
+        "focus": "Computing & Hardware",
+        "avgIntra": 0.6459463130264812,
+        "avgInter": 0.5930294220454585
+      },
+      {
+        "focus": "Electric Vehicles",
+        "avgIntra": 0.6403509484200177,
+        "avgInter": 0.5775605114800699
+      },
+      {
+        "focus": "Cybersecurity & Privacy",
+        "avgIntra": 0.5790955407497848,
+        "avgInter": 0.6082046031366648
+      },
+      {
+        "focus": "Policy & Regulation",
+        "avgIntra": 0.6125953263487606,
+        "avgInter": 0.5904679088822662
+      }
+    ],
+    "durationMs": 17728.677459
+  },
+  {
+    "model": "Xenova/gte-base",
+    "avgSameFocusSimilarity": 0.7612545570702983,
+    "avgCrossFocusSimilarity": 0.7473734221447396,
+    "separationRatio": 1.0185732252636495,
+    "perFocus": [
+      {
+        "focus": "Science & Space",
+        "avgIntra": 0.7540986078217566,
+        "avgInter": 0.7444557607551107
+      },
+      {
+        "focus": "Computing & Hardware",
+        "avgIntra": 0.7885031110580687,
+        "avgInter": 0.7500606935213738
+      },
+      {
+        "focus": "Electric Vehicles",
+        "avgIntra": 0.7740204031476409,
+        "avgInter": 0.7426864582661151
+      },
+      {
+        "focus": "Cybersecurity & Privacy",
+        "avgIntra": 0.7313479216383421,
+        "avgInter": 0.75371036136382
+      },
+      {
+        "focus": "Policy & Regulation",
+        "avgIntra": 0.7524111824837131,
+        "avgInter": 0.748301704720986
+      }
+    ],
+    "durationMs": 17690.451
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "avgSameFocusSimilarity": 0.3019906933016191,
+    "avgCrossFocusSimilarity": 0.20871413373323952,
+    "separationRatio": 1.4469106039919541,
+    "perFocus": [
+      {
+        "focus": "Middle East Conflict",
+        "avgIntra": 0.34165824210551754,
+        "avgInter": 0.18933942292061945
+      },
+      {
+        "focus": "Oil & Energy",
+        "avgIntra": 0.37036291951166306,
+        "avgInter": 0.23657785987738625
+      },
+      {
+        "focus": "US Foreign Policy",
+        "avgIntra": 0.24353637939415185,
+        "avgInter": 0.22547691877326498
+      },
+      {
+        "focus": "Russia & Ukraine",
+        "avgIntra": 0.36135657110782643,
+        "avgInter": 0.22731050771847128
+      },
+      {
+        "focus": "Latin America",
+        "avgIntra": 0.36003165531745834,
+        "avgInter": 0.15343844316757274
+      }
+    ],
+    "durationMs": 490.80495900000096
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "avgSameFocusSimilarity": 0.3229641402767085,
+    "avgCrossFocusSimilarity": 0.2382121869119826,
+    "separationRatio": 1.3557834486278448,
+    "perFocus": [
+      {
+        "focus": "Middle East Conflict",
+        "avgIntra": 0.3665146019490067,
+        "avgInter": 0.2146648613020417
+      },
+      {
+        "focus": "Oil & Energy",
+        "avgIntra": 0.3942420214783957,
+        "avgInter": 0.2628924232977734
+      },
+      {
+        "focus": "US Foreign Policy",
+        "avgIntra": 0.256574805486585,
+        "avgInter": 0.25846846642179955
+      },
+      {
+        "focus": "Russia & Ukraine",
+        "avgIntra": 0.3969933615452749,
+        "avgInter": 0.259755058929574
+      },
+      {
+        "focus": "Latin America",
+        "avgIntra": 0.4139583075653985,
+        "avgInter": 0.18549729453017777
+      }
+    ],
+    "durationMs": 751.3897080000024
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "avgSameFocusSimilarity": 0.5586153636916636,
+    "avgCrossFocusSimilarity": 0.49755173870283037,
+    "separationRatio": 1.1227281913395228,
+    "perFocus": [
+      {
+        "focus": "Middle East Conflict",
+        "avgIntra": 0.5681873225974166,
+        "avgInter": 0.4792765802064908
+      },
+      {
+        "focus": "Oil & Energy",
+        "avgIntra": 0.597431491771425,
+        "avgInter": 0.5143036922531067
+      },
+      {
+        "focus": "US Foreign Policy",
+        "avgIntra": 0.5313610975222599,
+        "avgInter": 0.5019019360692705
+      },
+      {
+        "focus": "Russia & Ukraine",
+        "avgIntra": 0.6141900652229546,
+        "avgInter": 0.5196134577327484
+      },
+      {
+        "focus": "Latin America",
+        "avgIntra": 0.5966969164265291,
+        "avgInter": 0.4699629266789644
+      }
+    ],
+    "durationMs": 831.4775420000005
+  },
+  {
+    "model": "Xenova/gte-small",
+    "avgSameFocusSimilarity": 0.787538734708799,
+    "avgCrossFocusSimilarity": 0.7518905608548575,
+    "separationRatio": 1.0474113863238441,
+    "perFocus": [
+      {
+        "focus": "Middle East Conflict",
+        "avgIntra": 0.795948325595916,
+        "avgInter": 0.7449308969583038
+      },
+      {
+        "focus": "Oil & Energy",
+        "avgIntra": 0.8025664925714344,
+        "avgInter": 0.7611086531874801
+      },
+      {
+        "focus": "US Foreign Policy",
+        "avgIntra": 0.7738780312753593,
+        "avgInter": 0.7540600368627479
+      },
+      {
+        "focus": "Russia & Ukraine",
+        "avgIntra": 0.8014183812303466,
+        "avgInter": 0.7558811218495439
+      },
+      {
+        "focus": "Latin America",
+        "avgIntra": 0.8123100661564715,
+        "avgInter": 0.7417881535450231
+      }
+    ],
+    "durationMs": 797.7582079999993
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "avgSameFocusSimilarity": 0.640987202813499,
+    "avgCrossFocusSimilarity": 0.5942615266156408,
+    "separationRatio": 1.0786281361069494,
+    "perFocus": [
+      {
+        "focus": "Middle East Conflict",
+        "avgIntra": 0.6515554763837724,
+        "avgInter": 0.5832982239413704
+      },
+      {
+        "focus": "Oil & Energy",
+        "avgIntra": 0.6586342607511705,
+        "avgInter": 0.6056760636052801
+      },
+      {
+        "focus": "US Foreign Policy",
+        "avgIntra": 0.6192026583967352,
+        "avgInter": 0.5949076192059137
+      },
+      {
+        "focus": "Russia & Ukraine",
+        "avgIntra": 0.6979915393339425,
+        "avgInter": 0.6117503619091141
+      },
+      {
+        "focus": "Latin America",
+        "avgIntra": 0.6705385088546677,
+        "avgInter": 0.573576948896426
+      }
+    ],
+    "durationMs": 2627.0585830000055
+  },
+  {
+    "model": "Xenova/gte-base",
+    "avgSameFocusSimilarity": 0.7808780314925228,
+    "avgCrossFocusSimilarity": 0.7485605524612795,
+    "separationRatio": 1.0431728320774891,
+    "perFocus": [
+      {
+        "focus": "Middle East Conflict",
+        "avgIntra": 0.7899326261664802,
+        "avgInter": 0.7436049542602428
+      },
+      {
+        "focus": "Oil & Energy",
+        "avgIntra": 0.7957831340500389,
+        "avgInter": 0.7586818252873385
+      },
+      {
+        "focus": "US Foreign Policy",
+        "avgIntra": 0.7666306614305572,
+        "avgInter": 0.7512748361655311
+      },
+      {
+        "focus": "Russia & Ukraine",
+        "avgIntra": 0.7972009174012764,
+        "avgInter": 0.7499633436584411
+      },
+      {
+        "focus": "Latin America",
+        "avgIntra": 0.8037207223209016,
+        "avgInter": 0.7363317905527991
+      }
+    ],
+    "durationMs": 2961.4180410000045
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "avgSameFocusSimilarity": 0.3299477430893715,
+    "avgCrossFocusSimilarity": 0.27179074064120345,
+    "separationRatio": 1.2139771292832315,
+    "perFocus": [
+      {
+        "focus": "Gadgets & Hardware",
+        "avgIntra": 0.3518147450888347,
+        "avgInter": 0.26642366674052054
+      },
+      {
+        "focus": "AI & Machine Learning",
+        "avgIntra": 0.31560371379298513,
+        "avgInter": 0.25911161741316646
+      },
+      {
+        "focus": "Deals & Shopping",
+        "avgIntra": 0.41951806712269213,
+        "avgInter": 0.28151894202400235
+      },
+      {
+        "focus": "Gaming & Entertainment",
+        "avgIntra": 0.34042642472756607,
+        "avgInter": 0.279585512506662
+      },
+      {
+        "focus": "Big Tech & Business",
+        "avgIntra": 0.3021356211216132,
+        "avgInter": 0.27223178277796095
+      }
+    ],
+    "durationMs": 5359.1699170000065
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "avgSameFocusSimilarity": 0.24339508882078545,
+    "avgCrossFocusSimilarity": 0.1831524798250045,
+    "separationRatio": 1.328920520504776,
+    "perFocus": [
+      {
+        "focus": "Gadgets & Hardware",
+        "avgIntra": 0.26107042165328337,
+        "avgInter": 0.18340989643805722
+      },
+      {
+        "focus": "AI & Machine Learning",
+        "avgIntra": 0.24729756111519954,
+        "avgInter": 0.1638901606455575
+      },
+      {
+        "focus": "Deals & Shopping",
+        "avgIntra": 0.3194430694860597,
+        "avgInter": 0.18808670417657064
+      },
+      {
+        "focus": "Gaming & Entertainment",
+        "avgIntra": 0.26451178415408055,
+        "avgInter": 0.18878803293780513
+      },
+      {
+        "focus": "Big Tech & Business",
+        "avgIntra": 0.21657991172842256,
+        "avgInter": 0.18745612684096954
+      }
+    ],
+    "durationMs": 10754.694292
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "avgSameFocusSimilarity": 0.5081833868406673,
+    "avgCrossFocusSimilarity": 0.4772903875939605,
+    "separationRatio": 1.064725793876637,
+    "perFocus": [
+      {
+        "focus": "Gadgets & Hardware",
+        "avgIntra": 0.5273709249906184,
+        "avgInter": 0.47353128152936186
+      },
+      {
+        "focus": "AI & Machine Learning",
+        "avgIntra": 0.5523775803005961,
+        "avgInter": 0.47361016962288016
+      },
+      {
+        "focus": "Deals & Shopping",
+        "avgIntra": 0.5674863208205954,
+        "avgInter": 0.48551681919170536
+      },
+      {
+        "focus": "Gaming & Entertainment",
+        "avgIntra": 0.48984094379525756,
+        "avgInter": 0.4742614214733603
+      },
+      {
+        "focus": "Big Tech & Business",
+        "avgIntra": 0.48589987301092347,
+        "avgInter": 0.4799959098271039
+      }
+    ],
+    "durationMs": 10740.192374999999
+  },
+  {
+    "model": "Xenova/gte-small",
+    "avgSameFocusSimilarity": 0.77922534278308,
+    "avgCrossFocusSimilarity": 0.7640609304836605,
+    "separationRatio": 1.0198471243514835,
+    "perFocus": [
+      {
+        "focus": "Gadgets & Hardware",
+        "avgIntra": 0.7880376730371085,
+        "avgInter": 0.7622934859161447
+      },
+      {
+        "focus": "AI & Machine Learning",
+        "avgIntra": 0.8022948166287299,
+        "avgInter": 0.765829873888968
+      },
+      {
+        "focus": "Deals & Shopping",
+        "avgIntra": 0.8074373214006071,
+        "avgInter": 0.7691088979135908
+      },
+      {
+        "focus": "Gaming & Entertainment",
+        "avgIntra": 0.7657919615491934,
+        "avgInter": 0.7594339035302767
+      },
+      {
+        "focus": "Big Tech & Business",
+        "avgIntra": 0.7695021162420539,
+        "avgInter": 0.7647302877285846
+      }
+    ],
+    "durationMs": 10749.958834000005
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "avgSameFocusSimilarity": 0.7672183367071271,
+    "avgCrossFocusSimilarity": 0.7412638498302522,
+    "separationRatio": 1.0350138306121612,
+    "perFocus": [
+      {
+        "focus": "Gadgets & Hardware",
+        "avgIntra": 0.7905763786452928,
+        "avgInter": 0.7376399756387152
+      },
+      {
+        "focus": "AI & Machine Learning",
+        "avgIntra": 0.8130837785565525,
+        "avgInter": 0.7591841325848576
+      },
+      {
+        "focus": "Deals & Shopping",
+        "avgIntra": 0.793264289766406,
+        "avgInter": 0.7516184745202021
+      },
+      {
+        "focus": "Gaming & Entertainment",
+        "avgIntra": 0.7011253209884382,
+        "avgInter": 0.7273139629851099
+      },
+      {
+        "focus": "Big Tech & Business",
+        "avgIntra": 0.7552122151033994,
+        "avgInter": 0.7367404076362505
+      }
+    ],
+    "durationMs": 28689.950041999997
+  },
+  {
+    "model": "Xenova/gte-base",
+    "avgSameFocusSimilarity": 0.849861124505743,
+    "avgCrossFocusSimilarity": 0.833055383323285,
+    "separationRatio": 1.0201736181277832,
+    "perFocus": [
+      {
+        "focus": "Gadgets & Hardware",
+        "avgIntra": 0.8702742320687749,
+        "avgInter": 0.8287324126598816
+      },
+      {
+        "focus": "AI & Machine Learning",
+        "avgIntra": 0.8829471920429353,
+        "avgInter": 0.8453607756776832
+      },
+      {
+        "focus": "Deals & Shopping",
+        "avgIntra": 0.8643171122337243,
+        "avgInter": 0.838519378443253
+      },
+      {
+        "focus": "Gaming & Entertainment",
+        "avgIntra": 0.8138055639238674,
+        "avgInter": 0.8248910864193154
+      },
+      {
+        "focus": "Big Tech & Business",
+        "avgIntra": 0.8372226450732506,
+        "avgInter": 0.8319345728650271
+      }
+    ],
+    "durationMs": 29588.352249999996
+  }
+]

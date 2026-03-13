@@ -146,7 +146,7 @@ const FocusArticleList = ({ detail }: { detail: FocusDetail }): React.ReactNode 
   const { articlesPage, analysisRunning, sort, window, status, pagination } = detail;
 
   if (!articlesPage || articlesPage.articles.length === 0) {
-    return <FocusEmptyState analysisRunning={analysisRunning} sort={sort} window={window} status={status} />;
+    return <FocusEmptyState analysisRunning={analysisRunning ?? false} sort={sort} window={window} status={status} />;
   }
 
   return (

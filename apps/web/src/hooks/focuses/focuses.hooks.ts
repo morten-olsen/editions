@@ -131,9 +131,9 @@ type CreateFocusFields = {
   sources: SourceSelection[];
 };
 
-const buildCreateFocusBody = (fields: CreateFocusFields): Record<string, unknown> => {
+const buildCreateFocusBody = (fields: CreateFocusFields): { name: string } & Record<string, unknown> => {
   const { name, description, icon, minConfidence, minReadingTime, maxReadingTime, sources } = fields;
-  const body: Record<string, unknown> = { name };
+  const body: { name: string } & Record<string, unknown> = { name };
   if (description.trim()) {
     body.description = description.trim();
   }

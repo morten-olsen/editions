@@ -104,16 +104,19 @@ Unique on `(focus_id, source_id)`.
 
 ### article_focuses
 
-Many-to-many: which focuses an article was classified into, with confidence.
+Many-to-many: which focuses an article was classified into, with split similarity/NLI scores and model tracking.
 
 | Column | Type | Notes |
 |--------|------|-------|
-| article_id | text FK → articles | |
-| focus_id | text FK → focuses | |
-| confidence | real | 0.0–1.0 |
+| article_id | text FK → articles | Cascade delete |
+| focus_id | text FK → focuses | Cascade delete |
+| similarity | real | Cosine similarity score, nullable |
+| similarity_model | text | Embedding model used, nullable |
+| nli | real | NLI classification score, nullable |
+| nli_model | text | Classifier model used, nullable |
 | assigned_at | text | |
 
-Unique on `(article_id, focus_id)`.
+Unique on `(article_id, focus_id)`. Model columns enable automatic rescoring when models change.
 
 ### article_embeddings
 

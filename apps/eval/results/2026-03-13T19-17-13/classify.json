@@ -1,0 +1,1490 @@
+[
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "strategy": "similarity",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Science & Space",
+        "precision": 0.4444444444444444,
+        "recall": 0.8,
+        "f1": 0.5714285714285714,
+        "truePositives": 4,
+        "falsePositives": 5,
+        "falseNegatives": 1,
+        "threshold": 0.06
+      },
+      {
+        "focus": "Computing & Hardware",
+        "precision": 0.8333333333333334,
+        "recall": 1,
+        "f1": 0.9090909090909091,
+        "truePositives": 5,
+        "falsePositives": 1,
+        "falseNegatives": 0,
+        "threshold": 0.24
+      },
+      {
+        "focus": "Electric Vehicles",
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "truePositives": 4,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "threshold": 0.18
+      },
+      {
+        "focus": "Cybersecurity & Privacy",
+        "precision": 1,
+        "recall": 0.5,
+        "f1": 0.6666666666666666,
+        "truePositives": 1,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "threshold": 0.29
+      },
+      {
+        "focus": "Policy & Regulation",
+        "precision": 0.8333333333333334,
+        "recall": 0.625,
+        "f1": 0.7142857142857143,
+        "truePositives": 5,
+        "falsePositives": 1,
+        "falseNegatives": 3,
+        "threshold": 0.17
+      }
+    ],
+    "macroPrecision": 0.8222222222222222,
+    "macroRecall": 0.7849999999999999,
+    "macroF1": 0.8031800898721051,
+    "articlesEvaluated": 20,
+    "durationMs": 3874.3045
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "strategy": "nli",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Science & Space",
+        "precision": 0.8,
+        "recall": 0.8,
+        "f1": 0.8000000000000002,
+        "truePositives": 4,
+        "falsePositives": 1,
+        "falseNegatives": 1,
+        "threshold": 0.44
+      },
+      {
+        "focus": "Computing & Hardware",
+        "precision": 1,
+        "recall": 0.8,
+        "f1": 0.888888888888889,
+        "truePositives": 4,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "threshold": 0.79
+      },
+      {
+        "focus": "Electric Vehicles",
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "truePositives": 4,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "threshold": 0.67
+      },
+      {
+        "focus": "Cybersecurity & Privacy",
+        "precision": 1,
+        "recall": 0.5,
+        "f1": 0.6666666666666666,
+        "truePositives": 1,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "threshold": 0.78
+      },
+      {
+        "focus": "Policy & Regulation",
+        "precision": 0.75,
+        "recall": 0.75,
+        "f1": 0.75,
+        "truePositives": 6,
+        "falsePositives": 2,
+        "falseNegatives": 2,
+        "threshold": 0.61
+      }
+    ],
+    "macroPrecision": 0.9099999999999999,
+    "macroRecall": 0.77,
+    "macroF1": 0.8341666666666667,
+    "articlesEvaluated": 20,
+    "durationMs": 237818.35925
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "strategy": "similarity",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Science & Space",
+        "precision": 0.5714285714285714,
+        "recall": 0.8,
+        "f1": 0.6666666666666666,
+        "truePositives": 4,
+        "falsePositives": 3,
+        "falseNegatives": 1,
+        "threshold": 0.04
+      },
+      {
+        "focus": "Computing & Hardware",
+        "precision": 0.8,
+        "recall": 0.8,
+        "f1": 0.8000000000000002,
+        "truePositives": 4,
+        "falsePositives": 1,
+        "falseNegatives": 1,
+        "threshold": 0.19
+      },
+      {
+        "focus": "Electric Vehicles",
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "truePositives": 4,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "threshold": 0.22
+      },
+      {
+        "focus": "Cybersecurity & Privacy",
+        "precision": 0.6666666666666666,
+        "recall": 1,
+        "f1": 0.8,
+        "truePositives": 2,
+        "falsePositives": 1,
+        "falseNegatives": 0,
+        "threshold": 0.16
+      },
+      {
+        "focus": "Policy & Regulation",
+        "precision": 0.8571428571428571,
+        "recall": 0.75,
+        "f1": 0.7999999999999999,
+        "truePositives": 6,
+        "falsePositives": 1,
+        "falseNegatives": 2,
+        "threshold": 0.19
+      }
+    ],
+    "macroPrecision": 0.779047619047619,
+    "macroRecall": 0.8699999999999999,
+    "macroF1": 0.8220155934161132,
+    "articlesEvaluated": 20,
+    "durationMs": 3163.487083999993
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "strategy": "similarity",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Science & Space",
+        "precision": 1,
+        "recall": 0.4,
+        "f1": 0.5714285714285715,
+        "truePositives": 2,
+        "falsePositives": 0,
+        "falseNegatives": 3,
+        "threshold": 0.5
+      },
+      {
+        "focus": "Computing & Hardware",
+        "precision": 1,
+        "recall": 0.8,
+        "f1": 0.888888888888889,
+        "truePositives": 4,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "threshold": 0.51
+      },
+      {
+        "focus": "Electric Vehicles",
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "truePositives": 4,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "threshold": 0.45
+      },
+      {
+        "focus": "Cybersecurity & Privacy",
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "truePositives": 2,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "threshold": 0.49
+      },
+      {
+        "focus": "Policy & Regulation",
+        "precision": 0.4444444444444444,
+        "recall": 1,
+        "f1": 0.6153846153846153,
+        "truePositives": 8,
+        "falsePositives": 10,
+        "falseNegatives": 0,
+        "threshold": 0.37
+      }
+    ],
+    "macroPrecision": 0.888888888888889,
+    "macroRecall": 0.8400000000000001,
+    "macroF1": 0.8637532133676094,
+    "articlesEvaluated": 20,
+    "durationMs": 3135.9222500000033
+  },
+  {
+    "model": "Xenova/gte-small",
+    "strategy": "similarity",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Science & Space",
+        "precision": 0.4166666666666667,
+        "recall": 1,
+        "f1": 0.5882352941176471,
+        "truePositives": 5,
+        "falsePositives": 7,
+        "falseNegatives": 0,
+        "threshold": 0.74
+      },
+      {
+        "focus": "Computing & Hardware",
+        "precision": 0.8333333333333334,
+        "recall": 1,
+        "f1": 0.9090909090909091,
+        "truePositives": 5,
+        "falsePositives": 1,
+        "falseNegatives": 0,
+        "threshold": 0.77
+      },
+      {
+        "focus": "Electric Vehicles",
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "truePositives": 4,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "threshold": 0.77
+      },
+      {
+        "focus": "Cybersecurity & Privacy",
+        "precision": 0.6666666666666666,
+        "recall": 1,
+        "f1": 0.8,
+        "truePositives": 2,
+        "falsePositives": 1,
+        "falseNegatives": 0,
+        "threshold": 0.78
+      },
+      {
+        "focus": "Policy & Regulation",
+        "precision": 0.75,
+        "recall": 0.75,
+        "f1": 0.75,
+        "truePositives": 6,
+        "falsePositives": 2,
+        "falseNegatives": 2,
+        "threshold": 0.75
+      }
+    ],
+    "macroPrecision": 0.7333333333333333,
+    "macroRecall": 0.95,
+    "macroF1": 0.8277227722772277,
+    "articlesEvaluated": 20,
+    "durationMs": 3124.3439159999834
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "strategy": "similarity",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Science & Space",
+        "precision": 0.75,
+        "recall": 0.6,
+        "f1": 0.6666666666666665,
+        "truePositives": 3,
+        "falsePositives": 1,
+        "falseNegatives": 2,
+        "threshold": 0.61
+      },
+      {
+        "focus": "Computing & Hardware",
+        "precision": 0.7142857142857143,
+        "recall": 1,
+        "f1": 0.8333333333333333,
+        "truePositives": 5,
+        "falsePositives": 2,
+        "falseNegatives": 0,
+        "threshold": 0.6
+      },
+      {
+        "focus": "Electric Vehicles",
+        "precision": 1,
+        "recall": 0.75,
+        "f1": 0.8571428571428571,
+        "truePositives": 3,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "threshold": 0.58
+      },
+      {
+        "focus": "Cybersecurity & Privacy",
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "truePositives": 2,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "threshold": 0.55
+      },
+      {
+        "focus": "Policy & Regulation",
+        "precision": 0.47058823529411764,
+        "recall": 1,
+        "f1": 0.6399999999999999,
+        "truePositives": 8,
+        "falsePositives": 9,
+        "falseNegatives": 0,
+        "threshold": 0.5
+      }
+    ],
+    "macroPrecision": 0.7869747899159665,
+    "macroRecall": 0.8699999999999999,
+    "macroF1": 0.82640734354397,
+    "articlesEvaluated": 20,
+    "durationMs": 9510.890125000005
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "strategy": "nli",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Science & Space",
+        "precision": 0.8,
+        "recall": 0.8,
+        "f1": 0.8000000000000002,
+        "truePositives": 4,
+        "falsePositives": 1,
+        "falseNegatives": 1,
+        "threshold": 0.44
+      },
+      {
+        "focus": "Computing & Hardware",
+        "precision": 1,
+        "recall": 0.8,
+        "f1": 0.888888888888889,
+        "truePositives": 4,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "threshold": 0.79
+      },
+      {
+        "focus": "Electric Vehicles",
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "truePositives": 4,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "threshold": 0.67
+      },
+      {
+        "focus": "Cybersecurity & Privacy",
+        "precision": 1,
+        "recall": 0.5,
+        "f1": 0.6666666666666666,
+        "truePositives": 1,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "threshold": 0.78
+      },
+      {
+        "focus": "Policy & Regulation",
+        "precision": 0.75,
+        "recall": 0.75,
+        "f1": 0.75,
+        "truePositives": 6,
+        "falsePositives": 2,
+        "falseNegatives": 2,
+        "threshold": 0.61
+      }
+    ],
+    "macroPrecision": 0.9099999999999999,
+    "macroRecall": 0.77,
+    "macroF1": 0.8341666666666667,
+    "articlesEvaluated": 20,
+    "durationMs": 154723.196458
+  },
+  {
+    "model": "Xenova/gte-base",
+    "strategy": "similarity",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Science & Space",
+        "precision": 1,
+        "recall": 0.6,
+        "f1": 0.7499999999999999,
+        "truePositives": 3,
+        "falsePositives": 0,
+        "falseNegatives": 2,
+        "threshold": 0.77
+      },
+      {
+        "focus": "Computing & Hardware",
+        "precision": 0.8333333333333334,
+        "recall": 1,
+        "f1": 0.9090909090909091,
+        "truePositives": 5,
+        "falsePositives": 1,
+        "falseNegatives": 0,
+        "threshold": 0.76
+      },
+      {
+        "focus": "Electric Vehicles",
+        "precision": 1,
+        "recall": 0.75,
+        "f1": 0.8571428571428571,
+        "truePositives": 3,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "threshold": 0.76
+      },
+      {
+        "focus": "Cybersecurity & Privacy",
+        "precision": 1,
+        "recall": 0.5,
+        "f1": 0.6666666666666666,
+        "truePositives": 1,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "threshold": 0.75
+      },
+      {
+        "focus": "Policy & Regulation",
+        "precision": 0.5,
+        "recall": 0.875,
+        "f1": 0.6363636363636364,
+        "truePositives": 7,
+        "falsePositives": 7,
+        "falseNegatives": 1,
+        "threshold": 0.72
+      }
+    ],
+    "macroPrecision": 0.8666666666666668,
+    "macroRecall": 0.745,
+    "macroF1": 0.8012409513960703,
+    "articlesEvaluated": 20,
+    "durationMs": 9793.557791
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "strategy": "similarity",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Middle East Conflict",
+        "precision": 1,
+        "recall": 0.9090909090909091,
+        "f1": 0.9523809523809523,
+        "truePositives": 10,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "threshold": 0.25
+      },
+      {
+        "focus": "Oil & Energy",
+        "precision": 0.875,
+        "recall": 1,
+        "f1": 0.9333333333333333,
+        "truePositives": 7,
+        "falsePositives": 1,
+        "falseNegatives": 0,
+        "threshold": 0.27
+      },
+      {
+        "focus": "US Foreign Policy",
+        "precision": 0.8,
+        "recall": 0.9230769230769231,
+        "f1": 0.8571428571428571,
+        "truePositives": 12,
+        "falsePositives": 3,
+        "falseNegatives": 1,
+        "threshold": 0.24
+      },
+      {
+        "focus": "Russia & Ukraine",
+        "precision": 1,
+        "recall": 0.8,
+        "f1": 0.888888888888889,
+        "truePositives": 4,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "threshold": 0.32
+      },
+      {
+        "focus": "Latin America",
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "truePositives": 4,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "threshold": 0.18
+      }
+    ],
+    "macroPrecision": 0.9349999999999999,
+    "macroRecall": 0.9264335664335664,
+    "macroF1": 0.9306970715855514,
+    "articlesEvaluated": 20,
+    "durationMs": 499.2123750000028
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "strategy": "nli",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Middle East Conflict",
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "truePositives": 11,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "threshold": 0.25
+      },
+      {
+        "focus": "Oil & Energy",
+        "precision": 0.625,
+        "recall": 0.7142857142857143,
+        "f1": 0.6666666666666666,
+        "truePositives": 5,
+        "falsePositives": 3,
+        "falseNegatives": 2,
+        "threshold": 0.25
+      },
+      {
+        "focus": "US Foreign Policy",
+        "precision": 0.8666666666666667,
+        "recall": 1,
+        "f1": 0.9285714285714286,
+        "truePositives": 13,
+        "falsePositives": 2,
+        "falseNegatives": 0,
+        "threshold": 0.02
+      },
+      {
+        "focus": "Russia & Ukraine",
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "truePositives": 5,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "threshold": 0.04
+      },
+      {
+        "focus": "Latin America",
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "truePositives": 4,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "threshold": 0.42
+      }
+    ],
+    "macroPrecision": 0.8983333333333334,
+    "macroRecall": 0.9428571428571428,
+    "macroF1": 0.9200568990042675,
+    "articlesEvaluated": 20,
+    "durationMs": 25475.512750000053
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "strategy": "similarity",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Middle East Conflict",
+        "precision": 0.9090909090909091,
+        "recall": 0.9090909090909091,
+        "f1": 0.9090909090909091,
+        "truePositives": 10,
+        "falsePositives": 1,
+        "falseNegatives": 1,
+        "threshold": 0.28
+      },
+      {
+        "focus": "Oil & Energy",
+        "precision": 0.875,
+        "recall": 1,
+        "f1": 0.9333333333333333,
+        "truePositives": 7,
+        "falsePositives": 1,
+        "falseNegatives": 0,
+        "threshold": 0.29
+      },
+      {
+        "focus": "US Foreign Policy",
+        "precision": 0.7647058823529411,
+        "recall": 1,
+        "f1": 0.8666666666666666,
+        "truePositives": 13,
+        "falsePositives": 4,
+        "falseNegatives": 0,
+        "threshold": 0.23
+      },
+      {
+        "focus": "Russia & Ukraine",
+        "precision": 1,
+        "recall": 0.6,
+        "f1": 0.7499999999999999,
+        "truePositives": 3,
+        "falsePositives": 0,
+        "falseNegatives": 2,
+        "threshold": 0.43
+      },
+      {
+        "focus": "Latin America",
+        "precision": 0.8,
+        "recall": 1,
+        "f1": 0.888888888888889,
+        "truePositives": 4,
+        "falsePositives": 1,
+        "falseNegatives": 0,
+        "threshold": 0.21
+      }
+    ],
+    "macroPrecision": 0.86975935828877,
+    "macroRecall": 0.901818181818182,
+    "macroF1": 0.8854986985937678,
+    "articlesEvaluated": 20,
+    "durationMs": 907.2034169999533
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "strategy": "similarity",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Middle East Conflict",
+        "precision": 1,
+        "recall": 0.9090909090909091,
+        "f1": 0.9523809523809523,
+        "truePositives": 10,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "threshold": 0.49
+      },
+      {
+        "focus": "Oil & Energy",
+        "precision": 0.875,
+        "recall": 1,
+        "f1": 0.9333333333333333,
+        "truePositives": 7,
+        "falsePositives": 1,
+        "falseNegatives": 0,
+        "threshold": 0.52
+      },
+      {
+        "focus": "US Foreign Policy",
+        "precision": 0.8125,
+        "recall": 1,
+        "f1": 0.896551724137931,
+        "truePositives": 13,
+        "falsePositives": 3,
+        "falseNegatives": 0,
+        "threshold": 0.46
+      },
+      {
+        "focus": "Russia & Ukraine",
+        "precision": 1,
+        "recall": 0.8,
+        "f1": 0.888888888888889,
+        "truePositives": 4,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "threshold": 0.57
+      },
+      {
+        "focus": "Latin America",
+        "precision": 1,
+        "recall": 0.75,
+        "f1": 0.8571428571428571,
+        "truePositives": 3,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "threshold": 0.53
+      }
+    ],
+    "macroPrecision": 0.9375,
+    "macroRecall": 0.8918181818181818,
+    "macroF1": 0.9140887066716362,
+    "articlesEvaluated": 20,
+    "durationMs": 896.4247909999685
+  },
+  {
+    "model": "Xenova/gte-small",
+    "strategy": "similarity",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Middle East Conflict",
+        "precision": 0.9,
+        "recall": 0.8181818181818182,
+        "f1": 0.8571428571428572,
+        "truePositives": 9,
+        "falsePositives": 1,
+        "falseNegatives": 2,
+        "threshold": 0.75
+      },
+      {
+        "focus": "Oil & Energy",
+        "precision": 0.875,
+        "recall": 1,
+        "f1": 0.9333333333333333,
+        "truePositives": 7,
+        "falsePositives": 1,
+        "falseNegatives": 0,
+        "threshold": 0.8
+      },
+      {
+        "focus": "US Foreign Policy",
+        "precision": 0.7647058823529411,
+        "recall": 1,
+        "f1": 0.8666666666666666,
+        "truePositives": 13,
+        "falsePositives": 4,
+        "falseNegatives": 0,
+        "threshold": 0.74
+      },
+      {
+        "focus": "Russia & Ukraine",
+        "precision": 1,
+        "recall": 0.6,
+        "f1": 0.7499999999999999,
+        "truePositives": 3,
+        "falsePositives": 0,
+        "falseNegatives": 2,
+        "threshold": 0.82
+      },
+      {
+        "focus": "Latin America",
+        "precision": 1,
+        "recall": 0.75,
+        "f1": 0.8571428571428571,
+        "truePositives": 3,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "threshold": 0.79
+      }
+    ],
+    "macroPrecision": 0.9079411764705881,
+    "macroRecall": 0.8336363636363636,
+    "macroF1": 0.8692036539494894,
+    "articlesEvaluated": 20,
+    "durationMs": 889.8354169999948
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "strategy": "similarity",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Middle East Conflict",
+        "precision": 1,
+        "recall": 0.9090909090909091,
+        "f1": 0.9523809523809523,
+        "truePositives": 10,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "threshold": 0.6
+      },
+      {
+        "focus": "Oil & Energy",
+        "precision": 0.7777777777777778,
+        "recall": 1,
+        "f1": 0.8750000000000001,
+        "truePositives": 7,
+        "falsePositives": 2,
+        "falseNegatives": 0,
+        "threshold": 0.64
+      },
+      {
+        "focus": "US Foreign Policy",
+        "precision": 0.7647058823529411,
+        "recall": 1,
+        "f1": 0.8666666666666666,
+        "truePositives": 13,
+        "falsePositives": 4,
+        "falseNegatives": 0,
+        "threshold": 0.58
+      },
+      {
+        "focus": "Russia & Ukraine",
+        "precision": 0.8333333333333334,
+        "recall": 1,
+        "f1": 0.9090909090909091,
+        "truePositives": 5,
+        "falsePositives": 1,
+        "falseNegatives": 0,
+        "threshold": 0.61
+      },
+      {
+        "focus": "Latin America",
+        "precision": 1,
+        "recall": 0.75,
+        "f1": 0.8571428571428571,
+        "truePositives": 3,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "threshold": 0.64
+      }
+    ],
+    "macroPrecision": 0.8751633986928106,
+    "macroRecall": 0.9318181818181819,
+    "macroF1": 0.9026026338720551,
+    "articlesEvaluated": 20,
+    "durationMs": 2844.639750000031
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "strategy": "nli",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Middle East Conflict",
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "truePositives": 11,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "threshold": 0.25
+      },
+      {
+        "focus": "Oil & Energy",
+        "precision": 0.625,
+        "recall": 0.7142857142857143,
+        "f1": 0.6666666666666666,
+        "truePositives": 5,
+        "falsePositives": 3,
+        "falseNegatives": 2,
+        "threshold": 0.25
+      },
+      {
+        "focus": "US Foreign Policy",
+        "precision": 0.8666666666666667,
+        "recall": 1,
+        "f1": 0.9285714285714286,
+        "truePositives": 13,
+        "falsePositives": 2,
+        "falseNegatives": 0,
+        "threshold": 0.02
+      },
+      {
+        "focus": "Russia & Ukraine",
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "truePositives": 5,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "threshold": 0.04
+      },
+      {
+        "focus": "Latin America",
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "truePositives": 4,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "threshold": 0.42
+      }
+    ],
+    "macroPrecision": 0.8983333333333334,
+    "macroRecall": 0.9428571428571428,
+    "macroF1": 0.9200568990042675,
+    "articlesEvaluated": 20,
+    "durationMs": 25972.94750000001
+  },
+  {
+    "model": "Xenova/gte-base",
+    "strategy": "similarity",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Middle East Conflict",
+        "precision": 1,
+        "recall": 0.8181818181818182,
+        "f1": 0.9,
+        "truePositives": 9,
+        "falsePositives": 0,
+        "falseNegatives": 2,
+        "threshold": 0.75
+      },
+      {
+        "focus": "Oil & Energy",
+        "precision": 0.8571428571428571,
+        "recall": 0.8571428571428571,
+        "f1": 0.8571428571428571,
+        "truePositives": 6,
+        "falsePositives": 1,
+        "falseNegatives": 1,
+        "threshold": 0.8
+      },
+      {
+        "focus": "US Foreign Policy",
+        "precision": 0.7647058823529411,
+        "recall": 1,
+        "f1": 0.8666666666666666,
+        "truePositives": 13,
+        "falsePositives": 4,
+        "falseNegatives": 0,
+        "threshold": 0.75
+      },
+      {
+        "focus": "Russia & Ukraine",
+        "precision": 1,
+        "recall": 0.8,
+        "f1": 0.888888888888889,
+        "truePositives": 4,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "threshold": 0.78
+      },
+      {
+        "focus": "Latin America",
+        "precision": 1,
+        "recall": 0.75,
+        "f1": 0.8571428571428571,
+        "truePositives": 3,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "threshold": 0.77
+      }
+    ],
+    "macroPrecision": 0.9243697478991596,
+    "macroRecall": 0.845064935064935,
+    "macroF1": 0.8829401486307871,
+    "articlesEvaluated": 20,
+    "durationMs": 2967.9619999999995
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "strategy": "similarity",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Gadgets & Hardware",
+        "precision": 0.7777777777777778,
+        "recall": 0.9333333333333333,
+        "f1": 0.8484848484848485,
+        "truePositives": 14,
+        "falsePositives": 4,
+        "falseNegatives": 1,
+        "threshold": 0.16
+      },
+      {
+        "focus": "AI & Machine Learning",
+        "precision": 0.75,
+        "recall": 0.5,
+        "f1": 0.6,
+        "truePositives": 3,
+        "falsePositives": 1,
+        "falseNegatives": 3,
+        "threshold": 0.21
+      },
+      {
+        "focus": "Deals & Shopping",
+        "precision": 1,
+        "recall": 0.7142857142857143,
+        "f1": 0.8333333333333333,
+        "truePositives": 5,
+        "falsePositives": 0,
+        "falseNegatives": 2,
+        "threshold": 0.3
+      },
+      {
+        "focus": "Gaming & Entertainment",
+        "precision": 0.7777777777777778,
+        "recall": 0.875,
+        "f1": 0.823529411764706,
+        "truePositives": 7,
+        "falsePositives": 2,
+        "falseNegatives": 1,
+        "threshold": 0.21
+      },
+      {
+        "focus": "Big Tech & Business",
+        "precision": 0.6296296296296297,
+        "recall": 0.9444444444444444,
+        "f1": 0.7555555555555556,
+        "truePositives": 17,
+        "falsePositives": 10,
+        "falseNegatives": 1,
+        "threshold": 0.08
+      }
+    ],
+    "macroPrecision": 0.787037037037037,
+    "macroRecall": 0.7934126984126983,
+    "macroF1": 0.7902120077594207,
+    "articlesEvaluated": 30,
+    "durationMs": 2628.009167000011
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "strategy": "nli",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Gadgets & Hardware",
+        "precision": 0.5555555555555556,
+        "recall": 1,
+        "f1": 0.7142857142857143,
+        "truePositives": 15,
+        "falsePositives": 12,
+        "falseNegatives": 0,
+        "threshold": 0.62
+      },
+      {
+        "focus": "AI & Machine Learning",
+        "precision": 1,
+        "recall": 0.6666666666666666,
+        "f1": 0.8,
+        "truePositives": 4,
+        "falsePositives": 0,
+        "falseNegatives": 2,
+        "threshold": 0.94
+      },
+      {
+        "focus": "Deals & Shopping",
+        "precision": 0.8571428571428571,
+        "recall": 0.8571428571428571,
+        "f1": 0.8571428571428571,
+        "truePositives": 6,
+        "falsePositives": 1,
+        "falseNegatives": 1,
+        "threshold": 0.86
+      },
+      {
+        "focus": "Gaming & Entertainment",
+        "precision": 0.6,
+        "recall": 0.75,
+        "f1": 0.6666666666666665,
+        "truePositives": 6,
+        "falsePositives": 4,
+        "falseNegatives": 2,
+        "threshold": 0.81
+      },
+      {
+        "focus": "Big Tech & Business",
+        "precision": 0.6,
+        "recall": 1,
+        "f1": 0.7499999999999999,
+        "truePositives": 18,
+        "falsePositives": 12,
+        "falseNegatives": 0,
+        "threshold": 0
+      }
+    ],
+    "macroPrecision": 0.7225396825396826,
+    "macroRecall": 0.8547619047619047,
+    "macroF1": 0.7831088236844501,
+    "articlesEvaluated": 30,
+    "durationMs": 285298.84412500006
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "strategy": "similarity",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Gadgets & Hardware",
+        "precision": 0.7894736842105263,
+        "recall": 1,
+        "f1": 0.8823529411764706,
+        "truePositives": 15,
+        "falsePositives": 4,
+        "falseNegatives": 0,
+        "threshold": 0.15
+      },
+      {
+        "focus": "AI & Machine Learning",
+        "precision": 0.8333333333333334,
+        "recall": 0.8333333333333334,
+        "f1": 0.8333333333333334,
+        "truePositives": 5,
+        "falsePositives": 1,
+        "falseNegatives": 1,
+        "threshold": 0.2
+      },
+      {
+        "focus": "Deals & Shopping",
+        "precision": 1,
+        "recall": 0.7142857142857143,
+        "f1": 0.8333333333333333,
+        "truePositives": 5,
+        "falsePositives": 0,
+        "falseNegatives": 2,
+        "threshold": 0.27
+      },
+      {
+        "focus": "Gaming & Entertainment",
+        "precision": 0.6666666666666666,
+        "recall": 1,
+        "f1": 0.8,
+        "truePositives": 8,
+        "falsePositives": 4,
+        "falseNegatives": 0,
+        "threshold": 0.15
+      },
+      {
+        "focus": "Big Tech & Business",
+        "precision": 0.64,
+        "recall": 0.8888888888888888,
+        "f1": 0.7441860465116279,
+        "truePositives": 16,
+        "falsePositives": 9,
+        "falseNegatives": 2,
+        "threshold": 0.04
+      }
+    ],
+    "macroPrecision": 0.7858947368421052,
+    "macroRecall": 0.8873015873015874,
+    "macroF1": 0.8335251965232952,
+    "articlesEvaluated": 30,
+    "durationMs": 5166.470874999999
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "strategy": "similarity",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Gadgets & Hardware",
+        "precision": 0.6190476190476191,
+        "recall": 0.8666666666666667,
+        "f1": 0.7222222222222222,
+        "truePositives": 13,
+        "falsePositives": 8,
+        "falseNegatives": 2,
+        "threshold": 0.44
+      },
+      {
+        "focus": "AI & Machine Learning",
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "truePositives": 6,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "threshold": 0.49
+      },
+      {
+        "focus": "Deals & Shopping",
+        "precision": 1,
+        "recall": 0.8571428571428571,
+        "f1": 0.923076923076923,
+        "truePositives": 6,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "threshold": 0.51
+      },
+      {
+        "focus": "Gaming & Entertainment",
+        "precision": 0.5384615384615384,
+        "recall": 0.875,
+        "f1": 0.6666666666666667,
+        "truePositives": 7,
+        "falsePositives": 6,
+        "falseNegatives": 1,
+        "threshold": 0.47
+      },
+      {
+        "focus": "Big Tech & Business",
+        "precision": 0.6956521739130435,
+        "recall": 0.8888888888888888,
+        "f1": 0.7804878048780488,
+        "truePositives": 16,
+        "falsePositives": 7,
+        "falseNegatives": 2,
+        "threshold": 0.42
+      }
+    ],
+    "macroPrecision": 0.7706322662844401,
+    "macroRecall": 0.8975396825396824,
+    "macroF1": 0.8292586865800324,
+    "articlesEvaluated": 30,
+    "durationMs": 5124.590790999937
+  },
+  {
+    "model": "Xenova/gte-small",
+    "strategy": "similarity",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Gadgets & Hardware",
+        "precision": 0.7058823529411765,
+        "recall": 0.8,
+        "f1": 0.7500000000000001,
+        "truePositives": 12,
+        "falsePositives": 5,
+        "falseNegatives": 3,
+        "threshold": 0.79
+      },
+      {
+        "focus": "AI & Machine Learning",
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "truePositives": 6,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "threshold": 0.78
+      },
+      {
+        "focus": "Deals & Shopping",
+        "precision": 0.7777777777777778,
+        "recall": 1,
+        "f1": 0.8750000000000001,
+        "truePositives": 7,
+        "falsePositives": 2,
+        "falseNegatives": 0,
+        "threshold": 0.78
+      },
+      {
+        "focus": "Gaming & Entertainment",
+        "precision": 0.6,
+        "recall": 0.75,
+        "f1": 0.6666666666666665,
+        "truePositives": 6,
+        "falsePositives": 4,
+        "falseNegatives": 2,
+        "threshold": 0.78
+      },
+      {
+        "focus": "Big Tech & Business",
+        "precision": 0.6666666666666666,
+        "recall": 1,
+        "f1": 0.8,
+        "truePositives": 18,
+        "falsePositives": 9,
+        "falseNegatives": 0,
+        "threshold": 0.75
+      }
+    ],
+    "macroPrecision": 0.7500653594771242,
+    "macroRecall": 0.9099999999999999,
+    "macroF1": 0.8223284381274854,
+    "articlesEvaluated": 30,
+    "durationMs": 5132.18987500004
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "strategy": "similarity",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Gadgets & Hardware",
+        "precision": 0.5172413793103449,
+        "recall": 1,
+        "f1": 0.6818181818181819,
+        "truePositives": 15,
+        "falsePositives": 14,
+        "falseNegatives": 0,
+        "threshold": 0.5
+      },
+      {
+        "focus": "AI & Machine Learning",
+        "precision": 0.22727272727272727,
+        "recall": 0.8333333333333334,
+        "f1": 0.35714285714285715,
+        "truePositives": 5,
+        "falsePositives": 17,
+        "falseNegatives": 1,
+        "threshold": 0.52
+      },
+      {
+        "focus": "Deals & Shopping",
+        "precision": 0.6666666666666666,
+        "recall": 0.8571428571428571,
+        "f1": 0.75,
+        "truePositives": 6,
+        "falsePositives": 3,
+        "falseNegatives": 1,
+        "threshold": 0.58
+      },
+      {
+        "focus": "Gaming & Entertainment",
+        "precision": 0.3076923076923077,
+        "recall": 1,
+        "f1": 0.47058823529411764,
+        "truePositives": 8,
+        "falsePositives": 18,
+        "falseNegatives": 0,
+        "threshold": 0.56
+      },
+      {
+        "focus": "Big Tech & Business",
+        "precision": 0.6206896551724138,
+        "recall": 1,
+        "f1": 0.7659574468085107,
+        "truePositives": 18,
+        "falsePositives": 11,
+        "falseNegatives": 0,
+        "threshold": 0.5
+      }
+    ],
+    "macroPrecision": 0.4679125472228921,
+    "macroRecall": 0.9380952380952381,
+    "macroF1": 0.6243870581349449,
+    "articlesEvaluated": 30,
+    "durationMs": 15366.615958000068
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "strategy": "nli",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Gadgets & Hardware",
+        "precision": 0.5555555555555556,
+        "recall": 1,
+        "f1": 0.7142857142857143,
+        "truePositives": 15,
+        "falsePositives": 12,
+        "falseNegatives": 0,
+        "threshold": 0.62
+      },
+      {
+        "focus": "AI & Machine Learning",
+        "precision": 1,
+        "recall": 0.6666666666666666,
+        "f1": 0.8,
+        "truePositives": 4,
+        "falsePositives": 0,
+        "falseNegatives": 2,
+        "threshold": 0.94
+      },
+      {
+        "focus": "Deals & Shopping",
+        "precision": 0.8571428571428571,
+        "recall": 0.8571428571428571,
+        "f1": 0.8571428571428571,
+        "truePositives": 6,
+        "falsePositives": 1,
+        "falseNegatives": 1,
+        "threshold": 0.86
+      },
+      {
+        "focus": "Gaming & Entertainment",
+        "precision": 0.6,
+        "recall": 0.75,
+        "f1": 0.6666666666666665,
+        "truePositives": 6,
+        "falsePositives": 4,
+        "falseNegatives": 2,
+        "threshold": 0.81
+      },
+      {
+        "focus": "Big Tech & Business",
+        "precision": 0.6,
+        "recall": 1,
+        "f1": 0.7499999999999999,
+        "truePositives": 18,
+        "falsePositives": 12,
+        "falseNegatives": 0,
+        "threshold": 0
+      }
+    ],
+    "macroPrecision": 0.7225396825396826,
+    "macroRecall": 0.8547619047619047,
+    "macroF1": 0.7831088236844501,
+    "articlesEvaluated": 30,
+    "durationMs": 299205.48425
+  },
+  {
+    "model": "Xenova/gte-base",
+    "strategy": "similarity",
+    "threshold": 0.5,
+    "perFocus": [
+      {
+        "focus": "Gadgets & Hardware",
+        "precision": 0.56,
+        "recall": 0.9333333333333333,
+        "f1": 0.7000000000000001,
+        "truePositives": 14,
+        "falsePositives": 11,
+        "falseNegatives": 1,
+        "threshold": 0.73
+      },
+      {
+        "focus": "AI & Machine Learning",
+        "precision": 1,
+        "recall": 0.8333333333333334,
+        "f1": 0.9090909090909091,
+        "truePositives": 5,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "threshold": 0.78
+      },
+      {
+        "focus": "Deals & Shopping",
+        "precision": 0.5,
+        "recall": 0.5714285714285714,
+        "f1": 0.5333333333333333,
+        "truePositives": 4,
+        "falsePositives": 4,
+        "falseNegatives": 3,
+        "threshold": 0.75
+      },
+      {
+        "focus": "Gaming & Entertainment",
+        "precision": 0.2962962962962963,
+        "recall": 1,
+        "f1": 0.45714285714285713,
+        "truePositives": 8,
+        "falsePositives": 19,
+        "falseNegatives": 0,
+        "threshold": 0.74
+      },
+      {
+        "focus": "Big Tech & Business",
+        "precision": 0.6,
+        "recall": 1,
+        "f1": 0.7499999999999999,
+        "truePositives": 18,
+        "falsePositives": 12,
+        "falseNegatives": 0,
+        "threshold": 0
+      }
+    ],
+    "macroPrecision": 0.5912592592592593,
+    "macroRecall": 0.8676190476190475,
+    "macroF1": 0.7032633126366081,
+    "articlesEvaluated": 30,
+    "durationMs": 17089.71029200009
+  }
+]

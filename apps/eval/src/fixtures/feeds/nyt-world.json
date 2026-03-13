@@ -1,0 +1,531 @@
+{
+  "source": {
+    "name": "NYT > World News",
+    "url": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
+    "fetchedAt": "2026-03-13T17:45:56.988Z"
+  },
+  "articles": [
+    {
+      "id": "article-001",
+      "title": "Israel-Iran Conflict: Iran War Live Updates: Hegseth Vows to Reopen Key Strait as U.S. Measures Fail to Calm Oil Market",
+      "content": "Defense Secretary Pete Hegseth said that the U.S. military would stop Iran from choking off the Strait of Hormuz but did not say how. Oil prices remained high even after the Trump administration eased restrictions on Russian shipments.",
+      "summary": "Defense Secretary Pete Hegseth said that the U.S. military would stop Iran from choking off the Strait of Hormuz but did not say how. Oil prices remained high even after the Trump administration eased restrictions on Russian shipments.",
+      "url": "https://www.nytimes.com/live/2026/03/13/world/iran-war-trump-oil-israel",
+      "author": "The New York Times",
+      "publishedAt": "2026-03-13T17:39:26.000Z"
+    },
+    {
+      "id": "article-002",
+      "title": "How the War in Iran Could Help China and Change Asia",
+      "content": "American officials have said for years that they would prioritize the Indo-Pacific. Now they’re moving warships, missiles and air defenses out for a war in the Middle East.",
+      "summary": "American officials have said for years that they would prioritize the Indo-Pacific. Now they’re moving warships, missiles and air defenses out for a war in the Middle East.",
+      "url": "https://www.nytimes.com/2026/03/13/world/asia/iran-war-china-asia.html",
+      "author": "Damien Cave, Choe Sang-Hun, Javier C. Hernández and Eric Schmitt",
+      "publishedAt": "2026-03-13T04:00:37.000Z"
+    },
+    {
+      "id": "article-003",
+      "title": "Cuba Acknowledges Talks with Trump Officials For the First Time",
+      "content": "President Miguel Díaz-Canel, whose country is rapidly running out of fuel, said the talks were based on “respect for the political systems of both countries.”",
+      "summary": "President Miguel Díaz-Canel, whose country is rapidly running out of fuel, said the talks were based on “respect for the political systems of both countries.”",
+      "url": "https://www.nytimes.com/2026/03/13/world/americas/cuba-us-talks-trump-oil.html",
+      "author": "Frances Robles, David C. Adams and Patricia Mazzei",
+      "publishedAt": "2026-03-13T17:24:44.000Z"
+    },
+    {
+      "id": "article-004",
+      "title": "A Visit to a Temple at the Heart of the Thailand-Cambodia Conflict",
+      "content": "A rare visit to a Khmer temple on Thailand and Cambodia’s border showed how deadly clashes between the two countries have scarred a heritage site.",
+      "summary": "A rare visit to a Khmer temple on Thailand and Cambodia’s border showed how deadly clashes between the two countries have scarred a heritage site.",
+      "url": "https://www.nytimes.com/2026/03/13/world/asia/thailand-cambodia-preah-vihear-temple.html",
+      "author": "Sui-Lee Wee and Lauren DeCicca",
+      "publishedAt": "2026-03-13T04:01:17.000Z"
+    },
+    {
+      "id": "article-005",
+      "title": "Phones ‘Ringing Off the Hook’ for Ukraine Defense Firms as Mideast Seeks Help",
+      "content": "Ukraine wants to leverage its defense expertise into security partnerships and to reap potentially vast profits for its arms industry.",
+      "summary": "Ukraine wants to leverage its defense expertise into security partnerships and to reap potentially vast profits for its arms industry.",
+      "url": "https://www.nytimes.com/2026/03/13/world/europe/ukraine-drone-interceptors-iran-middle-east.html",
+      "author": "Andrew E. Kramer, Maria Varenikova and Brendan Hoffman",
+      "publishedAt": "2026-03-13T11:00:57.000Z"
+    },
+    {
+      "id": "article-006",
+      "title": "What Does It Mean to Have Air Superiority Over Iran?",
+      "content": "The American and Israeli air forces have a dominant advantage in the skies, but Iran can still muster some resistance.",
+      "summary": "The American and Israeli air forces have a dominant advantage in the skies, but Iran can still muster some resistance.",
+      "url": "https://www.nytimes.com/2026/03/13/world/middleeast/air-superiority-iran-war.html",
+      "author": "Adam Goldman and Eric Schmitt",
+      "publishedAt": "2026-03-13T17:26:11.000Z"
+    },
+    {
+      "id": "article-007",
+      "title": "Drone Strike Has Cyprus, and Europe, on Edge",
+      "content": "Allies have rushed to defend the Mediterranean nation, where the drone hit a British base. Some Cypriots wonder why the bases are still there.",
+      "summary": "Allies have rushed to defend the Mediterranean nation, where the drone hit a British base. Some Cypriots wonder why the bases are still there.",
+      "url": "https://www.nytimes.com/2026/03/13/world/middleeast/cyprus-iran-drone-strike.html",
+      "author": "Carlotta Gall",
+      "publishedAt": "2026-03-13T14:49:40.000Z"
+    },
+    {
+      "id": "article-008",
+      "title": "Iran’s Frantic Attempt to Save Its Ships Before Torpedo Attack",
+      "content": "The Iranian Navy sought refuge in Sri Lanka and India. While India obliged, Sri Lanka stalled over fears it would threaten its neutrality.",
+      "summary": "The Iranian Navy sought refuge in Sri Lanka and India. While India obliged, Sri Lanka stalled over fears it would threaten its neutrality.",
+      "url": "https://www.nytimes.com/2026/03/12/world/asia/iran-ships-sri-lanka.html",
+      "author": "Anupreeta Das and Pamodi Waravita",
+      "publishedAt": "2026-03-12T12:35:16.000Z"
+    },
+    {
+      "id": "article-009",
+      "title": "How Russia’s Scorched-Earth Attacks Put Ukraine’s Power Grid Near Collapse",
+      "content": "Strikes on Ukrainian energy systems have tripled this winter. Continuous repairs and Western aid staved off a total breakdown.",
+      "summary": "Strikes on Ukrainian energy systems have tripled this winter. Continuous repairs and Western aid staved off a total breakdown.",
+      "url": "https://www.nytimes.com/2026/03/12/world/europe/ukraine-russia-energy-system.html",
+      "author": "Constant Méheut",
+      "publishedAt": "2026-03-12T09:02:33.000Z"
+    },
+    {
+      "id": "article-010",
+      "title": "Trump Tempers María Corina Machado’s Political Ambitions in Venezuela",
+      "content": "President Trump is tempering the political ambitions of María Corina Machado, a Nobel laureate, as he deepens ties with her foes in Venezuela.",
+      "summary": "President Trump is tempering the political ambitions of María Corina Machado, a Nobel laureate, as he deepens ties with her foes in Venezuela.",
+      "url": "https://www.nytimes.com/2026/03/12/world/americas/trump-maria-corina-machado-venezuela.html",
+      "author": "Anatoly Kurmanaev and Tyler Pager",
+      "publishedAt": "2026-03-12T22:48:48.000Z"
+    },
+    {
+      "id": "article-011",
+      "title": "China Wants Its Ethnic Minorities to Blend In. Now It’s the Law.",
+      "content": "Under a new “ethnic unity” law, Mandarin Chinese must now be the language of teaching. Parents must guide their children to love the Communist Party. Neighborhoods should be mixed.",
+      "summary": "Under a new “ethnic unity” law, Mandarin Chinese must now be the language of teaching. Parents must guide their children to love the Communist Party. Neighborhoods should be mixed.",
+      "url": "https://www.nytimes.com/2026/03/12/world/asia/china-minorities-xinjiang-tibet.html",
+      "author": "Lily Kuo",
+      "publishedAt": "2026-03-13T10:36:59.000Z"
+    },
+    {
+      "id": "article-012",
+      "title": "Ground Down by War, Hezbollah’s Loyal Base Shows Cracks",
+      "content": "“We just want to be back in our homes,” said a Lebanese man who, like many others in the latest round of fighting, has to flee.",
+      "summary": "“We just want to be back in our homes,” said a Lebanese man who, like many others in the latest round of fighting, has to flee.",
+      "url": "https://www.nytimes.com/2026/03/12/world/middleeast/lebanon-hezbollah-israel.html",
+      "author": "Christina Goldbaum",
+      "publishedAt": "2026-03-12T11:02:40.000Z"
+    },
+    {
+      "id": "article-013",
+      "title": "Israel Drops Case Against Soldiers Accused of Abusing Palestinian Detainee",
+      "content": "After a prisoner arrived at a hospital with broken ribs and a torn rectum, Israelis were once again at odds over the issue of mistreatment and impunity.",
+      "summary": "After a prisoner arrived at a hospital with broken ribs and a torn rectum, Israelis were once again at odds over the issue of mistreatment and impunity.",
+      "url": "https://www.nytimes.com/2026/03/12/world/middleeast/israel-detainee-abuse-charges.html",
+      "author": "Isabel Kershner",
+      "publishedAt": "2026-03-12T19:47:38.000Z"
+    },
+    {
+      "id": "article-014",
+      "title": "Thousands Attend Government Rally in Tehran to Denounce Israel and U.S.",
+      "content": "Several senior Iranian officials showed up at the government-sponsored rally, marking Quds Day, an annual anti-Israel event that was shaken by explosions from the U.S.-Israeli aerial assault.",
+      "summary": "Several senior Iranian officials showed up at the government-sponsored rally, marking Quds Day, an annual anti-Israel event that was shaken by explosions from the U.S.-Israeli aerial assault.",
+      "url": "https://www.nytimes.com/2026/03/13/world/middleeast/iran-government-quds-protest-tehran.html",
+      "author": "Yeganeh Torbati and Leily Nikounazar",
+      "publishedAt": "2026-03-13T17:35:25.000Z"
+    },
+    {
+      "id": "article-015",
+      "title": "Israel Drops Leaflets on Beirut with Reminders of Gaza War",
+      "content": "Leaflets dropped over the capital referenced Israel’s “success in Gaza” and urged Lebanese citizens to disarm Hezbollah.",
+      "summary": "Leaflets dropped over the capital referenced Israel’s “success in Gaza” and urged Lebanese citizens to disarm Hezbollah.",
+      "url": "https://www.nytimes.com/2026/03/13/world/middleeast/israeli-leaflets-over-beirut-invoke-gazas-destruction-and-stoke-fear.html",
+      "author": "Euan Ward",
+      "publishedAt": "2026-03-13T17:27:27.000Z"
+    },
+    {
+      "id": "article-016",
+      "title": "How This Oil Supply Shock Compares With the Embargo of 1973",
+      "content": "Governments have stockpiled oil, and cars are more efficient but the supply shock is global, and there’s no sense of when it’ll end.",
+      "summary": "Governments have stockpiled oil, and cars are more efficient but the supply shock is global, and there’s no sense of when it’ll end.",
+      "url": "https://www.nytimes.com/2026/03/13/world/middleeast/oil-supply-shock-1973-embargo.html",
+      "author": "Emmett Lindner",
+      "publishedAt": "2026-03-13T17:25:52.000Z"
+    },
+    {
+      "id": "article-017",
+      "title": "Hegseth says an officer has been appointed to investigate deadly strike on Iranian school.",
+      "content": "",
+      "summary": null,
+      "url": "https://www.nytimes.com/live/2026/03/13/world/iran-war-trump-oil-israel/hegseth-says-an-officer-has-been-appointed-to-investigate-deadly-strike-on-iranian-school",
+      "author": "Greg Jaffe",
+      "publishedAt": "2026-03-13T15:43:20.000Z"
+    },
+    {
+      "id": "article-018",
+      "title": "U.S. Tech Giants Flocked to the Persian Gulf. Now They Are Targets.",
+      "content": "Amazon, Google and others struck deals in the Persian Gulf to foot the bill for A.I. development. Iran has now threatened attacks against the companies’ infrastructure in the region.",
+      "summary": "Amazon, Google and others struck deals in the Persian Gulf to foot the bill for A.I. development. Iran has now threatened attacks against the companies’ infrastructure in the region.",
+      "url": "https://www.nytimes.com/2026/03/13/technology/amazon-google-persian-gulf-war.html",
+      "author": "Adam Satariano and Paul Mozur",
+      "publishedAt": "2026-03-13T17:24:28.000Z"
+    },
+    {
+      "id": "article-019",
+      "title": "John F. Burns, Prize-winning Foreign Correspondent for The Times, Dies at 81",
+      "content": "In a 40-year career that brought him two Pulitzers, he reported from trouble spots around the world, eloquently conveying the chaos of war.",
+      "summary": "In a 40-year career that brought him two Pulitzers, he reported from trouble spots around the world, eloquently conveying the chaos of war.",
+      "url": "https://www.nytimes.com/2026/03/13/world/john-burns-dead.html",
+      "author": "Alan Cowell",
+      "publishedAt": "2026-03-13T16:24:15.000Z"
+    },
+    {
+      "id": "article-020",
+      "title": "Trump Administration Readies Plans to Dismantle NCAR Research Lab",
+      "content": "Proposals include transferring a supercomputer to the University of Wyoming and shifting a space weather lab to a private company.",
+      "summary": "Proposals include transferring a supercomputer to the University of Wyoming and shifting a space weather lab to a private company.",
+      "url": "https://www.nytimes.com/2026/03/13/climate/ncar-breakup-plan-nasa-noaa.html",
+      "author": "Eric Niiler",
+      "publishedAt": "2026-03-13T15:06:28.000Z"
+    },
+    {
+      "id": "article-021",
+      "title": "U.S. Sanctions Pause Adds Political Win to Russia’s Economic Gain From Iran War",
+      "content": "Kremlin officials said the American move, which Europe opposes, showed that Moscow could not be dislodged from the center of global energy markets.",
+      "summary": "Kremlin officials said the American move, which Europe opposes, showed that Moscow could not be dislodged from the center of global energy markets.",
+      "url": "https://www.nytimes.com/2026/03/13/world/europe/russia-oil-suspended-sanctions-economy.html",
+      "author": "Ivan Nechepurenko and Paul Sonne",
+      "publishedAt": "2026-03-13T17:14:24.000Z"
+    },
+    {
+      "id": "article-022",
+      "title": "Hegseth Vows Lethal Day in Iran as Air War Intensifies",
+      "content": "At a news conference, Defense Secretary Pete Hegseth gave no indication of how long it would take before the Navy could escort civilian cargo ships through the Strait of Hormuz.",
+      "summary": "At a news conference, Defense Secretary Pete Hegseth gave no indication of how long it would take before the Navy could escort civilian cargo ships through the Strait of Hormuz.",
+      "url": "https://www.nytimes.com/2026/03/13/us/politics/hegseth-air-war-iran.html",
+      "author": "Greg Jaffe",
+      "publishedAt": "2026-03-13T17:39:24.000Z"
+    },
+    {
+      "id": "article-023",
+      "title": "Oil and cargo ships are growing targets in war with Iran.",
+      "content": "",
+      "summary": null,
+      "url": "https://www.nytimes.com/live/2026/world/us-israel-iran-attack-maps/oil-and-cargo-ships-are-growing-targets-in-war-with-iran",
+      "author": "Blacki Migliozzi, Christiaan Triebert and Lazaro Gamio",
+      "publishedAt": "2026-03-13T13:11:14.000Z"
+    },
+    {
+      "id": "article-024",
+      "title": "To Secure BTS Concert Tickets, K-Pop Fans Crowd Internet Cafes in South Korea",
+      "content": "The K-pop supergroup’s upcoming reunion concert prompted a rush for the cafes, which offer solid connections and a sense of community.",
+      "summary": "The K-pop supergroup’s upcoming reunion concert prompted a rush for the cafes, which offer solid connections and a sense of community.",
+      "url": "https://www.nytimes.com/2026/03/13/world/asia/bts-concert-tickets-internet-cafes-south-korea.html",
+      "author": "Yan Zhuang",
+      "publishedAt": "2026-03-13T12:33:06.000Z"
+    },
+    {
+      "id": "article-025",
+      "title": "Pink Floyd Guitar Is Sold for a Record $14.55 Million",
+      "content": "The black Fender Stratocaster, played by David Gilmour on six of the band’s albums including “The Dark Side of the Moon,” broke the record for the most expensive guitar sold at auction.",
+      "summary": "The black Fender Stratocaster, played by David Gilmour on six of the band’s albums including “The Dark Side of the Moon,” broke the record for the most expensive guitar sold at auction.",
+      "url": "https://www.nytimes.com/2026/03/13/world/pink-floyd-guitar-gilmour-record-auction.html",
+      "author": "Francesca Regalado",
+      "publishedAt": "2026-03-13T13:20:22.000Z"
+    },
+    {
+      "id": "article-026",
+      "title": "Turkey Says NATO Defenses Shot Down a Third Iranian Missile",
+      "content": "Turkey did not say where the missile was intercepted. But residents near Incirlik Air Base, which hosts U.S. troops, reported hearing sirens and a loud boom.",
+      "summary": "Turkey did not say where the missile was intercepted. But residents near Incirlik Air Base, which hosts U.S. troops, reported hearing sirens and a loud boom.",
+      "url": "https://www.nytimes.com/2026/03/13/world/middleeast/turkey-nato-iran-missile.html",
+      "author": "Nimet Kirac and Ben Hubbard",
+      "publishedAt": "2026-03-13T11:23:17.000Z"
+    },
+    {
+      "id": "article-027",
+      "title": "Where Israeli Strikes Are Hitting Beirut",
+      "content": "new video loaded: Where Israeli Strikes Are Hitting Beirut\n\n![](https://static01.nyt.com/images/2026/03/04/world/middleeast/Thumbnail-Final-For-Real/Thumbnail-Final-For-Real-jumbo.png?auto=webp&quality=75)\n\n2:05\n\nOur Beirut bureau chief, Christina Goldbaum, shows how Israeli airstrikes have affected Lebanon and its capital. Hundreds of thousands of people have fled areas around Beirut and in a huge swath of southern Lebanon after Israel issued evacuation warnings in its conflict with Hezbollah.\n\nBy Christina Goldbaum, Christina Thornell, Jon Miller, Joey Sendaydiego and David Guttenfelder\n\nMarch 13, 2026",
+      "summary": "Our Beirut bureau chief, Christina Goldbaum, shows how Israeli airstrikes have affected Lebanon and its capital. Hundreds of thousands of people have fled areas around Beirut and in a huge swath of southern Lebanon after Israel issued evacuation warnings in its conflict with Hezbollah.",
+      "url": "https://www.nytimes.com/video/world/middleeast/100000010764777/where-israeli-strikes-are-hitting-beirut.html",
+      "author": "Christina Goldbaum, Christina Thornell, Jon Miller, Joey Sendaydiego and David Guttenfelder",
+      "publishedAt": "2026-03-13T14:06:39.000Z"
+    },
+    {
+      "id": "article-028",
+      "title": "‘A Lot of Life Years Lost’: How NAFTA Shortened American Life Spans",
+      "content": "A study tracks how the North American Free Trade Agreement and trade competition with Mexico led to earlier deaths for American factory workers.",
+      "summary": "A study tracks how the North American Free Trade Agreement and trade competition with Mexico led to earlier deaths for American factory workers.",
+      "url": "https://www.nytimes.com/2026/03/13/us/politics/a-lot-of-life-years-lost-how-nafta-shortened-american-life-spans.html",
+      "author": "Ana Swanson",
+      "publishedAt": "2026-03-13T15:21:27.000Z"
+    },
+    {
+      "id": "article-029",
+      "title": "Here’s the latest.",
+      "content": "",
+      "summary": null,
+      "url": "https://www.nytimes.com/live/2026/03/13/world/iran-war-trump-oil-israel/heres-the-latest",
+      "author": "Eric Schmitt, Helene Cooper and Adam Rasgon",
+      "publishedAt": "2026-03-13T14:35:40.000Z"
+    },
+    {
+      "id": "article-030",
+      "title": "This is what happened on March 12.",
+      "content": "",
+      "summary": null,
+      "url": "https://www.nytimes.com/live/2026/world/us-israel-iran-attack-maps/this-is-what-happened-on-march-12",
+      "author": null,
+      "publishedAt": "2026-03-13T04:27:52.000Z"
+    },
+    {
+      "id": "article-031",
+      "title": "Carney Plans Military Expansion in Canada’s Arctic, Following Trump Threats",
+      "content": "Prime Minister Mark Carney said Canada would build three bases in the region. The government also plans to improve infrastructure and airports in the north.",
+      "summary": "Prime Minister Mark Carney said Canada would build three bases in the region. The government also plans to improve infrastructure and airports in the north.",
+      "url": "https://www.nytimes.com/2026/03/12/world/canada/canada-military-arctic-trump.html",
+      "author": "Ian Austen",
+      "publishedAt": "2026-03-13T03:16:56.000Z"
+    },
+    {
+      "id": "article-032",
+      "title": "Oil Prices Remain High Despite Trump Lifting Russia Sanctions",
+      "content": "After surging about 10 percent on Thursday, oil prices had little reaction to the decision by President Trump to waive sanctions on the sale of some Russian crude.",
+      "summary": "After surging about 10 percent on Thursday, oil prices had little reaction to the decision by President Trump to waive sanctions on the sale of some Russian crude.",
+      "url": "https://www.nytimes.com/2026/03/12/business/oil-stock-gas-markets-iran.html",
+      "author": "The New York Times",
+      "publishedAt": "2026-03-13T13:34:29.000Z"
+    },
+    {
+      "id": "article-033",
+      "title": "Trump Removes Sanctions on Russia to Help Oil Flow Amid Iran Conflict",
+      "content": "Treasury Secretary Scott Bessent said it was “unfortunate” that the move could benefit Russia, but maintained that it was only for the short term.",
+      "summary": "Treasury Secretary Scott Bessent said it was “unfortunate” that the move could benefit Russia, but maintained that it was only for the short term.",
+      "url": "https://www.nytimes.com/2026/03/12/us/politics/trump-russia-oil-sanctions.html",
+      "author": "Alan Rappeport",
+      "publishedAt": "2026-03-13T01:32:01.000Z"
+    },
+    {
+      "id": "article-034",
+      "title": "Cuba Pledges to Release 51 Prisoners Amid U.S. Pressure",
+      "content": "The Trump administration has been trying to choke the Cuban government through an oil blockade. The prisoner release appears to be an effort to appease Washington.",
+      "summary": "The Trump administration has been trying to choke the Cuban government through an oil blockade. The prisoner release appears to be an effort to appease Washington.",
+      "url": "https://www.nytimes.com/2026/03/12/world/americas/cuba-prisoner-release-trump-oil-blocade.html",
+      "author": "Jack Nicas, Emiliano Rodríguez Mega and Frances Robles",
+      "publishedAt": "2026-03-13T16:43:16.000Z"
+    },
+    {
+      "id": "article-035",
+      "title": "Here’s What Happened in the War in the Middle East on Thursday",
+      "content": "Iran’s new supreme leader delivered a forceful message in his first public statement since succeeding his slain father, as the Israeli military bombarded Tehran and the Lebanese capital with strikes.",
+      "summary": "Iran’s new supreme leader delivered a forceful message in his first public statement since succeeding his slain father, as the Israeli military bombarded Tehran and the Lebanese capital with strikes.",
+      "url": "https://www.nytimes.com/2026/03/12/world/middleeast/iran-war-middle-east-beirut-recap.html",
+      "author": "Ashley Ahn",
+      "publishedAt": "2026-03-13T00:16:22.000Z"
+    },
+    {
+      "id": "article-036",
+      "title": "All 6 Crew Members Killed in U.S. Refueling Plane Crash in Iraq, Military Says",
+      "content": "The crash was not caused by hostile or friendly fire, U.S. Central Command said. All six crew members died, it said, bringing the number of U.S. service members killed in the Iran conflict to at least 13.",
+      "summary": "The crash was not caused by hostile or friendly fire, U.S. Central Command said. All six crew members died, it said, bringing the number of U.S. service members killed in the Iran conflict to at least 13.",
+      "url": "https://www.nytimes.com/2026/03/12/world/middleeast/us-refueling-plane-crash-iraq.html",
+      "author": "Helene Cooper, Greg Jaffe and Eric Schmitt",
+      "publishedAt": "2026-03-13T14:34:29.000Z"
+    },
+    {
+      "id": "article-037",
+      "title": "Ukraine to Make Drone Videos Available for Training A.I. Models",
+      "content": "Despite ethical concerns about using battlefield videos to train artificial intelligence, Ukraine’s defense ministry said it needs to improve A.I. targeting to compete with Russia.",
+      "summary": "Despite ethical concerns about using battlefield videos to train artificial intelligence, Ukraine’s defense ministry said it needs to improve A.I. targeting to compete with Russia.",
+      "url": "https://www.nytimes.com/2026/03/12/world/europe/ukraine-drones-ai-models-training.html",
+      "author": "Andrew E. Kramer",
+      "publishedAt": "2026-03-13T01:41:42.000Z"
+    },
+    {
+      "id": "article-038",
+      "title": "Netanyahu issues veiled threat to new supreme leader of Iran.",
+      "content": "",
+      "summary": null,
+      "url": "https://www.nytimes.com/live/2026/03/13/world/iran-war-trump-oil-israel/netanyahu-issues-veiled-threat-to-new-supreme-leader-of-iran",
+      "author": "Johnatan Reiss",
+      "publishedAt": "2026-03-12T22:42:11.000Z"
+    },
+    {
+      "id": "article-039",
+      "title": "Walid Khalidi, Scholar Called Father of Palestinian Studies, Dies at 100",
+      "content": "As a historian and diplomat, he gave intellectual shape to his people and made sure that they played a role in negotiating their future.",
+      "summary": "As a historian and diplomat, he gave intellectual shape to his people and made sure that they played a role in negotiating their future.",
+      "url": "https://www.nytimes.com/2026/03/12/world/middleeast/walid-khalidi-dead.html",
+      "author": "Clay Risen",
+      "publishedAt": "2026-03-12T22:12:25.000Z"
+    },
+    {
+      "id": "article-040",
+      "title": "Iran Is Laying Mines in the Strait of Hormuz, U.S. Officials Say",
+      "content": "A fifth of the world’s oil passes through the strait, making it a critical choke point in global commerce.",
+      "summary": "A fifth of the world’s oil passes through the strait, making it a critical choke point in global commerce.",
+      "url": "https://www.nytimes.com/2026/03/12/world/middleeast/iran-mines-strait-of-hormuz-us.html",
+      "author": "Julian E. Barnes",
+      "publishedAt": "2026-03-12T21:45:09.000Z"
+    },
+    {
+      "id": "article-041",
+      "title": "What Is the Strait of Hormuz and Why Is Iran Blocking It?",
+      "content": "With attacks and threats, Tehran is using the world’s most important transit point for oil and gas as leverage against its enemies.",
+      "summary": "With attacks and threats, Tehran is using the world’s most important transit point for oil and gas as leverage against its enemies.",
+      "url": "https://www.nytimes.com/2026/03/12/world/middleeast/strait-of-hormuz-iran-blockade-explained.html",
+      "author": "The New York Times",
+      "publishedAt": "2026-03-13T16:26:50.000Z"
+    },
+    {
+      "id": "article-042",
+      "title": "Your Oscars Guide",
+      "content": "The Academy Awards ceremony is on Sunday. Here’s what to know.",
+      "summary": "The Academy Awards ceremony is on Sunday. Here’s what to know.",
+      "url": "https://www.nytimes.com/2026/03/12/world/oscars-guide-iran-oil.html",
+      "author": "Katrin Bennhold",
+      "publishedAt": "2026-03-13T05:41:09.000Z"
+    },
+    {
+      "id": "article-043",
+      "title": "New Iranian Leader Vows to Keep Global Oil Gateway Blocked",
+      "content": "Oil prices surged on Thursday after ships came under attack in the Persian Gulf, and Iran’s supreme leader vowed revenge for U.S. and Israeli airstrikes.",
+      "summary": "Oil prices surged on Thursday after ships came under attack in the Persian Gulf, and Iran’s supreme leader vowed revenge for U.S. and Israeli airstrikes.",
+      "url": "https://www.nytimes.com/2026/03/12/world/middleeast/iran-oil-war.html",
+      "author": "Yeganeh Torbati, Sanam Mahoozi and Thomas Fuller",
+      "publishedAt": "2026-03-12T21:04:34.000Z"
+    },
+    {
+      "id": "article-044",
+      "title": "Drone Strike in Congo Kills 3, Including U.N. Worker",
+      "content": "The attack struck a residential area of Goma, killing an employee of the U.N.’s children’s agency and two others amid a sharp rise in drone warfare.",
+      "summary": "The attack struck a residential area of Goma, killing an employee of the U.N.’s children’s agency and two others amid a sharp rise in drone warfare.",
+      "url": "https://www.nytimes.com/2026/03/12/world/africa/drone-strike-congo-kills-three.html",
+      "author": "Ruth Maclean and Caleb Kabanda",
+      "publishedAt": "2026-03-12T20:57:33.000Z"
+    },
+    {
+      "id": "article-045",
+      "title": "Trump Targets Forced Labor in Global Tariff Scheme",
+      "content": "The Trump administration began a trade investigation Thursday into whether dozens of countries have policies to combat forced labor.",
+      "summary": "The Trump administration began a trade investigation Thursday into whether dozens of countries have policies to combat forced labor.",
+      "url": "https://www.nytimes.com/2026/03/12/us/politics/trump-forced-labor-tariffs.html",
+      "author": "Ana Swanson",
+      "publishedAt": "2026-03-13T10:09:02.000Z"
+    },
+    {
+      "id": "article-046",
+      "title": "Iraq vents anger at strikes on former militias now under government control.",
+      "content": "",
+      "summary": null,
+      "url": "https://www.nytimes.com/live/2026/03/12/world/iran-war-news-trump-oil-israel/iraq-angered-by-strikes-on-former-militias-now-under-government-control",
+      "author": "Erika Solomon",
+      "publishedAt": "2026-03-12T19:36:33.000Z"
+    },
+    {
+      "id": "article-047",
+      "title": "Yanar Mohammed, 65, Iraqi Women’s Rights Advocate, Is Killed by Gunmen",
+      "content": "She established a network of safe houses for abused women and was an outspoken critic of her country’s repressive institutions, despite the constant threat of violence.",
+      "summary": "She established a network of safe houses for abused women and was an outspoken critic of her country’s repressive institutions, despite the constant threat of violence.",
+      "url": "https://www.nytimes.com/2026/03/12/world/middleeast/yanar-mohammed-dead.html",
+      "author": "Adam Nossiter",
+      "publishedAt": "2026-03-12T17:01:43.000Z"
+    },
+    {
+      "id": "article-048",
+      "title": "Pussycat Dolls Announce New Single and Reunion Tour",
+      "content": "You’re in luck: The early 2000s girl group announced a new single and a reunion tour on Thursday.",
+      "summary": "You’re in luck: The early 2000s girl group announced a new single and a reunion tour on Thursday.",
+      "url": "https://www.nytimes.com/2026/03/12/arts/music/pussycat-dolls-reunion.html",
+      "author": "Claire Moses",
+      "publishedAt": "2026-03-12T16:57:02.000Z"
+    },
+    {
+      "id": "article-049",
+      "title": "With New Right-Wing President, Chile Shifts Toward Region’s Conservative, Pro-Trump Alignment",
+      "content": "The inauguration of Chile’s new president, José Antonio Kast, is the latest milestone in a broader shift toward conservatism and pro-Trump alignment in the region.",
+      "summary": "The inauguration of Chile’s new president, José Antonio Kast, is the latest milestone in a broader shift toward conservatism and pro-Trump alignment in the region.",
+      "url": "https://www.nytimes.com/2026/03/12/world/americas/chile-kast-conservatism-trump.html",
+      "author": "Emma Bubola",
+      "publishedAt": "2026-03-12T22:24:03.000Z"
+    },
+    {
+      "id": "article-050",
+      "title": "Pardoning Netanyahu Now Would Be Improper, Key Israeli Office Says",
+      "content": "Rebuffing pressure from President Trump, a legal office says the prime minister should be pardoned only if he resigns, confesses or is convicted.",
+      "summary": "Rebuffing pressure from President Trump, a legal office says the prime minister should be pardoned only if he resigns, confesses or is convicted.",
+      "url": "https://www.nytimes.com/2026/03/12/world/middleeast/netanyahu-pardon-legal-opinion.html",
+      "author": "David M. Halbfinger",
+      "publishedAt": "2026-03-12T20:04:04.000Z"
+    },
+    {
+      "id": "article-051",
+      "title": "Mojtaba Khamenei, Iran’s New Supreme Leader, Says Strait of Hormuz Must Remain Closed in Defiant Statement",
+      "content": "Mojtaba Khamenei struck a defiant tone and signaled that Iran would not back down in a war that has spread across the Middle East.",
+      "summary": "Mojtaba Khamenei struck a defiant tone and signaled that Iran would not back down in a war that has spread across the Middle East.",
+      "url": "https://www.nytimes.com/2026/03/12/world/middleeast/khamenei-statement.html",
+      "author": "Yeganeh Torbati and Sanam Mahoozi",
+      "publishedAt": "2026-03-12T18:26:46.000Z"
+    },
+    {
+      "id": "article-052",
+      "title": "Attacks on two tankers prompt Iraq to close oil terminals.",
+      "content": "",
+      "summary": null,
+      "url": "https://www.nytimes.com/live/2026/world/us-israel-iran-attack-maps/attacks-on-two-tankers-prompt-iraq-to-close-oil-terminals",
+      "author": "Josh Holder and Elena Shao",
+      "publishedAt": "2026-03-12T15:46:18.000Z"
+    },
+    {
+      "id": "article-053",
+      "title": "15 Are Sentenced to Life for Moscow Concert Hall Massacre",
+      "content": "At least 149 people died in the 2024 terror attack outside the Russian capital, for which the Islamic State claimed responsibility.",
+      "summary": "At least 149 people died in the 2024 terror attack outside the Russian capital, for which the Islamic State claimed responsibility.",
+      "url": "https://www.nytimes.com/2026/03/12/world/europe/moscow-concert-hall-attack.html",
+      "author": "Ivan Nechepurenko",
+      "publishedAt": "2026-03-12T15:40:31.000Z"
+    },
+    {
+      "id": "article-054",
+      "title": "Displaced Lebanese Haunted by Strikes from the Sky",
+      "content": "With airstrikes expanding beyond the limits of Beirut’s southern suburbs, people in the city say that even the once-safest corners may no longer be off-limits.",
+      "summary": "With airstrikes expanding beyond the limits of Beirut’s southern suburbs, people in the city say that even the once-safest corners may no longer be off-limits.",
+      "url": "https://www.nytimes.com/2026/03/12/world/middleeast/lebanon-displaced-strikes-israel-iran.html",
+      "author": "Christina Goldbaum and Sarah Chaayto",
+      "publishedAt": "2026-03-12T20:03:49.000Z"
+    },
+    {
+      "id": "article-055",
+      "title": "Stryker Cyberattack Adds to Fears of New Front in Iran War",
+      "content": "A hacking group seemed to claim responsibility for the attack on a U.S. manufacturer, calling it retaliation for a strike on an Iranian school.",
+      "summary": "A hacking group seemed to claim responsibility for the attack on a U.S. manufacturer, calling it retaliation for a strike on an Iranian school.",
+      "url": "https://www.nytimes.com/2026/03/12/world/middleeast/stryker-iran-cyberattack.html",
+      "author": "Lynsey Chutel",
+      "publishedAt": "2026-03-12T14:56:29.000Z"
+    },
+    {
+      "id": "article-056",
+      "title": "War has sent thousands of planes flying in the other direction.",
+      "content": "",
+      "summary": null,
+      "url": "https://www.nytimes.com/live/2026/world/us-israel-iran-attack-maps/war-has-sent-thousands-of-planes-flying-in-the-other-direction",
+      "author": "Zach Levitt and Jacqueline Gu",
+      "publishedAt": "2026-03-12T14:33:40.000Z"
+    },
+    {
+      "id": "article-057",
+      "title": "Closures of Middle East oil terminals add to jitters about prices.",
+      "content": "",
+      "summary": null,
+      "url": "https://www.nytimes.com/live/2026/03/12/world/iran-war-news-trump-oil-israel/middle-east-terminal-closures-add-to-jitters-about-oil-prices",
+      "author": "Raja Abdulrahim",
+      "publishedAt": "2026-03-12T15:20:26.000Z"
+    },
+    {
+      "id": "article-058",
+      "title": "Iran War Causing Largest Ever Oil Disruption, I.E.A. Says",
+      "content": "Conflict is forcing producers to slash production and close ports as Iran steps up attacks on energy infrastructure.",
+      "summary": "Conflict is forcing producers to slash production and close ports as Iran steps up attacks on energy infrastructure.",
+      "url": "https://www.nytimes.com/2026/03/12/world/middleeast/iran-war-oil-iea.html",
+      "author": "Eshe Nelson",
+      "publishedAt": "2026-03-12T14:11:23.000Z"
+    }
+  ]
+}

@@ -1,0 +1,684 @@
+---
+import Base from "../layouts/base.astro";
+import SiteNav from "../components/site-nav.astro";
+import "../styles/global.css";
+---
+
+<Base title="Evaluation — How we chose what reads your news" description="Benchmarking six embedding models across three RSS feeds to find the best classifier for article-to-topic matching.">
+  <SiteNav current="/evaluation" />
+
+  <!-- ════════════════════════════════════════════════════════════════
+       COVER — the big question
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="min-h-[80vh] flex flex-col justify-end px-6 md:px-12 lg:px-20 pb-20 pt-32">
+    <div class="max-w-wide mx-auto w-full">
+      <div class="flex items-center gap-4 mb-10 md:mb-14">
+        <div class="w-8 h-px bg-accent" />
+        <span class="text-[10px] font-mono tracking-[0.3em] uppercase text-accent">Technical report</span>
+      </div>
+
+      <h1 class="mb-8 md:mb-12">
+        <span class="block text-[2rem] md:text-[3.5rem] lg:text-[5rem] leading-[0.85] tracking-tight text-ink-secondary font-serif">
+          How we chose
+        </span>
+        <span class="block text-[2.5rem] md:text-[4.5rem] lg:text-[7rem] leading-[0.8] font-display font-black italic text-ink" style="letter-spacing: -0.03em;">
+          what reads your news.
+        </span>
+      </h1>
+
+      <div class="h-[3px] bg-accent w-full mb-10 md:mb-14" />
+
+      <div class="grid md:grid-cols-[2fr_1fr] gap-8 md:gap-12">
+        <p class="font-serif text-base md:text-lg text-ink-secondary leading-relaxed max-w-prose">
+          Editions classifies every article into your topics using on-device machine learning. We benchmarked six embedding models across 70 labeled articles from three RSS feeds to find the right one. Here's what we learned.
+        </p>
+        <div>
+          <div class="text-[10px] font-mono tracking-[0.2em] uppercase text-ink-faint mb-3">The benchmark</div>
+          <div class="grid gap-1.5 text-sm text-ink-tertiary">
+            <span>6 models compared</span>
+            <span>3 RSS feeds, 70 labeled articles</span>
+            <span>15 topic categories</span>
+            <span>3 metrics: classification, embeddings, ranking</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACT I — THE QUESTION
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="py-24 md:py-32 px-6 md:px-12 lg:px-20 bg-surface-sunken">
+    <div class="max-w-wide mx-auto">
+      <div class="reveal mb-16">
+        <span class="text-xs font-mono tracking-wide uppercase text-accent mb-4 block">The question</span>
+        <h2 class="font-serif text-3xl md:text-4xl tracking-tight text-ink max-w-prose">
+          Can a 33 MB model read your news?
+        </h2>
+      </div>
+
+      <div class="reveal max-w-prose">
+        <p class="font-serif text-base text-ink-secondary leading-relaxed mb-6">
+          When you create a focus like "Climate Change" or "Local News", Editions needs to decide which of your incoming articles belong there. It does this by computing an <em>embedding</em> — a compact mathematical fingerprint of meaning — for both the article and the focus label, then measuring how similar they are.
+        </p>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed mb-6">
+          The choice of embedding model matters. A better model means you see the right articles in the right topics. A worse one means you're manually re-sorting articles the system should have caught.
+        </p>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed">
+          We tested six models — three small (384 dimensions, ~23–33 MB) and three medium (768 dimensions, ~67 MB) — to find which one earns its place on your server.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACT II — THE METHOD
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="py-24 md:py-32 px-6 md:px-12 lg:px-20">
+    <div class="max-w-wide mx-auto">
+      <div class="reveal mb-16">
+        <span class="text-xs font-mono tracking-wide uppercase text-accent mb-4 block">The method</span>
+        <h2 class="font-serif text-3xl md:text-4xl tracking-tight text-ink max-w-prose">
+          Three feeds, 70 articles, by hand.
+        </h2>
+      </div>
+
+      <div class="reveal grid md:grid-cols-3 gap-8 mb-16">
+        <div class="rounded-lg border border-border bg-surface p-6">
+          <div class="text-xs font-mono tracking-wide uppercase text-accent mb-3">Tech / Consumer</div>
+          <h3 class="font-serif text-lg tracking-tight text-ink mb-2">The Verge</h3>
+          <p class="text-sm text-ink-secondary leading-relaxed mb-4">
+            30 articles across overlapping categories — gadgets, gaming, AI, deals. The hardest test: is this review about hardware or entertainment?
+          </p>
+          <div class="flex flex-wrap gap-1.5">
+            {["Gadgets", "AI & ML", "Deals", "Gaming", "Big Tech"].map((f) => (
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded-full border border-border text-ink-faint">{f}</span>
+            ))}
+          </div>
+        </div>
+        <div class="rounded-lg border border-border bg-surface p-6">
+          <div class="text-xs font-mono tracking-wide uppercase text-accent mb-3">Tech / Specialist</div>
+          <h3 class="font-serif text-lg tracking-tight text-ink mb-2">Ars Technica</h3>
+          <p class="text-sm text-ink-secondary leading-relaxed mb-4">
+            20 articles with more distinct topics — science, security, EVs, policy. Cleaner category boundaries.
+          </p>
+          <div class="flex flex-wrap gap-1.5">
+            {["Science", "Computing", "EVs", "Security", "Policy"].map((f) => (
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded-full border border-border text-ink-faint">{f}</span>
+            ))}
+          </div>
+        </div>
+        <div class="rounded-lg border border-border bg-surface p-6">
+          <div class="text-xs font-mono tracking-wide uppercase text-accent mb-3">Geopolitics</div>
+          <h3 class="font-serif text-lg tracking-tight text-ink mb-2">NYT World</h3>
+          <p class="text-sm text-ink-secondary leading-relaxed mb-4">
+            20 articles on clearly separable geopolitical topics. The easiest test — but validates the system works at all.
+          </p>
+          <div class="flex flex-wrap gap-1.5">
+            {["Middle East", "Oil & Energy", "US Policy", "Ukraine", "Latin America"].map((f) => (
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded-full border border-border text-ink-faint">{f}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div class="reveal max-w-prose">
+        <p class="font-serif text-base text-ink-secondary leading-relaxed mb-4">
+          Every article was labeled by hand: for each topic, <em>does this article belong?</em> Yes or no. An article about an AI-powered gadget might be labeled "yes" for both <em>Gadgets & Hardware</em> and <em>AI & Machine Learning</em>.
+        </p>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed">
+          We then ran each model against these labels, found the optimal confidence threshold per topic, and measured precision (how many predicted matches were correct) and recall (how many true matches were found).
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACT III — CLASSIFICATION RESULTS
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="py-24 md:py-32 px-6 md:px-12 lg:px-20 bg-surface-sunken">
+    <div class="max-w-wide mx-auto">
+      <div class="reveal mb-16">
+        <span class="text-xs font-mono tracking-wide uppercase text-accent mb-4 block">Classification</span>
+        <h2 class="font-serif text-3xl md:text-4xl tracking-tight text-ink max-w-prose">
+          The small model won.
+        </h2>
+        <p class="text-sm text-ink-secondary leading-relaxed max-w-prose mt-4">
+          F1 score measures the balance between precision and recall — the higher, the better. We averaged F1 across all topics and feeds for each model.
+        </p>
+      </div>
+
+      <!-- F1 chart — hand-crafted SVG -->
+      <div class="reveal mb-12">
+        <div class="rounded-lg border border-border bg-surface p-6 md:p-8">
+          <div class="text-xs font-mono tracking-wide uppercase text-ink-faint mb-6">Average macro F1 across all fixtures</div>
+          <svg viewBox="0 0 720 280" class="w-full" aria-label="Bar chart comparing model F1 scores">
+            <!-- Grid lines -->
+            <line x1="60" y1="40" x2="700" y2="40" stroke="var(--color-border)" stroke-dasharray="4" />
+            <text x="54" y="44" text-anchor="end" font-size="10" fill="var(--color-ink-faint)" font-family="var(--font-mono)">100%</text>
+            <line x1="60" y1="100" x2="700" y2="100" stroke="var(--color-border)" stroke-dasharray="4" />
+            <text x="54" y="104" text-anchor="end" font-size="10" fill="var(--color-ink-faint)" font-family="var(--font-mono)">70%</text>
+            <line x1="60" y1="160" x2="700" y2="160" stroke="var(--color-border)" stroke-dasharray="4" />
+            <text x="54" y="164" text-anchor="end" font-size="10" fill="var(--color-ink-faint)" font-family="var(--font-mono)">40%</text>
+
+            <!-- Axes -->
+            <line x1="60" y1="40" x2="60" y2="220" stroke="var(--color-border)" />
+            <line x1="60" y1="220" x2="700" y2="220" stroke="var(--color-border)" />
+
+            <!-- bge-small — WINNER -->
+            <rect x="85" y="62.2" width="60" height="157.8" fill="var(--color-accent)" rx="3" />
+            <text x="115" y="56" text-anchor="middle" font-size="12" fill="var(--color-ink)" font-weight="600" font-family="var(--font-mono)">86.9%</text>
+            <text x="115" y="240" text-anchor="middle" font-size="10" fill="var(--color-ink)" font-family="var(--font-sans)" transform="rotate(-20 115 240)">bge-small</text>
+
+            <!-- MiniLM-L12 -->
+            <rect x="185" y="73.4" width="60" height="146.6" fill="var(--color-ink-faint)" rx="3" opacity="0.5" />
+            <text x="215" y="68" text-anchor="middle" font-size="11" fill="var(--color-ink-secondary)" font-family="var(--font-mono)">84.7%</text>
+            <text x="215" y="240" text-anchor="middle" font-size="10" fill="var(--color-ink-tertiary)" font-family="var(--font-sans)" transform="rotate(-20 215 240)">MiniLM-L12</text>
+
+            <!-- NLI (MiniLM-L6) -->
+            <rect x="285" y="74.2" width="60" height="145.8" fill="var(--color-ink-faint)" rx="3" opacity="0.35" />
+            <text x="315" y="68" text-anchor="middle" font-size="11" fill="var(--color-ink-tertiary)" font-family="var(--font-mono)">84.6%</text>
+            <text x="315" y="240" text-anchor="middle" font-size="10" fill="var(--color-ink-tertiary)" font-family="var(--font-sans)" transform="rotate(-20 315 240)">NLI*</text>
+
+            <!-- MiniLM-L6 -->
+            <rect x="385" y="75.6" width="60" height="144.4" fill="var(--color-ink-faint)" rx="3" opacity="0.5" />
+            <text x="415" y="70" text-anchor="middle" font-size="11" fill="var(--color-ink-secondary)" font-family="var(--font-mono)">84.1%</text>
+            <text x="415" y="240" text-anchor="middle" font-size="10" fill="var(--color-ink-tertiary)" font-family="var(--font-sans)" transform="rotate(-20 415 240)">MiniLM-L6</text>
+
+            <!-- gte-small -->
+            <rect x="485" y="76.0" width="60" height="144.0" fill="var(--color-ink-faint)" rx="3" opacity="0.5" />
+            <text x="515" y="70" text-anchor="middle" font-size="11" fill="var(--color-ink-secondary)" font-family="var(--font-mono)">84.0%</text>
+            <text x="515" y="240" text-anchor="middle" font-size="10" fill="var(--color-ink-tertiary)" font-family="var(--font-sans)" transform="rotate(-20 515 240)">gte-small</text>
+
+            <!-- gte-base -->
+            <rect x="585" y="97.2" width="60" height="122.8" fill="var(--color-critical-subtle)" rx="3" opacity="0.7" />
+            <text x="615" y="92" text-anchor="middle" font-size="11" fill="var(--color-ink-secondary)" font-family="var(--font-mono)">79.6%</text>
+            <text x="615" y="240" text-anchor="middle" font-size="10" fill="var(--color-ink-tertiary)" font-family="var(--font-sans)" transform="rotate(-20 615 240)">gte-base</text>
+
+            <!-- Annotation: NLI footnote -->
+            <text x="315" y="268" text-anchor="middle" font-size="9" fill="var(--color-ink-faint)" font-family="var(--font-mono)" font-style="italic">*BART-MNLI, ~60x slower</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Key finding callout -->
+      <div class="reveal grid md:grid-cols-2 gap-12 mb-16">
+        <div class="rounded-lg border-l-[3px] border-accent bg-surface p-6">
+          <div class="text-xs font-mono tracking-wide uppercase text-accent mb-3">Finding</div>
+          <p class="font-serif text-base text-ink leading-relaxed">
+            <strong>bge-small-en-v1.5</strong> achieved the highest classification F1 (86.9%) despite being a small 384-dimensional model at just 33 MB. It outperformed models twice its size.
+          </p>
+        </div>
+        <div class="rounded-lg border-l-[3px] border-accent bg-surface p-6">
+          <div class="text-xs font-mono tracking-wide uppercase text-accent mb-3">Surprise</div>
+          <p class="font-serif text-base text-ink leading-relaxed">
+            NLI (natural language inference via BART-MNLI) scored 84.6% — <em>lower</em> than simple embedding similarity — at roughly 60 times the compute cost.
+          </p>
+        </div>
+      </div>
+
+      <!-- Per-fixture breakdown -->
+      <div class="reveal">
+        <div class="text-xs font-mono tracking-wide uppercase text-ink-faint mb-6">Similarity F1 by feed</div>
+        <div class="rounded-lg border border-border bg-surface overflow-hidden">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-border bg-surface-sunken">
+                <th class="text-left px-4 md:px-6 py-3 text-xs font-mono font-medium tracking-wide text-ink-tertiary">Model</th>
+                <th class="text-right px-4 md:px-6 py-3 text-xs font-mono font-medium tracking-wide text-ink-tertiary">Ars Technica</th>
+                <th class="text-right px-4 md:px-6 py-3 text-xs font-mono font-medium tracking-wide text-ink-tertiary">The Verge</th>
+                <th class="text-right px-4 md:px-6 py-3 text-xs font-mono font-medium tracking-wide text-ink-tertiary hidden sm:table-cell">Avg</th>
+              </tr>
+            </thead>
+            <tbody class="text-ink-secondary">
+              {[
+                { name: "bge-small", ars: "86.4%", verge: "82.9%", avg: "86.9%", best: true },
+                { name: "MiniLM-L12", ars: "82.2%", verge: "83.4%", avg: "84.7%", best: false },
+                { name: "gte-small", ars: "82.8%", verge: "82.2%", avg: "84.0%", best: false },
+                { name: "MiniLM-L6", ars: "80.3%", verge: "79.0%", avg: "84.1%", best: false },
+                { name: "bge-base", ars: "82.6%", verge: "62.4%", avg: "78.4%", best: false },
+                { name: "gte-base", ars: "80.1%", verge: "70.3%", avg: "79.6%", best: false },
+              ].map((row) => (
+                <tr class="border-b border-border last:border-0">
+                  <td class:list={["px-4 md:px-6 py-3", row.best ? "font-medium text-ink" : ""]}>
+                    {row.name}
+                    {row.best && <span class="text-[10px] font-mono text-accent ml-2">winner</span>}
+                  </td>
+                  <td class="text-right px-4 md:px-6 py-3 font-mono text-xs">{row.ars}</td>
+                  <td class:list={["text-right px-4 md:px-6 py-3 font-mono text-xs", row.name === "bge-base" ? "text-critical" : ""]}>
+                    {row.verge}
+                  </td>
+                  <td class:list={["text-right px-4 md:px-6 py-3 font-mono text-xs hidden sm:table-cell", row.best ? "font-medium text-ink" : ""]}>
+                    {row.avg}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="font-serif text-sm text-ink-faint mt-4 leading-relaxed italic">
+          NYT World results excluded from the table — all models scored 88–93% on clearly separable geopolitical topics, revealing little differentiation.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACT IV — THE BASE MODEL TRAP
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="py-24 md:py-32 px-6 md:px-12 lg:px-20">
+    <div class="max-w-wide mx-auto">
+      <div class="reveal mb-16">
+        <span class="text-xs font-mono tracking-wide uppercase text-accent mb-4 block">The surprise</span>
+        <h2 class="font-serif text-3xl md:text-4xl tracking-tight text-ink max-w-prose">
+          Bigger isn't better.
+        </h2>
+      </div>
+
+      <div class="reveal grid md:grid-cols-[1fr_20rem] gap-12 items-start">
+        <div>
+          <p class="font-serif text-base text-ink-secondary leading-relaxed mb-6">
+            The intuitive assumption is that larger models with more dimensions should perform better. They have twice the capacity to represent meaning. More parameters, more nuance, right?
+          </p>
+          <p class="font-serif text-base text-ink-secondary leading-relaxed mb-6">
+            Wrong — at least for topic classification of news articles. The 768-dimensional "base" models consistently <em>underperformed</em> their smaller 384-dimensional counterparts. The effect was dramatic on The Verge, where overlapping consumer tech categories exposed the problem.
+          </p>
+          <p class="font-serif text-base text-ink-secondary leading-relaxed">
+            The likely explanation: larger models capture finer semantic distinctions that don't align with coarse topic boundaries. A "base" model can tell that a gaming laptop review is about <em>both</em> gaming and hardware — but that extra nuance produces ambiguous scores that hurt precision.
+          </p>
+        </div>
+        <div class="rounded-lg border border-border bg-surface p-6">
+          <div class="text-xs font-mono tracking-wide uppercase text-accent mb-4">The Verge F1 — small vs base</div>
+          <div class="grid gap-3">
+            {[
+              { name: "bge-small", dim: "384d", f1: "82.9%", good: true },
+              { name: "bge-base", dim: "768d", f1: "62.4%", good: false },
+            ].map((m) => (
+              <div class="flex items-center justify-between py-2">
+                <div>
+                  <span class="text-sm text-ink">{m.name}</span>
+                  <span class="text-xs font-mono text-ink-faint ml-2">{m.dim}</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="w-24 h-2 rounded-full bg-surface-sunken overflow-hidden">
+                    <div
+                      class:list={["h-full rounded-full", m.good ? "bg-accent" : "bg-critical"]}
+                      style={`width: ${m.f1}`}
+                    />
+                  </div>
+                  <span class:list={["text-sm font-mono", m.good ? "text-ink" : "text-critical"]}>{m.f1}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div class="border-t border-border mt-4 pt-4">
+            <p class="font-serif text-xs text-ink-faint leading-relaxed">
+              Same model family, same training data. The only difference is embedding dimension — and the smaller one wins by 20 points.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACT V — EMBEDDING QUALITY
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="py-24 md:py-32 px-6 md:px-12 lg:px-20 bg-surface-sunken">
+    <div class="max-w-wide mx-auto">
+      <div class="reveal mb-16">
+        <span class="text-xs font-mono tracking-wide uppercase text-accent mb-4 block">Embedding quality</span>
+        <h2 class="font-serif text-3xl md:text-4xl tracking-tight text-ink max-w-prose">
+          How well do articles cluster by topic?
+        </h2>
+        <p class="text-sm text-ink-secondary leading-relaxed max-w-prose mt-4">
+          Beyond classification, embeddings power vote propagation and future semantic search. We measured <em>separation ratio</em> — how much more similar articles within the same topic are versus articles in different topics. Higher is better.
+        </p>
+      </div>
+
+      <!-- Separation ratio chart -->
+      <div class="reveal mb-12">
+        <div class="rounded-lg border border-border bg-surface p-6 md:p-8">
+          <div class="text-xs font-mono tracking-wide uppercase text-ink-faint mb-6">Average separation ratio (intra / inter-focus similarity)</div>
+          <svg viewBox="0 0 720 220" class="w-full" aria-label="Bar chart comparing embedding cluster separation">
+            <!-- Grid -->
+            <line x1="60" y1="40" x2="700" y2="40" stroke="var(--color-border)" stroke-dasharray="4" />
+            <text x="54" y="44" text-anchor="end" font-size="10" fill="var(--color-ink-faint)" font-family="var(--font-mono)">1.45</text>
+            <line x1="60" y1="100" x2="700" y2="100" stroke="var(--color-border)" stroke-dasharray="4" />
+            <text x="54" y="104" text-anchor="end" font-size="10" fill="var(--color-ink-faint)" font-family="var(--font-mono)">1.10</text>
+            <line x1="60" y1="160" x2="700" y2="160" stroke="var(--color-border)" stroke-dasharray="4" />
+            <text x="54" y="164" text-anchor="end" font-size="10" fill="var(--color-ink-faint)" font-family="var(--font-mono)">0.75</text>
+
+            <!-- Axes -->
+            <line x1="60" y1="40" x2="60" y2="180" stroke="var(--color-border)" />
+            <line x1="60" y1="180" x2="700" y2="180" stroke="var(--color-border)" />
+
+            <!-- MiniLM-L12 — best ratio -->
+            <rect x="85" y="40" width="60" height="140" fill="var(--color-accent)" rx="3" />
+            <text x="115" y="34" text-anchor="middle" font-size="12" fill="var(--color-ink)" font-weight="600" font-family="var(--font-mono)">1.45</text>
+            <text x="115" y="198" text-anchor="middle" font-size="10" fill="var(--color-ink)" font-family="var(--font-sans)" transform="rotate(-20 115 198)">MiniLM-L12</text>
+
+            <!-- MiniLM-L6 -->
+            <rect x="185" y="44" width="60" height="136" fill="var(--color-accent)" rx="3" opacity="0.7" />
+            <text x="215" y="38" text-anchor="middle" font-size="11" fill="var(--color-ink-secondary)" font-family="var(--font-mono)">1.41</text>
+            <text x="215" y="198" text-anchor="middle" font-size="10" fill="var(--color-ink-tertiary)" font-family="var(--font-sans)" transform="rotate(-20 215 198)">MiniLM-L6</text>
+
+            <!-- bge-small -->
+            <rect x="285" y="88" width="60" height="92" fill="var(--color-ink-faint)" rx="3" opacity="0.5" />
+            <text x="315" y="82" text-anchor="middle" font-size="11" fill="var(--color-ink-secondary)" font-family="var(--font-mono)">1.10</text>
+            <text x="315" y="198" text-anchor="middle" font-size="10" fill="var(--color-ink-tertiary)" font-family="var(--font-sans)" transform="rotate(-20 315 198)">bge-small</text>
+
+            <!-- bge-base -->
+            <rect x="385" y="96" width="60" height="84" fill="var(--color-ink-faint)" rx="3" opacity="0.35" />
+            <text x="415" y="90" text-anchor="middle" font-size="11" fill="var(--color-ink-secondary)" font-family="var(--font-mono)">1.05</text>
+            <text x="415" y="198" text-anchor="middle" font-size="10" fill="var(--color-ink-tertiary)" font-family="var(--font-sans)" transform="rotate(-20 415 198)">bge-base</text>
+
+            <!-- gte-small -->
+            <rect x="485" y="100" width="60" height="80" fill="var(--color-ink-faint)" rx="3" opacity="0.35" />
+            <text x="515" y="94" text-anchor="middle" font-size="11" fill="var(--color-ink-secondary)" font-family="var(--font-mono)">1.03</text>
+            <text x="515" y="198" text-anchor="middle" font-size="10" fill="var(--color-ink-tertiary)" font-family="var(--font-sans)" transform="rotate(-20 515 198)">gte-small</text>
+
+            <!-- gte-base -->
+            <rect x="585" y="100" width="60" height="80" fill="var(--color-ink-faint)" rx="3" opacity="0.35" />
+            <text x="615" y="94" text-anchor="middle" font-size="11" fill="var(--color-ink-secondary)" font-family="var(--font-mono)">1.03</text>
+            <text x="615" y="198" text-anchor="middle" font-size="10" fill="var(--color-ink-tertiary)" font-family="var(--font-sans)" transform="rotate(-20 615 198)">gte-base</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="reveal grid md:grid-cols-2 gap-12">
+        <div class="rounded-lg border-l-[3px] border-accent bg-surface p-6">
+          <div class="text-xs font-mono tracking-wide uppercase text-accent mb-3">What this means</div>
+          <p class="font-serif text-base text-ink leading-relaxed">
+            MiniLM models spread articles out more in their embedding space — articles about the same topic cluster together, and different topics stay apart. This is ideal for vote propagation, where a vote on one article should influence similar articles but not unrelated ones.
+          </p>
+        </div>
+        <div class="rounded-lg border-l-[3px] border-border bg-surface p-6">
+          <div class="text-xs font-mono tracking-wide uppercase text-ink-faint mb-3">The tradeoff</div>
+          <p class="font-serif text-base text-ink-secondary leading-relaxed">
+            bge-small wins on classification F1 but has a tighter embedding space (ratio 1.10 vs 1.45). This means vote propagation needs a higher similarity threshold to avoid bleeding across topics — which is why we raised it from 0.3 to 0.4.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACT VI — VOTING & RANKING
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="py-24 md:py-32 px-6 md:px-12 lg:px-20">
+    <div class="max-w-wide mx-auto">
+      <div class="reveal mb-16">
+        <span class="text-xs font-mono tracking-wide uppercase text-accent mb-4 block">Ranking</span>
+        <h2 class="font-serif text-3xl md:text-4xl tracking-tight text-ink max-w-prose">
+          Do votes actually help?
+        </h2>
+        <p class="text-sm text-ink-secondary leading-relaxed max-w-prose mt-4">
+          We simulated voting (2 upvotes, 1 downvote per topic) and measured NDCG — a ranking metric where 1.0 means perfect ordering and 0.5 means essentially random.
+        </p>
+      </div>
+
+      <!-- Vote impact -->
+      <div class="reveal mb-16">
+        <div class="text-xs font-mono tracking-wide uppercase text-ink-faint mb-6">NDCG change after voting</div>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[
+            { name: "bge-small", delta: "+0.073", positive: true, desc: "Votes improved ranking — the model we chose" },
+            { name: "gte-small", delta: "+0.050", positive: true, desc: "Also benefits from vote signal" },
+            { name: "gte-base", delta: "-0.001", positive: false, desc: "No meaningful change" },
+            { name: "MiniLM-L12", delta: "-0.021", positive: false, desc: "Slightly worse with votes" },
+            { name: "bge-base", delta: "-0.037", positive: false, desc: "Votes hurt — embedding space too compressed" },
+            { name: "MiniLM-L6", delta: "-0.048", positive: false, desc: "Votes hurt despite good cluster separation" },
+          ].map((m) => (
+            <div class="rounded-lg border border-border bg-surface p-5">
+              <div class="flex items-baseline justify-between mb-2">
+                <span class="text-sm text-ink">{m.name}</span>
+                <span class:list={["text-lg font-mono font-medium", m.positive ? "text-accent" : "text-ink-faint"]}>
+                  {m.delta}
+                </span>
+              </div>
+              <p class="font-serif text-xs text-ink-secondary leading-relaxed">{m.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- Ranking explanation -->
+      <div class="reveal grid md:grid-cols-2 gap-12">
+        <div>
+          <h3 class="font-serif text-xl tracking-tight text-ink mb-4">Why votes hurt some models</h3>
+          <p class="font-serif text-base text-ink-secondary leading-relaxed mb-4">
+            Vote propagation works by finding similar articles and transferring the vote signal. If the embedding space is too spread out (MiniLM), votes on one article barely reach related ones — the signal dissipates. If the space is too compressed (base models), votes bleed across topic boundaries — an upvote on a gaming article accidentally boosts unrelated tech policy.
+          </p>
+          <p class="font-serif text-base text-ink-secondary leading-relaxed">
+            bge-small sits in the sweet spot: compact enough for votes to propagate to genuinely similar articles, but separable enough to respect topic boundaries.
+          </p>
+        </div>
+        <div>
+          <h3 class="font-serif text-xl tracking-tight text-ink mb-4">Vote weight ramping</h3>
+          <p class="font-serif text-base text-ink-secondary leading-relaxed mb-4">
+            One more thing we learned: with only a few votes, the vote signal is noisy. A single upvote on a clickbait article shouldn't dramatically reshape the entire feed.
+          </p>
+          <p class="font-serif text-base text-ink-secondary leading-relaxed">
+            So we added <em>vote ramping</em> — the vote weight scales linearly from zero to full based on how many votes you've cast. Until you've voted on at least 5 articles, the system leans more heavily on confidence and recency. As you vote more, personalization gradually takes effect.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACT VII — SIMILARITY VS NLI
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="py-24 md:py-32 px-6 md:px-12 lg:px-20 bg-surface-sunken">
+    <div class="max-w-wide mx-auto">
+      <div class="reveal mb-16">
+        <span class="text-xs font-mono tracking-wide uppercase text-accent mb-4 block">Classification strategy</span>
+        <h2 class="font-serif text-3xl md:text-4xl tracking-tight text-ink max-w-prose">
+          The 400 MB model you don't need.
+        </h2>
+      </div>
+
+      <div class="reveal grid md:grid-cols-[1fr_1fr] gap-12 mb-16">
+        <div class="rounded-lg border border-border bg-surface p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-3 h-3 rounded-full bg-accent" />
+            <div class="text-xs font-mono tracking-wide uppercase text-accent">Embedding similarity</div>
+          </div>
+          <div class="grid gap-3">
+            {[
+              { label: "How it works", value: "Dot product between article and focus embeddings" },
+              { label: "Model size", value: "33 MB" },
+              { label: "Speed", value: "~7 seconds for 70 articles" },
+              { label: "Best F1", value: "86.9%" },
+            ].map((r) => (
+              <div class="flex items-baseline justify-between border-b border-border pb-2 last:border-0 last:pb-0">
+                <span class="font-serif text-sm text-ink-secondary">{r.label}</span>
+                <span class="text-sm font-mono text-ink">{r.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div class="rounded-lg border border-border bg-surface p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-3 h-3 rounded-full bg-ink-faint" />
+            <div class="text-xs font-mono tracking-wide uppercase text-ink-faint">NLI (zero-shot)</div>
+          </div>
+          <div class="grid gap-3">
+            {[
+              { label: "How it works", value: "\"Does this text entail 'Technology'?\"" },
+              { label: "Model size", value: "~400 MB (BART-MNLI)" },
+              { label: "Speed", value: "~500 seconds for 70 articles" },
+              { label: "Best F1", value: "84.6%" },
+            ].map((r) => (
+              <div class="flex items-baseline justify-between border-b border-border pb-2 last:border-0 last:pb-0">
+                <span class="font-serif text-sm text-ink-secondary">{r.label}</span>
+                <span class="text-sm font-mono text-ink">{r.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div class="reveal max-w-prose">
+        <p class="font-serif text-base text-ink-secondary leading-relaxed mb-4">
+          NLI asks a fundamentally different question — not "how similar is this text to this label?" but "does this text <em>entail</em> this label?" In theory, that's more precise. In practice, for well-defined topic categories, the simpler approach wins.
+        </p>
+        <p class="font-serif text-base text-ink-secondary leading-relaxed">
+          We still offer NLI and hybrid modes for users who want them (set <code class="font-mono text-xs bg-surface px-1.5 py-0.5 rounded">analysis.classifier</code> in your config). But the default is now pure embedding similarity — instant classification, no 400 MB model download on first run.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACT VIII — WHAT WE CHANGED
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="py-24 md:py-32 px-6 md:px-12 lg:px-20">
+    <div class="max-w-wide mx-auto">
+      <div class="reveal mb-16">
+        <span class="text-xs font-mono tracking-wide uppercase text-accent mb-4 block">What we changed</span>
+        <h2 class="font-serif text-3xl md:text-4xl tracking-tight text-ink max-w-prose">
+          Four changes from one benchmark.
+        </h2>
+      </div>
+
+      <div class="reveal">
+        <div class="stagger grid gap-10 md:gap-14">
+          <div class="grid md:grid-cols-[4rem_1fr] gap-4 items-start">
+            <div class="text-3xl font-mono text-accent/30 leading-none">01</div>
+            <div>
+              <h3 class="font-serif text-xl tracking-tight text-ink mb-2">Switched to bge-small-en-v1.5</h3>
+              <p class="text-sm text-ink-secondary leading-relaxed max-w-prose">
+                From all-MiniLM-L6-v2 to bge-small-en-v1.5. Same 384 dimensions, 10 MB larger, but 2.8 percentage points better on classification and measurably better vote propagation.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-[4rem_1fr] gap-4 items-start">
+            <div class="text-3xl font-mono text-accent/30 leading-none">02</div>
+            <div>
+              <h3 class="font-serif text-xl tracking-tight text-ink mb-2">Defaulted to similarity-only classification</h3>
+              <p class="text-sm text-ink-secondary leading-relaxed max-w-prose">
+                NLI offered no accuracy advantage at 60x the cost. Classification now completes in seconds instead of minutes. NLI and hybrid remain available for users who want them.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-[4rem_1fr] gap-4 items-start">
+            <div class="text-3xl font-mono text-accent/30 leading-none">03</div>
+            <div>
+              <h3 class="font-serif text-xl tracking-tight text-ink mb-2">Added vote weight ramping</h3>
+              <p class="text-sm text-ink-secondary leading-relaxed max-w-prose">
+                Vote influence now scales linearly from 0 to full over your first 5 votes. Until you've cast enough votes for a meaningful signal, the system relies more on topic confidence and recency.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-[4rem_1fr] gap-4 items-start">
+            <div class="text-3xl font-mono text-accent/30 leading-none">04</div>
+            <div>
+              <h3 class="font-serif text-xl tracking-tight text-ink mb-2">Model tracking for automatic rescoring</h3>
+              <p class="text-sm text-ink-secondary leading-relaxed max-w-prose">
+                Every classification score now records which model produced it. When you change models, the system automatically rescores all articles on the next reconciliation — no manual intervention needed.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       ACT IX — METHODOLOGY DETAILS
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="py-24 md:py-32 px-6 md:px-12 lg:px-20 bg-surface-sunken">
+    <div class="max-w-wide mx-auto">
+      <div class="reveal mb-16">
+        <span class="text-xs font-mono tracking-wide uppercase text-accent mb-4 block">Methodology</span>
+        <h2 class="font-serif text-3xl md:text-4xl tracking-tight text-ink max-w-prose">
+          How to reproduce this.
+        </h2>
+      </div>
+
+      <div class="reveal grid md:grid-cols-2 gap-12">
+        <div>
+          <h3 class="font-serif text-lg tracking-tight text-ink mb-4">The eval framework</h3>
+          <p class="font-serif text-base text-ink-secondary leading-relaxed mb-4">
+            The benchmark lives in <code class="font-mono text-xs bg-surface px-1.5 py-0.5 rounded">apps/eval/</code> — a standalone workspace that imports from the server but exports nothing back. It uses the same transformers.js inference engine and the same in-memory SQLite setup as the real pipeline.
+          </p>
+          <div class="grid gap-3 mt-6">
+            {[
+              { cmd: "pnpm fetch-feed", desc: "Download and extract RSS feeds into JSON fixtures" },
+              { cmd: "pnpm label", desc: "Interactive CLI to label articles per topic" },
+              { cmd: "pnpm bench", desc: "Run all benchmarks (classify, embed, rank)" },
+              { cmd: "pnpm report", desc: "Generate HTML report with SVG charts" },
+            ].map((c) => (
+              <div class="flex gap-4 items-baseline">
+                <code class="text-xs font-mono text-accent shrink-0">{c.cmd}</code>
+                <span class="font-serif text-sm text-ink-secondary">{c.desc}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <h3 class="font-serif text-lg tracking-tight text-ink mb-4">Metrics used</h3>
+          <div class="grid gap-4">
+            <div class="rounded-lg border border-border bg-surface p-5">
+              <div class="text-xs font-mono tracking-wide text-accent mb-2 uppercase">Classification</div>
+              <p class="font-serif text-sm text-ink-secondary leading-relaxed">
+                <strong class="text-ink">Precision, recall, F1</strong> per focus, with thresholds optimized per focus via grid search. Macro-averaged across focuses, then averaged across fixtures.
+              </p>
+            </div>
+            <div class="rounded-lg border border-border bg-surface p-5">
+              <div class="text-xs font-mono tracking-wide text-accent mb-2 uppercase">Embedding quality</div>
+              <p class="font-serif text-sm text-ink-secondary leading-relaxed">
+                <strong class="text-ink">Separation ratio</strong> — mean intra-focus cosine similarity divided by mean inter-focus similarity. A ratio above 1.0 means same-topic articles are more similar than different-topic articles.
+              </p>
+            </div>
+            <div class="rounded-lg border border-border bg-surface p-5">
+              <div class="text-xs font-mono tracking-wide text-accent mb-2 uppercase">Ranking</div>
+              <p class="font-serif text-sm text-ink-secondary leading-relaxed">
+                <strong class="text-ink">NDCG@K</strong> and <strong class="text-ink">MRR</strong> — standard information retrieval metrics measuring how well the ranked output matches the ideal ordering. Tested with four weight configurations and two vote scenarios.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       CODA — the takeaway
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="py-24 md:py-32 px-6 md:px-12 lg:px-20">
+    <div class="max-w-wide mx-auto">
+      <div class="reveal max-w-prose mx-auto text-center">
+        <h2 class="font-serif text-3xl md:text-5xl tracking-tight text-ink mb-8 leading-tight">
+          A 33 MB model, running on your server, classifying your news with 87% accuracy.
+        </h2>
+        <p class="text-lg text-ink-secondary leading-relaxed mb-4">
+          No cloud. No API keys. No data leaving your machine.
+        </p>
+        <p class="text-lg text-ink-secondary leading-relaxed">
+          That's the point.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-16 px-6 md:px-12 lg:px-20 border-t border-border">
+    <div class="max-w-wide mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-baseline gap-2">
+        <span class="text-xs font-mono tracking-wide uppercase text-ink-faint">Editions</span>
+        <span class="text-xs text-ink-faint">&middot;</span>
+        <span class="text-xs text-ink-faint">Alpha</span>
+      </div>
+      <div class="flex items-center gap-6 text-xs text-ink-tertiary">
+        <a href="https://github.com/morten-olsen/editions" class="hover:text-ink transition-colors duration-fast">GitHub</a>
+        <span class="text-ink-faint">AGPL-3.0</span>
+      </div>
+    </div>
+  </footer>
+</Base>

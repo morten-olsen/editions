@@ -1,0 +1,152 @@
+{
+  "fixture": "nyt-world.json",
+  "focuses": [
+    { "name": "Middle East Conflict", "description": "Israel, Iran, Lebanon, Gaza, military operations, and regional conflict" },
+    { "name": "Oil & Energy", "description": "Oil prices, energy markets, sanctions, and the Strait of Hormuz" },
+    { "name": "US Foreign Policy", "description": "American diplomatic actions, military strategy, Trump administration foreign policy" },
+    { "name": "Russia & Ukraine", "description": "The Russia-Ukraine war, Russian military actions, and related diplomacy" },
+    { "name": "Latin America", "description": "News from Central and South America, Caribbean politics, and regional developments" }
+  ],
+  "labels": {
+    "article-001": {
+      "Middle East Conflict": true,
+      "Oil & Energy": true,
+      "US Foreign Policy": true,
+      "Russia & Ukraine": false,
+      "Latin America": false
+    },
+    "article-002": {
+      "Middle East Conflict": true,
+      "Oil & Energy": false,
+      "US Foreign Policy": false,
+      "Russia & Ukraine": false,
+      "Latin America": false
+    },
+    "article-003": {
+      "Middle East Conflict": false,
+      "Oil & Energy": false,
+      "US Foreign Policy": true,
+      "Russia & Ukraine": false,
+      "Latin America": true
+    },
+    "article-005": {
+      "Middle East Conflict": true,
+      "Oil & Energy": false,
+      "US Foreign Policy": false,
+      "Russia & Ukraine": true,
+      "Latin America": false
+    },
+    "article-006": {
+      "Middle East Conflict": true,
+      "Oil & Energy": false,
+      "US Foreign Policy": true,
+      "Russia & Ukraine": false,
+      "Latin America": false
+    },
+    "article-008": {
+      "Middle East Conflict": true,
+      "Oil & Energy": false,
+      "US Foreign Policy": false,
+      "Russia & Ukraine": false,
+      "Latin America": false
+    },
+    "article-009": {
+      "Middle East Conflict": false,
+      "Oil & Energy": true,
+      "US Foreign Policy": false,
+      "Russia & Ukraine": true,
+      "Latin America": false
+    },
+    "article-010": {
+      "Middle East Conflict": false,
+      "Oil & Energy": false,
+      "US Foreign Policy": true,
+      "Russia & Ukraine": false,
+      "Latin America": true
+    },
+    "article-012": {
+      "Middle East Conflict": true,
+      "Oil & Energy": false,
+      "US Foreign Policy": false,
+      "Russia & Ukraine": false,
+      "Latin America": false
+    },
+    "article-016": {
+      "Middle East Conflict": false,
+      "Oil & Energy": true,
+      "US Foreign Policy": false,
+      "Russia & Ukraine": false,
+      "Latin America": false
+    },
+    "article-021": {
+      "Middle East Conflict": true,
+      "Oil & Energy": false,
+      "US Foreign Policy": true,
+      "Russia & Ukraine": true,
+      "Latin America": false
+    },
+    "article-022": {
+      "Middle East Conflict": true,
+      "Oil & Energy": false,
+      "US Foreign Policy": true,
+      "Russia & Ukraine": false,
+      "Latin America": false
+    },
+    "article-031": {
+      "Middle East Conflict": false,
+      "Oil & Energy": false,
+      "US Foreign Policy": true,
+      "Russia & Ukraine": false,
+      "Latin America": false
+    },
+    "article-032": {
+      "Middle East Conflict": false,
+      "Oil & Energy": true,
+      "US Foreign Policy": true,
+      "Russia & Ukraine": true,
+      "Latin America": false
+    },
+    "article-033": {
+      "Middle East Conflict": true,
+      "Oil & Energy": true,
+      "US Foreign Policy": true,
+      "Russia & Ukraine": true,
+      "Latin America": false
+    },
+    "article-034": {
+      "Middle East Conflict": false,
+      "Oil & Energy": false,
+      "US Foreign Policy": true,
+      "Russia & Ukraine": false,
+      "Latin America": true
+    },
+    "article-040": {
+      "Middle East Conflict": true,
+      "Oil & Energy": true,
+      "US Foreign Policy": true,
+      "Russia & Ukraine": false,
+      "Latin America": false
+    },
+    "article-045": {
+      "Middle East Conflict": false,
+      "Oil & Energy": false,
+      "US Foreign Policy": true,
+      "Russia & Ukraine": false,
+      "Latin America": false
+    },
+    "article-049": {
+      "Middle East Conflict": false,
+      "Oil & Energy": false,
+      "US Foreign Policy": true,
+      "Russia & Ukraine": false,
+      "Latin America": true
+    },
+    "article-058": {
+      "Middle East Conflict": true,
+      "Oil & Energy": true,
+      "US Foreign Policy": false,
+      "Russia & Ukraine": false,
+      "Latin America": false
+    }
+  }
+}

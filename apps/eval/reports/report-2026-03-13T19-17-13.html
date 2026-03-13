@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Eval Report — 2026-03-13T19-17-13</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #1f2937; background: #f9fafb; padding: 2rem; max-width: 1200px; margin: 0 auto; }
+    h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    h2 { font-size: 1.25rem; margin: 1.5rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid #e5e7eb; }
+    h3 { font-size: 0.9rem; color: #6b7280; margin-bottom: 0.5rem; }
+    .meta { color: #6b7280; font-size: 0.8rem; margin-bottom: 1.5rem; }
+    .meta span { margin-right: 1.5rem; }
+    .note { font-size: 0.8rem; color: #6b7280; margin-bottom: 1rem; }
+    section { background: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .chart { margin-bottom: 1rem; }
+    .charts-row { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+    .charts-row .chart { flex: 1; min-width: 380px; }
+    svg { display: block; max-width: 100%; height: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.75rem; }
+    th, td { padding: 0.4rem 0.6rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+    th { font-weight: 600; color: #6b7280; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    td strong { color: #059669; }
+    .findings { padding-left: 1.25rem; }
+    .findings li { margin-bottom: 0.5rem; font-size: 0.9rem; line-height: 1.5; }
+    .findings li strong { color: #1f2937; }
+    footer { text-align: center; color: #9ca3af; font-size: 0.7rem; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <h1>Evaluation Report</h1>
+  <div class="meta">
+    <span>Run: 2026-03-13T19-17-13</span>
+    <span>Models: all-MiniLM-L6-v2, all-MiniLM-L12-v2, bge-small-en-v1.5, gte-small, bge-base-en-v1.5, gte-base</span>
+    <span>Fixtures: ars-technica.json, nyt-world.json, theverge.json</span>
+    <span>Node: v24.12.0</span>
+  </div>
+
+  
+    <section>
+      <h2>Key Findings</h2>
+      <ul class="findings">
+        <li><strong>Best similarity classifier:</strong> bge-small-en-v1.5 (avg F1: 86.9%)</li>
+        <li><strong>Best cluster separation:</strong> all-MiniLM-L12-v2 (avg ratio: 1.45)</li>
+        <li><strong>Similarity vs NLI:</strong> Similarity achieves comparable F1 at ~100x less compute. NLI adds recall for ambiguous topics but hurts precision on broad categories.</li>
+        <li><strong>Small vs base models:</strong> Base models (768-dim) do not consistently outperform small models (384-dim). The extra capacity often hurts precision on overlapping topics.</li>
+        <li><strong>Content type matters:</strong> All models perform better on well-separated topics (NYT geopolitics) than on overlapping consumer tech categories (The Verge).</li>
+        <li><strong>Vote propagation:</strong> Votes consistently help ranking for focused topics, but can hurt on broad categories where the embedding space is less separable.</li>
+      </ul>
+    </section>
+  
+    <section>
+      <h2>Classification</h2>
+      <p class="note">Averaged across 2 fixtures (20 + 30 = 50 articles). Thresholds optimized per focus.</p>
+      <div class="charts-row"><div class="chart">
+    <h3>Avg Macro F1 Across All Fixtures</h3>
+    <svg viewBox="0 0 670 380" width="670" height="380">
+      <line x1="50" y1="227.5" x2="650" y2="227.5" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="231.5" text-anchor="end" font-size="10" fill="#999">25.0%</text>
+<line x1="50" y1="165" x2="650" y2="165" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="169" text-anchor="end" font-size="10" fill="#999">50.0%</text>
+<line x1="50" y1="102.5" x2="650" y2="102.5" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="106.5" text-anchor="end" font-size="10" fill="#999">75.0%</text>
+<line x1="50" y1="40" x2="650" y2="40" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="44" text-anchor="end" font-size="10" fill="#999">100.0%</text>
+      <line x1="50" y1="40" x2="50" y2="290" stroke="#d1d5db"/>
+      <line x1="50" y1="290" x2="650" y2="290" stroke="#d1d5db"/>
+      <rect x="66.66666666666666" y="72.74161611506014" width="31.333333333333336" height="217.25838388493986" fill="#3b82f6" rx="2">
+        <title>similarity: 86.9%</title>
+      </rect>
+      <text x="82.33333333333333" y="68.74161611506014" text-anchor="middle" font-size="9" fill="#666">86.9%</text>
+<rect x="100" y="290" width="31.333333333333336" height="0" fill="#ef4444" rx="2">
+        <title>nli: 0.0%</title>
+      </rect>
+      <text x="115.66666666666667" y="286" text-anchor="middle" font-size="9" fill="#666">0.0%</text>
+<rect x="166.66666666666666" y="78.24670928890197" width="31.333333333333336" height="211.75329071109803" fill="#3b82f6" rx="2">
+        <title>similarity: 84.7%</title>
+      </rect>
+      <text x="182.33333333333331" y="74.24670928890197" text-anchor="middle" font-size="9" fill="#666">84.7%</text>
+<rect x="200" y="290" width="31.333333333333336" height="0" fill="#ef4444" rx="2">
+        <title>nli: 0.0%</title>
+      </rect>
+      <text x="215.66666666666666" y="286" text-anchor="middle" font-size="9" fill="#666">0.0%</text>
+<rect x="266.6666666666667" y="79.6592358985769" width="31.333333333333336" height="210.3407641014231" fill="#3b82f6" rx="2">
+        <title>similarity: 84.1%</title>
+      </rect>
+      <text x="282.33333333333337" y="75.6592358985769" text-anchor="middle" font-size="9" fill="#666">84.1%</text>
+<rect x="300" y="78.55563422038463" width="31.333333333333336" height="211.44436577961537" fill="#ef4444" rx="2">
+        <title>nli: 84.6%</title>
+      </rect>
+      <text x="315.6666666666667" y="74.55563422038463" text-anchor="middle" font-size="9" fill="#666">84.6%</text>
+<rect x="366.6666666666667" y="93.8835803707525" width="31.333333333333336" height="196.1164196292475" fill="#3b82f6" rx="2">
+        <title>similarity: 78.4%</title>
+      </rect>
+      <text x="382.33333333333337" y="89.8835803707525" text-anchor="middle" font-size="9" fill="#666">78.4%</text>
+<rect x="400" y="78.55563422038463" width="31.333333333333336" height="211.44436577961537" fill="#ef4444" rx="2">
+        <title>nli: 84.6%</title>
+      </rect>
+      <text x="415.6666666666667" y="74.55563422038463" text-anchor="middle" font-size="9" fill="#666">84.6%</text>
+<rect x="466.6666666666667" y="80.06209463714978" width="31.333333333333336" height="209.93790536285022" fill="#3b82f6" rx="2">
+        <title>similarity: 84.0%</title>
+      </rect>
+      <text x="482.33333333333337" y="76.06209463714978" text-anchor="middle" font-size="9" fill="#666">84.0%</text>
+<rect x="500" y="290" width="31.333333333333336" height="0" fill="#ef4444" rx="2">
+        <title>nli: 0.0%</title>
+      </rect>
+      <text x="515.6666666666666" y="286" text-anchor="middle" font-size="9" fill="#666">0.0%</text>
+<rect x="566.6666666666666" y="91.04629894471122" width="31.333333333333336" height="198.95370105528878" fill="#3b82f6" rx="2">
+        <title>similarity: 79.6%</title>
+      </rect>
+      <text x="582.3333333333333" y="87.04629894471122" text-anchor="middle" font-size="9" fill="#666">79.6%</text>
+<rect x="600" y="290" width="31.333333333333336" height="0" fill="#ef4444" rx="2">
+        <title>nli: 0.0%</title>
+      </rect>
+      <text x="615.6666666666666" y="286" text-anchor="middle" font-size="9" fill="#666">0.0%</text>
+      <text x="100" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 100 306)">bge-small-en-v1.5</text>
+<text x="200" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 200 306)">all-MiniLM-L12-v2</text>
+<text x="300" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 300 306)">all-MiniLM-L6-v2</text>
+<text x="400" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 400 306)">bge-base-en-v1.5</text>
+<text x="500" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 500 306)">gte-small</text>
+<text x="600" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 600 306)">gte-base</text>
+      <rect x="50" y="362" width="10" height="10" fill="#3b82f6" rx="2"/>
+        <text x="64" y="371" font-size="10" fill="#333">similarity</text>
+<rect x="170" y="362" width="10" height="10" fill="#ef4444" rx="2"/>
+        <text x="184" y="371" font-size="10" fill="#333">nli</text>
+    </svg>
+  </div><div class="chart">
+    <h3>Similarity F1 by Fixture</h3>
+    <svg viewBox="0 0 670 380" width="670" height="380">
+      <line x1="50" y1="227.5" x2="650" y2="227.5" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="231.5" text-anchor="end" font-size="10" fill="#999">25.0%</text>
+<line x1="50" y1="165" x2="650" y2="165" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="169" text-anchor="end" font-size="10" fill="#999">50.0%</text>
+<line x1="50" y1="102.5" x2="650" y2="102.5" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="106.5" text-anchor="end" font-size="10" fill="#999">75.0%</text>
+<line x1="50" y1="40" x2="650" y2="40" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="44" text-anchor="end" font-size="10" fill="#999">100.0%</text>
+      <line x1="50" y1="40" x2="50" y2="290" stroke="#d1d5db"/>
+      <line x1="50" y1="290" x2="650" y2="290" stroke="#d1d5db"/>
+      <rect x="80" y="74.06169665809767" width="38" height="215.93830334190233" fill="#3b82f6" rx="2">
+        <title>bge-small-en-v1.5: 86.4%</title>
+      </rect>
+      <text x="99" y="70.06169665809767" text-anchor="middle" font-size="9" fill="#666">86.4%</text>
+<rect x="120" y="84.49610164597169" width="38" height="205.5038983540283" fill="#ef4444" rx="2">
+        <title>all-MiniLM-L12-v2: 82.2%</title>
+      </rect>
+      <text x="139" y="80.49610164597169" text-anchor="middle" font-size="9" fill="#666">82.2%</text>
+<rect x="160" y="89.20497753197373" width="38" height="200.79502246802627" fill="#22c55e" rx="2">
+        <title>all-MiniLM-L6-v2: 80.3%</title>
+      </rect>
+      <text x="179" y="85.20497753197373" text-anchor="middle" font-size="9" fill="#666">80.3%</text>
+<rect x="200" y="83.3981641140075" width="38" height="206.6018358859925" fill="#f59e0b" rx="2">
+        <title>bge-base-en-v1.5: 82.6%</title>
+      </rect>
+      <text x="219" y="79.3981641140075" text-anchor="middle" font-size="9" fill="#666">82.6%</text>
+<rect x="240" y="83.06930693069307" width="38" height="206.93069306930693" fill="#8b5cf6" rx="2">
+        <title>gte-small: 82.8%</title>
+      </rect>
+      <text x="259" y="79.06930693069307" text-anchor="middle" font-size="9" fill="#666">82.8%</text>
+<rect x="280" y="89.68976215098243" width="38" height="200.31023784901757" fill="#ec4899" rx="2">
+        <title>gte-base: 80.1%</title>
+      </rect>
+      <text x="299" y="85.68976215098243" text-anchor="middle" font-size="9" fill="#666">80.1%</text>
+<rect x="380" y="82.6853283549919" width="38" height="207.3146716450081" fill="#3b82f6" rx="2">
+        <title>bge-small-en-v1.5: 82.9%</title>
+      </rect>
+      <text x="399" y="78.6853283549919" text-anchor="middle" font-size="9" fill="#666">82.9%</text>
+<rect x="420" y="81.61870086917622" width="38" height="208.38129913082378" fill="#ef4444" rx="2">
+        <title>all-MiniLM-L12-v2: 83.4%</title>
+      </rect>
+      <text x="439" y="77.61870086917622" text-anchor="middle" font-size="9" fill="#666">83.4%</text>
+<rect x="460" y="92.44699806014484" width="38" height="197.55300193985516" fill="#22c55e" rx="2">
+        <title>all-MiniLM-L6-v2: 79.0%</title>
+      </rect>
+      <text x="479" y="88.44699806014484" text-anchor="middle" font-size="9" fill="#666">79.0%</text>
+<rect x="500" y="133.90323546626377" width="38" height="156.09676453373623" fill="#f59e0b" rx="2">
+        <title>bge-base-en-v1.5: 62.4%</title>
+      </rect>
+      <text x="519" y="129.90323546626377" text-anchor="middle" font-size="9" fill="#666">62.4%</text>
+<rect x="540" y="84.41789046812866" width="38" height="205.58210953187134" fill="#8b5cf6" rx="2">
+        <title>gte-small: 82.2%</title>
+      </rect>
+      <text x="559" y="80.41789046812866" text-anchor="middle" font-size="9" fill="#666">82.2%</text>
+<rect x="580" y="114.18417184084797" width="38" height="175.81582815915203" fill="#ec4899" rx="2">
+        <title>gte-base: 70.3%</title>
+      </rect>
+      <text x="599" y="110.18417184084797" text-anchor="middle" font-size="9" fill="#666">70.3%</text>
+      <text x="200" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 200 306)">ars-technica</text>
+<text x="500" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 500 306)">nyt-world</text>
+      <rect x="50" y="362" width="10" height="10" fill="#3b82f6" rx="2"/>
+        <text x="64" y="371" font-size="10" fill="#333">bge-small-en-v1.5</text>
+<rect x="170" y="362" width="10" height="10" fill="#ef4444" rx="2"/>
+        <text x="184" y="371" font-size="10" fill="#333">all-MiniLM-L12-v2</text>
+<rect x="290" y="362" width="10" height="10" fill="#22c55e" rx="2"/>
+        <text x="304" y="371" font-size="10" fill="#333">all-MiniLM-L6-v2</text>
+<rect x="410" y="362" width="10" height="10" fill="#f59e0b" rx="2"/>
+        <text x="424" y="371" font-size="10" fill="#333">bge-base-en-v1.5</text>
+<rect x="530" y="362" width="10" height="10" fill="#8b5cf6" rx="2"/>
+        <text x="544" y="371" font-size="10" fill="#333">gte-small</text>
+<rect x="650" y="362" width="10" height="10" fill="#ec4899" rx="2"/>
+        <text x="664" y="371" font-size="10" fill="#333">gte-base</text>
+    </svg>
+  </div></div>
+      <table>
+        <thead><tr><th>Model</th><th>Strategy</th><th>Avg Prec</th><th>Avg Recall</th><th>Avg F1</th><th>Articles</th><th>Total Time</th></tr></thead>
+        <tbody><tr>
+      <td>bge-small-en-v1.5</td>
+      <td>similarity</td>
+      <td>86.6%</td>
+      <td>87.6%</td>
+      <td><strong>86.9%</strong></td>
+      <td>70</td>
+      <td>9.2s</td>
+    </tr><tr>
+      <td>all-MiniLM-L12-v2</td>
+      <td>similarity</td>
+      <td>81.2%</td>
+      <td>88.6%</td>
+      <td>84.7%</td>
+      <td>70</td>
+      <td>9.2s</td>
+    </tr><tr>
+      <td>all-MiniLM-L6-v2</td>
+      <td>nli</td>
+      <td>84.4%</td>
+      <td>85.6%</td>
+      <td><strong>84.6%</strong></td>
+      <td>70</td>
+      <td>548.6s</td>
+    </tr><tr>
+      <td>bge-base-en-v1.5</td>
+      <td>nli</td>
+      <td>84.4%</td>
+      <td>85.6%</td>
+      <td><strong>84.6%</strong></td>
+      <td>70</td>
+      <td>479.9s</td>
+    </tr><tr>
+      <td>all-MiniLM-L6-v2</td>
+      <td>similarity</td>
+      <td>84.8%</td>
+      <td>83.5%</td>
+      <td>84.1%</td>
+      <td>70</td>
+      <td>7.0s</td>
+    </tr><tr>
+      <td>gte-small</td>
+      <td>similarity</td>
+      <td>79.7%</td>
+      <td>89.8%</td>
+      <td>84.0%</td>
+      <td>70</td>
+      <td>9.1s</td>
+    </tr><tr>
+      <td>gte-base</td>
+      <td>similarity</td>
+      <td>79.4%</td>
+      <td>81.9%</td>
+      <td>79.6%</td>
+      <td>70</td>
+      <td>29.9s</td>
+    </tr><tr>
+      <td>bge-base-en-v1.5</td>
+      <td>similarity</td>
+      <td>71.0%</td>
+      <td>91.3%</td>
+      <td>78.4%</td>
+      <td>70</td>
+      <td>27.7s</td>
+    </tr></tbody>
+      </table>
+    </section>
+  
+    <section>
+      <h2>Embedding Quality</h2>
+      <p class="note">Averaged across 3 fixtures. Separation ratio = intra / inter similarity.</p>
+      <div class="charts-row"><div class="chart">
+    <h3>Avg Intra vs Inter-Focus Similarity</h3>
+    <svg viewBox="0 0 670 380" width="670" height="380">
+      <line x1="50" y1="224.677921958434" x2="650" y2="224.677921958434" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="228.677921958434" text-anchor="end" font-size="10" fill="#999">0.250</text>
+<line x1="50" y1="159.355843916868" x2="650" y2="159.355843916868" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="163.355843916868" text-anchor="end" font-size="10" fill="#999">0.500</text>
+<line x1="50" y1="94.03376587530201" x2="650" y2="94.03376587530201" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="98.03376587530201" text-anchor="end" font-size="10" fill="#999">0.750</text>
+<line x1="50" y1="28.711687833735994" x2="650" y2="28.711687833735994" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="32.71168783373599" text-anchor="end" font-size="10" fill="#999">1.000</text>
+      <line x1="50" y1="40" x2="50" y2="290" stroke="#d1d5db"/>
+      <line x1="50" y1="290" x2="650" y2="290" stroke="#d1d5db"/>
+      <rect x="66.66666666666666" y="211.63932318137446" width="31.333333333333336" height="78.36067681862554" fill="#3b82f6" rx="2">
+        <title>Intra-focus: 0.300</title>
+      </rect>
+      <text x="82.33333333333333" y="207.63932318137446" text-anchor="middle" font-size="9" fill="#666">0.300</text>
+<rect x="100" y="233.17936636671828" width="31.333333333333336" height="56.82063363328173" fill="#ef4444" rx="2">
+        <title>Inter-focus: 0.217</title>
+      </rect>
+      <text x="115.66666666666667" y="229.17936636671828" text-anchor="middle" font-size="9" fill="#666">0.217</text>
+<rect x="166.66666666666666" y="220.59868868173126" width="31.333333333333336" height="69.40131131826874" fill="#3b82f6" rx="2">
+        <title>Intra-focus: 0.266</title>
+      </rect>
+      <text x="182.33333333333331" y="216.59868868173126" text-anchor="middle" font-size="9" fill="#666">0.266</text>
+<rect x="200" y="241.22185344884602" width="31.333333333333336" height="48.778146551153974" fill="#ef4444" rx="2">
+        <title>Inter-focus: 0.187</title>
+      </rect>
+      <text x="215.66666666666666" y="237.22185344884602" text-anchor="middle" font-size="9" fill="#666">0.187</text>
+<rect x="266.6666666666667" y="154.75845506913484" width="31.333333333333336" height="135.24154493086516" fill="#3b82f6" rx="2">
+        <title>Intra-focus: 0.518</title>
+      </rect>
+      <text x="282.33333333333337" y="150.75845506913484" text-anchor="middle" font-size="9" fill="#666">0.518</text>
+<rect x="300" y="166.8647405307301" width="31.333333333333336" height="123.13525946926991" fill="#ef4444" rx="2">
+        <title>Inter-focus: 0.471</title>
+      </rect>
+      <text x="315.6666666666667" y="162.8647405307301" text-anchor="middle" font-size="9" fill="#666">0.471</text>
+<rect x="366.6666666666667" y="86.97218947310151" width="31.333333333333336" height="203.0278105268985" fill="#3b82f6" rx="2">
+        <title>Intra-focus: 0.777</title>
+      </rect>
+      <text x="382.33333333333337" y="82.97218947310151" text-anchor="middle" font-size="9" fill="#666">0.777</text>
+<rect x="400" y="93.48495580587411" width="31.333333333333336" height="196.5150441941259" fill="#ef4444" rx="2">
+        <title>Inter-focus: 0.752</title>
+      </rect>
+      <text x="415.6666666666667" y="89.48495580587411" text-anchor="middle" font-size="9" fill="#666">0.752</text>
+<rect x="466.6666666666667" y="113.54276874494838" width="31.333333333333336" height="176.45723125505162" fill="#3b82f6" rx="2">
+        <title>Intra-focus: 0.675</title>
+      </rect>
+      <text x="482.33333333333337" y="109.54276874494838" text-anchor="middle" font-size="9" fill="#666">0.675</text>
+<rect x="500" y="122.41088062698398" width="31.333333333333336" height="167.58911937301602" fill="#ef4444" rx="2">
+        <title>Inter-focus: 0.641</title>
+      </rect>
+      <text x="515.6666666666666" y="118.41088062698398" text-anchor="middle" font-size="9" fill="#666">0.641</text>
+<rect x="566.6666666666666" y="81.66666666666666" width="31.333333333333336" height="208.33333333333334" fill="#3b82f6" rx="2">
+        <title>Intra-focus: 0.797</title>
+      </rect>
+      <text x="582.3333333333333" y="77.66666666666666" text-anchor="middle" font-size="9" fill="#666">0.797</text>
+<rect x="600" y="87.15410053782043" width="31.333333333333336" height="202.84589946217957" fill="#ef4444" rx="2">
+        <title>Inter-focus: 0.776</title>
+      </rect>
+      <text x="615.6666666666666" y="83.15410053782043" text-anchor="middle" font-size="9" fill="#666">0.776</text>
+      <text x="100" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 100 306)">all-MiniLM-L6-v2</text>
+<text x="200" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 200 306)">all-MiniLM-L12-v2</text>
+<text x="300" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 300 306)">bge-small-en-v1.5</text>
+<text x="400" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 400 306)">gte-small</text>
+<text x="500" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 500 306)">bge-base-en-v1.5</text>
+<text x="600" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 600 306)">gte-base</text>
+      <rect x="50" y="362" width="10" height="10" fill="#3b82f6" rx="2"/>
+        <text x="64" y="371" font-size="10" fill="#333">Intra-focus</text>
+<rect x="170" y="362" width="10" height="10" fill="#ef4444" rx="2"/>
+        <text x="184" y="371" font-size="10" fill="#333">Inter-focus</text>
+    </svg>
+  </div><div class="chart">
+    <h3>Avg Separation Ratio (higher = better cluster separation)</h3>
+    <svg viewBox="0 0 670 380" width="670" height="380">
+      <line x1="50" y1="227.5" x2="650" y2="227.5" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="231.5" text-anchor="end" font-size="10" fill="#999">0.36</text>
+<line x1="50" y1="165" x2="650" y2="165" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="169" text-anchor="end" font-size="10" fill="#999">0.72</text>
+<line x1="50" y1="102.5" x2="650" y2="102.5" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="106.5" text-anchor="end" font-size="10" fill="#999">1.09</text>
+<line x1="50" y1="40" x2="650" y2="40" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="44" text-anchor="end" font-size="10" fill="#999">1.45</text>
+      <line x1="50" y1="40" x2="50" y2="290" stroke="#d1d5db"/>
+      <line x1="50" y1="290" x2="650" y2="290" stroke="#d1d5db"/>
+      <rect x="80" y="47.354893313003856" width="38" height="242.64510668699614" fill="#3b82f6" rx="2">
+        <title>Ratio: 1.41</title>
+      </rect>
+      <text x="99" y="43.354893313003856" text-anchor="middle" font-size="9" fill="#666">1.41</text>
+<rect x="180" y="40" width="38" height="250" fill="#3b82f6" rx="2">
+        <title>Ratio: 1.45</title>
+      </rect>
+      <text x="199" y="36" text-anchor="middle" font-size="9" fill="#666">1.45</text>
+<rect x="280" y="100.50451807345354" width="38" height="189.49548192654646" fill="#3b82f6" rx="2">
+        <title>Ratio: 1.10</title>
+      </rect>
+      <text x="299" y="96.50451807345354" text-anchor="middle" font-size="9" fill="#666">1.10</text>
+<rect x="380" y="111.72017412377008" width="38" height="178.27982587622992" fill="#3b82f6" rx="2">
+        <title>Ratio: 1.03</title>
+      </rect>
+      <text x="399" y="107.72017412377008" text-anchor="middle" font-size="9" fill="#666">1.03</text>
+<rect x="480" y="108.066933148907" width="38" height="181.933066851093" fill="#3b82f6" rx="2">
+        <title>Ratio: 1.05</title>
+      </rect>
+      <text x="499" y="104.066933148907" text-anchor="middle" font-size="9" fill="#666">1.05</text>
+<rect x="580" y="112.73865314639454" width="38" height="177.26134685360546" fill="#3b82f6" rx="2">
+        <title>Ratio: 1.03</title>
+      </rect>
+      <text x="599" y="108.73865314639454" text-anchor="middle" font-size="9" fill="#666">1.03</text>
+      <text x="100" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 100 306)">all-MiniLM-L6-v2</text>
+<text x="200" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 200 306)">all-MiniLM-L12-v2</text>
+<text x="300" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 300 306)">bge-small-en-v1.5</text>
+<text x="400" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 400 306)">gte-small</text>
+<text x="500" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 500 306)">bge-base-en-v1.5</text>
+<text x="600" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 600 306)">gte-base</text>
+      <rect x="50" y="362" width="10" height="10" fill="#3b82f6" rx="2"/>
+        <text x="64" y="371" font-size="10" fill="#333">Ratio</text>
+    </svg>
+  </div></div>
+      <div class="chart">
+    <h3>Separation Ratio by Focus (averaged across fixtures)</h3>
+    <svg viewBox="0 0 1270 380" width="1270" height="380">
+      <line x1="50" y1="227.5" x2="1250" y2="227.5" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="231.5" text-anchor="end" font-size="10" fill="#999">0.90</text>
+<line x1="50" y1="165" x2="1250" y2="165" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="169" text-anchor="end" font-size="10" fill="#999">1.80</text>
+<line x1="50" y1="102.5" x2="1250" y2="102.5" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="106.5" text-anchor="end" font-size="10" fill="#999">2.70</text>
+<line x1="50" y1="40" x2="1250" y2="40" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="44" text-anchor="end" font-size="10" fill="#999">3.61</text>
+      <line x1="50" y1="40" x2="50" y2="290" stroke="#d1d5db"/>
+      <line x1="50" y1="290" x2="1250" y2="290" stroke="#d1d5db"/>
+      <rect x="55.714285714285715" y="202.11259144472047" width="9.428571428571429" height="87.88740855527952" fill="#3b82f6" rx="2">
+        <title>all-MiniLM-L6-v2: 1.27</title>
+      </rect>
+      <text x="60.42857142857143" y="198.11259144472047" text-anchor="middle" font-size="9" fill="#666">1.27</text>
+<rect x="67.14285714285714" y="187.01275969320704" width="9.428571428571429" height="102.98724030679296" fill="#ef4444" rx="2">
+        <title>all-MiniLM-L12-v2: 1.49</title>
+      </rect>
+      <text x="71.85714285714285" y="183.01275969320704" text-anchor="middle" font-size="9" fill="#666">1.49</text>
+<rect x="78.57142857142858" y="215.8013727364127" width="9.428571428571429" height="74.1986272635873" fill="#22c55e" rx="2">
+        <title>bge-small-en-v1.5: 1.07</title>
+      </rect>
+      <text x="83.28571428571429" y="211.8013727364127" text-anchor="middle" font-size="9" fill="#666">1.07</text>
+<rect x="90" y="219.33356967199637" width="9.428571428571429" height="70.66643032800364" fill="#f59e0b" rx="2">
+        <title>gte-small: 1.02</title>
+      </rect>
+      <text x="94.71428571428571" y="215.33356967199637" text-anchor="middle" font-size="9" fill="#666">1.02</text>
+<rect x="101.42857142857144" y="219.1890009035419" width="9.428571428571429" height="70.8109990964581" fill="#8b5cf6" rx="2">
+        <title>bge-base-en-v1.5: 1.02</title>
+      </rect>
+      <text x="106.14285714285715" y="215.1890009035419" text-anchor="middle" font-size="9" fill="#666">1.02</text>
+<rect x="112.85714285714286" y="219.7796610426875" width="9.428571428571429" height="70.22033895731248" fill="#ec4899" rx="2">
+        <title>gte-base: 1.01</title>
+      </rect>
+      <text x="117.57142857142857" y="215.7796610426875" text-anchor="middle" font-size="9" fill="#666">1.01</text>
+<rect x="135.71428571428572" y="178.08275349023288" width="9.428571428571429" height="111.91724650976712" fill="#3b82f6" rx="2">
+        <title>all-MiniLM-L6-v2: 1.61</title>
+      </rect>
+      <text x="140.42857142857144" y="174.08275349023288" text-anchor="middle" font-size="9" fill="#666">1.61</text>
+<rect x="147.14285714285714" y="191.42777024757441" width="9.428571428571429" height="98.5722297524256" fill="#ef4444" rx="2">
+        <title>all-MiniLM-L12-v2: 1.42</title>
+      </rect>
+      <text x="151.85714285714286" y="187.42777024757441" text-anchor="middle" font-size="9" fill="#666">1.42</text>
+<rect x="158.57142857142858" y="211.68367959585646" width="9.428571428571429" height="78.31632040414354" fill="#22c55e" rx="2">
+        <title>bge-small-en-v1.5: 1.13</title>
+      </rect>
+      <text x="163.2857142857143" y="207.68367959585646" text-anchor="middle" font-size="9" fill="#666">1.13</text>
+<rect x="170" y="217.260536554773" width="9.428571428571429" height="72.739463445227" fill="#f59e0b" rx="2">
+        <title>gte-small: 1.05</title>
+      </rect>
+      <text x="174.71428571428572" y="213.260536554773" text-anchor="middle" font-size="9" fill="#666">1.05</text>
+<rect x="181.42857142857144" y="214.49184468141155" width="9.428571428571429" height="75.50815531858845" fill="#8b5cf6" rx="2">
+        <title>bge-base-en-v1.5: 1.09</title>
+      </rect>
+      <text x="186.14285714285717" y="210.49184468141155" text-anchor="middle" font-size="9" fill="#666">1.09</text>
+<rect x="192.85714285714286" y="217.1246453166319" width="9.428571428571429" height="72.8753546833681" fill="#ec4899" rx="2">
+        <title>gte-base: 1.05</title>
+      </rect>
+      <text x="197.57142857142858" y="213.1246453166319" text-anchor="middle" font-size="9" fill="#666">1.05</text>
+<rect x="215.71428571428572" y="78.83751690885245" width="9.428571428571429" height="211.16248309114755" fill="#3b82f6" rx="2">
+        <title>all-MiniLM-L6-v2: 3.05</title>
+      </rect>
+      <text x="220.42857142857144" y="74.83751690885245" text-anchor="middle" font-size="9" fill="#666">3.05</text>
+<rect x="227.14285714285714" y="40" width="9.428571428571429" height="250" fill="#ef4444" rx="2">
+        <title>all-MiniLM-L12-v2: 3.61</title>
+      </rect>
+      <text x="231.85714285714286" y="36" text-anchor="middle" font-size="9" fill="#666">3.61</text>
+<rect x="238.57142857142858" y="191.33280556031673" width="9.428571428571429" height="98.66719443968326" fill="#22c55e" rx="2">
+        <title>bge-small-en-v1.5: 1.42</title>
+      </rect>
+      <text x="243.2857142857143" y="187.33280556031673" text-anchor="middle" font-size="9" fill="#666">1.42</text>
+<rect x="250" y="211.29767149595557" width="9.428571428571429" height="78.70232850404443" fill="#f59e0b" rx="2">
+        <title>gte-small: 1.14</title>
+      </rect>
+      <text x="254.71428571428572" y="207.29767149595557" text-anchor="middle" font-size="9" fill="#666">1.14</text>
+<rect x="261.42857142857144" y="213.14108626811793" width="9.428571428571429" height="76.85891373188207" fill="#8b5cf6" rx="2">
+        <title>bge-base-en-v1.5: 1.11</title>
+      </rect>
+      <text x="266.14285714285717" y="209.14108626811793" text-anchor="middle" font-size="9" fill="#666">1.11</text>
+<rect x="272.8571428571429" y="217.75287309445997" width="9.428571428571429" height="72.24712690554001" fill="#ec4899" rx="2">
+        <title>gte-base: 1.04</title>
+      </rect>
+      <text x="277.5714285714286" y="213.75287309445997" text-anchor="middle" font-size="9" fill="#666">1.04</text>
+<rect x="295.7142857142857" y="181.3260712351348" width="9.428571428571429" height="108.67392876486518" fill="#3b82f6" rx="2">
+        <title>all-MiniLM-L6-v2: 1.57</title>
+      </rect>
+      <text x="300.42857142857144" y="177.3260712351348" text-anchor="middle" font-size="9" fill="#666">1.57</text>
+<rect x="307.14285714285717" y="187.92417744571696" width="9.428571428571429" height="102.07582255428304" fill="#ef4444" rx="2">
+        <title>all-MiniLM-L12-v2: 1.47</title>
+      </rect>
+      <text x="311.8571428571429" y="183.92417744571696" text-anchor="middle" font-size="9" fill="#666">1.47</text>
+<rect x="318.57142857142856" y="216.363542260781" width="9.428571428571429" height="73.636457739219" fill="#22c55e" rx="2">
+        <title>bge-small-en-v1.5: 1.06</title>
+      </rect>
+      <text x="323.2857142857143" y="212.363542260781" text-anchor="middle" font-size="9" fill="#666">1.06</text>
+<rect x="330" y="218.65174610994245" width="9.428571428571429" height="71.34825389005753" fill="#f59e0b" rx="2">
+        <title>gte-small: 1.03</title>
+      </rect>
+      <text x="334.7142857142857" y="214.65174610994245" text-anchor="middle" font-size="9" fill="#666">1.03</text>
+<rect x="341.42857142857144" y="223.99540123195533" width="9.428571428571429" height="66.00459876804467" fill="#8b5cf6" rx="2">
+        <title>bge-base-en-v1.5: 0.95</title>
+      </rect>
+      <text x="346.14285714285717" y="219.99540123195533" text-anchor="middle" font-size="9" fill="#666">0.95</text>
+<rect x="352.8571428571429" y="222.73436856871297" width="9.428571428571429" height="67.26563143128702" fill="#ec4899" rx="2">
+        <title>gte-base: 0.97</title>
+      </rect>
+      <text x="357.5714285714286" y="218.73436856871297" text-anchor="middle" font-size="9" fill="#666">0.97</text>
+<rect x="375.7142857142857" y="198.6588979458038" width="9.428571428571429" height="91.34110205419621" fill="#3b82f6" rx="2">
+        <title>all-MiniLM-L6-v2: 1.32</title>
+      </rect>
+      <text x="380.42857142857144" y="194.6588979458038" text-anchor="middle" font-size="9" fill="#666">1.32</text>
+<rect x="387.14285714285717" y="191.53628850925395" width="9.428571428571429" height="98.46371149074605" fill="#ef4444" rx="2">
+        <title>all-MiniLM-L12-v2: 1.42</title>
+      </rect>
+      <text x="391.8571428571429" y="187.53628850925395" text-anchor="middle" font-size="9" fill="#666">1.42</text>
+<rect x="398.57142857142856" y="217.3604084191055" width="9.428571428571429" height="72.63959158089447" fill="#22c55e" rx="2">
+        <title>bge-small-en-v1.5: 1.05</title>
+      </rect>
+      <text x="403.2857142857143" y="213.3604084191055" text-anchor="middle" font-size="9" fill="#666">1.05</text>
+<rect x="410" y="219.98668840718463" width="9.428571428571429" height="70.01331159281537" fill="#f59e0b" rx="2">
+        <title>gte-small: 1.01</title>
+      </rect>
+      <text x="414.7142857142857" y="215.98668840718463" text-anchor="middle" font-size="9" fill="#666">1.01</text>
+<rect x="421.42857142857144" y="218.07977171155147" width="9.428571428571429" height="71.92022828844854" fill="#8b5cf6" rx="2">
+        <title>bge-base-en-v1.5: 1.04</title>
+      </rect>
+      <text x="426.14285714285717" y="214.07977171155147" text-anchor="middle" font-size="9" fill="#666">1.04</text>
+<rect x="432.8571428571429" y="220.29688542459817" width="9.428571428571429" height="69.70311457540183" fill="#ec4899" rx="2">
+        <title>gte-base: 1.01</title>
+      </rect>
+      <text x="437.5714285714286" y="216.29688542459817" text-anchor="middle" font-size="9" fill="#666">1.01</text>
+<rect x="455.7142857142857" y="164.90944185243586" width="9.428571428571429" height="125.09055814756412" fill="#3b82f6" rx="2">
+        <title>all-MiniLM-L6-v2: 1.80</title>
+      </rect>
+      <text x="460.42857142857144" y="160.90944185243586" text-anchor="middle" font-size="9" fill="#666">1.80</text>
+<rect x="467.14285714285717" y="171.64026098632837" width="9.428571428571429" height="118.35973901367163" fill="#ef4444" rx="2">
+        <title>all-MiniLM-L12-v2: 1.71</title>
+      </rect>
+      <text x="471.8571428571429" y="167.64026098632837" text-anchor="middle" font-size="9" fill="#666">1.71</text>
+<rect x="478.57142857142856" y="207.81756419726065" width="9.428571428571429" height="82.18243580273936" fill="#22c55e" rx="2">
+        <title>bge-small-en-v1.5: 1.19</title>
+      </rect>
+      <text x="483.2857142857143" y="203.81756419726065" text-anchor="middle" font-size="9" fill="#666">1.19</text>
+<rect x="490" y="215.92996270668328" width="9.428571428571429" height="74.0700372933167" fill="#f59e0b" rx="2">
+        <title>gte-small: 1.07</title>
+      </rect>
+      <text x="494.7142857142857" y="211.92996270668328" text-anchor="middle" font-size="9" fill="#666">1.07</text>
+<rect x="501.42857142857144" y="212.5655134909668" width="9.428571428571429" height="77.43448650903322" fill="#8b5cf6" rx="2">
+        <title>bge-base-en-v1.5: 1.12</title>
+      </rect>
+      <text x="506.14285714285717" y="208.5655134909668" text-anchor="middle" font-size="9" fill="#666">1.12</text>
+<rect x="512.8571428571429" y="216.35869866277466" width="9.428571428571429" height="73.64130133722536" fill="#ec4899" rx="2">
+        <title>gte-base: 1.06</title>
+      </rect>
+      <text x="517.5714285714286" y="212.35869866277466" text-anchor="middle" font-size="9" fill="#666">1.06</text>
+<rect x="535.7142857142857" y="181.47567893481374" width="9.428571428571429" height="108.52432106518624" fill="#3b82f6" rx="2">
+        <title>all-MiniLM-L6-v2: 1.57</title>
+      </rect>
+      <text x="540.4285714285713" y="177.47567893481374" text-anchor="middle" font-size="9" fill="#666">1.57</text>
+<rect x="547.1428571428571" y="186.04185517796182" width="9.428571428571429" height="103.95814482203818" fill="#ef4444" rx="2">
+        <title>all-MiniLM-L12-v2: 1.50</title>
+      </rect>
+      <text x="551.8571428571428" y="182.04185517796182" text-anchor="middle" font-size="9" fill="#666">1.50</text>
+<rect x="558.5714285714286" y="209.47288380417655" width="9.428571428571429" height="80.52711619582345" fill="#22c55e" rx="2">
+        <title>bge-small-en-v1.5: 1.16</title>
+      </rect>
+      <text x="563.2857142857142" y="205.47288380417655" text-anchor="middle" font-size="9" fill="#666">1.16</text>
+<rect x="570" y="216.90157128501096" width="9.428571428571429" height="73.09842871498903" fill="#f59e0b" rx="2">
+        <title>gte-small: 1.05</title>
+      </rect>
+      <text x="574.7142857142857" y="212.90157128501096" text-anchor="middle" font-size="9" fill="#666">1.05</text>
+<rect x="581.4285714285713" y="214.61627656042714" width="9.428571428571429" height="75.38372343957286" fill="#8b5cf6" rx="2">
+        <title>bge-base-en-v1.5: 1.09</title>
+      </rect>
+      <text x="586.142857142857" y="210.61627656042714" text-anchor="middle" font-size="9" fill="#666">1.09</text>
+<rect x="592.8571428571428" y="217.28755849525436" width="9.428571428571429" height="72.71244150474563" fill="#ec4899" rx="2">
+        <title>gte-base: 1.05</title>
+      </rect>
+      <text x="597.5714285714284" y="213.28755849525436" text-anchor="middle" font-size="9" fill="#666">1.05</text>
+<rect x="615.7142857142857" y="215.12524209212674" width="9.428571428571429" height="74.87475790787326" fill="#3b82f6" rx="2">
+        <title>all-MiniLM-L6-v2: 1.08</title>
+      </rect>
+      <text x="620.4285714285713" y="211.12524209212674" text-anchor="middle" font-size="9" fill="#666">1.08</text>
+<rect x="627.1428571428571" y="221.18547448292196" width="9.428571428571429" height="68.81452551707802" fill="#ef4444" rx="2">
+        <title>all-MiniLM-L12-v2: 0.99</title>
+      </rect>
+      <text x="631.8571428571428" y="217.18547448292196" text-anchor="middle" font-size="9" fill="#666">0.99</text>
+<rect x="638.5714285714286" y="216.6087031786106" width="9.428571428571429" height="73.39129682138942" fill="#22c55e" rx="2">
+        <title>bge-small-en-v1.5: 1.06</title>
+      </rect>
+      <text x="643.2857142857142" y="212.6087031786106" text-anchor="middle" font-size="9" fill="#666">1.06</text>
+<rect x="650" y="218.85567379659977" width="9.428571428571429" height="71.14432620340023" fill="#f59e0b" rx="2">
+        <title>gte-small: 1.03</title>
+      </rect>
+      <text x="654.7142857142857" y="214.85567379659977" text-anchor="middle" font-size="9" fill="#666">1.03</text>
+<rect x="661.4285714285713" y="217.84657377809356" width="9.428571428571429" height="72.15342622190643" fill="#8b5cf6" rx="2">
+        <title>bge-base-en-v1.5: 1.04</title>
+      </rect>
+      <text x="666.142857142857" y="213.84657377809356" text-anchor="middle" font-size="9" fill="#666">1.04</text>
+<rect x="672.8571428571428" y="219.2606573404638" width="9.428571428571429" height="70.73934265953618" fill="#ec4899" rx="2">
+        <title>gte-base: 1.02</title>
+      </rect>
+      <text x="677.5714285714284" y="215.2606573404638" text-anchor="middle" font-size="9" fill="#666">1.02</text>
+<rect x="695.7142857142857" y="179.79783617858942" width="9.428571428571429" height="110.2021638214106" fill="#3b82f6" rx="2">
+        <title>all-MiniLM-L6-v2: 1.59</title>
+      </rect>
+      <text x="700.4285714285713" y="175.79783617858942" text-anchor="middle" font-size="9" fill="#666">1.59</text>
+<rect x="707.1428571428571" y="184.05196471522007" width="9.428571428571429" height="105.94803528477993" fill="#ef4444" rx="2">
+        <title>all-MiniLM-L12-v2: 1.53</title>
+      </rect>
+      <text x="711.8571428571428" y="180.05196471522007" text-anchor="middle" font-size="9" fill="#666">1.53</text>
+<rect x="718.5714285714286" y="208.05997839626616" width="9.428571428571429" height="81.94002160373384" fill="#22c55e" rx="2">
+        <title>bge-small-en-v1.5: 1.18</title>
+      </rect>
+      <text x="723.2857142857142" y="204.05997839626616" text-anchor="middle" font-size="9" fill="#666">1.18</text>
+<rect x="730" y="216.50133046875555" width="9.428571428571429" height="73.49866953124445" fill="#f59e0b" rx="2">
+        <title>gte-small: 1.06</title>
+      </rect>
+      <text x="734.7142857142857" y="212.50133046875555" text-anchor="middle" font-size="9" fill="#666">1.06</text>
+<rect x="741.4285714285713" y="210.90489610813262" width="9.428571428571429" height="79.0951038918674" fill="#8b5cf6" rx="2">
+        <title>bge-base-en-v1.5: 1.14</title>
+      </rect>
+      <text x="746.142857142857" y="206.90489610813262" text-anchor="middle" font-size="9" fill="#666">1.14</text>
+<rect x="752.8571428571428" y="216.31120910961482" width="9.428571428571429" height="73.68879089038519" fill="#ec4899" rx="2">
+        <title>gte-base: 1.06</title>
+      </rect>
+      <text x="757.5714285714284" y="212.31120910961482" text-anchor="middle" font-size="9" fill="#666">1.06</text>
+<rect x="775.7142857142857" y="127.3402197402506" width="9.428571428571429" height="162.6597802597494" fill="#3b82f6" rx="2">
+        <title>all-MiniLM-L6-v2: 2.35</title>
+      </rect>
+      <text x="780.4285714285713" y="123.3402197402506" text-anchor="middle" font-size="9" fill="#666">2.35</text>
+<rect x="787.1428571428571" y="135.29914987499905" width="9.428571428571429" height="154.70085012500095" fill="#ef4444" rx="2">
+        <title>all-MiniLM-L12-v2: 2.23</title>
+      </rect>
+      <text x="791.8571428571428" y="131.29914987499905" text-anchor="middle" font-size="9" fill="#666">2.23</text>
+<rect x="798.5714285714286" y="201.98354529331027" width="9.428571428571429" height="88.01645470668973" fill="#22c55e" rx="2">
+        <title>bge-small-en-v1.5: 1.27</title>
+      </rect>
+      <text x="803.2857142857142" y="197.98354529331027" text-anchor="middle" font-size="9" fill="#666">1.27</text>
+<rect x="810" y="214.08709359701123" width="9.428571428571429" height="75.91290640298877" fill="#f59e0b" rx="2">
+        <title>gte-small: 1.10</title>
+      </rect>
+      <text x="814.7142857142857" y="210.08709359701123" text-anchor="middle" font-size="9" fill="#666">1.10</text>
+<rect x="821.4285714285713" y="208.95882814476522" width="9.428571428571429" height="81.04117185523477" fill="#8b5cf6" rx="2">
+        <title>bge-base-en-v1.5: 1.17</title>
+      </rect>
+      <text x="826.142857142857" y="204.95882814476522" text-anchor="middle" font-size="9" fill="#666">1.17</text>
+<rect x="832.8571428571428" y="214.33321318361573" width="9.428571428571429" height="75.66678681638427" fill="#ec4899" rx="2">
+        <title>gte-base: 1.09</title>
+      </rect>
+      <text x="837.5714285714284" y="210.33321318361573" text-anchor="middle" font-size="9" fill="#666">1.09</text>
+<rect x="855.7142857142857" y="198.4591556934087" width="9.428571428571429" height="91.54084430659131" fill="#3b82f6" rx="2">
+        <title>all-MiniLM-L6-v2: 1.32</title>
+      </rect>
+      <text x="860.4285714285713" y="194.4591556934087" text-anchor="middle" font-size="9" fill="#666">1.32</text>
+<rect x="867.1428571428571" y="191.3246711636769" width="9.428571428571429" height="98.67532883632309" fill="#ef4444" rx="2">
+        <title>all-MiniLM-L12-v2: 1.42</title>
+      </rect>
+      <text x="871.8571428571428" y="187.3246711636769" text-anchor="middle" font-size="9" fill="#666">1.42</text>
+<rect x="878.5714285714286" y="212.79575394638817" width="9.428571428571429" height="77.20424605361181" fill="#22c55e" rx="2">
+        <title>bge-small-en-v1.5: 1.11</title>
+      </rect>
+      <text x="883.2857142857142" y="208.79575394638817" text-anchor="middle" font-size="9" fill="#666">1.11</text>
+<rect x="890" y="218.3364284274229" width="9.428571428571429" height="71.6635715725771" fill="#f59e0b" rx="2">
+        <title>gte-small: 1.03</title>
+      </rect>
+      <text x="894.7142857142857" y="214.3364284274229" text-anchor="middle" font-size="9" fill="#666">1.03</text>
+<rect x="901.4285714285713" y="215.7026939993292" width="9.428571428571429" height="74.29730600067079" fill="#8b5cf6" rx="2">
+        <title>bge-base-en-v1.5: 1.07</title>
+      </rect>
+      <text x="906.142857142857" y="211.7026939993292" text-anchor="middle" font-size="9" fill="#666">1.07</text>
+<rect x="912.8571428571428" y="217.2026655967727" width="9.428571428571429" height="72.7973344032273" fill="#ec4899" rx="2">
+        <title>gte-base: 1.05</title>
+      </rect>
+      <text x="917.5714285714284" y="213.2026655967727" text-anchor="middle" font-size="9" fill="#666">1.05</text>
+<rect x="935.7142857142857" y="205.56375775946842" width="9.428571428571429" height="84.43624224053158" fill="#3b82f6" rx="2">
+        <title>all-MiniLM-L6-v2: 1.22</title>
+      </rect>
+      <text x="940.4285714285713" y="201.56375775946842" text-anchor="middle" font-size="9" fill="#666">1.22</text>
+<rect x="947.1428571428571" y="185.3978455101618" width="9.428571428571429" height="104.60215448983818" fill="#ef4444" rx="2">
+        <title>all-MiniLM-L12-v2: 1.51</title>
+      </rect>
+      <text x="951.8571428571428" y="181.3978455101618" text-anchor="middle" font-size="9" fill="#666">1.51</text>
+<rect x="958.5714285714286" y="209.14838459877703" width="9.428571428571429" height="80.85161540122297" fill="#22c55e" rx="2">
+        <title>bge-small-en-v1.5: 1.17</title>
+      </rect>
+      <text x="963.2857142857142" y="205.14838459877703" text-anchor="middle" font-size="9" fill="#666">1.17</text>
+<rect x="970" y="217.37680352583584" width="9.428571428571429" height="72.62319647416416" fill="#f59e0b" rx="2">
+        <title>gte-small: 1.05</title>
+      </rect>
+      <text x="974.7142857142857" y="213.37680352583584" text-anchor="middle" font-size="9" fill="#666">1.05</text>
+<rect x="981.4285714285713" y="215.7559163015116" width="9.428571428571429" height="74.24408369848841" fill="#8b5cf6" rx="2">
+        <title>bge-base-en-v1.5: 1.07</title>
+      </rect>
+      <text x="986.142857142857" y="211.7559163015116" text-anchor="middle" font-size="9" fill="#666">1.07</text>
+<rect x="992.8571428571428" y="217.5953740536764" width="9.428571428571429" height="72.40462594632359" fill="#ec4899" rx="2">
+        <title>gte-base: 1.04</title>
+      </rect>
+      <text x="997.5714285714284" y="213.5953740536764" text-anchor="middle" font-size="9" fill="#666">1.04</text>
+<rect x="1015.7142857142857" y="186.69609830097392" width="9.428571428571429" height="103.30390169902608" fill="#3b82f6" rx="2">
+        <title>all-MiniLM-L6-v2: 1.49</title>
+      </rect>
+      <text x="1020.4285714285713" y="182.69609830097392" text-anchor="middle" font-size="9" fill="#666">1.49</text>
+<rect x="1027.142857142857" y="172.26406115796055" width="9.428571428571429" height="117.73593884203945" fill="#ef4444" rx="2">
+        <title>all-MiniLM-L12-v2: 1.70</title>
+      </rect>
+      <text x="1031.857142857143" y="168.26406115796055" text-anchor="middle" font-size="9" fill="#666">1.70</text>
+<rect x="1038.5714285714287" y="208.9739261459386" width="9.428571428571429" height="81.02607385406138" fill="#22c55e" rx="2">
+        <title>bge-small-en-v1.5: 1.17</title>
+      </rect>
+      <text x="1043.2857142857144" y="204.9739261459386" text-anchor="middle" font-size="9" fill="#666">1.17</text>
+<rect x="1050" y="217.2229142145424" width="9.428571428571429" height="72.77708578545759" fill="#f59e0b" rx="2">
+        <title>gte-small: 1.05</title>
+      </rect>
+      <text x="1054.7142857142858" y="213.2229142145424" text-anchor="middle" font-size="9" fill="#666">1.05</text>
+<rect x="1061.4285714285716" y="216.8365569235253" width="9.428571428571429" height="73.16344307647469" fill="#8b5cf6" rx="2">
+        <title>bge-base-en-v1.5: 1.06</title>
+      </rect>
+      <text x="1066.1428571428573" y="212.8365569235253" text-anchor="middle" font-size="9" fill="#666">1.06</text>
+<rect x="1072.857142857143" y="218.54482533342184" width="9.428571428571429" height="71.45517466657816" fill="#ec4899" rx="2">
+        <title>gte-base: 1.03</title>
+      </rect>
+      <text x="1077.5714285714287" y="214.54482533342184" text-anchor="middle" font-size="9" fill="#666">1.03</text>
+<rect x="1095.7142857142858" y="205.59225895971002" width="9.428571428571429" height="84.40774104028999" fill="#3b82f6" rx="2">
+        <title>all-MiniLM-L6-v2: 1.22</title>
+      </rect>
+      <text x="1100.4285714285716" y="201.59225895971002" text-anchor="middle" font-size="9" fill="#666">1.22</text>
+<rect x="1107.142857142857" y="192.8720458951296" width="9.428571428571429" height="97.12795410487043" fill="#ef4444" rx="2">
+        <title>all-MiniLM-L12-v2: 1.40</title>
+      </rect>
+      <text x="1111.857142857143" y="188.8720458951296" text-anchor="middle" font-size="9" fill="#666">1.40</text>
+<rect x="1118.5714285714287" y="218.40033967889724" width="9.428571428571429" height="71.59966032110275" fill="#22c55e" rx="2">
+        <title>bge-small-en-v1.5: 1.03</title>
+      </rect>
+      <text x="1123.2857142857144" y="214.40033967889724" text-anchor="middle" font-size="9" fill="#666">1.03</text>
+<rect x="1130" y="220.0972117259196" width="9.428571428571429" height="69.9027882740804" fill="#f59e0b" rx="2">
+        <title>gte-small: 1.01</title>
+      </rect>
+      <text x="1134.7142857142858" y="216.0972117259196" text-anchor="middle" font-size="9" fill="#666">1.01</text>
+<rect x="1141.4285714285716" y="223.1737018484812" width="9.428571428571429" height="66.82629815151881" fill="#8b5cf6" rx="2">
+        <title>bge-base-en-v1.5: 0.96</title>
+      </rect>
+      <text x="1146.1428571428573" y="219.1737018484812" text-anchor="middle" font-size="9" fill="#666">0.96</text>
+<rect x="1152.857142857143" y="221.60919409239284" width="9.428571428571429" height="68.39080590760716" fill="#ec4899" rx="2">
+        <title>gte-base: 0.99</title>
+      </rect>
+      <text x="1157.5714285714287" y="217.60919409239284" text-anchor="middle" font-size="9" fill="#666">0.99</text>
+<rect x="1175.7142857142858" y="213.06272843650606" width="9.428571428571429" height="76.93727156349392" fill="#3b82f6" rx="2">
+        <title>all-MiniLM-L6-v2: 1.11</title>
+      </rect>
+      <text x="1180.4285714285716" y="209.06272843650606" text-anchor="middle" font-size="9" fill="#666">1.11</text>
+<rect x="1187.142857142857" y="209.90743354446613" width="9.428571428571429" height="80.09256645553387" fill="#ef4444" rx="2">
+        <title>all-MiniLM-L12-v2: 1.16</title>
+      </rect>
+      <text x="1191.857142857143" y="205.90743354446613" text-anchor="middle" font-size="9" fill="#666">1.16</text>
+<rect x="1198.5714285714287" y="219.82491839843564" width="9.428571428571429" height="70.17508160156436" fill="#22c55e" rx="2">
+        <title>bge-small-en-v1.5: 1.01</title>
+      </rect>
+      <text x="1203.2857142857144" y="215.82491839843564" text-anchor="middle" font-size="9" fill="#666">1.01</text>
+<rect x="1210" y="220.2450221965757" width="9.428571428571429" height="69.75497780342431" fill="#f59e0b" rx="2">
+        <title>gte-small: 1.01</title>
+      </rect>
+      <text x="1214.7142857142858" y="216.2450221965757" text-anchor="middle" font-size="9" fill="#666">1.01</text>
+<rect x="1221.4285714285716" y="218.93951076759157" width="9.428571428571429" height="71.06048923240843" fill="#8b5cf6" rx="2">
+        <title>bge-base-en-v1.5: 1.03</title>
+      </rect>
+      <text x="1226.1428571428573" y="214.93951076759157" text-anchor="middle" font-size="9" fill="#666">1.03</text>
+<rect x="1232.857142857143" y="220.23694810573267" width="9.428571428571429" height="69.76305189426735" fill="#ec4899" rx="2">
+        <title>gte-base: 1.01</title>
+      </rect>
+      <text x="1237.5714285714287" y="216.23694810573267" text-anchor="middle" font-size="9" fill="#666">1.01</text>
+      <text x="90" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 90 306)">Science & Space</text>
+<text x="170" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 170 306)">Computing & Hard..</text>
+<text x="250" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 250 306)">Electric Vehicles</text>
+<text x="330" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 330 306)">Cybersecurity & ..</text>
+<text x="410" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 410 306)">Policy & Regulat..</text>
+<text x="490" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 490 306)">Middle East Conf..</text>
+<text x="570" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 570 306)">Oil & Energy</text>
+<text x="650" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 650 306)">US Foreign Policy</text>
+<text x="730" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 730 306)">Russia & Ukraine</text>
+<text x="810" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 810 306)">Latin America</text>
+<text x="890" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 890 306)">Gadgets & Hardware</text>
+<text x="970" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 970 306)">AI & Machine Lea..</text>
+<text x="1050" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 1050 306)">Deals & Shopping</text>
+<text x="1130" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 1130 306)">Gaming & Enterta..</text>
+<text x="1210" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 1210 306)">Big Tech & Busin..</text>
+      <rect x="50" y="362" width="10" height="10" fill="#3b82f6" rx="2"/>
+        <text x="64" y="371" font-size="10" fill="#333">all-MiniLM-L6-v2</text>
+<rect x="170" y="362" width="10" height="10" fill="#ef4444" rx="2"/>
+        <text x="184" y="371" font-size="10" fill="#333">all-MiniLM-L12-v2</text>
+<rect x="290" y="362" width="10" height="10" fill="#22c55e" rx="2"/>
+        <text x="304" y="371" font-size="10" fill="#333">bge-small-en-v1.5</text>
+<rect x="410" y="362" width="10" height="10" fill="#f59e0b" rx="2"/>
+        <text x="424" y="371" font-size="10" fill="#333">gte-small</text>
+<rect x="530" y="362" width="10" height="10" fill="#8b5cf6" rx="2"/>
+        <text x="544" y="371" font-size="10" fill="#333">bge-base-en-v1.5</text>
+<rect x="650" y="362" width="10" height="10" fill="#ec4899" rx="2"/>
+        <text x="664" y="371" font-size="10" fill="#333">gte-base</text>
+    </svg>
+  </div>
+      <table>
+        <thead><tr><th>Model</th><th>Avg Intra</th><th>Avg Inter</th><th>Avg Ratio</th><th>Avg Time</th></tr></thead>
+        <tbody>
+    <tr>
+      <td>all-MiniLM-L6-v2</td>
+      <td>0.300</td>
+      <td>0.217</td>
+      <td><strong>1.41</strong></td>
+      <td>2.5s</td>
+    </tr>
+    <tr>
+      <td>all-MiniLM-L12-v2</td>
+      <td>0.266</td>
+      <td>0.187</td>
+      <td><strong>1.45</strong></td>
+      <td>5.7s</td>
+    </tr>
+    <tr>
+      <td>bge-small-en-v1.5</td>
+      <td>0.518</td>
+      <td>0.471</td>
+      <td><strong>1.10</strong></td>
+      <td>5.9s</td>
+    </tr>
+    <tr>
+      <td>gte-small</td>
+      <td>0.777</td>
+      <td>0.752</td>
+      <td><strong>1.03</strong></td>
+      <td>5.9s</td>
+    </tr>
+    <tr>
+      <td>bge-base-en-v1.5</td>
+      <td>0.675</td>
+      <td>0.641</td>
+      <td><strong>1.05</strong></td>
+      <td>16.3s</td>
+    </tr>
+    <tr>
+      <td>gte-base</td>
+      <td>0.797</td>
+      <td>0.776</td>
+      <td><strong>1.03</strong></td>
+      <td>16.7s</td>
+    </tr></tbody>
+      </table>
+    </section>
+  
+    <section>
+      <h2>Ranking & Vote Impact</h2>
+      <p class="note">Averaged across all focuses and fixtures. NDCG@K where K = min(relevant, 10).</p>
+      <div class="charts-row"><div class="chart">
+    <h3>Avg NDCG@K (default-focus weights)</h3>
+    <svg viewBox="0 0 670 380" width="670" height="380">
+      <line x1="50" y1="227.5" x2="650" y2="227.5" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="231.5" text-anchor="end" font-size="10" fill="#999">0.250</text>
+<line x1="50" y1="165" x2="650" y2="165" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="169" text-anchor="end" font-size="10" fill="#999">0.500</text>
+<line x1="50" y1="102.5" x2="650" y2="102.5" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="106.5" text-anchor="end" font-size="10" fill="#999">0.750</text>
+<line x1="50" y1="40" x2="650" y2="40" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="44" text-anchor="end" font-size="10" fill="#999">1.000</text>
+      <line x1="50" y1="40" x2="50" y2="290" stroke="#d1d5db"/>
+      <line x1="50" y1="290" x2="650" y2="290" stroke="#d1d5db"/>
+      <rect x="66.66666666666666" y="96.68068597212334" width="31.333333333333336" height="193.31931402787666" fill="#3b82f6" rx="2">
+        <title>No votes: 0.773</title>
+      </rect>
+      <text x="82.33333333333333" y="92.68068597212334" text-anchor="middle" font-size="9" fill="#666">0.773</text>
+<rect x="100" y="108.69260959917264" width="31.333333333333336" height="181.30739040082736" fill="#ef4444" rx="2">
+        <title>2 up / 1 down: 0.725</title>
+      </rect>
+      <text x="115.66666666666667" y="104.69260959917264" text-anchor="middle" font-size="9" fill="#666">0.725</text>
+<rect x="166.66666666666666" y="100.98547795376717" width="31.333333333333336" height="189.01452204623283" fill="#3b82f6" rx="2">
+        <title>No votes: 0.756</title>
+      </rect>
+      <text x="182.33333333333331" y="96.98547795376717" text-anchor="middle" font-size="9" fill="#666">0.756</text>
+<rect x="200" y="106.34369379820623" width="31.333333333333336" height="183.65630620179377" fill="#ef4444" rx="2">
+        <title>2 up / 1 down: 0.735</title>
+      </rect>
+      <text x="215.66666666666666" y="102.34369379820623" text-anchor="middle" font-size="9" fill="#666">0.735</text>
+<rect x="266.6666666666667" y="110.37170443900595" width="31.333333333333336" height="179.62829556099405" fill="#3b82f6" rx="2">
+        <title>No votes: 0.719</title>
+      </rect>
+      <text x="282.33333333333337" y="106.37170443900595" text-anchor="middle" font-size="9" fill="#666">0.719</text>
+<rect x="300" y="92.13351588494822" width="31.333333333333336" height="197.86648411505178" fill="#ef4444" rx="2">
+        <title>2 up / 1 down: 0.791</title>
+      </rect>
+      <text x="315.6666666666667" y="88.13351588494822" text-anchor="middle" font-size="9" fill="#666">0.791</text>
+<rect x="366.6666666666667" y="138.94672636346564" width="31.333333333333336" height="151.05327363653436" fill="#3b82f6" rx="2">
+        <title>No votes: 0.604</title>
+      </rect>
+      <text x="382.33333333333337" y="134.94672636346564" text-anchor="middle" font-size="9" fill="#666">0.604</text>
+<rect x="400" y="126.40923307199563" width="31.333333333333336" height="163.59076692800437" fill="#ef4444" rx="2">
+        <title>2 up / 1 down: 0.654</title>
+      </rect>
+      <text x="415.6666666666667" y="122.40923307199563" text-anchor="middle" font-size="9" fill="#666">0.654</text>
+<rect x="466.6666666666667" y="140.50790518100342" width="31.333333333333336" height="149.49209481899658" fill="#3b82f6" rx="2">
+        <title>No votes: 0.598</title>
+      </rect>
+      <text x="482.33333333333337" y="136.50790518100342" text-anchor="middle" font-size="9" fill="#666">0.598</text>
+<rect x="500" y="149.84224221728783" width="31.333333333333336" height="140.15775778271217" fill="#ef4444" rx="2">
+        <title>2 up / 1 down: 0.561</title>
+      </rect>
+      <text x="515.6666666666666" y="145.84224221728783" text-anchor="middle" font-size="9" fill="#666">0.561</text>
+<rect x="566.6666666666666" y="152.77860565770064" width="31.333333333333336" height="137.22139434229936" fill="#3b82f6" rx="2">
+        <title>No votes: 0.549</title>
+      </rect>
+      <text x="582.3333333333333" y="148.77860565770064" text-anchor="middle" font-size="9" fill="#666">0.549</text>
+<rect x="600" y="152.94835093974442" width="31.333333333333336" height="137.05164906025558" fill="#ef4444" rx="2">
+        <title>2 up / 1 down: 0.548</title>
+      </rect>
+      <text x="615.6666666666666" y="148.94835093974442" text-anchor="middle" font-size="9" fill="#666">0.548</text>
+      <text x="100" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 100 306)">all-MiniLM-L6-v2</text>
+<text x="200" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 200 306)">all-MiniLM-L12-v2</text>
+<text x="300" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 300 306)">bge-small-en-v1.5</text>
+<text x="400" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 400 306)">gte-small</text>
+<text x="500" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 500 306)">bge-base-en-v1.5</text>
+<text x="600" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 600 306)">gte-base</text>
+      <rect x="50" y="362" width="10" height="10" fill="#3b82f6" rx="2"/>
+        <text x="64" y="371" font-size="10" fill="#333">No votes</text>
+<rect x="170" y="362" width="10" height="10" fill="#ef4444" rx="2"/>
+        <text x="184" y="371" font-size="10" fill="#333">2 up / 1 down</text>
+    </svg>
+  </div><div class="chart">
+    <h3>Vote Impact: NDCG Delta (positive = votes help)</h3>
+    <svg viewBox="0 0 670 380" width="670" height="380">
+      
+      <line x1="50" y1="40" x2="50" y2="290" stroke="#d1d5db"/>
+      <line x1="50" y1="290" x2="650" y2="290" stroke="#d1d5db"/>
+      <rect x="80" y="290" width="38" height="0" fill="#3b82f6" rx="2">
+        <title>Delta: -0.048</title>
+      </rect>
+      <text x="99" y="286" text-anchor="middle" font-size="9" fill="#666">-0.048</text>
+<rect x="180" y="290" width="38" height="0" fill="#3b82f6" rx="2">
+        <title>Delta: -0.021</title>
+      </rect>
+      <text x="199" y="286" text-anchor="middle" font-size="9" fill="#666">-0.021</text>
+<rect x="280" y="123.33333333333334" width="38" height="166.66666666666666" fill="#3b82f6" rx="2">
+        <title>Delta: +0.073</title>
+      </rect>
+      <text x="299" y="119.33333333333334" text-anchor="middle" font-size="9" fill="#666">+0.073</text>
+<rect x="380" y="175.42819320836017" width="38" height="114.57180679163983" fill="#3b82f6" rx="2">
+        <title>Delta: +0.050</title>
+      </rect>
+      <text x="399" y="171.42819320836017" text-anchor="middle" font-size="9" fill="#666">+0.050</text>
+<rect x="480" y="290" width="38" height="0" fill="#3b82f6" rx="2">
+        <title>Delta: -0.037</title>
+      </rect>
+      <text x="499" y="286" text-anchor="middle" font-size="9" fill="#666">-0.037</text>
+<rect x="580" y="290" width="38" height="0" fill="#3b82f6" rx="2">
+        <title>Delta: -0.001</title>
+      </rect>
+      <text x="599" y="286" text-anchor="middle" font-size="9" fill="#666">-0.001</text>
+      <text x="100" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 100 306)">all-MiniLM-L6-v2</text>
+<text x="200" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 200 306)">all-MiniLM-L12-v2</text>
+<text x="300" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 300 306)">bge-small-en-v1.5</text>
+<text x="400" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 400 306)">gte-small</text>
+<text x="500" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 500 306)">bge-base-en-v1.5</text>
+<text x="600" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 600 306)">gte-base</text>
+      <rect x="50" y="362" width="10" height="10" fill="#3b82f6" rx="2"/>
+        <text x="64" y="371" font-size="10" fill="#333">Delta</text>
+    </svg>
+  </div></div>
+      <div class="chart">
+    <h3>Avg NDCG by Weight Config (no votes)</h3>
+    <svg viewBox="0 0 670 380" width="670" height="380">
+      <line x1="50" y1="227.5" x2="650" y2="227.5" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="231.5" text-anchor="end" font-size="10" fill="#999">0.250</text>
+<line x1="50" y1="165" x2="650" y2="165" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="169" text-anchor="end" font-size="10" fill="#999">0.500</text>
+<line x1="50" y1="102.5" x2="650" y2="102.5" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="106.5" text-anchor="end" font-size="10" fill="#999">0.750</text>
+<line x1="50" y1="40" x2="650" y2="40" stroke="#e5e7eb" stroke-dasharray="4"/>
+        <text x="44" y="44" text-anchor="end" font-size="10" fill="#999">1.000</text>
+      <line x1="50" y1="40" x2="50" y2="290" stroke="#d1d5db"/>
+      <line x1="50" y1="290" x2="650" y2="290" stroke="#d1d5db"/>
+      <rect x="60.71428571428572" y="96.68068597212334" width="19.428571428571427" height="193.31931402787666" fill="#3b82f6" rx="2">
+        <title>all-MiniLM-L6-v2: 0.773</title>
+      </rect>
+      <text x="70.42857142857143" y="92.68068597212334" text-anchor="middle" font-size="9" fill="#666">0.773</text>
+<rect x="82.14285714285715" y="100.98547795376717" width="19.428571428571427" height="189.01452204623283" fill="#ef4444" rx="2">
+        <title>all-MiniLM-L12-v2: 0.756</title>
+      </rect>
+      <text x="91.85714285714286" y="96.98547795376717" text-anchor="middle" font-size="9" fill="#666">0.756</text>
+<rect x="103.57142857142858" y="110.37170443900595" width="19.428571428571427" height="179.62829556099405" fill="#22c55e" rx="2">
+        <title>bge-small-en-v1.5: 0.719</title>
+      </rect>
+      <text x="113.28571428571429" y="106.37170443900595" text-anchor="middle" font-size="9" fill="#666">0.719</text>
+<rect x="125" y="138.94672636346564" width="19.428571428571427" height="151.05327363653436" fill="#f59e0b" rx="2">
+        <title>gte-small: 0.604</title>
+      </rect>
+      <text x="134.71428571428572" y="134.94672636346564" text-anchor="middle" font-size="9" fill="#666">0.604</text>
+<rect x="146.42857142857144" y="140.50790518100342" width="19.428571428571427" height="149.49209481899658" fill="#8b5cf6" rx="2">
+        <title>bge-base-en-v1.5: 0.598</title>
+      </rect>
+      <text x="156.14285714285717" y="136.50790518100342" text-anchor="middle" font-size="9" fill="#666">0.598</text>
+<rect x="167.85714285714286" y="152.77860565770064" width="19.428571428571427" height="137.22139434229936" fill="#ec4899" rx="2">
+        <title>gte-base: 0.549</title>
+      </rect>
+      <text x="177.57142857142858" y="148.77860565770064" text-anchor="middle" font-size="9" fill="#666">0.549</text>
+<rect x="210.71428571428572" y="86.99259879218633" width="19.428571428571427" height="203.00740120781367" fill="#3b82f6" rx="2">
+        <title>all-MiniLM-L6-v2: 0.812</title>
+      </rect>
+      <text x="220.42857142857144" y="82.99259879218633" text-anchor="middle" font-size="9" fill="#666">0.812</text>
+<rect x="232.14285714285714" y="86.9794784650432" width="19.428571428571427" height="203.0205215349568" fill="#ef4444" rx="2">
+        <title>all-MiniLM-L12-v2: 0.812</title>
+      </rect>
+      <text x="241.85714285714286" y="82.9794784650432" text-anchor="middle" font-size="9" fill="#666">0.812</text>
+<rect x="253.57142857142858" y="80.66612254153233" width="19.428571428571427" height="209.33387745846767" fill="#22c55e" rx="2">
+        <title>bge-small-en-v1.5: 0.837</title>
+      </rect>
+      <text x="263.2857142857143" y="76.66612254153233" text-anchor="middle" font-size="9" fill="#666">0.837</text>
+<rect x="275" y="79.1940735840711" width="19.428571428571427" height="210.8059264159289" fill="#f59e0b" rx="2">
+        <title>gte-small: 0.843</title>
+      </rect>
+      <text x="284.7142857142857" y="75.1940735840711" text-anchor="middle" font-size="9" fill="#666">0.843</text>
+<rect x="296.42857142857144" y="114.10488242551688" width="19.428571428571427" height="175.89511757448312" fill="#8b5cf6" rx="2">
+        <title>bge-base-en-v1.5: 0.704</title>
+      </rect>
+      <text x="306.14285714285717" y="110.10488242551688" text-anchor="middle" font-size="9" fill="#666">0.704</text>
+<rect x="317.85714285714283" y="107.86490530326688" width="19.428571428571427" height="182.13509469673312" fill="#ec4899" rx="2">
+        <title>gte-base: 0.729</title>
+      </rect>
+      <text x="327.57142857142856" y="103.86490530326688" text-anchor="middle" font-size="9" fill="#666">0.729</text>
+<rect x="360.7142857142857" y="96.68068597212334" width="19.428571428571427" height="193.31931402787666" fill="#3b82f6" rx="2">
+        <title>all-MiniLM-L6-v2: 0.773</title>
+      </rect>
+      <text x="370.42857142857144" y="92.68068597212334" text-anchor="middle" font-size="9" fill="#666">0.773</text>
+<rect x="382.14285714285717" y="100.98547795376717" width="19.428571428571427" height="189.01452204623283" fill="#ef4444" rx="2">
+        <title>all-MiniLM-L12-v2: 0.756</title>
+      </rect>
+      <text x="391.8571428571429" y="96.98547795376717" text-anchor="middle" font-size="9" fill="#666">0.756</text>
+<rect x="403.57142857142856" y="110.37170443900595" width="19.428571428571427" height="179.62829556099405" fill="#22c55e" rx="2">
+        <title>bge-small-en-v1.5: 0.719</title>
+      </rect>
+      <text x="413.2857142857143" y="106.37170443900595" text-anchor="middle" font-size="9" fill="#666">0.719</text>
+<rect x="425" y="138.94672636346564" width="19.428571428571427" height="151.05327363653436" fill="#f59e0b" rx="2">
+        <title>gte-small: 0.604</title>
+      </rect>
+      <text x="434.7142857142857" y="134.94672636346564" text-anchor="middle" font-size="9" fill="#666">0.604</text>
+<rect x="446.42857142857144" y="140.50790518100342" width="19.428571428571427" height="149.49209481899658" fill="#8b5cf6" rx="2">
+        <title>bge-base-en-v1.5: 0.598</title>
+      </rect>
+      <text x="456.14285714285717" y="136.50790518100342" text-anchor="middle" font-size="9" fill="#666">0.598</text>
+<rect x="467.85714285714283" y="152.77860565770064" width="19.428571428571427" height="137.22139434229936" fill="#ec4899" rx="2">
+        <title>gte-base: 0.549</title>
+      </rect>
+      <text x="477.57142857142856" y="148.77860565770064" text-anchor="middle" font-size="9" fill="#666">0.549</text>
+<rect x="510.7142857142857" y="110.11827238381173" width="19.428571428571427" height="179.88172761618827" fill="#3b82f6" rx="2">
+        <title>all-MiniLM-L6-v2: 0.720</title>
+      </rect>
+      <text x="520.4285714285714" y="106.11827238381173" text-anchor="middle" font-size="9" fill="#666">0.720</text>
+<rect x="532.1428571428571" y="118.35436795740713" width="19.428571428571427" height="171.64563204259287" fill="#ef4444" rx="2">
+        <title>all-MiniLM-L12-v2: 0.687</title>
+      </rect>
+      <text x="541.8571428571428" y="114.35436795740713" text-anchor="middle" font-size="9" fill="#666">0.687</text>
+<rect x="553.5714285714287" y="147.2488780161618" width="19.428571428571427" height="142.7511219838382" fill="#22c55e" rx="2">
+        <title>bge-small-en-v1.5: 0.571</title>
+      </rect>
+      <text x="563.2857142857143" y="143.2488780161618" text-anchor="middle" font-size="9" fill="#666">0.571</text>
+<rect x="575" y="155.56322682959316" width="19.428571428571427" height="134.43677317040684" fill="#f59e0b" rx="2">
+        <title>gte-small: 0.538</title>
+      </rect>
+      <text x="584.7142857142857" y="151.56322682959316" text-anchor="middle" font-size="9" fill="#666">0.538</text>
+<rect x="596.4285714285713" y="168.3041310619064" width="19.428571428571427" height="121.6958689380936" fill="#8b5cf6" rx="2">
+        <title>bge-base-en-v1.5: 0.487</title>
+      </rect>
+      <text x="606.142857142857" y="164.3041310619064" text-anchor="middle" font-size="9" fill="#666">0.487</text>
+<rect x="617.8571428571429" y="166.00626328359323" width="19.428571428571427" height="123.99373671640677" fill="#ec4899" rx="2">
+        <title>gte-base: 0.496</title>
+      </rect>
+      <text x="627.5714285714286" y="162.00626328359323" text-anchor="middle" font-size="9" fill="#666">0.496</text>
+      <text x="125" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 125 306)">default-focus</text>
+<text x="275" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 275 306)">confidence-only</text>
+<text x="425" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 425 306)">vote-heavy</text>
+<text x="575" y="306" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-20 575 306)">balanced</text>
+      <rect x="50" y="362" width="10" height="10" fill="#3b82f6" rx="2"/>
+        <text x="64" y="371" font-size="10" fill="#333">all-MiniLM-L6-v2</text>
+<rect x="170" y="362" width="10" height="10" fill="#ef4444" rx="2"/>
+        <text x="184" y="371" font-size="10" fill="#333">all-MiniLM-L12-v2</text>
+<rect x="290" y="362" width="10" height="10" fill="#22c55e" rx="2"/>
+        <text x="304" y="371" font-size="10" fill="#333">bge-small-en-v1.5</text>
+<rect x="410" y="362" width="10" height="10" fill="#f59e0b" rx="2"/>
+        <text x="424" y="371" font-size="10" fill="#333">gte-small</text>
+<rect x="530" y="362" width="10" height="10" fill="#8b5cf6" rx="2"/>
+        <text x="544" y="371" font-size="10" fill="#333">bge-base-en-v1.5</text>
+<rect x="650" y="362" width="10" height="10" fill="#ec4899" rx="2"/>
+        <text x="664" y="371" font-size="10" fill="#333">gte-base</text>
+    </svg>
+  </div>
+      <table>
+        <thead><tr><th>Model</th><th>NDCG (no votes)</th><th>NDCG (with votes)</th><th>Delta</th><th>MRR</th></tr></thead>
+        <tbody>
+    <tr>
+      <td>all-MiniLM-L6-v2</td>
+      <td>0.773</td>
+      <td>0.725</td>
+      <td>-0.048</td>
+      <td>1.000</td>
+    </tr>
+    <tr>
+      <td>all-MiniLM-L12-v2</td>
+      <td>0.756</td>
+      <td>0.735</td>
+      <td>-0.021</td>
+      <td>0.967</td>
+    </tr>
+    <tr>
+      <td>bge-small-en-v1.5</td>
+      <td>0.719</td>
+      <td>0.791</td>
+      <td>+0.073</td>
+      <td>0.967</td>
+    </tr>
+    <tr>
+      <td>gte-small</td>
+      <td>0.604</td>
+      <td>0.654</td>
+      <td>+0.050</td>
+      <td>0.933</td>
+    </tr>
+    <tr>
+      <td>bge-base-en-v1.5</td>
+      <td>0.598</td>
+      <td>0.561</td>
+      <td>-0.037</td>
+      <td>0.817</td>
+    </tr>
+    <tr>
+      <td>gte-base</td>
+      <td>0.549</td>
+      <td>0.548</td>
+      <td>-0.001</td>
+      <td>0.888</td>
+    </tr></tbody>
+      </table>
+    </section>
+
+  <footer>Generated 2026-03-13T18:40:30.357Z</footer>
+</body>
+</html>

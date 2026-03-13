@@ -1,0 +1,8354 @@
+[
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Science & Space/no-votes/default-focus",
+    "ndcg": 0.4703652827859579,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Science & Space/no-votes/confidence-only",
+    "ndcg": 0.5087403079104241,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Science & Space/no-votes/vote-heavy",
+    "ndcg": 0.4703652827859579,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Science & Space/no-votes/balanced",
+    "ndcg": 0.4703652827859579,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Science & Space/2up-1down/default-focus",
+    "ndcg": 0.7653606369886217,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Science & Space/2up-1down/confidence-only",
+    "ndcg": 0.7039180890341347,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Science & Space/2up-1down/vote-heavy",
+    "ndcg": 0.7653606369886217,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Science & Space/2up-1down/balanced",
+    "ndcg": 0.7653606369886217,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Computing & Hardware/no-votes/default-focus",
+    "ndcg": 0.8687949224876582,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Computing & Hardware/no-votes/confidence-only",
+    "ndcg": 0.8687949224876582,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Computing & Hardware/no-votes/vote-heavy",
+    "ndcg": 0.8687949224876582,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Computing & Hardware/no-votes/balanced",
+    "ndcg": 0.6843515475204855,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Computing & Hardware/2up-1down/default-focus",
+    "ndcg": 0.7653606369886217,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Computing & Hardware/2up-1down/confidence-only",
+    "ndcg": 0.7653606369886217,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Computing & Hardware/2up-1down/vote-heavy",
+    "ndcg": 0.7653606369886217,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Computing & Hardware/2up-1down/balanced",
+    "ndcg": 0.7653606369886217,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Electric Vehicles/no-votes/default-focus",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Electric Vehicles/no-votes/confidence-only",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Electric Vehicles/no-votes/vote-heavy",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Electric Vehicles/no-votes/balanced",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Electric Vehicles/2up-1down/default-focus",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Electric Vehicles/2up-1down/confidence-only",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Electric Vehicles/2up-1down/vote-heavy",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Electric Vehicles/2up-1down/balanced",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Cybersecurity & Privacy/no-votes/default-focus",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Cybersecurity & Privacy/no-votes/confidence-only",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Cybersecurity & Privacy/no-votes/vote-heavy",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Cybersecurity & Privacy/no-votes/balanced",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Policy & Regulation/no-votes/default-focus",
+    "ndcg": 0.5901779130901621,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Policy & Regulation/no-votes/confidence-only",
+    "ndcg": 0.7094198757978375,
+    "mrr": 1,
+    "topKAccuracy": 0.625,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Policy & Regulation/no-votes/vote-heavy",
+    "ndcg": 0.5901779130901621,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Policy & Regulation/no-votes/balanced",
+    "ndcg": 0.4923263184550016,
+    "mrr": 1,
+    "topKAccuracy": 0.375,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Policy & Regulation/2up-1down/default-focus",
+    "ndcg": 0.5803349933632229,
+    "mrr": 0.5,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Policy & Regulation/2up-1down/confidence-only",
+    "ndcg": 0.8486987932505933,
+    "mrr": 1,
+    "topKAccuracy": 0.8333333333333334,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Policy & Regulation/2up-1down/vote-heavy",
+    "ndcg": 0.47254583883871204,
+    "mrr": 0.5,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Policy & Regulation/2up-1down/balanced",
+    "ndcg": 0.47254583883871204,
+    "mrr": 0.5,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Science & Space/no-votes/default-focus",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Science & Space/no-votes/confidence-only",
+    "ndcg": 0.6843515475204855,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Science & Space/no-votes/vote-heavy",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Science & Space/no-votes/balanced",
+    "ndcg": 0.6843515475204855,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Science & Space/2up-1down/default-focus",
+    "ndcg": 0.7653606369886217,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Science & Space/2up-1down/confidence-only",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Science & Space/2up-1down/vote-heavy",
+    "ndcg": 0.7653606369886217,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Science & Space/2up-1down/balanced",
+    "ndcg": 0.7653606369886217,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Computing & Hardware/no-votes/default-focus",
+    "ndcg": 0.7227265726449519,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Computing & Hardware/no-votes/confidence-only",
+    "ndcg": 0.830419897363192,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Computing & Hardware/no-votes/vote-heavy",
+    "ndcg": 0.7227265726449519,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Computing & Hardware/no-votes/balanced",
+    "ndcg": 0.6992148198508501,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Computing & Hardware/2up-1down/default-focus",
+    "ndcg": 0.7039180890341347,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Computing & Hardware/2up-1down/confidence-only",
+    "ndcg": 0.7039180890341347,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Computing & Hardware/2up-1down/vote-heavy",
+    "ndcg": 0.7039180890341347,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Computing & Hardware/2up-1down/balanced",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Electric Vehicles/no-votes/default-focus",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Electric Vehicles/no-votes/confidence-only",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Electric Vehicles/no-votes/vote-heavy",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Electric Vehicles/no-votes/balanced",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Electric Vehicles/2up-1down/default-focus",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Electric Vehicles/2up-1down/confidence-only",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Electric Vehicles/2up-1down/vote-heavy",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Electric Vehicles/2up-1down/balanced",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Cybersecurity & Privacy/no-votes/default-focus",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Cybersecurity & Privacy/no-votes/confidence-only",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Cybersecurity & Privacy/no-votes/vote-heavy",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Cybersecurity & Privacy/no-votes/balanced",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Policy & Regulation/no-votes/default-focus",
+    "ndcg": 0.586202141404402,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Policy & Regulation/no-votes/confidence-only",
+    "ndcg": 0.7937341100537233,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Policy & Regulation/no-votes/vote-heavy",
+    "ndcg": 0.586202141404402,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Policy & Regulation/no-votes/balanced",
+    "ndcg": 0.5493086013663014,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Policy & Regulation/2up-1down/default-focus",
+    "ndcg": 0.8486987932505933,
+    "mrr": 1,
+    "topKAccuracy": 0.8333333333333334,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Policy & Regulation/2up-1down/confidence-only",
+    "ndcg": 0.8486987932505933,
+    "mrr": 1,
+    "topKAccuracy": 0.8333333333333334,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Policy & Regulation/2up-1down/vote-heavy",
+    "ndcg": 0.8486987932505933,
+    "mrr": 1,
+    "topKAccuracy": 0.8333333333333334,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Policy & Regulation/2up-1down/balanced",
+    "ndcg": 0.6238470455881188,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Science & Space/no-votes/default-focus",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Science & Space/no-votes/confidence-only",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Science & Space/no-votes/vote-heavy",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Science & Space/no-votes/balanced",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Science & Space/2up-1down/default-focus",
+    "ndcg": 0.7039180890341347,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Science & Space/2up-1down/confidence-only",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Science & Space/2up-1down/vote-heavy",
+    "ndcg": 0.7653606369886217,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Science & Space/2up-1down/balanced",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Computing & Hardware/no-votes/default-focus",
+    "ndcg": 0.7227265726449519,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Computing & Hardware/no-votes/confidence-only",
+    "ndcg": 0.8687949224876582,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Computing & Hardware/no-votes/vote-heavy",
+    "ndcg": 0.7227265726449519,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Computing & Hardware/no-votes/balanced",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Computing & Hardware/2up-1down/default-focus",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Computing & Hardware/2up-1down/confidence-only",
+    "ndcg": 0.7653606369886217,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Computing & Hardware/2up-1down/vote-heavy",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Computing & Hardware/2up-1down/balanced",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Electric Vehicles/no-votes/default-focus",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Electric Vehicles/no-votes/confidence-only",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Electric Vehicles/no-votes/vote-heavy",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Electric Vehicles/no-votes/balanced",
+    "ndcg": 0.6366824387328317,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Electric Vehicles/2up-1down/default-focus",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Electric Vehicles/2up-1down/confidence-only",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Electric Vehicles/2up-1down/vote-heavy",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Electric Vehicles/2up-1down/balanced",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Cybersecurity & Privacy/no-votes/default-focus",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Cybersecurity & Privacy/no-votes/confidence-only",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Cybersecurity & Privacy/no-votes/vote-heavy",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Cybersecurity & Privacy/no-votes/balanced",
+    "ndcg": 0.38685280723454163,
+    "mrr": 0.5,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Policy & Regulation/no-votes/default-focus",
+    "ndcg": 0.5493086013663014,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Policy & Regulation/no-votes/confidence-only",
+    "ndcg": 0.703111904094716,
+    "mrr": 1,
+    "topKAccuracy": 0.625,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Policy & Regulation/no-votes/vote-heavy",
+    "ndcg": 0.5493086013663014,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Policy & Regulation/no-votes/balanced",
+    "ndcg": 0.296888095905284,
+    "mrr": 0.25,
+    "topKAccuracy": 0.375,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Policy & Regulation/2up-1down/default-focus",
+    "ndcg": 0.561692774772731,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Policy & Regulation/2up-1down/confidence-only",
+    "ndcg": 0.644824486427155,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Policy & Regulation/2up-1down/vote-heavy",
+    "ndcg": 0.5842273861585908,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Policy & Regulation/2up-1down/balanced",
+    "ndcg": 0.25909036127391766,
+    "mrr": 0.3333333333333333,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Science & Space/no-votes/default-focus",
+    "ndcg": 0.6992148198508501,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Science & Space/no-votes/confidence-only",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Science & Space/no-votes/vote-heavy",
+    "ndcg": 0.6992148198508501,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Science & Space/no-votes/balanced",
+    "ndcg": 0.6992148198508501,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Science & Space/2up-1down/default-focus",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Science & Space/2up-1down/confidence-only",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Science & Space/2up-1down/vote-heavy",
+    "ndcg": 0.7039180890341347,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Science & Space/2up-1down/balanced",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Computing & Hardware/no-votes/default-focus",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Computing & Hardware/no-votes/confidence-only",
+    "ndcg": 0.8687949224876582,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Computing & Hardware/no-votes/vote-heavy",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Computing & Hardware/no-votes/balanced",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Computing & Hardware/2up-1down/default-focus",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Computing & Hardware/2up-1down/confidence-only",
+    "ndcg": 0.7653606369886217,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Computing & Hardware/2up-1down/vote-heavy",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Computing & Hardware/2up-1down/balanced",
+    "ndcg": 0,
+    "mrr": 0.2,
+    "topKAccuracy": 0,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Electric Vehicles/no-votes/default-focus",
+    "ndcg": 0.6366824387328317,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Electric Vehicles/no-votes/confidence-only",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Electric Vehicles/no-votes/vote-heavy",
+    "ndcg": 0.6366824387328317,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Electric Vehicles/no-votes/balanced",
+    "ndcg": 0.3903800499921017,
+    "mrr": 1,
+    "topKAccuracy": 0.25,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Electric Vehicles/2up-1down/default-focus",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Electric Vehicles/2up-1down/confidence-only",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Electric Vehicles/2up-1down/vote-heavy",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Electric Vehicles/2up-1down/balanced",
+    "ndcg": 0,
+    "mrr": 0.2,
+    "topKAccuracy": 0,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Cybersecurity & Privacy/no-votes/default-focus",
+    "ndcg": 0.38685280723454163,
+    "mrr": 0.5,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Cybersecurity & Privacy/no-votes/confidence-only",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Cybersecurity & Privacy/no-votes/vote-heavy",
+    "ndcg": 0.38685280723454163,
+    "mrr": 0.5,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Cybersecurity & Privacy/no-votes/balanced",
+    "ndcg": 0,
+    "mrr": 0.125,
+    "topKAccuracy": 0,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Policy & Regulation/no-votes/default-focus",
+    "ndcg": 0.3372352103225049,
+    "mrr": 0.5,
+    "topKAccuracy": 0.375,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Policy & Regulation/no-votes/confidence-only",
+    "ndcg": 0.7560966886192179,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Policy & Regulation/no-votes/vote-heavy",
+    "ndcg": 0.3372352103225049,
+    "mrr": 0.5,
+    "topKAccuracy": 0.375,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Policy & Regulation/no-votes/balanced",
+    "ndcg": 0.3294836243397122,
+    "mrr": 0.5,
+    "topKAccuracy": 0.375,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Policy & Regulation/2up-1down/default-focus",
+    "ndcg": 0.23811292043488155,
+    "mrr": 0.25,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Policy & Regulation/2up-1down/confidence-only",
+    "ndcg": 0.8090791338210652,
+    "mrr": 1,
+    "topKAccuracy": 0.8333333333333334,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Policy & Regulation/2up-1down/vote-heavy",
+    "ndcg": 0.5709662133861837,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Policy & Regulation/2up-1down/balanced",
+    "ndcg": 0.22485174766247445,
+    "mrr": 0.2,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Science & Space/no-votes/default-focus",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Science & Space/no-votes/confidence-only",
+    "ndcg": 0.6548086577531307,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Science & Space/no-votes/vote-heavy",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Science & Space/no-votes/balanced",
+    "ndcg": 0.6843515475204855,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Science & Space/2up-1down/default-focus",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Science & Space/2up-1down/confidence-only",
+    "ndcg": 0.7039180890341347,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Science & Space/2up-1down/vote-heavy",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Science & Space/2up-1down/balanced",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Computing & Hardware/no-votes/default-focus",
+    "ndcg": 0.6992148198508501,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Computing & Hardware/no-votes/confidence-only",
+    "ndcg": 0.6164336326286644,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Computing & Hardware/no-votes/vote-heavy",
+    "ndcg": 0.6992148198508501,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Computing & Hardware/no-votes/balanced",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Computing & Hardware/2up-1down/default-focus",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Computing & Hardware/2up-1down/confidence-only",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Computing & Hardware/2up-1down/vote-heavy",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Computing & Hardware/2up-1down/balanced",
+    "ndcg": 0.2960819109658652,
+    "mrr": 0.5,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Electric Vehicles/no-votes/default-focus",
+    "ndcg": 0.8318724637288826,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Electric Vehicles/no-votes/confidence-only",
+    "ndcg": 0.8318724637288826,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Electric Vehicles/no-votes/vote-heavy",
+    "ndcg": 0.8318724637288826,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Electric Vehicles/no-votes/balanced",
+    "ndcg": 0.3903800499921017,
+    "mrr": 1,
+    "topKAccuracy": 0.25,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Electric Vehicles/2up-1down/default-focus",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Electric Vehicles/2up-1down/confidence-only",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Electric Vehicles/2up-1down/vote-heavy",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Electric Vehicles/2up-1down/balanced",
+    "ndcg": 0,
+    "mrr": 0.3333333333333333,
+    "topKAccuracy": 0,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Cybersecurity & Privacy/no-votes/default-focus",
+    "ndcg": 0,
+    "mrr": 0.25,
+    "topKAccuracy": 0,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Cybersecurity & Privacy/no-votes/confidence-only",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Cybersecurity & Privacy/no-votes/vote-heavy",
+    "ndcg": 0,
+    "mrr": 0.25,
+    "topKAccuracy": 0,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Cybersecurity & Privacy/no-votes/balanced",
+    "ndcg": 0,
+    "mrr": 0.125,
+    "topKAccuracy": 0,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Policy & Regulation/no-votes/default-focus",
+    "ndcg": 0.47853172748969053,
+    "mrr": 0.3333333333333333,
+    "topKAccuracy": 0.625,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Policy & Regulation/no-votes/confidence-only",
+    "ndcg": 0.7166492644739907,
+    "mrr": 1,
+    "topKAccuracy": 0.625,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Policy & Regulation/no-votes/vote-heavy",
+    "ndcg": 0.47853172748969053,
+    "mrr": 0.3333333333333333,
+    "topKAccuracy": 0.625,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Policy & Regulation/no-votes/balanced",
+    "ndcg": 0.2865826258153645,
+    "mrr": 0.25,
+    "topKAccuracy": 0.375,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Policy & Regulation/2up-1down/default-focus",
+    "ndcg": 0.24738635904833417,
+    "mrr": 0.25,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Policy & Regulation/2up-1down/confidence-only",
+    "ndcg": 0.7618870795651185,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Policy & Regulation/2up-1down/vote-heavy",
+    "ndcg": 0.10778915452451093,
+    "mrr": 0.16666666666666666,
+    "topKAccuracy": 0.16666666666666666,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Policy & Regulation/2up-1down/balanced",
+    "ndcg": 0.22485174766247445,
+    "mrr": 0.2,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Science & Space/no-votes/default-focus",
+    "ndcg": 0.7227265726449519,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Science & Space/no-votes/confidence-only",
+    "ndcg": 0.7227265726449519,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Science & Space/no-votes/vote-heavy",
+    "ndcg": 0.7227265726449519,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Science & Space/no-votes/balanced",
+    "ndcg": 0.7227265726449519,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Science & Space/2up-1down/default-focus",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Science & Space/2up-1down/confidence-only",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Science & Space/2up-1down/vote-heavy",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Science & Space/2up-1down/balanced",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Computing & Hardware/no-votes/default-focus",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Computing & Hardware/no-votes/confidence-only",
+    "ndcg": 0.8687949224876582,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Computing & Hardware/no-votes/vote-heavy",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Computing & Hardware/no-votes/balanced",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Computing & Hardware/2up-1down/default-focus",
+    "ndcg": 0.5307212739772434,
+    "mrr": 0.5,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Computing & Hardware/2up-1down/confidence-only",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Computing & Hardware/2up-1down/vote-heavy",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Computing & Hardware/2up-1down/balanced",
+    "ndcg": 0,
+    "mrr": 0.2,
+    "topKAccuracy": 0,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Electric Vehicles/no-votes/default-focus",
+    "ndcg": 0.5855700749881525,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Electric Vehicles/no-votes/confidence-only",
+    "ndcg": 0.8318724637288826,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Electric Vehicles/no-votes/vote-heavy",
+    "ndcg": 0.5855700749881525,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Electric Vehicles/no-votes/balanced",
+    "ndcg": 0.3903800499921017,
+    "mrr": 1,
+    "topKAccuracy": 0.25,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Electric Vehicles/2up-1down/default-focus",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Electric Vehicles/2up-1down/confidence-only",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Electric Vehicles/2up-1down/vote-heavy",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Electric Vehicles/2up-1down/balanced",
+    "ndcg": 0,
+    "mrr": 0.16666666666666666,
+    "topKAccuracy": 0,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Cybersecurity & Privacy/no-votes/default-focus",
+    "ndcg": 0,
+    "mrr": 0.125,
+    "topKAccuracy": 0,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Cybersecurity & Privacy/no-votes/confidence-only",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Cybersecurity & Privacy/no-votes/vote-heavy",
+    "ndcg": 0,
+    "mrr": 0.125,
+    "topKAccuracy": 0,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Cybersecurity & Privacy/no-votes/balanced",
+    "ndcg": 0,
+    "mrr": 0.125,
+    "topKAccuracy": 0,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Policy & Regulation/no-votes/default-focus",
+    "ndcg": 0.43058883596526576,
+    "mrr": 1,
+    "topKAccuracy": 0.375,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Policy & Regulation/no-votes/confidence-only",
+    "ndcg": 0.7036341014013555,
+    "mrr": 1,
+    "topKAccuracy": 0.625,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Policy & Regulation/no-votes/vote-heavy",
+    "ndcg": 0.43058883596526576,
+    "mrr": 1,
+    "topKAccuracy": 0.375,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Policy & Regulation/no-votes/balanced",
+    "ndcg": 0.4170514755859909,
+    "mrr": 1,
+    "topKAccuracy": 0.375,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Policy & Regulation/2up-1down/default-focus",
+    "ndcg": 0.22485174766247445,
+    "mrr": 0.2,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Policy & Regulation/2up-1down/confidence-only",
+    "ndcg": 0.7409096387260823,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Policy & Regulation/2up-1down/vote-heavy",
+    "ndcg": 0.13032376591037062,
+    "mrr": 0.25,
+    "topKAccuracy": 0.16666666666666666,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Policy & Regulation/2up-1down/balanced",
+    "ndcg": 0.22485174766247445,
+    "mrr": 0.2,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Middle East Conflict/no-votes/default-focus",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Middle East Conflict/no-votes/confidence-only",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Middle East Conflict/no-votes/vote-heavy",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Middle East Conflict/no-votes/balanced",
+    "ndcg": 0.9363792118010483,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Middle East Conflict/2up-1down/default-focus",
+    "ndcg": 0.9216514835285049,
+    "mrr": 1,
+    "topKAccuracy": 0.8888888888888888,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Middle East Conflict/2up-1down/confidence-only",
+    "ndcg": 0.9292442392789194,
+    "mrr": 1,
+    "topKAccuracy": 0.8888888888888888,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Middle East Conflict/2up-1down/vote-heavy",
+    "ndcg": 0.9216514835285049,
+    "mrr": 1,
+    "topKAccuracy": 0.8888888888888888,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Middle East Conflict/2up-1down/balanced",
+    "ndcg": 0.9162750860008065,
+    "mrr": 1,
+    "topKAccuracy": 0.8888888888888888,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Oil & Energy/no-votes/default-focus",
+    "ndcg": 0.8625618335428545,
+    "mrr": 1,
+    "topKAccuracy": 0.8571428571428571,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Oil & Energy/no-votes/confidence-only",
+    "ndcg": 0.8936633189697701,
+    "mrr": 1,
+    "topKAccuracy": 0.8571428571428571,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Oil & Energy/no-votes/vote-heavy",
+    "ndcg": 0.8625618335428545,
+    "mrr": 1,
+    "topKAccuracy": 0.8571428571428571,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Oil & Energy/no-votes/balanced",
+    "ndcg": 0.8625618335428545,
+    "mrr": 1,
+    "topKAccuracy": 0.8571428571428571,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Oil & Energy/2up-1down/default-focus",
+    "ndcg": 0.6843515475204855,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Oil & Energy/2up-1down/confidence-only",
+    "ndcg": 0.8539316501572937,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Oil & Energy/2up-1down/vote-heavy",
+    "ndcg": 0.6843515475204855,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Oil & Energy/2up-1down/balanced",
+    "ndcg": 0.6843515475204855,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "US Foreign Policy/no-votes/default-focus",
+    "ndcg": 0.8611375561264454,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "US Foreign Policy/no-votes/confidence-only",
+    "ndcg": 0.7104770117651426,
+    "mrr": 0.5,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "US Foreign Policy/no-votes/vote-heavy",
+    "ndcg": 0.8611375561264454,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "US Foreign Policy/no-votes/balanced",
+    "ndcg": 0.9052116356304493,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "US Foreign Policy/2up-1down/default-focus",
+    "ndcg": 0.9363792118010483,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "US Foreign Policy/2up-1down/confidence-only",
+    "ndcg": 0.8512360941594274,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "US Foreign Policy/2up-1down/vote-heavy",
+    "ndcg": 0.9305687780632227,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "US Foreign Policy/2up-1down/balanced",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Russia & Ukraine/no-votes/default-focus",
+    "ndcg": 0.8539316501572937,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Russia & Ukraine/no-votes/confidence-only",
+    "ndcg": 0.8687949224876582,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Russia & Ukraine/no-votes/vote-heavy",
+    "ndcg": 0.8539316501572937,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Russia & Ukraine/no-votes/balanced",
+    "ndcg": 0.6843515475204855,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Russia & Ukraine/2up-1down/default-focus",
+    "ndcg": 0.2960819109658652,
+    "mrr": 0.5,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Russia & Ukraine/2up-1down/confidence-only",
+    "ndcg": 0.7653606369886217,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Russia & Ukraine/2up-1down/vote-heavy",
+    "ndcg": 0.23463936301137822,
+    "mrr": 0.3333333333333333,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Russia & Ukraine/2up-1down/balanced",
+    "ndcg": 0.2960819109658652,
+    "mrr": 0.5,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Latin America/no-votes/default-focus",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Latin America/no-votes/confidence-only",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Latin America/no-votes/vote-heavy",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Latin America/no-votes/balanced",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Latin America/2up-1down/default-focus",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Latin America/2up-1down/confidence-only",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Latin America/2up-1down/vote-heavy",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Latin America/2up-1down/balanced",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Middle East Conflict/no-votes/default-focus",
+    "ndcg": 0.933745776545611,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Middle East Conflict/no-votes/confidence-only",
+    "ndcg": 0.933745776545611,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Middle East Conflict/no-votes/vote-heavy",
+    "ndcg": 0.933745776545611,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Middle East Conflict/no-votes/balanced",
+    "ndcg": 0.8553475075669357,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Middle East Conflict/2up-1down/default-focus",
+    "ndcg": 0.764167593374866,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Middle East Conflict/2up-1down/confidence-only",
+    "ndcg": 0.9216514835285049,
+    "mrr": 1,
+    "topKAccuracy": 0.8888888888888888,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Middle East Conflict/2up-1down/vote-heavy",
+    "ndcg": 0.764167593374866,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Middle East Conflict/2up-1down/balanced",
+    "ndcg": 0.7375728492866022,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Oil & Energy/no-votes/default-focus",
+    "ndcg": 0.8816172070446371,
+    "mrr": 1,
+    "topKAccuracy": 0.8571428571428571,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Oil & Energy/no-votes/confidence-only",
+    "ndcg": 0.8816172070446371,
+    "mrr": 1,
+    "topKAccuracy": 0.8571428571428571,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Oil & Energy/no-votes/vote-heavy",
+    "ndcg": 0.8816172070446371,
+    "mrr": 1,
+    "topKAccuracy": 0.8571428571428571,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Oil & Energy/no-votes/balanced",
+    "ndcg": 0.7899917627398735,
+    "mrr": 1,
+    "topKAccuracy": 0.7142857142857143,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Oil & Energy/2up-1down/default-focus",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Oil & Energy/2up-1down/confidence-only",
+    "ndcg": 0.830419897363192,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Oil & Energy/2up-1down/vote-heavy",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Oil & Energy/2up-1down/balanced",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "US Foreign Policy/no-votes/default-focus",
+    "ndcg": 0.8389574121760602,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "US Foreign Policy/no-votes/confidence-only",
+    "ndcg": 0.826813366651774,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "US Foreign Policy/no-votes/vote-heavy",
+    "ndcg": 0.8389574121760602,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "US Foreign Policy/no-votes/balanced",
+    "ndcg": 0.857980942822373,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "US Foreign Policy/2up-1down/default-focus",
+    "ndcg": 0.7381919257729245,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "US Foreign Policy/2up-1down/confidence-only",
+    "ndcg": 0.8263333286520083,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "US Foreign Policy/2up-1down/vote-heavy",
+    "ndcg": 0.7381919257729245,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "US Foreign Policy/2up-1down/balanced",
+    "ndcg": 0.7026305163854645,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Russia & Ukraine/no-votes/default-focus",
+    "ndcg": 0.7227265726449519,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Russia & Ukraine/no-votes/confidence-only",
+    "ndcg": 0.7227265726449519,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Russia & Ukraine/no-votes/vote-heavy",
+    "ndcg": 0.7227265726449519,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Russia & Ukraine/no-votes/balanced",
+    "ndcg": 0.5087403079104241,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Russia & Ukraine/2up-1down/default-focus",
+    "ndcg": 0.2960819109658652,
+    "mrr": 0.5,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Russia & Ukraine/2up-1down/confidence-only",
+    "ndcg": 0.7039180890341347,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Russia & Ukraine/2up-1down/vote-heavy",
+    "ndcg": 0.2960819109658652,
+    "mrr": 0.5,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Russia & Ukraine/2up-1down/balanced",
+    "ndcg": 0.2960819109658652,
+    "mrr": 0.5,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Latin America/no-votes/default-focus",
+    "ndcg": 0.8318724637288826,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Latin America/no-votes/confidence-only",
+    "ndcg": 0.8318724637288826,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Latin America/no-votes/vote-heavy",
+    "ndcg": 0.8318724637288826,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Latin America/no-votes/balanced",
+    "ndcg": 0.8318724637288826,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Latin America/2up-1down/default-focus",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Latin America/2up-1down/confidence-only",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Latin America/2up-1down/vote-heavy",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Latin America/2up-1down/balanced",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Middle East Conflict/no-votes/default-focus",
+    "ndcg": 0.866947989864271,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Middle East Conflict/no-votes/confidence-only",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Middle East Conflict/no-votes/vote-heavy",
+    "ndcg": 0.866947989864271,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Middle East Conflict/no-votes/balanced",
+    "ndcg": 0.727329844310522,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Middle East Conflict/2up-1down/default-focus",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Middle East Conflict/2up-1down/confidence-only",
+    "ndcg": 0.9292442392789194,
+    "mrr": 1,
+    "topKAccuracy": 0.8888888888888888,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Middle East Conflict/2up-1down/vote-heavy",
+    "ndcg": 0.9292442392789194,
+    "mrr": 1,
+    "topKAccuracy": 0.8888888888888888,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Middle East Conflict/2up-1down/balanced",
+    "ndcg": 0.8550956239938448,
+    "mrr": 1,
+    "topKAccuracy": 0.7777777777777778,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Oil & Energy/no-votes/default-focus",
+    "ndcg": 0.7349468987069968,
+    "mrr": 1,
+    "topKAccuracy": 0.7142857142857143,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Oil & Energy/no-votes/confidence-only",
+    "ndcg": 0.8625618335428545,
+    "mrr": 1,
+    "topKAccuracy": 0.8571428571428571,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Oil & Energy/no-votes/vote-heavy",
+    "ndcg": 0.7349468987069968,
+    "mrr": 1,
+    "topKAccuracy": 0.7142857142857143,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Oil & Energy/no-votes/balanced",
+    "ndcg": 0.6334982227809455,
+    "mrr": 0.5,
+    "topKAccuracy": 0.7142857142857143,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Oil & Energy/2up-1down/default-focus",
+    "ndcg": 0.830419897363192,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Oil & Energy/2up-1down/confidence-only",
+    "ndcg": 0.830419897363192,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Oil & Energy/2up-1down/vote-heavy",
+    "ndcg": 0.8539316501572937,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Oil & Energy/2up-1down/balanced",
+    "ndcg": 0.6992148198508501,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "US Foreign Policy/no-votes/default-focus",
+    "ndcg": 0.914856882358379,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "US Foreign Policy/no-votes/confidence-only",
+    "ndcg": 0.8899541168509599,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "US Foreign Policy/no-votes/vote-heavy",
+    "ndcg": 0.914856882358379,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "US Foreign Policy/no-votes/balanced",
+    "ndcg": 0.933745776545611,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "US Foreign Policy/2up-1down/default-focus",
+    "ndcg": 0.9305687780632227,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "US Foreign Policy/2up-1down/confidence-only",
+    "ndcg": 0.933745776545611,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "US Foreign Policy/2up-1down/vote-heavy",
+    "ndcg": 0.9266360779006401,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "US Foreign Policy/2up-1down/balanced",
+    "ndcg": 0.9266360779006401,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Russia & Ukraine/no-votes/default-focus",
+    "ndcg": 0.6992148198508501,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Russia & Ukraine/no-votes/confidence-only",
+    "ndcg": 0.8687949224876582,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Russia & Ukraine/no-votes/vote-heavy",
+    "ndcg": 0.6992148198508501,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Russia & Ukraine/no-votes/balanced",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Russia & Ukraine/2up-1down/default-focus",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Russia & Ukraine/2up-1down/confidence-only",
+    "ndcg": 0.7653606369886217,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Russia & Ukraine/2up-1down/vote-heavy",
+    "ndcg": 0.23463936301137822,
+    "mrr": 0.3333333333333333,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Russia & Ukraine/2up-1down/balanced",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Latin America/no-votes/default-focus",
+    "ndcg": 0.75369761125927,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Latin America/no-votes/confidence-only",
+    "ndcg": 0.8318724637288826,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Latin America/no-votes/vote-heavy",
+    "ndcg": 0.75369761125927,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Latin America/no-votes/balanced",
+    "ndcg": 0.5855700749881525,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Latin America/2up-1down/default-focus",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Latin America/2up-1down/confidence-only",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Latin America/2up-1down/vote-heavy",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Latin America/2up-1down/balanced",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Middle East Conflict/no-votes/default-focus",
+    "ndcg": 0.7791714369672127,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Middle East Conflict/no-votes/confidence-only",
+    "ndcg": 0.9363792118010483,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Middle East Conflict/no-votes/vote-heavy",
+    "ndcg": 0.7791714369672127,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Middle East Conflict/no-votes/balanced",
+    "ndcg": 0.7059054020403313,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Middle East Conflict/2up-1down/default-focus",
+    "ndcg": 0.8987713917876998,
+    "mrr": 1,
+    "topKAccuracy": 0.8888888888888888,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Middle East Conflict/2up-1down/confidence-only",
+    "ndcg": 0.8550956239938448,
+    "mrr": 1,
+    "topKAccuracy": 0.7777777777777778,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Middle East Conflict/2up-1down/vote-heavy",
+    "ndcg": 0.9258513847149255,
+    "mrr": 1,
+    "topKAccuracy": 0.8888888888888888,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Middle East Conflict/2up-1down/balanced",
+    "ndcg": 0.7299800935361876,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Oil & Energy/no-votes/default-focus",
+    "ndcg": 0.6730234638881231,
+    "mrr": 1,
+    "topKAccuracy": 0.5714285714285714,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Oil & Energy/no-votes/confidence-only",
+    "ndcg": 0.9020870746500321,
+    "mrr": 1,
+    "topKAccuracy": 0.8571428571428571,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Oil & Energy/no-votes/vote-heavy",
+    "ndcg": 0.6730234638881231,
+    "mrr": 1,
+    "topKAccuracy": 0.5714285714285714,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Oil & Energy/no-votes/balanced",
+    "ndcg": 0.5666867828578932,
+    "mrr": 1,
+    "topKAccuracy": 0.42857142857142855,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Oil & Energy/2up-1down/default-focus",
+    "ndcg": 0.830419897363192,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Oil & Energy/2up-1down/confidence-only",
+    "ndcg": 0.8687949224876582,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Oil & Energy/2up-1down/vote-heavy",
+    "ndcg": 0.830419897363192,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Oil & Energy/2up-1down/balanced",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "US Foreign Policy/no-votes/default-focus",
+    "ndcg": 0.835780413693672,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "US Foreign Policy/no-votes/confidence-only",
+    "ndcg": 0.7799082337019199,
+    "mrr": 0.5,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "US Foreign Policy/no-votes/vote-heavy",
+    "ndcg": 0.835780413693672,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "US Foreign Policy/no-votes/balanced",
+    "ndcg": 0.8553475075669357,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "US Foreign Policy/2up-1down/default-focus",
+    "ndcg": 0.857980942822373,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "US Foreign Policy/2up-1down/confidence-only",
+    "ndcg": 0.8701249883466593,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "US Foreign Policy/2up-1down/vote-heavy",
+    "ndcg": 0.9266360779006401,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "US Foreign Policy/2up-1down/balanced",
+    "ndcg": 0.8389574121760602,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Russia & Ukraine/no-votes/default-focus",
+    "ndcg": 0.5087403079104241,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Russia & Ukraine/no-votes/confidence-only",
+    "ndcg": 0.8539316501572937,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Russia & Ukraine/no-votes/vote-heavy",
+    "ndcg": 0.5087403079104241,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Russia & Ukraine/no-votes/balanced",
+    "ndcg": 0.5087403079104241,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Russia & Ukraine/2up-1down/default-focus",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Russia & Ukraine/2up-1down/confidence-only",
+    "ndcg": 0.7653606369886217,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Russia & Ukraine/2up-1down/vote-heavy",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Russia & Ukraine/2up-1down/balanced",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Latin America/no-votes/default-focus",
+    "ndcg": 0.75369761125927,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Latin America/no-votes/confidence-only",
+    "ndcg": 0.8318724637288826,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Latin America/no-votes/vote-heavy",
+    "ndcg": 0.75369761125927,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Latin America/no-votes/balanced",
+    "ndcg": 0.5855700749881525,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Latin America/2up-1down/default-focus",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Latin America/2up-1down/confidence-only",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Latin America/2up-1down/vote-heavy",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Latin America/2up-1down/balanced",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Middle East Conflict/no-votes/default-focus",
+    "ndcg": 0.933745776545611,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Middle East Conflict/no-votes/confidence-only",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Middle East Conflict/no-votes/vote-heavy",
+    "ndcg": 0.933745776545611,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Middle East Conflict/no-votes/balanced",
+    "ndcg": 0.7909506325094737,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Middle East Conflict/2up-1down/default-focus",
+    "ndcg": 0.8550956239938448,
+    "mrr": 1,
+    "topKAccuracy": 0.7777777777777778,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Middle East Conflict/2up-1down/confidence-only",
+    "ndcg": 0.9292442392789194,
+    "mrr": 1,
+    "topKAccuracy": 0.8888888888888888,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Middle East Conflict/2up-1down/vote-heavy",
+    "ndcg": 0.9292442392789194,
+    "mrr": 1,
+    "topKAccuracy": 0.8888888888888888,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Middle East Conflict/2up-1down/balanced",
+    "ndcg": 0.8508957228074242,
+    "mrr": 1,
+    "topKAccuracy": 0.7777777777777778,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Oil & Energy/no-votes/default-focus",
+    "ndcg": 0.7081895500563976,
+    "mrr": 1,
+    "topKAccuracy": 0.7142857142857143,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Oil & Energy/no-votes/confidence-only",
+    "ndcg": 0.7899917627398735,
+    "mrr": 1,
+    "topKAccuracy": 0.7142857142857143,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Oil & Energy/no-votes/vote-heavy",
+    "ndcg": 0.7081895500563976,
+    "mrr": 1,
+    "topKAccuracy": 0.7142857142857143,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Oil & Energy/no-votes/balanced",
+    "ndcg": 0.5186511804016661,
+    "mrr": 1,
+    "topKAccuracy": 0.42857142857142855,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Oil & Energy/2up-1down/default-focus",
+    "ndcg": 0.6164336326286644,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Oil & Energy/2up-1down/confidence-only",
+    "ndcg": 0.830419897363192,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Oil & Energy/2up-1down/vote-heavy",
+    "ndcg": 0.48522855511632257,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Oil & Energy/2up-1down/balanced",
+    "ndcg": 0.48522855511632257,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "US Foreign Policy/no-votes/default-focus",
+    "ndcg": 0.8603818544462509,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "US Foreign Policy/no-votes/confidence-only",
+    "ndcg": 0.84860265890399,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "US Foreign Policy/no-votes/vote-heavy",
+    "ndcg": 0.8603818544462509,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "US Foreign Policy/no-votes/balanced",
+    "ndcg": 0.866947989864271,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "US Foreign Policy/2up-1down/default-focus",
+    "ndcg": 0.933745776545611,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "US Foreign Policy/2up-1down/confidence-only",
+    "ndcg": 0.9216017310213247,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "US Foreign Policy/2up-1down/vote-heavy",
+    "ndcg": 0.8701249883466593,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "US Foreign Policy/2up-1down/balanced",
+    "ndcg": 0.8603818544462509,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Russia & Ukraine/no-votes/default-focus",
+    "ndcg": 0.830419897363192,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Russia & Ukraine/no-votes/confidence-only",
+    "ndcg": 0.8687949224876582,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Russia & Ukraine/no-votes/vote-heavy",
+    "ndcg": 0.830419897363192,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Russia & Ukraine/no-votes/balanced",
+    "ndcg": 0.5531464700081437,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Russia & Ukraine/2up-1down/default-focus",
+    "ndcg": 0.7039180890341347,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Russia & Ukraine/2up-1down/confidence-only",
+    "ndcg": 0.7653606369886217,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Russia & Ukraine/2up-1down/vote-heavy",
+    "ndcg": 0.23463936301137822,
+    "mrr": 0.3333333333333333,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Russia & Ukraine/2up-1down/balanced",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Latin America/no-votes/default-focus",
+    "ndcg": 0.75369761125927,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Latin America/no-votes/confidence-only",
+    "ndcg": 0.8318724637288826,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Latin America/no-votes/vote-heavy",
+    "ndcg": 0.75369761125927,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Latin America/no-votes/balanced",
+    "ndcg": 0.5855700749881525,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Latin America/2up-1down/default-focus",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Latin America/2up-1down/confidence-only",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Latin America/2up-1down/vote-heavy",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Latin America/2up-1down/balanced",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Middle East Conflict/no-votes/default-focus",
+    "ndcg": 0.8630152897016883,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Middle East Conflict/no-votes/confidence-only",
+    "ndcg": 0.9363792118010483,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Middle East Conflict/no-votes/vote-heavy",
+    "ndcg": 0.8630152897016883,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Middle East Conflict/no-votes/balanced",
+    "ndcg": 0.7059054020403313,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Middle East Conflict/2up-1down/default-focus",
+    "ndcg": 0.8383162086599405,
+    "mrr": 1,
+    "topKAccuracy": 0.7777777777777778,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Middle East Conflict/2up-1down/confidence-only",
+    "ndcg": 0.9258513847149255,
+    "mrr": 1,
+    "topKAccuracy": 0.8888888888888888,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Middle East Conflict/2up-1down/vote-heavy",
+    "ndcg": 0.9216514835285049,
+    "mrr": 1,
+    "topKAccuracy": 0.8888888888888888,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Middle East Conflict/2up-1down/balanced",
+    "ndcg": 0.7279965505724832,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Oil & Energy/no-votes/default-focus",
+    "ndcg": 0.6645997082078611,
+    "mrr": 1,
+    "topKAccuracy": 0.5714285714285714,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Oil & Energy/no-votes/confidence-only",
+    "ndcg": 0.8936633189697701,
+    "mrr": 1,
+    "topKAccuracy": 0.8571428571428571,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Oil & Energy/no-votes/vote-heavy",
+    "ndcg": 0.6645997082078611,
+    "mrr": 1,
+    "topKAccuracy": 0.5714285714285714,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Oil & Energy/no-votes/balanced",
+    "ndcg": 0.5306972923267992,
+    "mrr": 1,
+    "topKAccuracy": 0.42857142857142855,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Oil & Energy/2up-1down/default-focus",
+    "ndcg": 0.639945385422766,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Oil & Energy/2up-1down/confidence-only",
+    "ndcg": 0.8539316501572937,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Oil & Energy/2up-1down/vote-heavy",
+    "ndcg": 0.639945385422766,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Oil & Energy/2up-1down/balanced",
+    "ndcg": 0.5087403079104241,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "US Foreign Policy/no-votes/default-focus",
+    "ndcg": 0.84860265890399,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "US Foreign Policy/no-votes/confidence-only",
+    "ndcg": 0.7104770117651426,
+    "mrr": 0.5,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "US Foreign Policy/no-votes/vote-heavy",
+    "ndcg": 0.84860265890399,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "US Foreign Policy/no-votes/balanced",
+    "ndcg": 0.8630152897016883,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "US Foreign Policy/2up-1down/default-focus",
+    "ndcg": 0.9266360779006401,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "US Foreign Policy/2up-1down/confidence-only",
+    "ndcg": 0.9216017310213247,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "US Foreign Policy/2up-1down/vote-heavy",
+    "ndcg": 0.933745776545611,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "US Foreign Policy/2up-1down/balanced",
+    "ndcg": 0.8454256604216017,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Russia & Ukraine/no-votes/default-focus",
+    "ndcg": 0.6992148198508501,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Russia & Ukraine/no-votes/confidence-only",
+    "ndcg": 0.8687949224876582,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Russia & Ukraine/no-votes/vote-heavy",
+    "ndcg": 0.6992148198508501,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Russia & Ukraine/no-votes/balanced",
+    "ndcg": 0.5087403079104241,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Russia & Ukraine/2up-1down/default-focus",
+    "ndcg": 0.7039180890341347,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Russia & Ukraine/2up-1down/confidence-only",
+    "ndcg": 0.7653606369886217,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Russia & Ukraine/2up-1down/vote-heavy",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Russia & Ukraine/2up-1down/balanced",
+    "ndcg": 0.46927872602275644,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Latin America/no-votes/default-focus",
+    "ndcg": 0.5855700749881525,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Latin America/no-votes/confidence-only",
+    "ndcg": 0.8318724637288826,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Latin America/no-votes/vote-heavy",
+    "ndcg": 0.5855700749881525,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Latin America/no-votes/balanced",
+    "ndcg": 0.5585075862632192,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Latin America/2up-1down/default-focus",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Latin America/2up-1down/confidence-only",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Latin America/2up-1down/vote-heavy",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Latin America/2up-1down/balanced",
+    "ndcg": 0.6131471927654584,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Gadgets & Hardware/no-votes/default-focus",
+    "ndcg": 0.8701249883466593,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Gadgets & Hardware/no-votes/confidence-only",
+    "ndcg": 0.9305687780632227,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Gadgets & Hardware/no-votes/vote-heavy",
+    "ndcg": 0.8701249883466593,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Gadgets & Hardware/no-votes/balanced",
+    "ndcg": 0.8603818544462509,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Gadgets & Hardware/2up-1down/default-focus",
+    "ndcg": 0.9363792118010483,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Gadgets & Hardware/2up-1down/confidence-only",
+    "ndcg": 0.9305687780632227,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Gadgets & Hardware/2up-1down/vote-heavy",
+    "ndcg": 0.9363792118010483,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Gadgets & Hardware/2up-1down/balanced",
+    "ndcg": 0.9305687780632227,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "AI & Machine Learning/no-votes/default-focus",
+    "ndcg": 0.41966500663677697,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "AI & Machine Learning/no-votes/confidence-only",
+    "ndcg": 0.5842273861585908,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "AI & Machine Learning/no-votes/vote-heavy",
+    "ndcg": 0.41966500663677697,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "AI & Machine Learning/no-votes/balanced",
+    "ndcg": 0.19092086617893467,
+    "mrr": 0.5,
+    "topKAccuracy": 0.16666666666666666,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "AI & Machine Learning/2up-1down/default-focus",
+    "ndcg": 0.3903800499921017,
+    "mrr": 1,
+    "topKAccuracy": 0.25,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "AI & Machine Learning/2up-1down/confidence-only",
+    "ndcg": 0.24630238874073,
+    "mrr": 0.5,
+    "topKAccuracy": 0.25,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "AI & Machine Learning/2up-1down/vote-heavy",
+    "ndcg": 0.3903800499921017,
+    "mrr": 1,
+    "topKAccuracy": 0.25,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "AI & Machine Learning/2up-1down/balanced",
+    "ndcg": 0.16812753627111746,
+    "mrr": 0.25,
+    "topKAccuracy": 0.25,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Deals & Shopping/no-votes/default-focus",
+    "ndcg": 0.5857421563596757,
+    "mrr": 1,
+    "topKAccuracy": 0.42857142857142855,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Deals & Shopping/no-votes/confidence-only",
+    "ndcg": 0.8104616303452685,
+    "mrr": 1,
+    "topKAccuracy": 0.7142857142857143,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Deals & Shopping/no-votes/vote-heavy",
+    "ndcg": 0.5857421563596757,
+    "mrr": 1,
+    "topKAccuracy": 0.42857142857142855,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Deals & Shopping/no-votes/balanced",
+    "ndcg": 0.6378423595572618,
+    "mrr": 1,
+    "topKAccuracy": 0.5714285714285714,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Deals & Shopping/2up-1down/default-focus",
+    "ndcg": 0.6548086577531307,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Deals & Shopping/2up-1down/confidence-only",
+    "ndcg": 0.8687949224876582,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Deals & Shopping/2up-1down/vote-heavy",
+    "ndcg": 0.6548086577531307,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Deals & Shopping/2up-1down/balanced",
+    "ndcg": 0.5087403079104241,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Gaming & Entertainment/no-votes/default-focus",
+    "ndcg": 0.8067492731263585,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Gaming & Entertainment/no-votes/confidence-only",
+    "ndcg": 0.8178341711089538,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Gaming & Entertainment/no-votes/vote-heavy",
+    "ndcg": 0.8067492731263585,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Gaming & Entertainment/no-votes/balanced",
+    "ndcg": 0.7277341624565861,
+    "mrr": 1,
+    "topKAccuracy": 0.625,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Gaming & Entertainment/2up-1down/default-focus",
+    "ndcg": 0.892210845475489,
+    "mrr": 1,
+    "topKAccuracy": 0.8333333333333334,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Gaming & Entertainment/2up-1down/confidence-only",
+    "ndcg": 0.7751482523375255,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Gaming & Entertainment/2up-1down/vote-heavy",
+    "ndcg": 0.892210845475489,
+    "mrr": 1,
+    "topKAccuracy": 0.8333333333333334,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Gaming & Entertainment/2up-1down/balanced",
+    "ndcg": 0.8829374068620365,
+    "mrr": 1,
+    "topKAccuracy": 0.8333333333333334,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Big Tech & Business/no-votes/default-focus",
+    "ndcg": 0.7967610662472993,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Big Tech & Business/no-votes/confidence-only",
+    "ndcg": 0.8643145546088337,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Big Tech & Business/no-votes/vote-heavy",
+    "ndcg": 0.7967610662472993,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Big Tech & Business/no-votes/balanced",
+    "ndcg": 0.727329844310522,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Big Tech & Business/2up-1down/default-focus",
+    "ndcg": 0.7167674835027339,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Big Tech & Business/2up-1down/confidence-only",
+    "ndcg": 0.8572048559638628,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Big Tech & Business/2up-1down/vote-heavy",
+    "ndcg": 0.7167674835027339,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "scenario": "Big Tech & Business/2up-1down/balanced",
+    "ndcg": 0.6659485553357843,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Gadgets & Hardware/no-votes/default-focus",
+    "ndcg": 0.9363792118010483,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Gadgets & Hardware/no-votes/confidence-only",
+    "ndcg": 0.933745776545611,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Gadgets & Hardware/no-votes/vote-heavy",
+    "ndcg": 0.9363792118010483,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Gadgets & Hardware/no-votes/balanced",
+    "ndcg": 0.7967610662472993,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Gadgets & Hardware/2up-1down/default-focus",
+    "ndcg": 0.800693766409882,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Gadgets & Hardware/2up-1down/confidence-only",
+    "ndcg": 0.8701249883466593,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Gadgets & Hardware/2up-1down/vote-heavy",
+    "ndcg": 0.800693766409882,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Gadgets & Hardware/2up-1down/balanced",
+    "ndcg": 0.7967610662472993,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "AI & Machine Learning/no-votes/default-focus",
+    "ndcg": 0.4157726138414091,
+    "mrr": 0.5,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "AI & Machine Learning/no-votes/confidence-only",
+    "ndcg": 0.8829374068620365,
+    "mrr": 1,
+    "topKAccuracy": 0.8333333333333334,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "AI & Machine Learning/no-votes/vote-heavy",
+    "ndcg": 0.4157726138414091,
+    "mrr": 0.5,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "AI & Machine Learning/no-votes/balanced",
+    "ndcg": 0.15130120674940672,
+    "mrr": 0.3333333333333333,
+    "topKAccuracy": 0.16666666666666666,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "AI & Machine Learning/2up-1down/default-focus",
+    "ndcg": 0.5585075862632192,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "AI & Machine Learning/2up-1down/confidence-only",
+    "ndcg": 0.8318724637288826,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "AI & Machine Learning/2up-1down/vote-heavy",
+    "ndcg": 0.5585075862632192,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "AI & Machine Learning/2up-1down/balanced",
+    "ndcg": 0.24630238874073,
+    "mrr": 0.5,
+    "topKAccuracy": 0.25,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Deals & Shopping/no-votes/default-focus",
+    "ndcg": 0.7646489081928868,
+    "mrr": 1,
+    "topKAccuracy": 0.7142857142857143,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Deals & Shopping/no-votes/confidence-only",
+    "ndcg": 0.8104616303452685,
+    "mrr": 1,
+    "topKAccuracy": 0.7142857142857143,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Deals & Shopping/no-votes/vote-heavy",
+    "ndcg": 0.7646489081928868,
+    "mrr": 1,
+    "topKAccuracy": 0.7142857142857143,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Deals & Shopping/no-votes/balanced",
+    "ndcg": 0.616564105751634,
+    "mrr": 1,
+    "topKAccuracy": 0.5714285714285714,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Deals & Shopping/2up-1down/default-focus",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Deals & Shopping/2up-1down/confidence-only",
+    "ndcg": 0.8687949224876582,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Deals & Shopping/2up-1down/vote-heavy",
+    "ndcg": 0.8687949224876582,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Deals & Shopping/2up-1down/balanced",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Gaming & Entertainment/no-votes/default-focus",
+    "ndcg": 0.7645921559984156,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Gaming & Entertainment/no-votes/confidence-only",
+    "ndcg": 0.5726430543240895,
+    "mrr": 0.5,
+    "topKAccuracy": 0.625,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Gaming & Entertainment/no-votes/vote-heavy",
+    "ndcg": 0.7645921559984156,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Gaming & Entertainment/no-votes/balanced",
+    "ndcg": 0.7166492644739907,
+    "mrr": 1,
+    "topKAccuracy": 0.625,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Gaming & Entertainment/2up-1down/default-focus",
+    "ndcg": 0.5842273861585908,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Gaming & Entertainment/2up-1down/confidence-only",
+    "ndcg": 0.47254583883871204,
+    "mrr": 0.5,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Gaming & Entertainment/2up-1down/vote-heavy",
+    "ndcg": 0.5842273861585908,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Gaming & Entertainment/2up-1down/balanced",
+    "ndcg": 0.6238470455881188,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Big Tech & Business/no-votes/default-focus",
+    "ndcg": 0.7753366239771086,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Big Tech & Business/no-votes/confidence-only",
+    "ndcg": 0.8630152897016883,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Big Tech & Business/no-votes/vote-heavy",
+    "ndcg": 0.7753366239771086,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Big Tech & Business/no-votes/balanced",
+    "ndcg": 0.627507133061656,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Big Tech & Business/2up-1down/default-focus",
+    "ndcg": 0.67175898907361,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Big Tech & Business/2up-1down/confidence-only",
+    "ndcg": 0.8630152897016883,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Big Tech & Business/2up-1down/vote-heavy",
+    "ndcg": 0.67175898907361,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/all-MiniLM-L12-v2",
+    "scenario": "Big Tech & Business/2up-1down/balanced",
+    "ndcg": 0.67175898907361,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Gadgets & Hardware/no-votes/default-focus",
+    "ndcg": 0.7846170207230129,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Gadgets & Hardware/no-votes/confidence-only",
+    "ndcg": 0.8512360941594274,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Gadgets & Hardware/no-votes/vote-heavy",
+    "ndcg": 0.7846170207230129,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Gadgets & Hardware/no-votes/balanced",
+    "ndcg": 0.7116179486056782,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Gadgets & Hardware/2up-1down/default-focus",
+    "ndcg": 0.8318477135310893,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Gadgets & Hardware/2up-1down/confidence-only",
+    "ndcg": 0.8512360941594274,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Gadgets & Hardware/2up-1down/vote-heavy",
+    "ndcg": 0.7917267193679839,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Gadgets & Hardware/2up-1down/balanced",
+    "ndcg": 0.6987957033953602,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "AI & Machine Learning/no-votes/default-focus",
+    "ndcg": 0.5842273861585908,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "AI & Machine Learning/no-votes/confidence-only",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "AI & Machine Learning/no-votes/vote-heavy",
+    "ndcg": 0.5842273861585908,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "AI & Machine Learning/no-votes/balanced",
+    "ndcg": 0.30260241349881345,
+    "mrr": 1,
+    "topKAccuracy": 0.16666666666666666,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "AI & Machine Learning/2up-1down/default-focus",
+    "ndcg": 0.75369761125927,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "AI & Machine Learning/2up-1down/confidence-only",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "AI & Machine Learning/2up-1down/vote-heavy",
+    "ndcg": 0.75369761125927,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "AI & Machine Learning/2up-1down/balanced",
+    "ndcg": 0.24630238874073,
+    "mrr": 0.5,
+    "topKAccuracy": 0.25,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Deals & Shopping/no-votes/default-focus",
+    "ndcg": 0.7837042816946693,
+    "mrr": 1,
+    "topKAccuracy": 0.7142857142857143,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Deals & Shopping/no-votes/confidence-only",
+    "ndcg": 0.9083745556952364,
+    "mrr": 1,
+    "topKAccuracy": 0.8571428571428571,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Deals & Shopping/no-votes/vote-heavy",
+    "ndcg": 0.7837042816946693,
+    "mrr": 1,
+    "topKAccuracy": 0.7142857142857143,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Deals & Shopping/no-votes/balanced",
+    "ndcg": 0.5857421563596757,
+    "mrr": 1,
+    "topKAccuracy": 0.42857142857142855,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Deals & Shopping/2up-1down/default-focus",
+    "ndcg": 0.6992148198508501,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Deals & Shopping/2up-1down/confidence-only",
+    "ndcg": 0.8687949224876582,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Deals & Shopping/2up-1down/vote-heavy",
+    "ndcg": 0.6843515475204855,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Deals & Shopping/2up-1down/balanced",
+    "ndcg": 0.48522855511632257,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Gaming & Entertainment/no-votes/default-focus",
+    "ndcg": 0.46370656170633345,
+    "mrr": 0.5,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Gaming & Entertainment/no-votes/confidence-only",
+    "ndcg": 0.352060376105862,
+    "mrr": 0.2,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Gaming & Entertainment/no-votes/vote-heavy",
+    "ndcg": 0.46370656170633345,
+    "mrr": 0.5,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Gaming & Entertainment/no-votes/balanced",
+    "ndcg": 0.49284851576164124,
+    "mrr": 0.5,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Gaming & Entertainment/2up-1down/default-focus",
+    "ndcg": 0.561692774772731,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Gaming & Entertainment/2up-1down/confidence-only",
+    "ndcg": 0.22485174766247445,
+    "mrr": 0.2,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Gaming & Entertainment/2up-1down/vote-heavy",
+    "ndcg": 0.5499887725471476,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Gaming & Entertainment/2up-1down/balanced",
+    "ndcg": 0.5709662133861837,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Big Tech & Business/no-votes/default-focus",
+    "ndcg": 0.7534494445524138,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Big Tech & Business/no-votes/confidence-only",
+    "ndcg": 0.8701249883466593,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Big Tech & Business/no-votes/vote-heavy",
+    "ndcg": 0.7534494445524138,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Big Tech & Business/no-votes/balanced",
+    "ndcg": 0.6122496142821665,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Big Tech & Business/2up-1down/default-focus",
+    "ndcg": 0.7381919257729245,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Big Tech & Business/2up-1down/confidence-only",
+    "ndcg": 0.8701249883466593,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Big Tech & Business/2up-1down/vote-heavy",
+    "ndcg": 0.7721596254947203,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-small-en-v1.5",
+    "scenario": "Big Tech & Business/2up-1down/balanced",
+    "ndcg": 0.5861163849908828,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Gadgets & Hardware/no-votes/default-focus",
+    "ndcg": 0.7125523635307982,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Gadgets & Hardware/no-votes/confidence-only",
+    "ndcg": 0.9305687780632227,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Gadgets & Hardware/no-votes/vote-heavy",
+    "ndcg": 0.7125523635307982,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Gadgets & Hardware/no-votes/balanced",
+    "ndcg": 0.70844095012329,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Gadgets & Hardware/2up-1down/default-focus",
+    "ndcg": 0.7058075148678526,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Gadgets & Hardware/2up-1down/confidence-only",
+    "ndcg": 0.9305687780632227,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Gadgets & Hardware/2up-1down/vote-heavy",
+    "ndcg": 0.8603818544462509,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Gadgets & Hardware/2up-1down/balanced",
+    "ndcg": 0.6274092458891772,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "AI & Machine Learning/no-votes/default-focus",
+    "ndcg": 0.30260241349881345,
+    "mrr": 1,
+    "topKAccuracy": 0.16666666666666666,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "AI & Machine Learning/no-votes/confidence-only",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "AI & Machine Learning/no-votes/vote-heavy",
+    "ndcg": 0.30260241349881345,
+    "mrr": 1,
+    "topKAccuracy": 0.16666666666666666,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "AI & Machine Learning/no-votes/balanced",
+    "ndcg": 0.30260241349881345,
+    "mrr": 1,
+    "topKAccuracy": 0.16666666666666666,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "AI & Machine Learning/2up-1down/default-focus",
+    "ndcg": 0.19519002499605084,
+    "mrr": 0.3333333333333333,
+    "topKAccuracy": 0.25,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "AI & Machine Learning/2up-1down/confidence-only",
+    "ndcg": 1,
+    "mrr": 1,
+    "topKAccuracy": 1,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "AI & Machine Learning/2up-1down/vote-heavy",
+    "ndcg": 0.4144299250118475,
+    "mrr": 0.5,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "AI & Machine Learning/2up-1down/balanced",
+    "ndcg": 0,
+    "mrr": 0.09090909090909091,
+    "topKAccuracy": 0,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Deals & Shopping/no-votes/default-focus",
+    "ndcg": 0.5857421563596757,
+    "mrr": 1,
+    "topKAccuracy": 0.42857142857142855,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Deals & Shopping/no-votes/confidence-only",
+    "ndcg": 0.8816172070446371,
+    "mrr": 1,
+    "topKAccuracy": 0.8571428571428571,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Deals & Shopping/no-votes/vote-heavy",
+    "ndcg": 0.5857421563596757,
+    "mrr": 1,
+    "topKAccuracy": 0.42857142857142855,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Deals & Shopping/no-votes/balanced",
+    "ndcg": 0.5666867828578932,
+    "mrr": 1,
+    "topKAccuracy": 0.42857142857142855,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Deals & Shopping/2up-1down/default-focus",
+    "ndcg": 0.3391602052736161,
+    "mrr": 1,
+    "topKAccuracy": 0.2,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Deals & Shopping/2up-1down/confidence-only",
+    "ndcg": 0.8539316501572937,
+    "mrr": 1,
+    "topKAccuracy": 0.8,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Deals & Shopping/2up-1down/vote-heavy",
+    "ndcg": 0.5087403079104241,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Deals & Shopping/2up-1down/balanced",
+    "ndcg": 0.3391602052736161,
+    "mrr": 1,
+    "topKAccuracy": 0.2,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Gaming & Entertainment/no-votes/default-focus",
+    "ndcg": 0.586202141404402,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Gaming & Entertainment/no-votes/confidence-only",
+    "ndcg": 0.4175736728926306,
+    "mrr": 0.3333333333333333,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Gaming & Entertainment/no-votes/vote-heavy",
+    "ndcg": 0.586202141404402,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Gaming & Entertainment/no-votes/balanced",
+    "ndcg": 0.5784505554216093,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Gaming & Entertainment/2up-1down/default-focus",
+    "ndcg": 0.5709662133861837,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Gaming & Entertainment/2up-1down/confidence-only",
+    "ndcg": 0.3894141271842883,
+    "mrr": 0.3333333333333333,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Gaming & Entertainment/2up-1down/vote-heavy",
+    "ndcg": 0.601312434202259,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Gaming & Entertainment/2up-1down/balanced",
+    "ndcg": 0.5842273861585908,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Big Tech & Business/no-votes/default-focus",
+    "ndcg": 0.7125523635307982,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Big Tech & Business/no-votes/confidence-only",
+    "ndcg": 0.9363792118010483,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Big Tech & Business/no-votes/vote-heavy",
+    "ndcg": 0.7125523635307982,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Big Tech & Business/no-votes/balanced",
+    "ndcg": 0.715550648768261,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Big Tech & Business/2up-1down/default-focus",
+    "ndcg": 0.5861163849908828,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Big Tech & Business/2up-1down/confidence-only",
+    "ndcg": 0.9363792118010483,
+    "mrr": 1,
+    "topKAccuracy": 0.9,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Big Tech & Business/2up-1down/vote-heavy",
+    "ndcg": 0.587550286357109,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-small",
+    "scenario": "Big Tech & Business/2up-1down/balanced",
+    "ndcg": 0.5206178632166882,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Gadgets & Hardware/no-votes/default-focus",
+    "ndcg": 0.762416491594312,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Gadgets & Hardware/no-votes/confidence-only",
+    "ndcg": 0.793584067764911,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Gadgets & Hardware/no-votes/vote-heavy",
+    "ndcg": 0.762416491594312,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Gadgets & Hardware/no-votes/balanced",
+    "ndcg": 0.6987957033953602,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Gadgets & Hardware/2up-1down/default-focus",
+    "ndcg": 0.6520881886359191,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Gadgets & Hardware/2up-1down/confidence-only",
+    "ndcg": 0.793584067764911,
+    "mrr": 1,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Gadgets & Hardware/2up-1down/vote-heavy",
+    "ndcg": 0.5747915663739762,
+    "mrr": 0.3333333333333333,
+    "topKAccuracy": 0.7,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Gadgets & Hardware/2up-1down/balanced",
+    "ndcg": 0.4288398090337664,
+    "mrr": 0.5,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "AI & Machine Learning/no-votes/default-focus",
+    "ndcg": 0.10778915452451093,
+    "mrr": 0.16666666666666666,
+    "topKAccuracy": 0.16666666666666666,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "AI & Machine Learning/no-votes/confidence-only",
+    "ndcg": 0.15130120674940672,
+    "mrr": 0.3333333333333333,
+    "topKAccuracy": 0.16666666666666666,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "AI & Machine Learning/no-votes/vote-heavy",
+    "ndcg": 0.10778915452451093,
+    "mrr": 0.16666666666666666,
+    "topKAccuracy": 0.16666666666666666,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "AI & Machine Learning/no-votes/balanced",
+    "ndcg": 0,
+    "mrr": 0.14285714285714285,
+    "topKAccuracy": 0,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "AI & Machine Learning/2up-1down/default-focus",
+    "ndcg": 0,
+    "mrr": 0.1,
+    "topKAccuracy": 0,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "AI & Machine Learning/2up-1down/confidence-only",
+    "ndcg": 0.19519002499605084,
+    "mrr": 0.3333333333333333,
+    "topKAccuracy": 0.25,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "AI & Machine Learning/2up-1down/vote-heavy",
+    "ndcg": 0,
+    "mrr": 0.2,
+    "topKAccuracy": 0,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "AI & Machine Learning/2up-1down/balanced",
+    "ndcg": 0,
+    "mrr": 0.07692307692307693,
+    "topKAccuracy": 0,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Deals & Shopping/no-votes/default-focus",
+    "ndcg": 0.5857421563596757,
+    "mrr": 1,
+    "topKAccuracy": 0.42857142857142855,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Deals & Shopping/no-votes/confidence-only",
+    "ndcg": 0.570751383599252,
+    "mrr": 1,
+    "topKAccuracy": 0.5714285714285714,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Deals & Shopping/no-votes/vote-heavy",
+    "ndcg": 0.5857421563596757,
+    "mrr": 1,
+    "topKAccuracy": 0.42857142857142855,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Deals & Shopping/no-votes/balanced",
+    "ndcg": 0.5857421563596757,
+    "mrr": 1,
+    "topKAccuracy": 0.42857142857142855,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Deals & Shopping/2up-1down/default-focus",
+    "ndcg": 0.3391602052736161,
+    "mrr": 1,
+    "topKAccuracy": 0.2,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Deals & Shopping/2up-1down/confidence-only",
+    "ndcg": 0.4703652827859579,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Deals & Shopping/2up-1down/vote-heavy",
+    "ndcg": 0.14606834984270645,
+    "mrr": 0.25,
+    "topKAccuracy": 0.2,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Deals & Shopping/2up-1down/balanced",
+    "ndcg": 0.21398626473452756,
+    "mrr": 0.5,
+    "topKAccuracy": 0.2,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Gaming & Entertainment/no-votes/default-focus",
+    "ndcg": 0.41253177989255346,
+    "mrr": 1,
+    "topKAccuracy": 0.25,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Gaming & Entertainment/no-votes/confidence-only",
+    "ndcg": 0.22432294601898897,
+    "mrr": 0.3333333333333333,
+    "topKAccuracy": 0.25,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Gaming & Entertainment/no-votes/vote-heavy",
+    "ndcg": 0.41253177989255346,
+    "mrr": 1,
+    "topKAccuracy": 0.25,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Gaming & Entertainment/no-votes/balanced",
+    "ndcg": 0.37941405415148566,
+    "mrr": 1,
+    "topKAccuracy": 0.25,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Gaming & Entertainment/2up-1down/default-focus",
+    "ndcg": 0.4935232796777481,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Gaming & Entertainment/2up-1down/confidence-only",
+    "ndcg": 0.26836379988737025,
+    "mrr": 0.3333333333333333,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Gaming & Entertainment/2up-1down/vote-heavy",
+    "ndcg": 0.42903378661381625,
+    "mrr": 0.5,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Gaming & Entertainment/2up-1down/balanced",
+    "ndcg": 0.4935232796777481,
+    "mrr": 1,
+    "topKAccuracy": 0.3333333333333333,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Big Tech & Business/no-votes/default-focus",
+    "ndcg": 0.45184593602045525,
+    "mrr": 0.5,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Big Tech & Business/no-votes/confidence-only",
+    "ndcg": 0.6547216238913564,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Big Tech & Business/no-votes/vote-heavy",
+    "ndcg": 0.45184593602045525,
+    "mrr": 0.5,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Big Tech & Business/no-votes/balanced",
+    "ndcg": 0.40807318127129166,
+    "mrr": 0.3333333333333333,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Big Tech & Business/2up-1down/default-focus",
+    "ndcg": 0.45577863618303804,
+    "mrr": 0.5,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Big Tech & Business/2up-1down/confidence-only",
+    "ndcg": 0.6547216238913564,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Big Tech & Business/2up-1down/vote-heavy",
+    "ndcg": 0.6267310462031457,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/bge-base-en-v1.5",
+    "scenario": "Big Tech & Business/2up-1down/balanced",
+    "ndcg": 0.43545584062957987,
+    "mrr": 0.5,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Gadgets & Hardware/no-votes/default-focus",
+    "ndcg": 0.6300426811446146,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Gadgets & Hardware/no-votes/confidence-only",
+    "ndcg": 0.557780405761987,
+    "mrr": 0.5,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Gadgets & Hardware/no-votes/vote-heavy",
+    "ndcg": 0.6300426811446146,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Gadgets & Hardware/no-votes/balanced",
+    "ndcg": 0.6300426811446146,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Gadgets & Hardware/2up-1down/default-focus",
+    "ndcg": 0.5672274908036508,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Gadgets & Hardware/2up-1down/confidence-only",
+    "ndcg": 0.5551469705065496,
+    "mrr": 0.5,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Gadgets & Hardware/2up-1down/vote-heavy",
+    "ndcg": 0.5442213638169618,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Gadgets & Hardware/2up-1down/balanced",
+    "ndcg": 0.5653701424067237,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "AI & Machine Learning/no-votes/default-focus",
+    "ndcg": 0.30260241349881345,
+    "mrr": 1,
+    "topKAccuracy": 0.16666666666666666,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "AI & Machine Learning/no-votes/confidence-only",
+    "ndcg": 0.892210845475489,
+    "mrr": 1,
+    "topKAccuracy": 0.8333333333333334,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "AI & Machine Learning/no-votes/vote-heavy",
+    "ndcg": 0.30260241349881345,
+    "mrr": 1,
+    "topKAccuracy": 0.16666666666666666,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "AI & Machine Learning/no-votes/balanced",
+    "ndcg": 0.30260241349881345,
+    "mrr": 1,
+    "topKAccuracy": 0.16666666666666666,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "AI & Machine Learning/2up-1down/default-focus",
+    "ndcg": 0,
+    "mrr": 0.09090909090909091,
+    "topKAccuracy": 0,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "AI & Machine Learning/2up-1down/confidence-only",
+    "ndcg": 0.8318724637288826,
+    "mrr": 1,
+    "topKAccuracy": 0.75,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "AI & Machine Learning/2up-1down/vote-heavy",
+    "ndcg": 0.16812753627111746,
+    "mrr": 0.25,
+    "topKAccuracy": 0.25,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "AI & Machine Learning/2up-1down/balanced",
+    "ndcg": 0,
+    "mrr": 0.09090909090909091,
+    "topKAccuracy": 0,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Deals & Shopping/no-votes/default-focus",
+    "ndcg": 0.5399294342072939,
+    "mrr": 1,
+    "topKAccuracy": 0.42857142857142855,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Deals & Shopping/no-votes/confidence-only",
+    "ndcg": 0.5827974955243852,
+    "mrr": 1,
+    "topKAccuracy": 0.5714285714285714,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Deals & Shopping/no-votes/vote-heavy",
+    "ndcg": 0.5399294342072939,
+    "mrr": 1,
+    "topKAccuracy": 0.42857142857142855,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Deals & Shopping/no-votes/balanced",
+    "ndcg": 0.4483039899025303,
+    "mrr": 1,
+    "topKAccuracy": 0.2857142857142857,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Deals & Shopping/2up-1down/default-focus",
+    "ndcg": 0.14606834984270645,
+    "mrr": 0.25,
+    "topKAccuracy": 0.2,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Deals & Shopping/2up-1down/confidence-only",
+    "ndcg": 0.4703652827859579,
+    "mrr": 1,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Deals & Shopping/2up-1down/vote-heavy",
+    "ndcg": 0.34519134224686937,
+    "mrr": 0.5,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Deals & Shopping/2up-1down/balanced",
+    "ndcg": 0.14606834984270645,
+    "mrr": 0.25,
+    "topKAccuracy": 0.2,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Gaming & Entertainment/no-votes/default-focus",
+    "ndcg": 0.4408943060551852,
+    "mrr": 1,
+    "topKAccuracy": 0.375,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Gaming & Entertainment/no-votes/confidence-only",
+    "ndcg": 0.2393836156873445,
+    "mrr": 0.5,
+    "topKAccuracy": 0.25,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Gaming & Entertainment/no-votes/vote-heavy",
+    "ndcg": 0.4408943060551852,
+    "mrr": 1,
+    "topKAccuracy": 0.375,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Gaming & Entertainment/no-votes/balanced",
+    "ndcg": 0.45069139863369834,
+    "mrr": 0.5,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Gaming & Entertainment/2up-1down/default-focus",
+    "ndcg": 0.644824486427155,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Gaming & Entertainment/2up-1down/confidence-only",
+    "ndcg": 0.19092086617893467,
+    "mrr": 0.5,
+    "topKAccuracy": 0.16666666666666666,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Gaming & Entertainment/2up-1down/vote-heavy",
+    "ndcg": 0.6920165406831017,
+    "mrr": 1,
+    "topKAccuracy": 0.6666666666666666,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Gaming & Entertainment/2up-1down/balanced",
+    "ndcg": 0.644824486427155,
+    "mrr": 1,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Big Tech & Business/no-votes/default-focus",
+    "ndcg": 0.3667803203729971,
+    "mrr": 0.2,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Big Tech & Business/no-votes/confidence-only",
+    "ndcg": 0.6745711375739728,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Big Tech & Business/no-votes/vote-heavy",
+    "ndcg": 0.3667803203729971,
+    "mrr": 0.2,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Big Tech & Business/no-votes/balanced",
+    "ndcg": 0.357813273331099,
+    "mrr": 0.2,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Big Tech & Business/2up-1down/default-focus",
+    "ndcg": 0.36995731885538535,
+    "mrr": 0.2,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.4,
+      "beta": 0.4,
+      "gamma": 0.2
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Big Tech & Business/2up-1down/confidence-only",
+    "ndcg": 0.6745711375739728,
+    "mrr": 1,
+    "topKAccuracy": 0.6,
+    "weights": {
+      "alpha": 1,
+      "beta": 0,
+      "gamma": 0
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Big Tech & Business/2up-1down/vote-heavy",
+    "ndcg": 0.3316936730892071,
+    "mrr": 0.25,
+    "topKAccuracy": 0.4,
+    "weights": {
+      "alpha": 0.2,
+      "beta": 0.7,
+      "gamma": 0.1
+    }
+  },
+  {
+    "model": "Xenova/gte-base",
+    "scenario": "Big Tech & Business/2up-1down/balanced",
+    "ndcg": 0.36995731885538535,
+    "mrr": 0.2,
+    "topKAccuracy": 0.5,
+    "weights": {
+      "alpha": 0.33,
+      "beta": 0.34,
+      "gamma": 0.33
+    }
+  }
+]

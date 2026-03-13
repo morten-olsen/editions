@@ -1,0 +1,30 @@
+{
+  "name": "@editions/eval",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "fetch-feed": "node --experimental-strip-types src/scripts/fetch-feed.ts",
+    "label": "node --experimental-strip-types src/scripts/label.ts",
+    "bench:classify": "node --experimental-strip-types src/bench/classify.bench.ts",
+    "bench:embed": "node --experimental-strip-types src/bench/embed.bench.ts",
+    "bench:rank": "node --experimental-strip-types src/bench/rank.bench.ts",
+    "bench:all": "EVAL_RUN_ID=$(date +%Y-%m-%dT%H-%M-%S) && export EVAL_RUN_ID && node --experimental-strip-types src/bench/classify.bench.ts && node --experimental-strip-types src/bench/embed.bench.ts && node --experimental-strip-types src/bench/rank.bench.ts && echo \"Run ID: $EVAL_RUN_ID\"",
+    "report": "node --experimental-strip-types src/scripts/report.ts",
+    "bench+report": "EVAL_RUN_ID=$(date +%Y-%m-%dT%H-%M-%S) && export EVAL_RUN_ID && node --experimental-strip-types src/bench/classify.bench.ts && node --experimental-strip-types src/bench/embed.bench.ts && node --experimental-strip-types src/bench/rank.bench.ts && node --experimental-strip-types src/scripts/report.ts $EVAL_RUN_ID"
+  },
+  "dependencies": {
+    "@editions/server": "workspace:*",
+    "@huggingface/transformers": "^3.8.1",
+    "better-sqlite3": "^11.0.0",
+    "@extractus/article-extractor": "^8.0.20",
+    "fast-xml-parser": "^5.4.2",
+    "kysely": "^0.28.0",
+    "turndown": "^7.2.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.0.0",
+    "@types/turndown": "^5.0.6",
+    "typescript": "^5.8.0"
+  }
+}

@@ -20,7 +20,8 @@ import type { WorkerResponse } from './reconciler.worker.ts';
 
 // --- Constants ---
 
-const DEFAULT_EMBEDDING_MODEL = 'Xenova/all-MiniLM-L6-v2';
+const DEFAULT_EMBEDDING_MODEL = 'Xenova/bge-small-en-v1.5';
+const DEFAULT_CLASSIFIER_MODEL = 'Xenova/bart-large-mnli';
 
 const WORKER_PATH = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'reconciler.worker.ts');
 
@@ -160,8 +161,8 @@ class ReconcilerService {
     const steps = [
       ...(options?.skipExtract ? [] : [createExtractStep({ db, scopeFilter })]),
       createEmbedStep({ db, embedFn: this.embed, embeddingModel: DEFAULT_EMBEDDING_MODEL, scopeFilter }),
-      createSimilarityStep({ db, embedFn: this.embed, scopeFilter }),
-      ...(useNli ? [createNliStep({ db, classifyFn: this.classify, scopeFilter })] : []),
+      createSimilarityStep({ db, embedFn: this.embed, embeddingModel: DEFAULT_EMBEDDING_MODEL, scopeFilter }),
+      ...(useNli ? [createNliStep({ db, classifyFn: this.classify, classifierModel: DEFAULT_CLASSIFIER_MODEL, scopeFilter })] : []),
       createMarkAnalysedStep({ db, scopeFilter }),
     ];
 
@@ -184,4 +185,4 @@ class ReconcilerService {
 }
 
 export type { ReconcileOptions };
-export { ReconcilerService, DEFAULT_EMBEDDING_MODEL };
+export { ReconcilerService, DEFAULT_EMBEDDING_MODEL, DEFAULT_CLASSIFIER_MODEL };

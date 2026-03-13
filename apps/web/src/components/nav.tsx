@@ -218,7 +218,7 @@ const Nav = (): React.ReactElement => {
   const isActive = (href: string): boolean => (href === '/' ? currentPath === '/' : currentPath.startsWith(href));
 
   const isAuthenticated = auth.status === 'authenticated';
-  const { configs, focuses } = useNavData(headers, isAuthenticated);
+  const { configs, focuses } = useNavData(headers ?? {}, isAuthenticated);
 
   const username = isAuthenticated ? auth.user.username : undefined;
   const logout = isAuthenticated ? auth.logout : undefined;

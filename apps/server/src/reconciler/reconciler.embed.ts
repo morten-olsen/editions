@@ -43,7 +43,12 @@ const createEmbedStep = (params: {
             'sources.type as source_type',
           ])
           .where('articles.extracted_at', 'is not', null)
-          .where('article_embeddings.article_id', 'is', null)
+          .where((eb) =>
+            eb.or([
+              eb('article_embeddings.article_id', 'is', null),
+              eb('article_embeddings.model', '!=', embeddingModel),
+            ]),
+          )
           .where('articles.id', '>', lastId)
           .orderBy('articles.id')
           .limit(batchSize);

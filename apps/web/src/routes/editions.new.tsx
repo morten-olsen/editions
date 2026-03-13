@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { useCreateEditionConfig, SCHEDULE_PRESETS, selectClasses } from '../hooks/editions/editions.hooks.ts';
+import { useCreateEditionConfig, SCHEDULE_PRESETS, selectClasses, isPresetSchedule, scheduleSelectValue } from '../hooks/editions/editions.hooks.ts';
 import { PageHeader } from '../components/page-header.tsx';
 import { Input } from '../components/input.tsx';
 import { Button } from '../components/button.tsx';
@@ -70,7 +70,6 @@ const NewEditionFields = ({ hook }: { hook: EditionHook }): React.ReactNode => {
     setLookbackHours,
     excludePriorEditions,
     setExcludePriorEditions,
-    focusSelection,
   } = hook;
 
   return (
@@ -87,7 +86,7 @@ const NewEditionFields = ({ hook }: { hook: EditionHook }): React.ReactNode => {
         data-ai-value={name}
       />
       <IconPicker value={icon} onChange={setIcon} />
-      <NewScheduleField schedule={schedule} setSchedule={setSchedule} focusSelection={focusSelection} />
+      <NewScheduleField schedule={schedule} setSchedule={setSchedule} />
       <NewLookbackField lookbackHours={lookbackHours} setLookbackHours={setLookbackHours} />
       <Checkbox
         label="Don't repeat articles across editions"
@@ -106,11 +105,9 @@ const NewEditionFields = ({ hook }: { hook: EditionHook }): React.ReactNode => {
 const NewScheduleField = ({
   schedule,
   setSchedule,
-  focusSelection,
 }: {
   schedule: string;
   setSchedule: (v: string) => void;
-  focusSelection: FocusSelection;
 }): React.ReactNode => (
   <div className="flex flex-col gap-1.5">
     <label htmlFor="schedule-preset" className="text-sm font-medium text-ink">
@@ -119,7 +116,7 @@ const NewScheduleField = ({
     <p className="text-xs text-ink-tertiary -mt-0.5">When this edition is automatically generated</p>
     <select
       id="schedule-preset"
-      value={focusSelection.scheduleSelectValue(schedule)}
+      value={scheduleSelectValue(schedule)}
       onChange={(e) => {
         if (e.target.value !== '__custom__') {
           setSchedule(e.target.value);
@@ -137,7 +134,7 @@ const NewScheduleField = ({
         </option>
       ))}
     </select>
-    {!focusSelection.isPresetSchedule(schedule) && (
+    {!isPresetSchedule(schedule) && (
       <div className="flex flex-col gap-1.5 mt-1">
         <Input
           value={schedule}

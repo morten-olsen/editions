@@ -1,0 +1,222 @@
+{
+  "fixture": "theverge.json",
+  "focuses": [
+    { "name": "Gadgets & Hardware", "description": "Physical devices, accessories, product reviews, and hardware news" },
+    { "name": "AI & Machine Learning", "description": "Artificial intelligence products, models, companies, and AI features" },
+    { "name": "Deals & Shopping", "description": "Sales, discounts, price drops, and buying guides" },
+    { "name": "Gaming & Entertainment", "description": "Video games, streaming services, movies, TV shows, and media content" },
+    { "name": "Big Tech & Business", "description": "Corporate news, executive changes, company strategy, and industry regulation" }
+  ],
+  "labels": {
+    "article-001": {
+      "Gadgets & Hardware": true,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": true,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": false
+    },
+    "article-002": {
+      "Gadgets & Hardware": false,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": true,
+      "Big Tech & Business": true
+    },
+    "article-003": {
+      "Gadgets & Hardware": false,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": true,
+      "Big Tech & Business": false
+    },
+    "article-004": {
+      "Gadgets & Hardware": true,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": true
+    },
+    "article-005": {
+      "Gadgets & Hardware": true,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": true,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": false
+    },
+    "article-006": {
+      "Gadgets & Hardware": false,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": true,
+      "Big Tech & Business": true
+    },
+    "article-007": {
+      "Gadgets & Hardware": false,
+      "AI & Machine Learning": true,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": true,
+      "Big Tech & Business": false
+    },
+    "article-008": {
+      "Gadgets & Hardware": false,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": true,
+      "Big Tech & Business": false
+    },
+    "article-009": {
+      "Gadgets & Hardware": true,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": true
+    },
+    "article-010": {
+      "Gadgets & Hardware": true,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": true,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": false
+    },
+    "article-011": {
+      "Gadgets & Hardware": true,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": true
+    },
+    "article-012": {
+      "Gadgets & Hardware": false,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": true
+    },
+    "article-013": {
+      "Gadgets & Hardware": true,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": true,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": false
+    },
+    "article-014": {
+      "Gadgets & Hardware": false,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": true
+    },
+    "article-015": {
+      "Gadgets & Hardware": false,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": true
+    },
+    "article-016": {
+      "Gadgets & Hardware": true,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": true,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": false
+    },
+    "article-017": {
+      "Gadgets & Hardware": false,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": true,
+      "Big Tech & Business": false
+    },
+    "article-018": {
+      "Gadgets & Hardware": false,
+      "AI & Machine Learning": true,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": true
+    },
+    "article-019": {
+      "Gadgets & Hardware": true,
+      "AI & Machine Learning": true,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": true
+    },
+    "article-020": {
+      "Gadgets & Hardware": true,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": true,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": false
+    },
+    "article-021": {
+      "Gadgets & Hardware": false,
+      "AI & Machine Learning": true,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": true
+    },
+    "article-022": {
+      "Gadgets & Hardware": true,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": true,
+      "Big Tech & Business": true
+    },
+    "article-023": {
+      "Gadgets & Hardware": false,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": true
+    },
+    "article-024": {
+      "Gadgets & Hardware": false,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": true,
+      "Big Tech & Business": true
+    },
+    "article-025": {
+      "Gadgets & Hardware": false,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": true
+    },
+    "article-026": {
+      "Gadgets & Hardware": true,
+      "AI & Machine Learning": true,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": false
+    },
+    "article-027": {
+      "Gadgets & Hardware": true,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": true
+    },
+    "article-028": {
+      "Gadgets & Hardware": true,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": true
+    },
+    "article-029": {
+      "Gadgets & Hardware": true,
+      "AI & Machine Learning": false,
+      "Deals & Shopping": true,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": false
+    },
+    "article-030": {
+      "Gadgets & Hardware": false,
+      "AI & Machine Learning": true,
+      "Deals & Shopping": false,
+      "Gaming & Entertainment": false,
+      "Big Tech & Business": true
+    }
+  }
+}

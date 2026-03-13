@@ -59,6 +59,18 @@ const guides = [
         ))}
         <span class="w-px h-4 bg-border mx-2" />
         <a
+          href={`${base}/evaluation`}
+          class:list={[
+            "text-xs px-3 py-1.5 rounded-md transition-colors duration-fast",
+            current === "/evaluation"
+              ? "text-ink bg-surface-sunken"
+              : "text-ink-tertiary hover:text-ink hover:bg-surface-sunken",
+          ]}
+        >
+          Evaluation
+        </a>
+        <span class="w-px h-4 bg-border mx-2" />
+        <a
           href="https://github.com/morten-olsen/editions"
           class="text-xs text-ink-tertiary hover:text-ink transition-colors duration-fast px-2"
           target="_blank"
@@ -113,6 +125,18 @@ const guides = [
           {g.label}
         </a>
       ))}
+      <div class="h-px bg-border my-2" />
+      <a
+        href={`${base}/evaluation`}
+        class:list={[
+          "text-sm px-3 py-2 rounded-md transition-colors duration-fast",
+          current === "/evaluation"
+            ? "text-ink bg-surface-sunken"
+            : "text-ink-secondary hover:text-ink hover:bg-surface-sunken",
+        ]}
+      >
+        Evaluation
+      </a>
       <div class="h-px bg-border my-2" />
       <a
         href="https://github.com/morten-olsen/editions"

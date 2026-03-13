@@ -84,7 +84,9 @@ type ArticleFocusesTable = {
   article_id: string;
   focus_id: string;
   similarity: number | null;
+  similarity_model: string | null;
   nli: number | null;
+  nli_model: string | null;
   assigned_at: Timestamp;
 };
 

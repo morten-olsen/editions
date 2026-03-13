@@ -387,7 +387,7 @@ const meta: Meta = {
 type Story = StoryObj;
 
 /* Full magazine: all pages with navigation */
-const FullMagazineRender = (): JSX.Element => {
+const FullMagazineRender = (): React.ReactElement => {
   const [page, setPage] = useState(0);
   const { pages, toc } = buildPages(sampleEdition, setPage);
   return (

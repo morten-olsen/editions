@@ -35,6 +35,7 @@ const upsertNli = async (
   articleId: string,
   focusId: string,
   nli: number,
+  model: string,
 ): Promise<void> => {
   const rounded = Math.round(nli * 1000) / 1000;
   await db
@@ -43,10 +44,12 @@ const upsertNli = async (
       article_id: articleId,
       focus_id: focusId,
       nli: rounded,
+      nli_model: model,
     })
     .onConflict((oc) =>
       oc.columns(['article_id', 'focus_id']).doUpdateSet({
         nli: rounded,
+        nli_model: model,
         assigned_at: new Date().toISOString(),
       }),
     )
@@ -55,7 +58,12 @@ const upsertNli = async (
 
 // --- Helpers ---
 
-const buildNliQuery = (db: Kysely<DatabaseSchema>, scopeFilter: ScopeFilter | undefined, batchSize: number) => {
+const buildNliQuery = (
+  db: Kysely<DatabaseSchema>,
+  classifierModel: string,
+  scopeFilter: ScopeFilter | undefined,
+  batchSize: number,
+) => {
   let q = db
     .selectFrom('focus_sources')
     .innerJoin('articles', 'articles.source_id', 'focus_sources.source_id')
@@ -80,7 +88,13 @@ const buildNliQuery = (db: Kysely<DatabaseSchema>, scopeFilter: ScopeFilter | un
     .where('articles.extracted_at', 'is not', null)
     .where('focus_sources.mode', '=', 'match')
     .where('article_focuses.similarity', 'is not', null)
-    .where('article_focuses.nli', 'is', null)
+    .where((eb) =>
+      eb.or([
+        eb('article_focuses.nli', 'is', null),
+        eb('article_focuses.nli_model', 'is', null),
+        eb('article_focuses.nli_model', '!=', classifierModel),
+      ]),
+    )
     .limit(batchSize);
 
   if (scopeFilter?.focusIds && scopeFilter.focusIds.length > 0) {
@@ -119,16 +133,17 @@ const rowsToNliItems = (rows: NliRow[]): NliItem[] => {
 const createNliStep = (params: {
   db: Kysely<DatabaseSchema>;
   classifyFn: ClassifyFn;
+  classifierModel: string;
   scopeFilter?: ScopeFilter;
   batchSize?: number;
 }): ReconcileStep<NliItem> => {
-  const { db, classifyFn, scopeFilter, batchSize = 16 } = params;
+  const { db, classifyFn, classifierModel, scopeFilter, batchSize = 16 } = params;
 
   return {
     name: 'nli',
     fetchBatch: async function* (): AsyncGenerator<NliItem[]> {
       while (true) {
-        const rows = (await buildNliQuery(db, scopeFilter, batchSize).execute()) as NliRow[];
+        const rows = (await buildNliQuery(db, classifierModel, scopeFilter, batchSize).execute()) as NliRow[];
         if (rows.length === 0) {
           break;
         }
@@ -146,7 +161,7 @@ const createNliStep = (params: {
       for (const item of batch) {
         const results = await classifyFn(item.preparedText, [item.focusLabel]);
         const score = results[0]?.score ?? 0;
-        await upsertNli(db, item.articleId, item.focusId, score);
+        await upsertNli(db, item.articleId, item.focusId, score, classifierModel);
       }
     },
   };

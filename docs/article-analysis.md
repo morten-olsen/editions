@@ -32,7 +32,7 @@ Embedding and classification run together in the reconciliation step. While embe
 
 **Purpose:** Dense vector representations of article content, stored for future use in semantic search, article similarity/clustering, and feed ranking.
 
-**Model:** A small embedding model via `@huggingface/transformers` (transformers.js), running locally in Node.js. Candidate: `Xenova/all-MiniLM-L6-v2` (384-dim, ~23MB ONNX, fast on CPU).
+**Model:** A small embedding model via `@huggingface/transformers` (transformers.js), running locally in Node.js. Default: `Xenova/bge-small-en-v1.5` (384-dim, ~33MB ONNX, fast on CPU). Chosen over `all-MiniLM-L6-v2` based on eval benchmarks — bge-small achieved the highest classification F1 (86.9%) and benefits most from vote propagation.
 
 **Storage:** Embeddings are stored in a dedicated `article_embeddings` table designed for compatibility with sqlite-vec. The table stores the raw float32 vector as a blob alongside the article ID. When sqlite-vec is added, a virtual table can be created that reads directly from this data — no migration or re-embedding needed.
 
@@ -59,7 +59,7 @@ Classification is pluggable via the `ClassifierStrategy` interface. Three strate
 |----------|-------------|--------|----------|
 | **NLI** | `"nli"` | Zero-shot NLI via BART-MNLI | Most accurate, ~0.5s per article per focus set |
 | **Similarity** | `"similarity"` | Cosine similarity between article and focus embeddings | Sub-millisecond, ~85–90% agreement with NLI for well-defined topics |
-| **Hybrid** | `"hybrid"` | Similarity first, NLI refinement for ambiguous scores (0.1–0.65) | Near-instant for most articles, NLI quality where it matters |
+| **Hybrid** | `"hybrid"` | Both similarity and NLI run; scoring uses NLI when available, similarity as fallback | Both signals stored, best accuracy, ~0.5s per article per focus set |
 
 Each strategy returns `{ focusId, confidence, method }` — the `method` column in `article_focuses` tracks which classifier produced each assignment ("nli", "similarity", or "always").
 
@@ -119,17 +119,19 @@ The `model` column lets us detect when the configured model changes and re-embed
 
 ### Existing: article_focuses table
 
-Supports multiple focuses per article with confidence scores and classification method tracking:
+Supports multiple focuses per article with split similarity/NLI scores and model tracking:
 
 | Column | Type | Notes |
 |--------|------|-------|
 | `article_id` | text FK → articles | |
 | `focus_id` | text FK → focuses | |
-| `confidence` | real | 0.0–1.0 |
-| `method` | text | Classifier that produced this assignment: "nli", "similarity", or "always" |
+| `similarity` | real | Cosine similarity score (0.0–1.0), null if not yet computed |
+| `similarity_model` | text | Embedding model that produced the similarity score |
+| `nli` | real | NLI classification score (0.0–1.0), null if not yet computed or strategy doesn't use NLI |
+| `nli_model` | text | Classifier model that produced the NLI score |
 | `assigned_at` | text | |
 
-Unique on `(article_id, focus_id)` — upserts on re-analysis.
+Unique on `(article_id, focus_id)` — upserts on re-analysis. Model columns enable automatic rescoring when models change — the reconciler detects mismatches and recomputes scores with the current model.
 
 ### Schema type additions
 

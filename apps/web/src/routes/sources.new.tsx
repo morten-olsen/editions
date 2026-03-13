@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 
 import { useCreateSource } from '../hooks/sources/sources.hooks.ts';
+import type { Direction } from '../hooks/sources/sources.hooks.ts';
 import { PageHeader } from '../components/page-header.tsx';
 import { Input } from '../components/input.tsx';
 import { Button } from '../components/button.tsx';
@@ -102,7 +103,7 @@ type SourceForm = {
   url: string;
   setUrl: (v: string) => void;
   direction: string;
-  setDirection: (v: string) => void;
+  setDirection: (v: Direction) => void;
 };
 
 const SourceFormFields = ({ form }: { form: SourceForm }): React.ReactNode => (
@@ -134,7 +135,7 @@ const SourceFormFields = ({ form }: { form: SourceForm }): React.ReactNode => (
       <label className="block text-sm font-medium text-ink mb-1.5">Direction</label>
       <select
         value={form.direction}
-        onChange={(e) => form.setDirection(e.target.value)}
+        onChange={(e) => form.setDirection(e.target.value as Direction)}
         className="h-10 w-full rounded-md border border-border bg-surface px-3 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-accent cursor-pointer"
         data-ai-id="source-direction"
         data-ai-role="input"

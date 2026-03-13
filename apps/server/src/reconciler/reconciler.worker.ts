@@ -15,7 +15,7 @@ const port = parentPort;
 
 // --- Constants ---
 
-const DEFAULT_EMBEDDING_MODEL = 'Xenova/all-MiniLM-L6-v2';
+const DEFAULT_EMBEDDING_MODEL = 'Xenova/bge-small-en-v1.5';
 const DEFAULT_CLASSIFIER_MODEL = 'Xenova/bart-large-mnli';
 
 // --- Types ---

@@ -34,7 +34,7 @@ const JobsSection = ({ token }: { token: string }): React.ReactNode => {
         {counts.failed > 0 && <span className="text-critical">{counts.failed} failed</span>}
         {!hasActive && finishedJobs.length > 0 && (
           <span className="text-ink-faint ml-auto">
-            last activity {formatTimeAgo(finishedJobs[0]?.completedAt ?? finishedJobs[0]?.createdAt ?? '')}
+            last activity {formatTimeAgo(finishedJobs[0]?.completedAt ?? finishedJobs[0]?.createdAt ?? 0)}
           </span>
         )}
       </div>
@@ -73,7 +73,7 @@ type FinishedGroup = {
   type: string;
   completed: number;
   failed: number;
-  jobs: { id: string; status: string; completedAt: string | null; startedAt: string | null; error: string | null }[];
+  jobs: { id: string; status: string; completedAt: number | null; startedAt: number | null; error: string | null }[];
 };
 
 const FinishedJobGroups = ({

@@ -27,7 +27,7 @@ const schedulerSchema = z.object({
 });
 
 const analysisSchema = z.object({
-  classifier: z.enum(['nli', 'similarity', 'hybrid']).default('hybrid'),
+  classifier: z.enum(['nli', 'similarity', 'hybrid']).default('similarity'),
 });
 
 const configSchema = z.object({

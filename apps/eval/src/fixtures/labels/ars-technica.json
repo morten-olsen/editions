@@ -1,0 +1,152 @@
+{
+  "fixture": "ars-technica.json",
+  "focuses": [
+    { "name": "Science & Space", "description": "Scientific research, astronomy, physics, biology, and space exploration" },
+    { "name": "Computing & Hardware", "description": "Computers, laptops, processors, hardware reviews, and PC components" },
+    { "name": "Electric Vehicles", "description": "Electric cars, EV technology, charging infrastructure, and automotive electrification" },
+    { "name": "Cybersecurity & Privacy", "description": "Hacking, data breaches, cybersecurity threats, and digital privacy" },
+    { "name": "Policy & Regulation", "description": "Government regulation, lawsuits, legal disputes, and policy decisions affecting technology" }
+  ],
+  "labels": {
+    "article-001": {
+      "Science & Space": false,
+      "Computing & Hardware": true,
+      "Electric Vehicles": false,
+      "Cybersecurity & Privacy": false,
+      "Policy & Regulation": false
+    },
+    "article-002": {
+      "Science & Space": true,
+      "Computing & Hardware": false,
+      "Electric Vehicles": false,
+      "Cybersecurity & Privacy": false,
+      "Policy & Regulation": false
+    },
+    "article-003": {
+      "Science & Space": true,
+      "Computing & Hardware": false,
+      "Electric Vehicles": false,
+      "Cybersecurity & Privacy": false,
+      "Policy & Regulation": true
+    },
+    "article-004": {
+      "Science & Space": false,
+      "Computing & Hardware": true,
+      "Electric Vehicles": false,
+      "Cybersecurity & Privacy": false,
+      "Policy & Regulation": false
+    },
+    "article-005": {
+      "Science & Space": false,
+      "Computing & Hardware": false,
+      "Electric Vehicles": false,
+      "Cybersecurity & Privacy": false,
+      "Policy & Regulation": false
+    },
+    "article-006": {
+      "Science & Space": false,
+      "Computing & Hardware": false,
+      "Electric Vehicles": true,
+      "Cybersecurity & Privacy": false,
+      "Policy & Regulation": false
+    },
+    "article-007": {
+      "Science & Space": true,
+      "Computing & Hardware": false,
+      "Electric Vehicles": false,
+      "Cybersecurity & Privacy": false,
+      "Policy & Regulation": true
+    },
+    "article-008": {
+      "Science & Space": false,
+      "Computing & Hardware": false,
+      "Electric Vehicles": false,
+      "Cybersecurity & Privacy": true,
+      "Policy & Regulation": false
+    },
+    "article-009": {
+      "Science & Space": false,
+      "Computing & Hardware": false,
+      "Electric Vehicles": false,
+      "Cybersecurity & Privacy": false,
+      "Policy & Regulation": true
+    },
+    "article-010": {
+      "Science & Space": false,
+      "Computing & Hardware": true,
+      "Electric Vehicles": false,
+      "Cybersecurity & Privacy": false,
+      "Policy & Regulation": true
+    },
+    "article-011": {
+      "Science & Space": false,
+      "Computing & Hardware": false,
+      "Electric Vehicles": false,
+      "Cybersecurity & Privacy": false,
+      "Policy & Regulation": true
+    },
+    "article-012": {
+      "Science & Space": false,
+      "Computing & Hardware": false,
+      "Electric Vehicles": true,
+      "Cybersecurity & Privacy": false,
+      "Policy & Regulation": false
+    },
+    "article-013": {
+      "Science & Space": false,
+      "Computing & Hardware": true,
+      "Electric Vehicles": false,
+      "Cybersecurity & Privacy": true,
+      "Policy & Regulation": false
+    },
+    "article-014": {
+      "Science & Space": true,
+      "Computing & Hardware": false,
+      "Electric Vehicles": false,
+      "Cybersecurity & Privacy": false,
+      "Policy & Regulation": false
+    },
+    "article-015": {
+      "Science & Space": false,
+      "Computing & Hardware": true,
+      "Electric Vehicles": false,
+      "Cybersecurity & Privacy": false,
+      "Policy & Regulation": false
+    },
+    "article-016": {
+      "Science & Space": false,
+      "Computing & Hardware": false,
+      "Electric Vehicles": false,
+      "Cybersecurity & Privacy": false,
+      "Policy & Regulation": true
+    },
+    "article-017": {
+      "Science & Space": false,
+      "Computing & Hardware": false,
+      "Electric Vehicles": true,
+      "Cybersecurity & Privacy": false,
+      "Policy & Regulation": false
+    },
+    "article-018": {
+      "Science & Space": true,
+      "Computing & Hardware": false,
+      "Electric Vehicles": false,
+      "Cybersecurity & Privacy": false,
+      "Policy & Regulation": true
+    },
+    "article-019": {
+      "Science & Space": false,
+      "Computing & Hardware": false,
+      "Electric Vehicles": true,
+      "Cybersecurity & Privacy": false,
+      "Policy & Regulation": true
+    },
+    "article-020": {
+      "Science & Space": false,
+      "Computing & Hardware": false,
+      "Electric Vehicles": false,
+      "Cybersecurity & Privacy": false,
+      "Policy & Regulation": false
+    }
+  }
+}

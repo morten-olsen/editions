@@ -52,11 +52,11 @@ Combine embedding similarity for instant results with background NLI refinement:
 1. When a focus changes, embed the focus text (one call, ~50ms)
 2. Load all article embeddings for affected sources
 3. Compute cosine similarity — instant ranking (milliseconds)
-4. Write results to `article_focuses`
-5. Queue background NLI refinement for articles in the ambiguous zone (similarity 0.1–0.65)
-6. NLI results overwrite embedding results as they complete
+4. Write similarity results to `article_focuses`
+5. Run NLI classification for all articles (not just ambiguous ones — NLI always runs in hybrid mode)
+6. NLI results are stored alongside similarity in `article_focuses`
 
-User sees instant results. Background refinement corrects borderline cases.
+User sees instant results from similarity. NLI scores are added as they complete, and the scoring system prefers NLI when available (`effectiveConfidence` returns `nli ?? similarity ?? 0`).
 
 ## Expected speedups
 

@@ -35,7 +35,7 @@ const configSchema = z.object({
   database: databaseSchema.default({ filename: 'editions.db' }),
   auth: authSchema.default({ jwtSecret: '', allowSignups: true }),
   scheduler: schedulerSchema.default({ enabled: true, fetchIntervalMinutes: 60 }),
-  analysis: analysisSchema.default({ classifier: 'hybrid' }),
+  analysis: analysisSchema.default({ classifier: 'similarity' }),
 });
 
 type Config = z.infer<typeof configSchema>;

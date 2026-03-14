@@ -51,6 +51,7 @@ type FocusSource = {
   sourceId: string;
   mode: FocusSourceMode;
   weight: number;
+  minConfidence: number | null;
 };
 
 type Focus = {
@@ -106,7 +107,7 @@ class FocusesService {
     const sourceLinksByFocus = new Map<string, FocusSource[]>();
     for (const link of sourceLinks) {
       const arr = sourceLinksByFocus.get(link.focus_id) ?? [];
-      arr.push({ sourceId: link.source_id, mode: link.mode as FocusSourceMode, weight: link.weight });
+      arr.push({ sourceId: link.source_id, mode: link.mode as FocusSourceMode, weight: link.weight, minConfidence: link.min_confidence });
       sourceLinksByFocus.set(link.focus_id, arr);
     }
 
@@ -154,6 +155,7 @@ class FocusesService {
         sourceId: link.source_id,
         mode: link.mode as FocusSourceMode,
         weight: link.weight,
+        minConfidence: link.min_confidence,
       })),
       createdAt: row.created_at,
       updatedAt: row.updated_at,
@@ -192,6 +194,7 @@ class FocusesService {
             source_id: s.sourceId,
             mode: s.mode,
             weight: s.weight,
+            min_confidence: s.minConfidence ?? null,
           })),
         )
         .execute();
@@ -310,6 +313,7 @@ class FocusesService {
             source_id: s.sourceId,
             mode: s.mode,
             weight: s.weight,
+            min_confidence: s.minConfidence ?? null,
           })),
         )
         .execute();

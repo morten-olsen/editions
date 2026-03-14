@@ -80,6 +80,7 @@ type EditFocusFormResult = {
   toggleSource: (sourceId: string) => void;
   changeMode: (sourceId: string, mode: 'always' | 'match') => void;
   changeWeight: (sourceId: string, weight: number) => void;
+  changeMinConfidence: (sourceId: string, minConfidence: number | null) => void;
   selectedIds: Set<string>;
 };
 
@@ -112,7 +113,7 @@ const useEditFocusForm = (focus: Focus | undefined): EditFocusFormResult => {
       if (existing) {
         return prev.filter((s) => s.sourceId !== sourceId);
       }
-      return [...prev, { sourceId, mode: 'always', weight: 1 }];
+      return [...prev, { sourceId, mode: 'always', weight: 1, minConfidence: null }];
     });
   };
 
@@ -122,6 +123,10 @@ const useEditFocusForm = (focus: Focus | undefined): EditFocusFormResult => {
 
   const changeWeight = (sourceId: string, weight: number): void => {
     setSelectedSources((prev) => prev.map((s) => (s.sourceId === sourceId ? { ...s, weight } : s)));
+  };
+
+  const changeMinConfidence = (sourceId: string, minConfidence: number | null): void => {
+    setSelectedSources((prev) => prev.map((s) => (s.sourceId === sourceId ? { ...s, minConfidence } : s)));
   };
 
   const selectedIds = new Set(selectedSources.map((s) => s.sourceId));
@@ -143,6 +148,7 @@ const useEditFocusForm = (focus: Focus | undefined): EditFocusFormResult => {
     toggleSource,
     changeMode,
     changeWeight,
+    changeMinConfidence,
     selectedIds,
   };
 };

@@ -14,6 +14,7 @@ type FocusDetail = {
   minConsumptionTimeSeconds: number | null;
   maxConsumptionTimeSeconds: number | null;
   sourceWeights: Map<string, number>;
+  sourceMinConfidence: Map<string, number>;
 };
 
 type FocusConfig = {
@@ -88,14 +89,19 @@ const loadFocusDetails = async (
   for (const fc of sortedFocuses) {
     const focus = await focusesService.get(userId, fc.focusId);
     const sourceWeights = new Map<string, number>();
+    const sourceMinConfidence = new Map<string, number>();
     for (const src of focus.sources) {
       sourceWeights.set(src.sourceId, src.weight);
+      if (src.minConfidence !== null) {
+        sourceMinConfidence.set(src.sourceId, src.minConfidence);
+      }
     }
     details.set(fc.focusId, {
       minConfidence: focus.minConfidence,
       minConsumptionTimeSeconds: focus.minConsumptionTimeSeconds,
       maxConsumptionTimeSeconds: focus.maxConsumptionTimeSeconds,
       sourceWeights,
+      sourceMinConfidence,
     });
   }
   return details;
@@ -133,8 +139,20 @@ const queryCandidates = async ({
     .where('articles.read_at', 'is', null)
     .where('articles.published_at', '>=', cutoff);
 
-  if (focusInfo.minConfidence > 0) {
-    query = query.where(sql`COALESCE(article_focuses.nli, article_focuses.similarity)`, '>=', focusInfo.minConfidence);
+  const hasSourceOverrides = focusInfo.sourceMinConfidence.size > 0;
+  if (focusInfo.minConfidence > 0 || hasSourceOverrides) {
+    if (hasSourceOverrides) {
+      query = query.where(
+        sql`COALESCE(article_focuses.nli, article_focuses.similarity)`,
+        '>=',
+        sql`COALESCE(
+          (SELECT fs.min_confidence FROM focus_sources fs WHERE fs.focus_id = ${focusId} AND fs.source_id = articles.source_id),
+          ${focusInfo.minConfidence}
+        )`,
+      );
+    } else {
+      query = query.where(sql`COALESCE(article_focuses.nli, article_focuses.similarity)`, '>=', focusInfo.minConfidence);
+    }
   }
 
   if (focusInfo.minConsumptionTimeSeconds !== null) {

@@ -139,6 +139,7 @@ const EditFocusFormLayout = ({
         onToggle={form.toggleSource}
         onChangeMode={form.changeMode}
         onChangeWeight={form.changeWeight}
+        onChangeMinConfidence={form.changeMinConfidence}
         idPrefix="edit-focus"
       />
       <div className="flex items-center gap-3">

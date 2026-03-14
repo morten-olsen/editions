@@ -1,9 +1,13 @@
+import { useState } from 'react';
+
 import { Checkbox } from '../../components/checkbox.tsx';
+import { confidenceHint } from '../../hooks/focuses/focuses.utils.ts';
 
 type FocusSource = {
   sourceId: string;
   mode: 'always' | 'match';
   weight: number;
+  minConfidence: number | null;
 };
 
 type Source = {
@@ -38,6 +42,7 @@ const SourceSelectionList = ({
   onToggle,
   onChangeMode,
   onChangeWeight,
+  onChangeMinConfidence,
   idPrefix,
 }: {
   allSources: Source[];
@@ -46,6 +51,7 @@ const SourceSelectionList = ({
   onToggle: (sourceId: string) => void;
   onChangeMode: (sourceId: string, mode: 'always' | 'match') => void;
   onChangeWeight: (sourceId: string, weight: number) => void;
+  onChangeMinConfidence?: (sourceId: string, minConfidence: number | null) => void;
   idPrefix: string;
 }): React.ReactNode => (
   <div data-ai-id={`${idPrefix}-sources`} data-ai-role="list" data-ai-label="Source selection">
@@ -73,6 +79,7 @@ const SourceSelectionList = ({
               onToggle={() => onToggle(source.id)}
               onChangeMode={(mode) => onChangeMode(source.id, mode)}
               onChangeWeight={(weight) => onChangeWeight(source.id, weight)}
+              onChangeMinConfidence={onChangeMinConfidence ? (mc) => onChangeMinConfidence(source.id, mc) : undefined}
               idPrefix={idPrefix}
             />
           );
@@ -82,6 +89,67 @@ const SourceSelectionList = ({
   </div>
 );
 
+const SourceConfidenceOverride = ({
+  value,
+  onChange,
+  sourceId,
+  idPrefix,
+}: {
+  value: number | null;
+  onChange: (v: number | null) => void;
+  sourceId: string;
+  idPrefix: string;
+}): React.ReactNode => {
+  const [enabled, setEnabled] = useState(value !== null);
+  const displayValue = value !== null ? Math.round(value * 100) : 50;
+
+  const handleToggle = (): void => {
+    if (enabled) {
+      setEnabled(false);
+      onChange(null);
+    } else {
+      setEnabled(true);
+      onChange(displayValue / 100);
+    }
+  };
+
+  return (
+    <div className="mt-2 pl-7">
+      <button
+        type="button"
+        onClick={handleToggle}
+        className="text-xs text-accent hover:text-accent-hover transition-colors duration-fast"
+        data-ai-id={`${idPrefix}-source-${sourceId}-confidence-toggle`}
+        data-ai-role="button"
+        data-ai-label="Toggle match threshold override"
+      >
+        {enabled ? 'Remove threshold override' : 'Override match threshold'}
+      </button>
+      {enabled && (
+        <div className="mt-1.5 flex items-center gap-3">
+          <span className="text-xs text-ink-tertiary shrink-0">Threshold</span>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            step={5}
+            value={displayValue}
+            onChange={(e) => onChange(Number(e.target.value) / 100)}
+            className="flex-1 accent-accent"
+            data-ai-id={`${idPrefix}-source-${sourceId}-confidence`}
+            data-ai-role="input"
+            data-ai-label="Source match threshold"
+            data-ai-value={String(displayValue)}
+          />
+          <span className="text-xs font-medium text-ink-secondary tabular-nums w-24 text-right">
+            {displayValue === 0 ? 'All articles' : `${displayValue}% — ${confidenceHint(displayValue)}`}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const SourceItem = ({
   source,
   isSelected,
@@ -89,6 +157,7 @@ const SourceItem = ({
   onToggle,
   onChangeMode,
   onChangeWeight,
+  onChangeMinConfidence,
   idPrefix,
 }: {
   source: Source;
@@ -97,6 +166,7 @@ const SourceItem = ({
   onToggle: () => void;
   onChangeMode: (mode: 'always' | 'match') => void;
   onChangeWeight: (weight: number) => void;
+  onChangeMinConfidence?: (minConfidence: number | null) => void;
   idPrefix: string;
 }): React.ReactNode => (
   <div
@@ -124,25 +194,35 @@ const SourceItem = ({
       )}
     </div>
     {isSelected && selection && (
-      <div className="mt-2 pl-7 flex items-center gap-3">
-        <span className="text-xs text-ink-tertiary shrink-0">Priority</span>
-        <input
-          type="range"
-          min={0}
-          max={3}
-          step={0.1}
-          value={selection.weight}
-          onChange={(e) => onChangeWeight(Number(e.target.value))}
-          className="flex-1 accent-accent"
-          data-ai-id={`${idPrefix}-source-${source.id}-weight`}
-          data-ai-role="input"
-          data-ai-label={`${source.name} priority`}
-          data-ai-value={String(selection.weight)}
-        />
-        <span className="text-xs font-medium text-ink-secondary tabular-nums w-12 text-right">
-          {priorityLabel(selection.weight)}
-        </span>
-      </div>
+      <>
+        <div className="mt-2 pl-7 flex items-center gap-3">
+          <span className="text-xs text-ink-tertiary shrink-0">Priority</span>
+          <input
+            type="range"
+            min={0}
+            max={3}
+            step={0.1}
+            value={selection.weight}
+            onChange={(e) => onChangeWeight(Number(e.target.value))}
+            className="flex-1 accent-accent"
+            data-ai-id={`${idPrefix}-source-${source.id}-weight`}
+            data-ai-role="input"
+            data-ai-label={`${source.name} priority`}
+            data-ai-value={String(selection.weight)}
+          />
+          <span className="text-xs font-medium text-ink-secondary tabular-nums w-12 text-right">
+            {priorityLabel(selection.weight)}
+          </span>
+        </div>
+        {selection.mode === 'match' && onChangeMinConfidence && (
+          <SourceConfidenceOverride
+            value={selection.minConfidence}
+            onChange={onChangeMinConfidence}
+            sourceId={source.id}
+            idPrefix={idPrefix}
+          />
+        )}
+      </>
     )}
   </div>
 );

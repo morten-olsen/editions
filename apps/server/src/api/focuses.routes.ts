@@ -12,6 +12,7 @@ const focusSourceSchema = z.object({
   sourceId: z.string(),
   mode: z.enum(['always', 'match']),
   weight: z.number(),
+  minConfidence: z.number().nullable(),
 });
 
 const focusSchema = z.object({
@@ -32,6 +33,7 @@ const createFocusSourceSchema = z.object({
   sourceId: z.string(),
   mode: z.enum(['always', 'match']),
   weight: z.number().min(0).default(1),
+  minConfidence: z.number().min(0).max(1).nullable().optional().default(null),
 });
 
 const createFocusSchema = z.object({

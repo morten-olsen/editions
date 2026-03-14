@@ -99,6 +99,7 @@ Many-to-many: which sources a focus considers, and how.
 | source_id | text FK → sources | |
 | mode | text | `always` (always include articles) or `match` (use classifier) |
 | weight | real | Source weight for scoring and round-robin selection, default 1.0. Higher weight = more influence |
+| min_confidence | real | Optional per-source override for the focus's `min_confidence` threshold. Null = use focus default |
 
 Unique on `(focus_id, source_id)`.
 

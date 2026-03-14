@@ -57,6 +57,7 @@ const NewFocusPage = (): React.ReactNode => {
           onToggle={sourceSelection.toggleSource}
           onChangeMode={sourceSelection.changeMode}
           onChangeWeight={sourceSelection.changeWeight}
+          onChangeMinConfidence={sourceSelection.changeMinConfidence}
           idPrefix="focus"
         />
         <div className="flex items-center gap-3">

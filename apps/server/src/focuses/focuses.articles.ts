@@ -96,6 +96,8 @@ type BaseQueryParams = {
 const buildBaseQuery = (params: BaseQueryParams) => {
   const { db, focusId, userId, focus, filters } = params;
 
+  const hasSourceOverrides = focus.sources.some((s) => s.minConfidence !== null);
+
   let q = db
     .selectFrom('article_focuses')
     .innerJoin('articles', 'articles.id', 'article_focuses.article_id')
@@ -103,8 +105,19 @@ const buildBaseQuery = (params: BaseQueryParams) => {
     .where('article_focuses.focus_id', '=', focusId)
     .where('sources.user_id', '=', userId);
 
-  if (focus.minConfidence > 0) {
-    q = q.where(sql`COALESCE(article_focuses.nli, article_focuses.similarity)`, '>=', focus.minConfidence);
+  if (focus.minConfidence > 0 || hasSourceOverrides) {
+    if (hasSourceOverrides) {
+      q = q.where(
+        sql`COALESCE(article_focuses.nli, article_focuses.similarity)`,
+        '>=',
+        sql`COALESCE(
+          (SELECT fs.min_confidence FROM focus_sources fs WHERE fs.focus_id = ${focusId} AND fs.source_id = articles.source_id),
+          ${focus.minConfidence}
+        )`,
+      );
+    } else {
+      q = q.where(sql`COALESCE(article_focuses.nli, article_focuses.similarity)`, '>=', focus.minConfidence);
+    }
   }
   if (filters.from) {
     q = q.where('articles.published_at', '>=', filters.from);

@@ -6,6 +6,7 @@ type SourceSelection = {
   sourceId: string;
   mode: SourceMode;
   weight: number;
+  minConfidence: number | null;
 };
 
 type Source = {

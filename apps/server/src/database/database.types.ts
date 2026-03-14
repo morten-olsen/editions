@@ -78,6 +78,7 @@ type FocusSourcesTable = {
   source_id: string;
   mode: FocusSourceMode;
   weight: ColumnType<number, number | undefined, number>;
+  min_confidence: number | null;
 };
 
 type ArticleFocusesTable = {

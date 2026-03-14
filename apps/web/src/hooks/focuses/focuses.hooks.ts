@@ -48,6 +48,7 @@ type UseFocusSourceSelectionResult = {
   toggleSource: (sourceId: string) => void;
   changeMode: (sourceId: string, mode: SourceMode) => void;
   changeWeight: (sourceId: string, weight: number) => void;
+  changeMinConfidence: (sourceId: string, minConfidence: number | null) => void;
   setSelectedSources: React.Dispatch<React.SetStateAction<SourceSelection[]>>;
 };
 
@@ -70,7 +71,7 @@ const useFocusSourceSelection = (params?: UseFocusSourceSelectionParams): UseFoc
       if (existing) {
         return prev.filter((s) => s.sourceId !== sourceId);
       }
-      return [...prev, { sourceId, mode: 'always' as const, weight: 1 }];
+      return [...prev, { sourceId, mode: 'always' as const, weight: 1, minConfidence: null }];
     });
   }, []);
 
@@ -80,6 +81,10 @@ const useFocusSourceSelection = (params?: UseFocusSourceSelectionParams): UseFoc
 
   const changeWeight = useCallback((sourceId: string, weight: number): void => {
     setSelectedSources((prev) => prev.map((s) => (s.sourceId === sourceId ? { ...s, weight } : s)));
+  }, []);
+
+  const changeMinConfidence = useCallback((sourceId: string, minConfidence: number | null): void => {
+    setSelectedSources((prev) => prev.map((s) => (s.sourceId === sourceId ? { ...s, minConfidence } : s)));
   }, []);
 
   const selectedIds = new Set(selectedSources.map((s) => s.sourceId));
@@ -92,6 +97,7 @@ const useFocusSourceSelection = (params?: UseFocusSourceSelectionParams): UseFoc
     toggleSource,
     changeMode,
     changeWeight,
+    changeMinConfidence,
     setSelectedSources,
   };
 };

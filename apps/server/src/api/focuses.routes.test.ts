@@ -222,7 +222,7 @@ describe('focus sources', () => {
 
     expect(res.statusCode).toBe(200);
     const body = JSON.parse(res.body);
-    expect(body.sources).toEqual([{ sourceId, mode: 'always', weight: 1 }]);
+    expect(body.sources).toEqual([{ sourceId, mode: 'always', weight: 1, minConfidence: null }]);
   });
 
   it('replaces sources on a focus', async () => {
@@ -258,7 +258,7 @@ describe('focus sources', () => {
     expect(res.statusCode).toBe(200);
     const body = JSON.parse(res.body);
     expect(body.sources).toHaveLength(1);
-    expect(body.sources[0]).toEqual({ sourceId: source2, mode: 'match', weight: 1 });
+    expect(body.sources[0]).toEqual({ sourceId: source2, mode: 'match', weight: 1, minConfidence: null });
   });
 
   it('clears sources with empty array', async () => {
@@ -354,6 +354,6 @@ describe('focus sources', () => {
 
     expect(res.statusCode).toBe(200);
     const focuses = JSON.parse(res.body);
-    expect(focuses[0].sources).toEqual([{ sourceId, mode: 'always', weight: 1 }]);
+    expect(focuses[0].sources).toEqual([{ sourceId, mode: 'always', weight: 1, minConfidence: null }]);
   });
 });

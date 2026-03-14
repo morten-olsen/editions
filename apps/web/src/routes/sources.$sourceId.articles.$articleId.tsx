@@ -20,6 +20,9 @@ const ArticlePage = (): React.ReactNode => {
   const detail = useArticleDetail({ sourceId, articleId });
   const { classifications } = useArticleFocuses(articleId);
 
+  const isPodcast = detail.article?.sourceType === 'podcast';
+  useReadingProgress(articleId, isPodcast ? 0 : (detail.article?.progress ?? 0));
+
   if (detail.isLoading) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-surface">
@@ -44,13 +47,9 @@ const ArticlePage = (): React.ReactNode => {
   }
 
   const { article } = detail;
-  const isPodcast = article.sourceType === 'podcast';
   const displayContent = isPodcast ? null : article.content;
   const displaySummary = isPodcast ? (article.summary ?? article.content) : article.summary;
   const hasContent = displayContent !== null && displayContent.length > 0;
-
-  // Track scroll-based reading progress for text articles (podcasts use media player progress)
-  useReadingProgress(articleId, isPodcast ? 0 : article.progress);
 
   return (
     <ReadingShell header={<ArticleHeader detail={detail} onBack={() => router.history.back()} />}>

@@ -3,6 +3,7 @@ import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 import { useArticleDetail, formatConsumptionTime, formatPublishedDate } from '../hooks/articles/articles.hooks.ts';
+import { useReadingProgress } from '../hooks/articles/articles.reading-progress.ts';
 import { BookmarkButton } from '../components/bookmark-button.tsx';
 import { ReadingShell } from '../components/app-shell.tsx';
 import { Button } from '../components/button.tsx';
@@ -44,6 +45,9 @@ const ArticlePage = (): React.ReactNode => {
   const displayContent = isPodcast ? null : article.content;
   const displaySummary = isPodcast ? (article.summary ?? article.content) : article.summary;
   const hasContent = displayContent !== null && displayContent.length > 0;
+
+  // Track scroll-based reading progress for text articles (podcasts use media player progress)
+  useReadingProgress(articleId, isPodcast ? 0 : article.progress);
 
   return (
     <ReadingShell header={<ArticleHeader detail={detail} onBack={() => router.history.back()} />}>

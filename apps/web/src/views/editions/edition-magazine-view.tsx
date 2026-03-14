@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 
 import type { VoteValue } from '../../components/vote-controls.tsx';
 import {
@@ -12,6 +12,7 @@ import {
 } from '../../components/magazine/magazine.tsx';
 
 import type { EditionArticle, EditionDetail, FocusSection } from './edition-types.ts';
+import { useMagazineProgress } from './edition-magazine-progress.ts';
 
 type MagazineViewProps = {
   edition: EditionDetail;
@@ -110,7 +111,7 @@ const MagazineView = ({
   onExit,
   onMarkDone,
 }: MagazineViewProps): React.ReactElement => {
-  const [page, setPage] = useState(0);
+  const { page, setPage, savePage } = useMagazineProgress(edition.id);
   const pageRef = useRef(page);
   const pageArticleMap = useRef<Map<number, { sourceId: string; articleId: string }>>(new Map());
 
@@ -125,9 +126,22 @@ const MagazineView = ({
       }
       pageRef.current = newPage;
       setPage(newPage);
+      savePage(newPage);
     },
-    [onMarkArticleViewed],
+    [onMarkArticleViewed, setPage, savePage],
   );
+
+  /* Escape exits magazine */
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onExit();
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [onExit]);
 
   const leadArticle = edition.articles[0] ?? { title: edition.title, sourceName: '' };
   const highlightArticles = sections

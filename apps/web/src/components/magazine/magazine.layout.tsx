@@ -357,19 +357,73 @@ const MagazineLayout = ({ children, page, onPageChange, toc }: MagazineLayoutPro
   const total = pages.length;
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
-  /* Left/Right arrows navigate pages; Up/Down scroll naturally */
+  /* Keyboard navigation: arrows, vim keys, space, home/end, escape */
   React.useEffect(() => {
+    let pendingG = false;
+    let gTimer: ReturnType<typeof setTimeout> | undefined;
+
     const handleKey = (e: KeyboardEvent): void => {
-      if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        onPageChange(Math.min(total - 1, page + 1));
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        onPageChange(Math.max(0, page - 1));
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+      const next = (): void => onPageChange(Math.min(total - 1, page + 1));
+      const prev = (): void => onPageChange(Math.max(0, page - 1));
+
+      switch (e.key) {
+        case 'ArrowRight':
+        case 'l':
+        case 'j':
+          e.preventDefault();
+          next();
+          return;
+        case 'ArrowLeft':
+        case 'h':
+        case 'k':
+          e.preventDefault();
+          prev();
+          return;
+        case ' ':
+          e.preventDefault();
+          if (e.shiftKey) { prev(); } else { next(); }
+          return;
+        case 'Home':
+          e.preventDefault();
+          onPageChange(0);
+          return;
+        case 'End':
+          e.preventDefault();
+          onPageChange(total - 1);
+          return;
+        case 'Escape':
+          // Bubble up — the parent exit button handler will catch this
+          return;
+        case 'g':
+          if (pendingG) {
+            // gg → go to first page
+            e.preventDefault();
+            clearTimeout(gTimer);
+            pendingG = false;
+            onPageChange(0);
+          } else {
+            pendingG = true;
+            gTimer = setTimeout(() => { pendingG = false; }, 400);
+          }
+          return;
+        case 'G':
+          e.preventDefault();
+          clearTimeout(gTimer);
+          pendingG = false;
+          onPageChange(total - 1);
+          return;
+        default:
+          pendingG = false;
       }
     };
     window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
+    return () => {
+      window.removeEventListener('keydown', handleKey);
+      clearTimeout(gTimer);
+    };
   }, [page, total, onPageChange]);
 
   /* Swipe and edge-tap navigation for touch devices */

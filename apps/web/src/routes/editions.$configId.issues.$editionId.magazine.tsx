@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 
@@ -15,6 +15,7 @@ import {
   MagazineFinale,
   type TocEntry,
 } from '../components/magazine/magazine.tsx';
+import { useMagazineProgress } from '../views/editions/edition-magazine-progress.ts';
 
 /* ── Types ────────────────────────────────────────────────────────── */
 
@@ -306,11 +307,23 @@ const buildAllPages = (opts: {
 const MagazinePage = (): React.ReactNode => {
   const headers = useAuthHeaders();
   const { editionId } = Route.useParams();
-  const [page, setPage] = useState(0);
-  const pageRef = useRef(0);
+  const { page, setPage, savePage } = useMagazineProgress(editionId);
+  const pageRef = useRef(page);
 
   const { edition, isLoading, error } = useMagazineEdition(editionId, headers);
   const actions = useMagazineActions(editionId, headers);
+
+  /* Escape exits magazine */
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        actions.handleExit();
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [actions.handleExit]);
 
   if (!headers || isLoading) {
     return <MagazineLoading />;
@@ -330,6 +343,7 @@ const MagazinePage = (): React.ReactNode => {
     }
     pageRef.current = newPage;
     setPage(newPage);
+    savePage(newPage);
   };
 
   const pages = buildAllPages({

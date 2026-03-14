@@ -7,6 +7,7 @@ import type { RefreshSourcePayload, ReanalyseSourcePayload, ReanalyseAllPayload 
 import { JobService } from '../jobs/jobs.ts';
 import type { Services } from '../services/services.ts';
 import { SourceNotFoundError, SourcesService } from '../sources/sources.ts';
+import { buildOpml, parseOpml } from '../sources/sources.opml.ts';
 
 import {
   sourceSchema,
@@ -19,6 +20,7 @@ import {
   articleIdParamSchema,
   paginationQuerySchema,
   jobResponseSchema,
+  opmlImportResultSchema,
 } from './sources.routes.schemas.ts';
 
 // --- Types ---
@@ -334,6 +336,82 @@ const registerReanalyseRoutes = ({ fastify, services, authenticate }: RouteArgs)
   });
 };
 
+const registerOpmlRoutes = ({ fastify, services, authenticate }: RouteArgs): void => {
+  // Export sources as OPML
+  fastify.route({
+    method: 'GET',
+    url: '/sources/opml',
+    onRequest: authenticate,
+    schema: {
+      security: [{ bearerAuth: [] }],
+    },
+    handler: async (req, reply) => {
+      const sources = services.get(SourcesService);
+      const allSources = await sources.list(req.user.sub);
+      const exportable = allSources.filter((s) => s.type !== 'bookmarks');
+      const opml = buildOpml(exportable);
+      return reply.type('application/xml').send(opml);
+    },
+  });
+
+  // Import sources from OPML
+  fastify.route({
+    method: 'POST',
+    url: '/sources/opml',
+    onRequest: authenticate,
+    schema: {
+      security: [{ bearerAuth: [] }],
+      body: z.object({ opml: z.string() }),
+      response: { 200: opmlImportResultSchema, 400: errorResponseSchema },
+    },
+    handler: async (req, reply) => {
+      const outlines = parseOpml(req.body.opml);
+      if (outlines.length === 0) {
+        return reply.code(400).send({ error: 'No feeds found in the OPML file' });
+      }
+
+      const sourcesService = services.get(SourcesService);
+      const existing = await sourcesService.list(req.user.sub);
+      const existingUrls = new Set(existing.map((s) => normalizeUrl(s.url)));
+
+      const results: { name: string; url: string; status: 'added' | 'skipped' }[] = [];
+      let added = 0;
+      let skipped = 0;
+
+      for (const outline of outlines) {
+        if (existingUrls.has(normalizeUrl(outline.xmlUrl))) {
+          results.push({ name: outline.title, url: outline.xmlUrl, status: 'skipped' });
+          skipped++;
+          continue;
+        }
+
+        await sourcesService.create({
+          userId: req.user.sub,
+          name: outline.title,
+          url: outline.xmlUrl,
+          type: 'rss',
+          direction: 'newest',
+        });
+        existingUrls.add(normalizeUrl(outline.xmlUrl));
+        results.push({ name: outline.title, url: outline.xmlUrl, status: 'added' });
+        added++;
+      }
+
+      return { added, skipped, sources: results };
+    },
+  });
+};
+
+const normalizeUrl = (url: string): string => {
+  try {
+    const parsed = new URL(url);
+    // Strip trailing slash and lowercase the host for comparison
+    return `${parsed.protocol}//${parsed.host.toLowerCase()}${parsed.pathname.replace(/\/+$/, '')}${parsed.search}`;
+  } catch {
+    return url.toLowerCase().replace(/\/+$/, '');
+  }
+};
+
 // --- Main plugin ---
 
 const createSourcesRoutes =
@@ -342,6 +420,7 @@ const createSourcesRoutes =
     const authenticate = createAuthHook(services);
     const args = { fastify, services, authenticate };
 
+    registerOpmlRoutes(args);
     registerSourceReadRoutes(args);
     registerSourceWriteRoutes(args);
     registerArticleRoutes(args);

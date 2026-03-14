@@ -91,6 +91,18 @@ const jobResponseSchema = z.object({
   status: z.string(),
 });
 
+const opmlImportResultSchema = z.object({
+  added: z.number(),
+  skipped: z.number(),
+  sources: z.array(
+    z.object({
+      name: z.string(),
+      url: z.string(),
+      status: z.enum(['added', 'skipped']),
+    }),
+  ),
+});
+
 export {
   sourceSchema,
   createSourceSchema,
@@ -102,4 +114,5 @@ export {
   articleIdParamSchema,
   paginationQuerySchema,
   jobResponseSchema,
+  opmlImportResultSchema,
 };

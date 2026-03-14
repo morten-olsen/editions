@@ -1,13 +1,82 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 
 import { useSourcesList } from '../hooks/sources/sources.hooks.ts';
+import { useOpml } from '../hooks/sources/sources.opml-hooks.ts';
 import { PageHeader } from '../components/page-header.tsx';
 import { SourceCard } from '../components/source-card.tsx';
 import { EmptyState } from '../components/empty-state.tsx';
 import { Button } from '../components/button.tsx';
+import { Menu } from '../components/menu.tsx';
+import { Collapse } from '../components/animate.tsx';
+
+const ImportResultBanner = ({
+  result,
+  error,
+  onDismiss,
+}: {
+  result: { added: number; skipped: number; sources: { name: string; url: string; status: 'added' | 'skipped' }[] } | null;
+  error: string | null;
+  onDismiss: () => void;
+}): React.ReactNode => {
+  const show = result !== null || error !== null;
+
+  return (
+    <Collapse show={show}>
+      <div
+        className={`rounded-lg border px-4 py-3 mb-4 ${
+          error
+            ? 'bg-critical-subtle border-critical/20 text-critical'
+            : 'bg-positive-subtle border-positive/20 text-ink'
+        }`}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            {error ? (
+              <p className="text-sm">{error}</p>
+            ) : result ? (
+              <>
+                <p className="text-sm font-medium">
+                  {result.added === 0
+                    ? 'All feeds already exist — nothing new to add.'
+                    : result.added === 1
+                      ? '1 feed added.'
+                      : `${result.added} feeds added.`}
+                  {result.skipped > 0 &&
+                    ` ${result.skipped} ${result.skipped === 1 ? 'duplicate' : 'duplicates'} skipped.`}
+                </p>
+                {result.sources.length > 0 && (
+                  <ul className="mt-2 space-y-0.5 text-sm text-ink-secondary">
+                    {result.sources.map((s) => (
+                      <li key={s.url} className="flex items-center gap-1.5">
+                        <span
+                          className={`inline-block w-1.5 h-1.5 rounded-full ${s.status === 'added' ? 'bg-positive' : 'bg-ink-faint'}`}
+                        />
+                        <span className="truncate">{s.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            ) : null}
+          </div>
+          <button
+            onClick={onDismiss}
+            className="shrink-0 text-ink-tertiary hover:text-ink transition-colors duration-fast ease-gentle cursor-pointer p-1 -m-1"
+            aria-label="Dismiss"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M4 4l8 8M12 4l-8 8" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </Collapse>
+  );
+};
 
 const SourcesPage = (): React.ReactNode => {
   const { sources, loading, reanalyseMutation } = useSourcesList();
+  const { exportOpml, pickAndImport, importMutation, importResult, importError, clearImportResult } = useOpml();
 
   return (
     <>
@@ -16,6 +85,25 @@ const SourcesPage = (): React.ReactNode => {
         subtitle={loading ? 'Loading...' : `${sources.length} feeds configured`}
         actions={
           <div className="flex items-center gap-2">
+            <Menu.Root>
+              <Menu.Trigger
+                render={
+                  <Button variant="ghost" size="sm" aria-label="Import and export">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M8 3v7M5 7.5 8 10l3-2.5" />
+                      <path d="M3 12.5h10" />
+                    </svg>
+                  </Button>
+                }
+              />
+              <Menu.Content>
+                <Menu.Label>OPML</Menu.Label>
+                <Menu.Item onClick={exportOpml}>Export feeds</Menu.Item>
+                <Menu.Item onClick={pickAndImport} disabled={importMutation.isPending}>
+                  {importMutation.isPending ? 'Importing...' : 'Import feeds'}
+                </Menu.Item>
+              </Menu.Content>
+            </Menu.Root>
             <Button
               variant="secondary"
               size="sm"
@@ -33,14 +121,21 @@ const SourcesPage = (): React.ReactNode => {
         }
       />
 
+      <ImportResultBanner result={importResult} error={importError} onDismiss={clearImportResult} />
+
       {!loading && sources.length === 0 ? (
         <EmptyState
           title="No sources yet"
-          description="Add your first RSS feed to start building your reading experience."
+          description="Add your first RSS feed or import an OPML file to start building your reading experience."
           action={
-            <Link to="/sources/new">
-              <Button variant="primary">Add source</Button>
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link to="/sources/new">
+                <Button variant="primary">Add source</Button>
+              </Link>
+              <Button variant="secondary" onClick={pickAndImport} disabled={importMutation.isPending}>
+                {importMutation.isPending ? 'Importing...' : 'Import OPML'}
+              </Button>
+            </div>
           }
         />
       ) : (

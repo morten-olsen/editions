@@ -193,7 +193,7 @@ const useFetchSourceMutation = (
       if (err || !data) {
         throw new Error('Failed to start fetch');
       }
-      return pollFetchTask(deps.sourceId, (data as { taskId: string }).taskId, deps.headers);
+      return pollFetchTask(data.jobId, deps.headers);
     },
     onSuccess: (message: string): void => {
       setFetchResult(message);

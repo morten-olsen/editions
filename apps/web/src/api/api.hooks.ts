@@ -38,6 +38,7 @@ const queryKeys = {
   article: {
     vote: (id: string) => ['articles', id, 'vote'] as const,
     bookmark: (id: string) => ['articles', id, 'bookmark'] as const,
+    focuses: (id: string) => ['articles', id, 'focuses'] as const,
   },
 };
 

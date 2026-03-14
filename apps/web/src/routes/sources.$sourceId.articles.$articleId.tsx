@@ -3,8 +3,10 @@ import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 import { useArticleDetail, formatConsumptionTime, formatPublishedDate } from '../hooks/articles/articles.hooks.ts';
+import { useArticleFocuses } from '../hooks/articles/articles.focuses.ts';
 import { useReadingProgress } from '../hooks/articles/articles.reading-progress.ts';
 import { BookmarkButton } from '../components/bookmark-button.tsx';
+import { FocusInsight, type FocusClassification } from '../components/focus-insight.tsx';
 import { ReadingShell } from '../components/app-shell.tsx';
 import { Button } from '../components/button.tsx';
 import { MediaPlayer } from '../components/media-player.tsx';
@@ -16,6 +18,7 @@ const ArticlePage = (): React.ReactNode => {
   const { sourceId, articleId } = Route.useParams();
 
   const detail = useArticleDetail({ sourceId, articleId });
+  const { classifications } = useArticleFocuses(articleId);
 
   if (detail.isLoading) {
     return (
@@ -55,7 +58,7 @@ const ArticlePage = (): React.ReactNode => {
       {article.imageUrl && <ArticleImage url={article.imageUrl} />}
       {article.mediaUrl && <ArticleMedia article={article} />}
       <ArticleBody hasContent={hasContent} displayContent={displayContent} displaySummary={displaySummary} />
-      <ArticleFooter detail={detail} onBack={() => router.history.back()} />
+      <ArticleFooter detail={detail} classifications={classifications} onBack={() => router.history.back()} />
     </ReadingShell>
   );
 };
@@ -159,7 +162,15 @@ const ArticleBody = ({
 
 /* ---- Footer ---- */
 
-const ArticleFooter = ({ detail, onBack }: { detail: ArticleDetailResult; onBack: () => void }): React.ReactNode => (
+const ArticleFooter = ({
+  detail,
+  classifications,
+  onBack,
+}: {
+  detail: ArticleDetailResult;
+  classifications: FocusClassification[];
+  onBack: () => void;
+}): React.ReactNode => (
   <>
     <Separator soft className="mt-12" />
     <div className="py-10 text-center">
@@ -183,6 +194,14 @@ const ArticleFooter = ({ detail, onBack }: { detail: ArticleDetailResult; onBack
         )}
       </div>
     </div>
+    {classifications.length > 0 && (
+      <>
+        <Separator soft />
+        <div className="py-6">
+          <FocusInsight classifications={classifications} />
+        </div>
+      </>
+    )}
   </>
 );
 

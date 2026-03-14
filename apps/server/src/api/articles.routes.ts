@@ -2,6 +2,7 @@ import { z } from 'zod/v4';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
 import { createAuthHook } from '../auth/auth.middleware.ts';
+import { DatabaseService } from '../database/database.ts';
 import { SourceNotFoundError, SourcesService } from '../sources/sources.ts';
 import { ArticleNotFoundForVoteError, VotesService } from '../votes/votes.ts';
 import type { Services } from '../services/services.ts';
@@ -37,6 +38,16 @@ const progressResponseSchema = z.object({
 
 const errorResponseSchema = z.object({
   error: z.string(),
+});
+
+const articleFocusClassificationSchema = z.object({
+  focusId: z.string(),
+  focusName: z.string(),
+  focusIcon: z.string().nullable(),
+  confidence: z.number(),
+  similarity: z.number().nullable(),
+  nli: z.number().nullable(),
+  assignedAt: z.string(),
 });
 
 // --- Route registration helpers ---
@@ -145,6 +156,54 @@ const registerProgressRoute = (
   });
 };
 
+const registerFocusClassificationsRoute = (
+  fastify: Parameters<FastifyPluginAsyncZod>[0],
+  services: Services,
+  authenticate: ReturnType<typeof createAuthHook>,
+): void => {
+  fastify.route({
+    method: 'GET',
+    url: '/articles/:articleId/focuses',
+    onRequest: authenticate,
+    schema: {
+      security: [{ bearerAuth: [] }],
+      params: articleVoteParamsSchema,
+      response: {
+        200: z.array(articleFocusClassificationSchema),
+      },
+    },
+    handler: async (req) => {
+      const db = await services.get(DatabaseService).getInstance();
+
+      const rows = await db
+        .selectFrom('article_focuses')
+        .innerJoin('focuses', 'focuses.id', 'article_focuses.focus_id')
+        .select([
+          'focuses.id as focus_id',
+          'focuses.name as focus_name',
+          'focuses.icon as focus_icon',
+          'article_focuses.similarity',
+          'article_focuses.nli',
+          'article_focuses.assigned_at',
+        ])
+        .where('article_focuses.article_id', '=', req.params.articleId)
+        .where('focuses.user_id', '=', req.user.sub)
+        .orderBy(db.fn('COALESCE', ['article_focuses.nli', 'article_focuses.similarity']), 'desc')
+        .execute();
+
+      return rows.map((row) => ({
+        focusId: row.focus_id,
+        focusName: row.focus_name,
+        focusIcon: row.focus_icon,
+        confidence: (row.nli as number | null) ?? (row.similarity as number | null) ?? 0,
+        similarity: row.similarity as number | null,
+        nli: row.nli as number | null,
+        assignedAt: row.assigned_at,
+      }));
+    },
+  });
+};
+
 // --- Main plugin ---
 
 const createArticlesRoutes =
@@ -154,6 +213,7 @@ const createArticlesRoutes =
 
     registerVoteRoutes(fastify, services, authenticate);
     registerProgressRoute(fastify, services, authenticate);
+    registerFocusClassificationsRoute(fastify, services, authenticate);
   };
 
 export { createArticlesRoutes };

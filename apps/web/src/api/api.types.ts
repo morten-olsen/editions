@@ -3,2953 +3,3238 @@
  * Do not make direct changes to the file.
  */
 
-export type paths = {
-  '/api/health': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              status: string;
-            };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/articles/{articleId}/vote': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          articleId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              userId: string;
-              articleId: string;
-              focusId: string | null;
-              editionId: string | null;
-              value: 1 | -1;
-              createdAt: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        204: {
-          headers: Record<string, unknown>;
-          content?: never;
-        };
-      };
-    };
-    put: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          articleId: string;
-        };
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': {
-            value: 1 | -1;
-          };
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              userId: string;
-              articleId: string;
-              focusId: string | null;
-              editionId: string | null;
-              value: 1 | -1;
-              createdAt: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    post?: never;
-    delete: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          articleId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        204: {
-          headers: Record<string, unknown>;
-          content?: never;
-        };
-      };
-    };
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/articles/{articleId}/progress': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          articleId: string;
-        };
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': {
-            progress: number;
-          };
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              progress: number;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    trace?: never;
-  };
-  '/api/auth/register': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': {
-            username: string;
-            password: string;
-          };
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        201: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              role: string;
-              token: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        403: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        409: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/auth/login': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': {
-            username: string;
-            password: string;
-          };
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              role: string;
-              token: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        401: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/auth/me': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              username: string;
-              role: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        401: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/config': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              allowSignups: boolean;
-            };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/bookmarks': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: {
-          offset?: number;
-          limit?: number;
-        };
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              bookmarks: {
-                id: string;
-                articleId: string;
-                createdAt: string;
-                articleTitle: string;
-                articleUrl: string | null;
-                author: string | null;
-                summary: string | null;
-                imageUrl: string | null;
-                publishedAt: string | null;
-                consumptionTimeSeconds: number | null;
-                sourceId: string;
-                sourceName: string;
-                sourceType: string;
-              }[];
-              total: number;
-              offset: number;
-              limit: number;
-            };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/articles/{articleId}/bookmark': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          articleId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              bookmarked: boolean;
-            };
-          };
-        };
-      };
-    };
-    put: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          articleId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              userId: string;
-              articleId: string;
-              createdAt: string;
-            };
-          };
-        };
-      };
-    };
-    post?: never;
-    delete: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          articleId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        204: {
-          headers: Record<string, unknown>;
-          content?: never;
-        };
-      };
-    };
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/bookmarks/check': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': {
-            articleIds: string[];
-          };
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              bookmarkedIds: string[];
-            };
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/bookmarks/save': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': {
-            /** Format: uri */
-            url: string;
-          };
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        201: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              bookmark: {
-                id: string;
-                userId: string;
-                articleId: string;
-                createdAt: string;
-              };
-              articleId: string;
-              sourceId: string;
-            };
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/sources': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              userId: string;
-              type: string;
-              name: string;
-              url: string;
-              config: Record<string, unknown>;
-              direction: string;
-              lastFetchedAt: string | null;
-              fetchError: string | null;
-              createdAt: string;
-              updatedAt: string;
-            }[];
-          };
-        };
-      };
-    };
-    put?: never;
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': {
-            name: string;
-            /** Format: uri */
-            url: string;
-            /**
-             * @default rss
-             * @enum {string}
-             */
-            type?: 'rss' | 'podcast' | 'mastodon' | 'bluesky' | 'youtube' | 'custom';
-            /**
-             * @default newest
-             * @enum {string}
-             */
-            direction?: 'newest' | 'oldest';
-          };
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        201: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              userId: string;
-              type: string;
-              name: string;
-              url: string;
-              config: Record<string, unknown>;
-              direction: string;
-              lastFetchedAt: string | null;
-              fetchError: string | null;
-              createdAt: string;
-              updatedAt: string;
-            };
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/sources/{id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          id: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              userId: string;
-              type: string;
-              name: string;
-              url: string;
-              config: Record<string, unknown>;
-              direction: string;
-              lastFetchedAt: string | null;
-              fetchError: string | null;
-              createdAt: string;
-              updatedAt: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          id: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        204: {
-          headers: Record<string, unknown>;
-          content?: never;
-        };
-        /** @description Default Response */
-        400: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    options?: never;
-    head?: never;
-    patch: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          id: string;
-        };
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': {
-            name?: string;
-            /** Format: uri */
-            url?: string;
-            /** @enum {string} */
-            direction?: 'newest' | 'oldest';
-          };
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              userId: string;
-              type: string;
-              name: string;
-              url: string;
-              config: Record<string, unknown>;
-              direction: string;
-              lastFetchedAt: string | null;
-              fetchError: string | null;
-              createdAt: string;
-              updatedAt: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    trace?: never;
-  };
-  '/api/sources/{id}/articles': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: {
-          offset?: number;
-          limit?: number;
-        };
-        header?: never;
-        path: {
-          id: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              articles: {
-                id: string;
-                sourceId: string;
-                externalId: string;
-                url: string | null;
-                title: string;
-                author: string | null;
-                summary: string | null;
-                imageUrl: string | null;
-                publishedAt: string | null;
-                createdAt: string;
-              }[];
-              total: number;
-              offset: number;
-              limit: number;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/sources/{id}/articles/{articleId}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          id: string;
-          articleId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              sourceId: string;
-              externalId: string;
-              url: string | null;
-              title: string;
-              author: string | null;
-              summary: string | null;
-              content: string | null;
-              consumptionTimeSeconds: number | null;
-              mediaUrl: string | null;
-              mediaType: string | null;
-              sourceType: string;
-              imageUrl: string | null;
-              publishedAt: string | null;
-              readAt: string | null;
-              extractedAt: string | null;
-              progress: number;
-              createdAt: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/sources/{id}/articles/{articleId}/read': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          id: string;
-          articleId: string;
-        };
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': {
-            read: boolean;
-          };
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              sourceId: string;
-              externalId: string;
-              url: string | null;
-              title: string;
-              author: string | null;
-              summary: string | null;
-              content: string | null;
-              consumptionTimeSeconds: number | null;
-              mediaUrl: string | null;
-              mediaType: string | null;
-              sourceType: string;
-              imageUrl: string | null;
-              publishedAt: string | null;
-              readAt: string | null;
-              extractedAt: string | null;
-              progress: number;
-              createdAt: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/sources/{id}/fetch': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          id: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        202: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              taskId: string;
-              status: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        400: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/sources/{id}/reanalyse': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          id: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        202: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              enqueued: number;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/sources/reanalyse-all': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        202: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              enqueued: number;
-            };
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/sources/{id}/tasks/{taskId}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          id: string;
-          taskId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              type: string;
-              status: string;
-              result: unknown;
-              error: string | null;
-              createdAt: number;
-              startedAt: number | null;
-              completedAt: number | null;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/focuses': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              userId: string;
-              name: string;
-              description: string | null;
-              icon: string | null;
-              minConfidence: number;
-              minConsumptionTimeSeconds: number | null;
-              maxConsumptionTimeSeconds: number | null;
-              sources: {
-                sourceId: string;
-                /** @enum {string} */
-                mode: 'always' | 'match';
-                weight: number;
-              }[];
-              createdAt: string;
-              updatedAt: string;
-            }[];
-          };
-        };
-      };
-    };
-    put?: never;
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': {
-            name: string;
-            description?: string;
-            icon?: string | null;
-            minConfidence?: number;
-            minConsumptionTimeSeconds?: number | null;
-            maxConsumptionTimeSeconds?: number | null;
-            sources?: {
-              sourceId: string;
-              /** @enum {string} */
-              mode: 'always' | 'match';
-              /** @default 1 */
-              weight?: number;
-            }[];
-          };
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        201: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              userId: string;
-              name: string;
-              description: string | null;
-              icon: string | null;
-              minConfidence: number;
-              minConsumptionTimeSeconds: number | null;
-              maxConsumptionTimeSeconds: number | null;
-              sources: {
-                sourceId: string;
-                /** @enum {string} */
-                mode: 'always' | 'match';
-                weight: number;
-              }[];
-              createdAt: string;
-              updatedAt: string;
-            };
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/focuses/{id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          id: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              userId: string;
-              name: string;
-              description: string | null;
-              icon: string | null;
-              minConfidence: number;
-              minConsumptionTimeSeconds: number | null;
-              maxConsumptionTimeSeconds: number | null;
-              sources: {
-                sourceId: string;
-                /** @enum {string} */
-                mode: 'always' | 'match';
-                weight: number;
-              }[];
-              createdAt: string;
-              updatedAt: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          id: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        204: {
-          headers: Record<string, unknown>;
-          content?: never;
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    options?: never;
-    head?: never;
-    patch: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          id: string;
-        };
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': {
-            name?: string;
-            description?: string | null;
-            icon?: string | null;
-            minConfidence?: number;
-            minConsumptionTimeSeconds?: number | null;
-            maxConsumptionTimeSeconds?: number | null;
-          };
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              userId: string;
-              name: string;
-              description: string | null;
-              icon: string | null;
-              minConfidence: number;
-              minConsumptionTimeSeconds: number | null;
-              maxConsumptionTimeSeconds: number | null;
-              sources: {
-                sourceId: string;
-                /** @enum {string} */
-                mode: 'always' | 'match';
-                weight: number;
-              }[];
-              createdAt: string;
-              updatedAt: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    trace?: never;
-  };
-  '/api/focuses/{id}/articles': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: {
-          offset?: number;
-          limit?: number;
-          sort?: 'top' | 'recent';
-          from?: string;
-          to?: string;
-          status?: 'unread' | 'read' | 'all';
-        };
-        header?: never;
-        path: {
-          id: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              articles: {
-                id: string;
-                sourceId: string;
-                externalId: string;
-                url: string | null;
-                title: string;
-                author: string | null;
-                summary: string | null;
-                imageUrl: string | null;
-                publishedAt: string | null;
-                createdAt: string;
-                consumptionTimeSeconds: number | null;
-                readAt: string | null;
-                confidence: number;
-                score: number;
-                vote: (1 | -1) | null;
-                globalVote: (1 | -1) | null;
-                sourceName: string;
-                sourceType: string;
-              }[];
-              total: number;
-              offset: number;
-              limit: number;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/focuses/{id}/sources': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          id: string;
-        };
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': {
-            sources: {
-              sourceId: string;
-              /** @enum {string} */
-              mode: 'always' | 'match';
-              /** @default 1 */
-              weight?: number;
-            }[];
-          };
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              userId: string;
-              name: string;
-              description: string | null;
-              icon: string | null;
-              minConfidence: number;
-              minConsumptionTimeSeconds: number | null;
-              maxConsumptionTimeSeconds: number | null;
-              sources: {
-                sourceId: string;
-                /** @enum {string} */
-                mode: 'always' | 'match';
-                weight: number;
-              }[];
-              createdAt: string;
-              updatedAt: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/focuses/{id}/articles/{articleId}/vote': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          id: string;
-          articleId: string;
-        };
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': {
-            value: 1 | -1;
-          };
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              userId: string;
-              articleId: string;
-              focusId: string | null;
-              editionId: string | null;
-              value: 1 | -1;
-              createdAt: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    post?: never;
-    delete: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          id: string;
-          articleId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        204: {
-          headers: Record<string, unknown>;
-          content?: never;
-        };
-      };
-    };
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/editions/configs': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              userId: string;
-              name: string;
-              icon: string | null;
-              schedule: string;
-              lookbackHours: number;
-              excludePriorEditions: boolean;
-              enabled: boolean;
-              focuses: {
-                focusId: string;
-                focusName: string;
-                position: number;
-                /** @enum {string} */
-                budgetType: 'time' | 'count';
-                budgetValue: number;
-                lookbackHours: number | null;
-                excludePriorEditions: boolean | null;
-                weight: number;
-              }[];
-              createdAt: string;
-              updatedAt: string;
-            }[];
-          };
-        };
-      };
-    };
-    put?: never;
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': {
-            name: string;
-            icon?: string | null;
-            schedule: string;
-            lookbackHours: number;
-            excludePriorEditions?: boolean;
-            enabled?: boolean;
-            focuses: {
-              focusId: string;
-              position: number;
-              /** @enum {string} */
-              budgetType: 'time' | 'count';
-              budgetValue: number;
-              lookbackHours?: number | null;
-              excludePriorEditions?: boolean | null;
-              weight?: number;
-            }[];
-          };
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        201: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              userId: string;
-              name: string;
-              icon: string | null;
-              schedule: string;
-              lookbackHours: number;
-              excludePriorEditions: boolean;
-              enabled: boolean;
-              focuses: {
-                focusId: string;
-                focusName: string;
-                position: number;
-                /** @enum {string} */
-                budgetType: 'time' | 'count';
-                budgetValue: number;
-                lookbackHours: number | null;
-                excludePriorEditions: boolean | null;
-                weight: number;
-              }[];
-              createdAt: string;
-              updatedAt: string;
-            };
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/editions/configs/{configId}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          configId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              userId: string;
-              name: string;
-              icon: string | null;
-              schedule: string;
-              lookbackHours: number;
-              excludePriorEditions: boolean;
-              enabled: boolean;
-              focuses: {
-                focusId: string;
-                focusName: string;
-                position: number;
-                /** @enum {string} */
-                budgetType: 'time' | 'count';
-                budgetValue: number;
-                lookbackHours: number | null;
-                excludePriorEditions: boolean | null;
-                weight: number;
-              }[];
-              createdAt: string;
-              updatedAt: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          configId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        204: {
-          headers: Record<string, unknown>;
-          content?: never;
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    options?: never;
-    head?: never;
-    patch: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          configId: string;
-        };
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': {
-            name?: string;
-            icon?: string | null;
-            schedule?: string;
-            lookbackHours?: number;
-            excludePriorEditions?: boolean;
-            enabled?: boolean;
-            focuses?: {
-              focusId: string;
-              position: number;
-              /** @enum {string} */
-              budgetType: 'time' | 'count';
-              budgetValue: number;
-              lookbackHours?: number | null;
-              excludePriorEditions?: boolean | null;
-              weight?: number;
-            }[];
-          };
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              userId: string;
-              name: string;
-              icon: string | null;
-              schedule: string;
-              lookbackHours: number;
-              excludePriorEditions: boolean;
-              enabled: boolean;
-              focuses: {
-                focusId: string;
-                focusName: string;
-                position: number;
-                /** @enum {string} */
-                budgetType: 'time' | 'count';
-                budgetValue: number;
-                lookbackHours: number | null;
-                excludePriorEditions: boolean | null;
-                weight: number;
-              }[];
-              createdAt: string;
-              updatedAt: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    trace?: never;
-  };
-  '/api/editions/configs/{configId}/generate': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          configId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        201: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              editionConfigId: string;
-              title: string;
-              totalReadingMinutes: number | null;
-              articleCount: number;
-              currentPosition: number;
-              readAt: string | null;
-              publishedAt: string;
-              createdAt: string;
-              articles: {
-                id: string;
-                sourceId: string;
-                title: string;
-                author: string | null;
-                summary: string | null;
-                url: string | null;
-                imageUrl: string | null;
-                publishedAt: string | null;
-                consumptionTimeSeconds: number | null;
-                content: string | null;
-                mediaUrl: string | null;
-                mediaType: string | null;
-                sourceType: string;
-                readAt: string | null;
-                progress: number;
-                sourceName: string;
-                focusId: string;
-                focusName: string;
-                position: number;
-              }[];
-            };
-          };
-        };
-        /** @description Default Response */
-        400: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/editions/configs/{configId}/editions': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          configId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              editionConfigId: string;
-              title: string;
-              totalReadingMinutes: number | null;
-              articleCount: number;
-              currentPosition: number;
-              readAt: string | null;
-              publishedAt: string;
-              createdAt: string;
-              configName: string;
-            }[];
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/editions/{editionId}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          editionId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              editionConfigId: string;
-              title: string;
-              totalReadingMinutes: number | null;
-              articleCount: number;
-              currentPosition: number;
-              readAt: string | null;
-              publishedAt: string;
-              createdAt: string;
-              articles: {
-                id: string;
-                sourceId: string;
-                title: string;
-                author: string | null;
-                summary: string | null;
-                url: string | null;
-                imageUrl: string | null;
-                publishedAt: string | null;
-                consumptionTimeSeconds: number | null;
-                content: string | null;
-                mediaUrl: string | null;
-                mediaType: string | null;
-                sourceType: string;
-                readAt: string | null;
-                progress: number;
-                sourceName: string;
-                focusId: string;
-                focusName: string;
-                position: number;
-              }[];
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          editionId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        204: {
-          headers: Record<string, unknown>;
-          content?: never;
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/editions/{editionId}/progress': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          editionId: string;
-        };
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': {
-            currentPosition: number;
-          };
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              editionConfigId: string;
-              title: string;
-              totalReadingMinutes: number | null;
-              articleCount: number;
-              currentPosition: number;
-              readAt: string | null;
-              publishedAt: string;
-              createdAt: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    trace?: never;
-  };
-  '/api/editions/{editionId}/read': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          editionId: string;
-        };
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': {
-            read: boolean;
-          };
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              editionConfigId: string;
-              title: string;
-              totalReadingMinutes: number | null;
-              articleCount: number;
-              currentPosition: number;
-              readAt: string | null;
-              publishedAt: string;
-              createdAt: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/editions/{editionId}/articles/{articleId}/vote': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          editionId: string;
-          articleId: string;
-        };
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': {
-            value: 1 | -1;
-          };
-        };
-      };
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              userId: string;
-              articleId: string;
-              focusId: string | null;
-              editionId: string | null;
-              value: 1 | -1;
-              createdAt: string;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    post?: never;
-    delete: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          editionId: string;
-          articleId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        204: {
-          headers: Record<string, unknown>;
-          content?: never;
-        };
-      };
-    };
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/home': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              sourcesCount: number;
-              focusesCount: number;
-              configs: {
-                id: string;
-                name: string;
-                icon: string | null;
-              }[];
-              editions: {
-                id: string;
-                editionConfigId: string;
-                title: string;
-                totalReadingMinutes: number | null;
-                articleCount: number;
-                publishedAt: string;
-                configName: string;
-                configIcon: string | null;
-                sections: {
-                  focusName: string;
-                  articleCount: number;
-                }[];
-                lead: {
-                  title: string;
-                  sourceName: string;
-                  imageUrl: string | null;
-                  consumptionTimeSeconds: number | null;
-                } | null;
-                highlights: {
-                  title: string;
-                  sourceName: string;
-                }[];
-              }[];
-            };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/feed': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: {
-          offset?: number;
-          limit?: number;
-          sort?: 'top' | 'recent';
-          status?: 'unread' | 'read' | 'all';
-          from?: string;
-          to?: string;
-        };
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              articles: {
-                id: string;
-                sourceId: string;
-                url: string | null;
-                title: string;
-                author: string | null;
-                summary: string | null;
-                imageUrl: string | null;
-                publishedAt: string | null;
-                consumptionTimeSeconds: number | null;
-                mediaUrl: string | null;
-                mediaType: string | null;
-                sourceType: string;
-                readAt: string | null;
-                progress: number;
-                createdAt: string;
-                score: number;
-                vote: (1 | -1) | null;
-                sourceName: string;
-              }[];
-              total: number;
-              offset: number;
-              limit: number;
-            };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/tasks': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              tasks: {
-                id: string;
-                type: string;
-                /** @enum {string} */
-                status: 'pending' | 'running' | 'completed' | 'failed';
-                error: string | null;
-                createdAt: number;
-                startedAt: number | null;
-                completedAt: number | null;
-              }[];
-            };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/tasks/{taskId}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          taskId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              id: string;
-              type: string;
-              /** @enum {string} */
-              status: 'pending' | 'running' | 'completed' | 'failed';
-              error: string | null;
-              createdAt: number;
-              startedAt: number | null;
-              completedAt: number | null;
-            };
-          };
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
-            };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/settings/scoring': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              weights: {
-                global: {
-                  alpha: number;
-                  beta: number;
-                  gamma: number;
+export interface paths {
+    "/api/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            status: string;
+                        };
+                    };
                 };
-                focus: {
-                  alpha: number;
-                  beta: number;
-                  gamma: number;
-                };
-                edition: {
-                  alpha: number;
-                  beta: number;
-                  gamma: number;
-                };
-              };
-              defaults: {
-                global: {
-                  alpha: number;
-                  beta: number;
-                  gamma: number;
-                };
-                focus: {
-                  alpha: number;
-                  beta: number;
-                  gamma: number;
-                };
-                edition: {
-                  alpha: number;
-                  beta: number;
-                  gamma: number;
-                };
-              };
-              isCustom: boolean;
             };
-          };
         };
-      };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    put: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': {
-            global: {
-              alpha: number;
-              beta: number;
-              gamma: number;
-            };
-            focus: {
-              alpha: number;
-              beta: number;
-              gamma: number;
-            };
-            edition: {
-              alpha: number;
-              beta: number;
-              gamma: number;
-            };
-          };
+    "/api/articles/{articleId}/vote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              weights: {
-                global: {
-                  alpha: number;
-                  beta: number;
-                  gamma: number;
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    articleId: string;
                 };
-                focus: {
-                  alpha: number;
-                  beta: number;
-                  gamma: number;
-                };
-                edition: {
-                  alpha: number;
-                  beta: number;
-                  gamma: number;
-                };
-              };
-              defaults: {
-                global: {
-                  alpha: number;
-                  beta: number;
-                  gamma: number;
-                };
-                focus: {
-                  alpha: number;
-                  beta: number;
-                  gamma: number;
-                };
-                edition: {
-                  alpha: number;
-                  beta: number;
-                  gamma: number;
-                };
-              };
-              isCustom: boolean;
+                cookie?: never;
             };
-          };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            userId: string;
+                            articleId: string;
+                            focusId: string | (null);
+                            editionId: string | (null);
+                            value: 1 | -1;
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
         };
-      };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    articleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        value: 1 | -1;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            userId: string;
+                            articleId: string;
+                            focusId: string | (null);
+                            editionId: string | (null);
+                            value: 1 | -1;
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    articleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    post?: never;
-    delete: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              weights: {
-                global: {
-                  alpha: number;
-                  beta: number;
-                  gamma: number;
+    "/api/articles/{articleId}/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    articleId: string;
                 };
-                focus: {
-                  alpha: number;
-                  beta: number;
-                  gamma: number;
-                };
-                edition: {
-                  alpha: number;
-                  beta: number;
-                  gamma: number;
-                };
-              };
-              defaults: {
-                global: {
-                  alpha: number;
-                  beta: number;
-                  gamma: number;
-                };
-                focus: {
-                  alpha: number;
-                  beta: number;
-                  gamma: number;
-                };
-                edition: {
-                  alpha: number;
-                  beta: number;
-                  gamma: number;
-                };
-              };
-              isCustom: boolean;
+                cookie?: never;
             };
-          };
-        };
-      };
-    };
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/votes': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: {
-      parameters: {
-        query?: {
-          offset?: number;
-          limit?: number;
-          scope?: 'global' | 'focus' | 'edition';
-          value?: number;
-        };
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              votes: {
-                id: string;
-                articleId: string;
-                focusId: string | null;
-                value: 1 | -1;
-                createdAt: string;
-                articleTitle: string;
-                articleUrl: string | null;
-                sourceId: string;
-                sourceName: string;
-                focusName: string | null;
-              }[];
-              total: number;
-              offset: number;
-              limit: number;
+            requestBody: {
+                content: {
+                    "application/json": {
+                        progress: number;
+                    };
+                };
             };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/votes/{voteId}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          voteId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Default Response */
-        204: {
-          headers: Record<string, unknown>;
-          content?: never;
-        };
-        /** @description Default Response */
-        404: {
-          headers: Record<string, unknown>;
-          content: {
-            'application/json': {
-              error: string;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            progress: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
             };
-          };
         };
-      };
+        trace?: never;
     };
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-};
+    "/api/articles/{articleId}/focuses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    articleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            focusId: string;
+                            focusName: string;
+                            focusIcon: string | (null);
+                            confidence: number;
+                            similarity: number | (null);
+                            nli: number | (null);
+                            assignedAt: string;
+                        }[];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        username: string;
+                        password: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            role: string;
+                            token: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        username: string;
+                        password: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            role: string;
+                            token: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            username: string;
+                            role: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            allowSignups: boolean;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bookmarks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    offset?: number;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            bookmarks: {
+                                id: string;
+                                articleId: string;
+                                createdAt: string;
+                                articleTitle: string;
+                                articleUrl: string | (null);
+                                author: string | (null);
+                                summary: string | (null);
+                                imageUrl: string | (null);
+                                publishedAt: string | (null);
+                                consumptionTimeSeconds: number | (null);
+                                sourceId: string;
+                                sourceName: string;
+                                sourceType: string;
+                            }[];
+                            total: number;
+                            offset: number;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/articles/{articleId}/bookmark": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    articleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            bookmarked: boolean;
+                        };
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    articleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            userId: string;
+                            articleId: string;
+                            createdAt: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    articleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bookmarks/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        articleIds: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            bookmarkedIds: string[];
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bookmarks/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uri */
+                        url: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            bookmark: {
+                                id: string;
+                                userId: string;
+                                articleId: string;
+                                createdAt: string;
+                            };
+                            articleId: string;
+                            sourceId: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sources/opml": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        opml: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            added: number;
+                            skipped: number;
+                            sources: {
+                                name: string;
+                                url: string;
+                                /** @enum {string} */
+                                status: "added" | "skipped";
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            userId: string;
+                            type: string;
+                            name: string;
+                            url: string;
+                            config: {
+                                [key: string]: unknown;
+                            };
+                            direction: string;
+                            lastFetchedAt: string | (null);
+                            fetchError: string | (null);
+                            createdAt: string;
+                            updatedAt: string;
+                        }[];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        /** Format: uri */
+                        url: string;
+                        /**
+                         * @default rss
+                         * @enum {string}
+                         */
+                        type?: "rss" | "podcast" | "mastodon" | "bluesky" | "youtube" | "custom";
+                        /**
+                         * @default newest
+                         * @enum {string}
+                         */
+                        direction?: "newest" | "oldest";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            userId: string;
+                            type: string;
+                            name: string;
+                            url: string;
+                            config: {
+                                [key: string]: unknown;
+                            };
+                            direction: string;
+                            lastFetchedAt: string | (null);
+                            fetchError: string | (null);
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sources/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            userId: string;
+                            type: string;
+                            name: string;
+                            url: string;
+                            config: {
+                                [key: string]: unknown;
+                            };
+                            direction: string;
+                            lastFetchedAt: string | (null);
+                            fetchError: string | (null);
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name?: string;
+                        /** Format: uri */
+                        url?: string;
+                        /** @enum {string} */
+                        direction?: "newest" | "oldest";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            userId: string;
+                            type: string;
+                            name: string;
+                            url: string;
+                            config: {
+                                [key: string]: unknown;
+                            };
+                            direction: string;
+                            lastFetchedAt: string | (null);
+                            fetchError: string | (null);
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/sources/{id}/articles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    offset?: number;
+                    limit?: number;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            articles: {
+                                id: string;
+                                sourceId: string;
+                                externalId: string;
+                                url: string | (null);
+                                title: string;
+                                author: string | (null);
+                                summary: string | (null);
+                                imageUrl: string | (null);
+                                publishedAt: string | (null);
+                                createdAt: string;
+                            }[];
+                            total: number;
+                            offset: number;
+                            limit: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sources/{id}/articles/{articleId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    articleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            sourceId: string;
+                            externalId: string;
+                            url: string | (null);
+                            title: string;
+                            author: string | (null);
+                            summary: string | (null);
+                            content: string | (null);
+                            consumptionTimeSeconds: number | (null);
+                            mediaUrl: string | (null);
+                            mediaType: string | (null);
+                            sourceType: string;
+                            imageUrl: string | (null);
+                            publishedAt: string | (null);
+                            readAt: string | (null);
+                            extractedAt: string | (null);
+                            progress: number;
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sources/{id}/articles/{articleId}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    articleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        read: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            sourceId: string;
+                            externalId: string;
+                            url: string | (null);
+                            title: string;
+                            author: string | (null);
+                            summary: string | (null);
+                            content: string | (null);
+                            consumptionTimeSeconds: number | (null);
+                            mediaUrl: string | (null);
+                            mediaType: string | (null);
+                            sourceType: string;
+                            imageUrl: string | (null);
+                            publishedAt: string | (null);
+                            readAt: string | (null);
+                            extractedAt: string | (null);
+                            progress: number;
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sources/{id}/fetch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            jobId: string;
+                            status: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sources/{id}/reanalyse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            enqueued: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sources/reanalyse-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            enqueued: number;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/focuses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            description: string | (null);
+                            icon: string | (null);
+                            minConfidence: number;
+                            minConsumptionTimeSeconds: number | (null);
+                            maxConsumptionTimeSeconds: number | (null);
+                            sources: {
+                                sourceId: string;
+                                /** @enum {string} */
+                                mode: "always" | "match";
+                                weight: number;
+                            }[];
+                            createdAt: string;
+                            updatedAt: string;
+                        }[];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        description?: string;
+                        icon?: string | (null);
+                        minConfidence?: number;
+                        minConsumptionTimeSeconds?: number | (null);
+                        maxConsumptionTimeSeconds?: number | (null);
+                        sources?: {
+                            sourceId: string;
+                            /** @enum {string} */
+                            mode: "always" | "match";
+                            /** @default 1 */
+                            weight?: number;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            description: string | (null);
+                            icon: string | (null);
+                            minConfidence: number;
+                            minConsumptionTimeSeconds: number | (null);
+                            maxConsumptionTimeSeconds: number | (null);
+                            sources: {
+                                sourceId: string;
+                                /** @enum {string} */
+                                mode: "always" | "match";
+                                weight: number;
+                            }[];
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/focuses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            description: string | (null);
+                            icon: string | (null);
+                            minConfidence: number;
+                            minConsumptionTimeSeconds: number | (null);
+                            maxConsumptionTimeSeconds: number | (null);
+                            sources: {
+                                sourceId: string;
+                                /** @enum {string} */
+                                mode: "always" | "match";
+                                weight: number;
+                            }[];
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name?: string;
+                        description?: string | (null);
+                        icon?: string | (null);
+                        minConfidence?: number;
+                        minConsumptionTimeSeconds?: number | (null);
+                        maxConsumptionTimeSeconds?: number | (null);
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            description: string | (null);
+                            icon: string | (null);
+                            minConfidence: number;
+                            minConsumptionTimeSeconds: number | (null);
+                            maxConsumptionTimeSeconds: number | (null);
+                            sources: {
+                                sourceId: string;
+                                /** @enum {string} */
+                                mode: "always" | "match";
+                                weight: number;
+                            }[];
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/focuses/{id}/articles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    offset?: number;
+                    limit?: number;
+                    sort?: "top" | "recent";
+                    from?: string;
+                    to?: string;
+                    status?: "unread" | "read" | "all";
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            articles: {
+                                id: string;
+                                sourceId: string;
+                                externalId: string;
+                                url: string | (null);
+                                title: string;
+                                author: string | (null);
+                                summary: string | (null);
+                                imageUrl: string | (null);
+                                publishedAt: string | (null);
+                                createdAt: string;
+                                consumptionTimeSeconds: number | (null);
+                                readAt: string | (null);
+                                confidence: number;
+                                score: number;
+                                vote: (1 | -1) | (null);
+                                globalVote: (1 | -1) | (null);
+                                sourceName: string;
+                                sourceType: string;
+                            }[];
+                            total: number;
+                            offset: number;
+                            limit: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/focuses/{id}/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        sources: {
+                            sourceId: string;
+                            /** @enum {string} */
+                            mode: "always" | "match";
+                            /** @default 1 */
+                            weight?: number;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            description: string | (null);
+                            icon: string | (null);
+                            minConfidence: number;
+                            minConsumptionTimeSeconds: number | (null);
+                            maxConsumptionTimeSeconds: number | (null);
+                            sources: {
+                                sourceId: string;
+                                /** @enum {string} */
+                                mode: "always" | "match";
+                                weight: number;
+                            }[];
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/focuses/{id}/articles/{articleId}/vote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    articleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        value: 1 | -1;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            userId: string;
+                            articleId: string;
+                            focusId: string | (null);
+                            editionId: string | (null);
+                            value: 1 | -1;
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    articleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/editions/configs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            icon: string | (null);
+                            schedule: string;
+                            lookbackHours: number;
+                            excludePriorEditions: boolean;
+                            enabled: boolean;
+                            focuses: {
+                                focusId: string;
+                                focusName: string;
+                                position: number;
+                                /** @enum {string} */
+                                budgetType: "time" | "count";
+                                budgetValue: number;
+                                lookbackHours: number | (null);
+                                excludePriorEditions: boolean | (null);
+                                weight: number;
+                            }[];
+                            createdAt: string;
+                            updatedAt: string;
+                        }[];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        icon?: string | (null);
+                        schedule: string;
+                        lookbackHours: number;
+                        excludePriorEditions?: boolean;
+                        enabled?: boolean;
+                        focuses: {
+                            focusId: string;
+                            position: number;
+                            /** @enum {string} */
+                            budgetType: "time" | "count";
+                            budgetValue: number;
+                            lookbackHours?: number | (null);
+                            excludePriorEditions?: boolean | (null);
+                            weight?: number;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            icon: string | (null);
+                            schedule: string;
+                            lookbackHours: number;
+                            excludePriorEditions: boolean;
+                            enabled: boolean;
+                            focuses: {
+                                focusId: string;
+                                focusName: string;
+                                position: number;
+                                /** @enum {string} */
+                                budgetType: "time" | "count";
+                                budgetValue: number;
+                                lookbackHours: number | (null);
+                                excludePriorEditions: boolean | (null);
+                                weight: number;
+                            }[];
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/editions/configs/{configId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    configId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            icon: string | (null);
+                            schedule: string;
+                            lookbackHours: number;
+                            excludePriorEditions: boolean;
+                            enabled: boolean;
+                            focuses: {
+                                focusId: string;
+                                focusName: string;
+                                position: number;
+                                /** @enum {string} */
+                                budgetType: "time" | "count";
+                                budgetValue: number;
+                                lookbackHours: number | (null);
+                                excludePriorEditions: boolean | (null);
+                                weight: number;
+                            }[];
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    configId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    configId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name?: string;
+                        icon?: string | (null);
+                        schedule?: string;
+                        lookbackHours?: number;
+                        excludePriorEditions?: boolean;
+                        enabled?: boolean;
+                        focuses?: {
+                            focusId: string;
+                            position: number;
+                            /** @enum {string} */
+                            budgetType: "time" | "count";
+                            budgetValue: number;
+                            lookbackHours?: number | (null);
+                            excludePriorEditions?: boolean | (null);
+                            weight?: number;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            icon: string | (null);
+                            schedule: string;
+                            lookbackHours: number;
+                            excludePriorEditions: boolean;
+                            enabled: boolean;
+                            focuses: {
+                                focusId: string;
+                                focusName: string;
+                                position: number;
+                                /** @enum {string} */
+                                budgetType: "time" | "count";
+                                budgetValue: number;
+                                lookbackHours: number | (null);
+                                excludePriorEditions: boolean | (null);
+                                weight: number;
+                            }[];
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/editions/configs/{configId}/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    configId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            editionConfigId: string;
+                            title: string;
+                            totalReadingMinutes: number | (null);
+                            articleCount: number;
+                            currentPosition: number;
+                            readAt: string | (null);
+                            publishedAt: string;
+                            createdAt: string;
+                            articles: {
+                                id: string;
+                                sourceId: string;
+                                title: string;
+                                author: string | (null);
+                                summary: string | (null);
+                                url: string | (null);
+                                imageUrl: string | (null);
+                                publishedAt: string | (null);
+                                consumptionTimeSeconds: number | (null);
+                                content: string | (null);
+                                mediaUrl: string | (null);
+                                mediaType: string | (null);
+                                sourceType: string;
+                                readAt: string | (null);
+                                progress: number;
+                                sourceName: string;
+                                focusId: string;
+                                focusName: string;
+                                position: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/editions/configs/{configId}/editions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    configId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            editionConfigId: string;
+                            title: string;
+                            totalReadingMinutes: number | (null);
+                            articleCount: number;
+                            currentPosition: number;
+                            readAt: string | (null);
+                            publishedAt: string;
+                            createdAt: string;
+                            configName: string;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/editions/{editionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    editionId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            editionConfigId: string;
+                            title: string;
+                            totalReadingMinutes: number | (null);
+                            articleCount: number;
+                            currentPosition: number;
+                            readAt: string | (null);
+                            publishedAt: string;
+                            createdAt: string;
+                            articles: {
+                                id: string;
+                                sourceId: string;
+                                title: string;
+                                author: string | (null);
+                                summary: string | (null);
+                                url: string | (null);
+                                imageUrl: string | (null);
+                                publishedAt: string | (null);
+                                consumptionTimeSeconds: number | (null);
+                                content: string | (null);
+                                mediaUrl: string | (null);
+                                mediaType: string | (null);
+                                sourceType: string;
+                                readAt: string | (null);
+                                progress: number;
+                                sourceName: string;
+                                focusId: string;
+                                focusName: string;
+                                position: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    editionId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/editions/{editionId}/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    editionId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        currentPosition: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            editionConfigId: string;
+                            title: string;
+                            totalReadingMinutes: number | (null);
+                            articleCount: number;
+                            currentPosition: number;
+                            readAt: string | (null);
+                            publishedAt: string;
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/editions/{editionId}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    editionId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        read: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            editionConfigId: string;
+                            title: string;
+                            totalReadingMinutes: number | (null);
+                            articleCount: number;
+                            currentPosition: number;
+                            readAt: string | (null);
+                            publishedAt: string;
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/editions/{editionId}/articles/{articleId}/vote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    editionId: string;
+                    articleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        value: 1 | -1;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            userId: string;
+                            articleId: string;
+                            focusId: string | (null);
+                            editionId: string | (null);
+                            value: 1 | -1;
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    editionId: string;
+                    articleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/home": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            sourcesCount: number;
+                            focusesCount: number;
+                            configs: {
+                                id: string;
+                                name: string;
+                                icon: string | (null);
+                            }[];
+                            editions: {
+                                id: string;
+                                editionConfigId: string;
+                                title: string;
+                                totalReadingMinutes: number | (null);
+                                articleCount: number;
+                                publishedAt: string;
+                                configName: string;
+                                configIcon: string | (null);
+                                sections: {
+                                    focusName: string;
+                                    articleCount: number;
+                                }[];
+                                lead: {
+                                    title: string;
+                                    sourceName: string;
+                                    imageUrl: string | (null);
+                                    consumptionTimeSeconds: number | (null);
+                                } | (null);
+                                highlights: {
+                                    title: string;
+                                    sourceName: string;
+                                }[];
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/feed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    offset?: number;
+                    limit?: number;
+                    sort?: "top" | "recent";
+                    status?: "unread" | "read" | "all";
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            articles: {
+                                id: string;
+                                sourceId: string;
+                                url: string | (null);
+                                title: string;
+                                author: string | (null);
+                                summary: string | (null);
+                                imageUrl: string | (null);
+                                publishedAt: string | (null);
+                                consumptionTimeSeconds: number | (null);
+                                mediaUrl: string | (null);
+                                mediaType: string | (null);
+                                sourceType: string;
+                                readAt: string | (null);
+                                progress: number;
+                                createdAt: string;
+                                score: number;
+                                vote: (1 | -1) | (null);
+                                sourceName: string;
+                            }[];
+                            total: number;
+                            offset: number;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    active?: boolean;
+                    sourceId?: string;
+                    focusId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            jobs: {
+                                id: string;
+                                type: string;
+                                /** @enum {string} */
+                                status: "pending" | "running" | "completed" | "failed";
+                                affects: {
+                                    sourceIds: string[];
+                                    focusIds: string[];
+                                };
+                                progress: {
+                                    phase: string;
+                                    completed: number;
+                                    total: number;
+                                } | (null);
+                                error: string | (null);
+                                createdAt: number;
+                                startedAt: number | (null);
+                                completedAt: number | (null);
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs/{jobId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    jobId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            type: string;
+                            /** @enum {string} */
+                            status: "pending" | "running" | "completed" | "failed";
+                            affects: {
+                                sourceIds: string[];
+                                focusIds: string[];
+                            };
+                            progress: {
+                                phase: string;
+                                completed: number;
+                                total: number;
+                            } | (null);
+                            error: string | (null);
+                            createdAt: number;
+                            startedAt: number | (null);
+                            completedAt: number | (null);
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settings/scoring": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            weights: {
+                                global: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                focus: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                edition: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                            };
+                            defaults: {
+                                global: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                focus: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                edition: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                            };
+                            isCustom: boolean;
+                        };
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        global: {
+                            alpha: number;
+                            beta: number;
+                            gamma: number;
+                        };
+                        focus: {
+                            alpha: number;
+                            beta: number;
+                            gamma: number;
+                        };
+                        edition: {
+                            alpha: number;
+                            beta: number;
+                            gamma: number;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            weights: {
+                                global: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                focus: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                edition: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                            };
+                            defaults: {
+                                global: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                focus: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                edition: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                            };
+                            isCustom: boolean;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            weights: {
+                                global: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                focus: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                edition: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                            };
+                            defaults: {
+                                global: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                focus: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                                edition: {
+                                    alpha: number;
+                                    beta: number;
+                                    gamma: number;
+                                };
+                            };
+                            isCustom: boolean;
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/votes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    offset?: number;
+                    limit?: number;
+                    scope?: "global" | "focus" | "edition";
+                    value?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            votes: {
+                                id: string;
+                                articleId: string;
+                                focusId: string | (null);
+                                value: 1 | -1;
+                                createdAt: string;
+                                articleTitle: string;
+                                articleUrl: string | (null);
+                                sourceId: string;
+                                sourceName: string;
+                                focusName: string | (null);
+                            }[];
+                            total: number;
+                            offset: number;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/votes/{voteId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    voteId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+}
 export type webhooks = Record<string, never>;
-export type components = {
-  schemas: never;
-  responses: never;
-  parameters: never;
-  requestBodies: never;
-  headers: never;
-  pathItems: never;
-};
+export interface components {
+    schemas: never;
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
+}
 export type $defs = Record<string, never>;
 export type operations = Record<string, never>;

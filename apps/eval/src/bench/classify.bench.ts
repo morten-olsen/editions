@@ -33,7 +33,9 @@ const run = async (): Promise<void> => {
       continue;
     }
 
-    console.log(`\n=== ${labelFile} (${labeledArticleIds.length} labeled articles, ${labelSet.focuses.length} focuses) ===\n`);
+    console.log(
+      `\n=== ${labelFile} (${labeledArticleIds.length} labeled articles, ${labelSet.focuses.length} focuses) ===\n`,
+    );
 
     for (const embeddingModel of EMBEDDING_MODELS) {
       for (const strategy of STRATEGIES) {
@@ -87,13 +89,11 @@ const run = async (): Promise<void> => {
               scoresByFocus.get(focus.name)?.set(articleId, dot);
             }
           } else {
-            const labels = labelSet.focuses.map((f) =>
-              f.description ? `${f.name}: ${f.description}` : f.name,
-            );
+            const labels = labelSet.focuses.map((f) => (f.description ? `${f.name}: ${f.description}` : f.name));
             const nliResults = await engine.classify(text, labels);
             for (const result of nliResults) {
-              const focusName = labelSet.focuses.find((f) =>
-                result.label === (f.description ? `${f.name}: ${f.description}` : f.name),
+              const focusName = labelSet.focuses.find(
+                (f) => result.label === (f.description ? `${f.name}: ${f.description}` : f.name),
               )?.name;
               if (focusName) {
                 scoresByFocus.get(focusName)?.set(articleId, result.score);
@@ -163,12 +163,11 @@ const run = async (): Promise<void> => {
           `${f.truePositives}/${f.truePositives + f.falsePositives}`,
           `${f.truePositives}/${f.truePositives + f.falseNegatives}`,
         ]);
-        console.log(formatTable(
-          ['Focus', 'Prec', 'Recall', 'F1', 'Thresh', 'Pred+', 'Actual+'],
-          rows,
-        ));
+        console.log(formatTable(['Focus', 'Prec', 'Recall', 'F1', 'Thresh', 'Pred+', 'Actual+'], rows));
         console.log(`\n  Macro: P=${pct(macroP)} R=${pct(macroR)} F1=${pct(macroF1)}`);
-        console.log(`  Duration: ${(durationMs / 1000).toFixed(1)}s (${(durationMs / labeledArticleIds.length).toFixed(0)}ms/article)`);
+        console.log(
+          `  Duration: ${(durationMs / 1000).toFixed(1)}s (${(durationMs / labeledArticleIds.length).toFixed(0)}ms/article)`,
+        );
 
         engine.dispose();
         await db.destroy();

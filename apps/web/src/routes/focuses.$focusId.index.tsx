@@ -6,7 +6,6 @@ import { Button } from '../components/button.tsx';
 import { EmptyState } from '../components/empty-state.tsx';
 import { ArticleCard } from '../components/article-card.tsx';
 
-
 const FocusDetailPage = (): React.ReactNode => {
   const { focusId } = Route.useParams();
   const detail = useFocusDetail(focusId);
@@ -40,17 +39,8 @@ const FocusDetailPage = (): React.ReactNode => {
 
 /* ---- Header ---- */
 
-const FocusHeader = ({
-  focus,
-}: {
-  focus: { name: string; description: string | null };
-}): React.ReactNode => (
-  <div
-    className="mb-8"
-    data-ai-id="focus-header"
-    data-ai-role="heading"
-    data-ai-label={focus.name}
-  >
+const FocusHeader = ({ focus }: { focus: { name: string; description: string | null } }): React.ReactNode => (
+  <div className="mb-8" data-ai-id="focus-header" data-ai-role="heading" data-ai-label={focus.name}>
     <h1 className="text-2xl font-serif font-medium tracking-tight text-ink">{focus.name}</h1>
     {focus.description && <div className="text-sm text-ink-secondary mt-1 leading-relaxed">{focus.description}</div>}
   </div>

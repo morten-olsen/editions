@@ -325,7 +325,9 @@ const useClassificationStats = (): { stats: Map<string, FocusStat[]>; isLoading:
     queryKey: ['sources', 'classification-stats'],
     queryFn: async (): Promise<SourceClassificationStats[]> => {
       const res = await fetch('/api/sources/classification-stats', { headers });
-      if (!res.ok) return [];
+      if (!res.ok) {
+        return [];
+      }
       return (await res.json()) as SourceClassificationStats[];
     },
     enabled: !!headers,

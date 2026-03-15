@@ -21,10 +21,7 @@ const STRATEGIES: ('similarity' | 'nli')[] = ['similarity', 'nli'];
 
 // Models to run NLI on (NLI is ~100x slower than similarity,
 // so we only run it on a subset for comparison)
-const NLI_MODELS = new Set([
-  'Xenova/all-MiniLM-L6-v2',
-  'Xenova/bge-base-en-v1.5',
-]);
+const NLI_MODELS = new Set(['Xenova/all-MiniLM-L6-v2', 'Xenova/bge-base-en-v1.5']);
 
 // --- Exports ---
 

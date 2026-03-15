@@ -34,9 +34,7 @@ const Default: Story = {
 
 const SingleFocus: Story = {
   args: {
-    classifications: [
-      { focusId: '1', focusName: 'Climate', focusIcon: '🌱', confidence: 0.87 },
-    ],
+    classifications: [{ focusId: '1', focusName: 'Climate', focusIcon: '🌱', confidence: 0.87 }],
   },
 };
 

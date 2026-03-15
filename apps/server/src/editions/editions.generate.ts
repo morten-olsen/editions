@@ -85,9 +85,7 @@ const loadFocusDetails = async (
   userId: string,
   sortedFocuses: FocusConfig[],
 ): Promise<Map<string, FocusDetail>> => {
-  const focuses = await Promise.all(
-    sortedFocuses.map((fc) => focusesService.get(userId, fc.focusId)),
-  );
+  const focuses = await Promise.all(sortedFocuses.map((fc) => focusesService.get(userId, fc.focusId)));
 
   const details = new Map<string, FocusDetail>();
   for (let i = 0; i < sortedFocuses.length; i++) {
@@ -160,12 +158,17 @@ const queryCandidates = async ({
       const cases = [...focusInfo.sourceMinConfidence.entries()].map(
         ([sourceId, minConf]) => sql`WHEN articles.source_id = ${sourceId} THEN ${minConf}`,
       );
-      const thresholdExpr = cases.length > 0
-        ? sql`CASE ${sql.join(cases, sql` `)} ELSE ${focusInfo.minConfidence} END`
-        : sql`${focusInfo.minConfidence}`;
+      const thresholdExpr =
+        cases.length > 0
+          ? sql`CASE ${sql.join(cases, sql` `)} ELSE ${focusInfo.minConfidence} END`
+          : sql`${focusInfo.minConfidence}`;
       query = query.where(sql`COALESCE(article_focuses.nli, article_focuses.similarity)`, '>=', thresholdExpr);
     } else {
-      query = query.where(sql`COALESCE(article_focuses.nli, article_focuses.similarity)`, '>=', focusInfo.minConfidence);
+      query = query.where(
+        sql`COALESCE(article_focuses.nli, article_focuses.similarity)`,
+        '>=',
+        focusInfo.minConfidence,
+      );
     }
   }
 

@@ -15,7 +15,15 @@ type SourceCardProps = {
   focusStats?: FocusStat[];
 };
 
-const SourceCard = ({ id, name, url, lastFetchedAt, fetchError, href, focusStats }: SourceCardProps): React.ReactElement => {
+const SourceCard = ({
+  id,
+  name,
+  url,
+  lastFetchedAt,
+  fetchError,
+  href,
+  focusStats,
+}: SourceCardProps): React.ReactElement => {
   const content = (
     <div
       className="p-4 rounded-lg border border-border bg-surface-raised transition-all duration-fast ease-gentle hover:shadow-sm hover:border-border-strong"
@@ -48,9 +56,7 @@ const SourceCard = ({ id, name, url, lastFetchedAt, fetchError, href, focusStats
               </div>
             );
           })}
-          {focusStats.length > 4 && (
-            <div className="text-xs text-ink-faint">+{focusStats.length - 4} more</div>
-          )}
+          {focusStats.length > 4 && <div className="text-xs text-ink-faint">+{focusStats.length - 4} more</div>}
         </div>
       )}
     </div>

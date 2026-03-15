@@ -177,31 +177,41 @@ const registerGenerateRoutes = ({ fastify, services, authenticate }: RouteArgs):
     schema: {
       security: [{ bearerAuth: [] }],
       params: configIdParamSchema,
-      body: z.object({
-        lookbackHours: z.number().int().min(1).optional(),
-        excludePriorEditions: z.boolean().optional(),
-        focuses: z.array(z.object({
-          focusId: z.string(),
-          focusName: z.string(),
-          position: z.number(),
-          budgetType: z.enum(['time', 'count']).default('count'),
-          budgetValue: z.number().default(10),
-          lookbackHours: z.number().nullable().default(null),
-          excludePriorEditions: z.boolean().nullable().default(null),
-          weight: z.number().default(1),
-        })).optional(),
-      }).optional(),
+      body: z
+        .object({
+          lookbackHours: z.number().int().min(1).optional(),
+          excludePriorEditions: z.boolean().optional(),
+          focuses: z
+            .array(
+              z.object({
+                focusId: z.string(),
+                focusName: z.string(),
+                position: z.number(),
+                budgetType: z.enum(['time', 'count']).default('count'),
+                budgetValue: z.number().default(10),
+                lookbackHours: z.number().nullable().default(null),
+                excludePriorEditions: z.boolean().nullable().default(null),
+                weight: z.number().default(1),
+              }),
+            )
+            .optional(),
+        })
+        .optional(),
       response: {
         200: z.object({
-          sections: z.array(z.object({
-            focusName: z.string(),
-            articles: z.array(z.object({
-              id: z.string(),
-              title: z.string(),
-              sourceName: z.string(),
-              consumptionTimeSeconds: z.number().nullable(),
-            })),
-          })),
+          sections: z.array(
+            z.object({
+              focusName: z.string(),
+              articles: z.array(
+                z.object({
+                  id: z.string(),
+                  title: z.string(),
+                  sourceName: z.string(),
+                  consumptionTimeSeconds: z.number().nullable(),
+                }),
+              ),
+            }),
+          ),
           totalArticles: z.number(),
           totalReadingMinutes: z.number(),
         }),

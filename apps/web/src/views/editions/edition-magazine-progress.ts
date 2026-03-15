@@ -24,7 +24,9 @@ const useMagazineProgress = (editionId: string): UseMagazineProgressResult => {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         const n = parseInt(saved, 10);
-        if (Number.isFinite(n) && n >= 0) return n;
+        if (Number.isFinite(n) && n >= 0) {
+          return n;
+        }
       }
     } catch {
       /* ignore */
@@ -44,7 +46,9 @@ const useMagazineProgress = (editionId: string): UseMagazineProgressResult => {
 
       clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
-        if (!headers) return;
+        if (!headers) {
+          return;
+        }
         void fetch(`/api/editions/${editionId}/progress`, {
           method: 'PATCH',
           headers: { ...headers, 'Content-Type': 'application/json' },

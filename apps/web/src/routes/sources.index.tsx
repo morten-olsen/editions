@@ -14,7 +14,11 @@ const ImportResultBanner = ({
   error,
   onDismiss,
 }: {
-  result: { added: number; skipped: number; sources: { name: string; url: string; status: 'added' | 'skipped' }[] } | null;
+  result: {
+    added: number;
+    skipped: number;
+    sources: { name: string; url: string; status: 'added' | 'skipped' }[];
+  } | null;
   error: string | null;
   onDismiss: () => void;
 }): React.ReactNode => {
@@ -90,7 +94,16 @@ const SourcesPage = (): React.ReactNode => {
               <Menu.Trigger
                 render={
                   <Button variant="ghost" size="sm" aria-label="Import and export">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <path d="M8 3v7M5 7.5 8 10l3-2.5" />
                       <path d="M3 12.5h10" />
                     </svg>

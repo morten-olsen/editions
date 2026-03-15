@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+
 import { sql } from 'kysely';
 
 import { DatabaseService } from '../database/database.ts';
@@ -369,7 +370,10 @@ class SourcesService {
       .execute();
 
     // Group by source, weight by average confidence
-    const bySource = new Map<string, { focusId: string; focusName: string; articleCount: number; avgConfidence: number }[]>();
+    const bySource = new Map<
+      string,
+      { focusId: string; focusName: string; articleCount: number; avgConfidence: number }[]
+    >();
     for (const row of rows) {
       const arr = bySource.get(row.source_id) ?? [];
       arr.push({
@@ -430,5 +434,13 @@ type SourceClassificationStats = {
   focuses: { focusId: string; focusName: string; articleCount: number; avgConfidence: number }[];
 };
 
-export type { Source, Article, ArticleDetail, ArticlesPage, CreateSourceParams, UpdateSourceParams, SourceClassificationStats };
+export type {
+  Source,
+  Article,
+  ArticleDetail,
+  ArticlesPage,
+  CreateSourceParams,
+  UpdateSourceParams,
+  SourceClassificationStats,
+};
 export { SourcesService, SourceError, SourceNotFoundError };

@@ -162,7 +162,9 @@ class ReconcilerService {
       ...(options?.skipExtract ? [] : [createExtractStep({ db, scopeFilter })]),
       createEmbedStep({ db, embedFn: this.embed, embeddingModel: DEFAULT_EMBEDDING_MODEL, scopeFilter }),
       createSimilarityStep({ db, embedFn: this.embed, embeddingModel: DEFAULT_EMBEDDING_MODEL, scopeFilter }),
-      ...(useNli ? [createNliStep({ db, classifyFn: this.classify, classifierModel: DEFAULT_CLASSIFIER_MODEL, scopeFilter })] : []),
+      ...(useNli
+        ? [createNliStep({ db, classifyFn: this.classify, classifierModel: DEFAULT_CLASSIFIER_MODEL, scopeFilter })]
+        : []),
       createMarkAnalysedStep({ db, scopeFilter }),
     ];
 

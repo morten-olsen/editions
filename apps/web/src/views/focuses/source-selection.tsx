@@ -19,10 +19,18 @@ const selectClasses =
   'rounded-md border border-border bg-surface px-2 py-1 text-xs text-ink-secondary focus:outline-none focus:ring-1 focus:ring-accent';
 
 const priorityLabel = (w: number): string => {
-  if (w <= 0.1) return 'Off';
-  if (w < 0.75) return 'Low';
-  if (w <= 1.25) return 'Normal';
-  if (w <= 2.1) return 'High';
+  if (w <= 0.1) {
+    return 'Off';
+  }
+  if (w < 0.75) {
+    return 'Low';
+  }
+  if (w <= 1.25) {
+    return 'Normal';
+  }
+  if (w <= 2.1) {
+    return 'High';
+  }
   return 'Top';
 };
 
@@ -46,7 +54,8 @@ const SourceSelectionList = ({
   <div data-ai-id={`${idPrefix}-sources`} data-ai-role="list" data-ai-label="Source selection">
     <div className="text-sm font-medium text-ink mb-0.5">Sources</div>
     <p className="text-xs text-ink-tertiary mb-4">
-      Choose which sources feed this topic. All articles are scored — use the threshold to control how closely they must match.
+      Choose which sources feed this topic. All articles are scored — use the threshold to control how closely they must
+      match.
     </p>
     {allSources.length === 0 ? (
       <div className="rounded-lg border border-dashed border-border py-6 text-center">

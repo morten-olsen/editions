@@ -47,7 +47,9 @@ const EditFocusPage = (): React.ReactNode => {
 
   const updateFocus = useMutation({
     mutationFn: async (): Promise<void> => {
-      if (!focus) return;
+      if (!focus) {
+        return;
+      }
       await applyFocusUpdates({
         focus,
         focusId,
@@ -72,7 +74,9 @@ const EditFocusPage = (): React.ReactNode => {
     },
   });
 
-  if (!headers) return null;
+  if (!headers) {
+    return null;
+  }
   if (loadingFocus || loadingSources) {
     return <div className="text-sm text-ink-tertiary py-12 text-center">Loading…</div>;
   }
@@ -254,7 +258,9 @@ const PreviewTimeWindowSelect = ({
       data-ai-value={timeWindow}
     >
       {TIME_WINDOWS.map((w) => (
-        <option key={w.id} value={w.id}>{w.label}</option>
+        <option key={w.id} value={w.id}>
+          {w.label}
+        </option>
       ))}
     </select>
   </div>
@@ -302,7 +308,9 @@ const FocusPreviewPanel = ({
         <PreviewTimeWindowSelect timeWindow={timeWindow} onTimeWindowChange={onTimeWindowChange} />
         <div className="py-8 text-center">
           <div className="text-sm text-ink-tertiary mb-1">No matching articles</div>
-          <div className="text-xs text-ink-faint">Try lowering the threshold, adding more sources, or widening the time window.</div>
+          <div className="text-xs text-ink-faint">
+            Try lowering the threshold, adding more sources, or widening the time window.
+          </div>
         </div>
       </div>
     );

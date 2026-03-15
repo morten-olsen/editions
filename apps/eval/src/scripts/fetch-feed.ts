@@ -20,7 +20,9 @@ if (!url || !outputName) {
   console.log('');
   console.log('  --rss-only   Use RSS content only (skip full article extraction)');
   console.log('');
-  console.log('Example: pnpm fetch-feed https://www.theverge.com/rss/partner/subscriber-only-full-feed/rss.xml theverge');
+  console.log(
+    'Example: pnpm fetch-feed https://www.theverge.com/rss/partner/subscriber-only-full-feed/rss.xml theverge',
+  );
   process.exit(1);
 }
 
@@ -36,12 +38,7 @@ const stripHtml = (html: string): string =>
     .trim();
 
 const extractRssContent = (item: Record<string, unknown>): string => {
-  const candidates = [
-    item['content:encoded'],
-    item['content'],
-    item['description'],
-    item['summary'],
-  ];
+  const candidates = [item['content:encoded'], item['content'], item['description'], item['summary']];
 
   for (const c of candidates) {
     if (typeof c === 'string' && c.length > 100) {
@@ -114,17 +111,19 @@ const run = async (): Promise<void> => {
   for (let index = 0; index < items.length; index++) {
     const item = items[index] as Record<string, unknown>;
 
-    const title = typeof item['title'] === 'string'
-      ? item['title']
-      : typeof item['title'] === 'object'
-        ? ((item['title'] as Record<string, unknown>)['#text'] as string)
-        : `Article ${index + 1}`;
+    const title =
+      typeof item['title'] === 'string'
+        ? item['title']
+        : typeof item['title'] === 'object'
+          ? ((item['title'] as Record<string, unknown>)['#text'] as string)
+          : `Article ${index + 1}`;
 
-    const link = typeof item['link'] === 'string'
-      ? item['link']
-      : typeof item['link'] === 'object'
-        ? ((item['link'] as Record<string, unknown>)['@_href'] as string)
-        : null;
+    const link =
+      typeof item['link'] === 'string'
+        ? item['link']
+        : typeof item['link'] === 'object'
+          ? ((item['link'] as Record<string, unknown>)['@_href'] as string)
+          : null;
 
     const pubDate = (item['pubDate'] ?? item['published'] ?? item['updated'] ?? null) as string | null;
 
@@ -154,9 +153,15 @@ const run = async (): Promise<void> => {
       url: link,
       author: (() => {
         const raw = item['author'] ?? item['dc:creator'] ?? null;
-        if (raw === null) return null;
-        if (typeof raw === 'string') return raw;
-        if (Array.isArray(raw)) return raw.join(', ');
+        if (raw === null) {
+          return null;
+        }
+        if (typeof raw === 'string') {
+          return raw;
+        }
+        if (Array.isArray(raw)) {
+          return raw.join(', ');
+        }
         return String(raw);
       })(),
       publishedAt: pubDate ? new Date(pubDate).toISOString() : null,

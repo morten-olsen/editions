@@ -282,7 +282,6 @@ export type {
 
 export type { UseEditionFocusSelectionReturn };
 
-
 export {
   SCHEDULE_PRESETS,
   selectClasses,
@@ -295,6 +294,5 @@ export {
 } from './editions.utils.ts';
 
 export { useEditionView, useMagazineView } from './editions.view-hooks.ts';
-
 
 export { useEditionConfigs, useEditionFocusSelection, useCreateEditionConfig };

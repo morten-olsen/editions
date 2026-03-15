@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url';
 
 import Database from 'better-sqlite3';
 import { FileMigrationProvider, Kysely, Migrator, SqliteDialect } from 'kysely';
-
 import type { DatabaseSchema } from '@editions/server/src/database/database.types.ts';
+
 import type { FeedFixture, LabelSet } from './eval.ts';
 
 // --- DB setup ---

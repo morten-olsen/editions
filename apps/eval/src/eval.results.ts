@@ -103,9 +103,7 @@ const listRuns = async (): Promise<RunMeta[]> => {
     const runs: RunMeta[] = [];
     for (const entry of entries) {
       try {
-        const meta: RunMeta = JSON.parse(
-          await fs.readFile(path.join(resultsDir, entry, 'meta.json'), 'utf-8'),
-        );
+        const meta: RunMeta = JSON.parse(await fs.readFile(path.join(resultsDir, entry, 'meta.json'), 'utf-8'));
         runs.push(meta);
       } catch {
         // skip non-run directories

@@ -47,18 +47,12 @@ const ModeLayout = ({ activeMode, pathname }: { activeMode: Mode; pathname: stri
     return (
       <div className="absolute inset-0 flex flex-col">
         <BuilderNav activeTab={tabForPath(pathname)} />
-        <div className="relative flex-1 min-h-0 overflow-y-auto">
-          {content}
-        </div>
+        <div className="relative flex-1 min-h-0 overflow-y-auto">{content}</div>
       </div>
     );
   }
 
-  return (
-    <div className="max-w-prose mx-auto px-4 py-6 md:px-8 md:py-8">
-      {content}
-    </div>
-  );
+  return <div className="max-w-prose mx-auto px-4 py-6 md:px-8 md:py-8">{content}</div>;
 };
 
 const publicRoutes = ['/login'];

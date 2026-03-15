@@ -364,7 +364,9 @@ const MagazineLayout = ({ children, page, onPageChange, toc }: MagazineLayoutPro
 
     const handleKey = (e: KeyboardEvent): void => {
       const tag = (e.target as HTMLElement).tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+        return;
+      }
 
       const next = (): void => onPageChange(Math.min(total - 1, page + 1));
       const prev = (): void => onPageChange(Math.max(0, page - 1));
@@ -384,7 +386,11 @@ const MagazineLayout = ({ children, page, onPageChange, toc }: MagazineLayoutPro
           return;
         case ' ':
           e.preventDefault();
-          if (e.shiftKey) { prev(); } else { next(); }
+          if (e.shiftKey) {
+            prev();
+          } else {
+            next();
+          }
           return;
         case 'Home':
           e.preventDefault();
@@ -406,7 +412,9 @@ const MagazineLayout = ({ children, page, onPageChange, toc }: MagazineLayoutPro
             onPageChange(0);
           } else {
             pendingG = true;
-            gTimer = setTimeout(() => { pendingG = false; }, 400);
+            gTimer = setTimeout(() => {
+              pendingG = false;
+            }, 400);
           }
           return;
         case 'G':

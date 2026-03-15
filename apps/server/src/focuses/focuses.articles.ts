@@ -123,15 +123,12 @@ const buildBaseQuery = (params: BaseQueryParams) => {
         .filter((s) => s.minConfidence !== null)
         .map((s) => sql`WHEN articles.source_id = ${s.sourceId} THEN ${s.minConfidence}`);
 
-      const thresholdExpr = cases.length > 0
-        ? sql`CASE ${sql.join(cases, sql` `)} ELSE ${focus.minConfidence} END`
-        : sql`${focus.minConfidence}`;
+      const thresholdExpr =
+        cases.length > 0
+          ? sql`CASE ${sql.join(cases, sql` `)} ELSE ${focus.minConfidence} END`
+          : sql`${focus.minConfidence}`;
 
-      q = q.where(
-        sql`COALESCE(article_focuses.nli, article_focuses.similarity)`,
-        '>=',
-        thresholdExpr,
-      );
+      q = q.where(sql`COALESCE(article_focuses.nli, article_focuses.similarity)`, '>=', thresholdExpr);
     } else {
       q = q.where(sql`COALESCE(article_focuses.nli, article_focuses.similarity)`, '>=', focus.minConfidence);
     }

@@ -37,10 +37,14 @@ const useOpml = (): UseOpmlResult => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const exportOpml = useCallback((): void => {
-    if (!headers) return;
+    if (!headers) {
+      return;
+    }
     void fetch('/api/sources/opml', { headers })
       .then((res) => {
-        if (!res.ok) throw new Error('Export failed');
+        if (!res.ok) {
+          throw new Error('Export failed');
+        }
         return res.blob();
       })
       .then((blob) => {
@@ -91,7 +95,9 @@ const useOpml = (): UseOpmlResult => {
     input.style.display = 'none';
     input.addEventListener('change', () => {
       const file = input.files?.[0];
-      if (!file) return;
+      if (!file) {
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (): void => {
         const text = reader.result as string;

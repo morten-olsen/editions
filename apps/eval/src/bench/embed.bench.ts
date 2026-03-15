@@ -159,7 +159,9 @@ const run = async (): Promise<void> => {
         f.avgInter > 0 ? (f.avgIntra / f.avgInter).toFixed(2) : 'N/A',
       ]);
       console.log(formatTable(['Focus', 'Intra-sim', 'Inter-sim', 'Ratio'], rows));
-      console.log(`\n  Overall: intra=${avgSame.toFixed(3)} inter=${avgCross.toFixed(3)} ratio=${(avgSame / avgCross).toFixed(2)}`);
+      console.log(
+        `\n  Overall: intra=${avgSame.toFixed(3)} inter=${avgCross.toFixed(3)} ratio=${(avgSame / avgCross).toFixed(2)}`,
+      );
       console.log(`  Duration: ${(durationMs / 1000).toFixed(1)}s`);
 
       engine.dispose();

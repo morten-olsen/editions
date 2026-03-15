@@ -163,13 +163,10 @@ const computeMRR = (rankedIds: string[], relevantIds: Set<string>): number => {
 // --- Formatting ---
 
 const formatTable = (headers: string[], rows: string[][]): string => {
-  const widths = headers.map((h, i) =>
-    Math.max(h.length, ...rows.map((r) => (r[i] ?? '').length)),
-  );
+  const widths = headers.map((h, i) => Math.max(h.length, ...rows.map((r) => (r[i] ?? '').length)));
 
   const separator = widths.map((w) => '-'.repeat(w + 2)).join('+');
-  const formatRow = (cells: string[]): string =>
-    cells.map((c, i) => ` ${c.padEnd(widths[i] as number)} `).join('|');
+  const formatRow = (cells: string[]): string => cells.map((c, i) => ` ${c.padEnd(widths[i] as number)} `).join('|');
 
   return [formatRow(headers), separator, ...rows.map(formatRow)].join('\n');
 };

@@ -456,7 +456,12 @@ describe('edition preview', () => {
       method: 'POST',
       url: '/api/editions/configs',
       headers,
-      payload: { name: 'Test Edition', schedule: '0 7 * * *', lookbackHours: 24, focuses: [{ focusId, position: 0, budgetType: 'count', budgetValue: 10 }] },
+      payload: {
+        name: 'Test Edition',
+        schedule: '0 7 * * *',
+        lookbackHours: 24,
+        focuses: [{ focusId, position: 0, budgetType: 'count', budgetValue: 10 }],
+      },
     });
     expect(createRes.statusCode).toBe(201);
     const configId = (JSON.parse(createRes.body) as { id: string }).id;
@@ -486,7 +491,12 @@ describe('edition preview', () => {
       method: 'POST',
       url: '/api/editions/configs',
       headers,
-      payload: { name: 'Test Edition 2', schedule: '0 7 * * *', lookbackHours: 24, focuses: [{ focusId, position: 0, budgetType: 'count', budgetValue: 10 }] },
+      payload: {
+        name: 'Test Edition 2',
+        schedule: '0 7 * * *',
+        lookbackHours: 24,
+        focuses: [{ focusId, position: 0, budgetType: 'count', budgetValue: 10 }],
+      },
     });
     expect(createRes.statusCode).toBe(201);
     const configId = (JSON.parse(createRes.body) as { id: string }).id;

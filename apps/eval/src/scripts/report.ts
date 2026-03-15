@@ -46,20 +46,22 @@ const barChart = (params: {
   const width = chartWidth + margin.left + margin.right;
   const height = chartHeight + margin.top + margin.bottom;
 
-  const bars = labels.flatMap((_, li) =>
-    series.map((s, si) => {
-      const val = s.values[li] ?? 0;
-      const clampedVal = Math.max(val, 0);
-      const barH = (clampedVal / maxVal) * chartHeight;
-      const x = margin.left + li * barGroupWidth + si * barWidth + (barGroupWidth - series.length * barWidth) / 2;
-      const y = margin.top + chartHeight - barH;
-      const color = COLORS[si % COLORS.length] as string;
-      return `<rect x="${x}" y="${y}" width="${barWidth - 2}" height="${barH}" fill="${color}" rx="2">
+  const bars = labels
+    .flatMap((_, li) =>
+      series.map((s, si) => {
+        const val = s.values[li] ?? 0;
+        const clampedVal = Math.max(val, 0);
+        const barH = (clampedVal / maxVal) * chartHeight;
+        const x = margin.left + li * barGroupWidth + si * barWidth + (barGroupWidth - series.length * barWidth) / 2;
+        const y = margin.top + chartHeight - barH;
+        const color = COLORS[si % COLORS.length] as string;
+        return `<rect x="${x}" y="${y}" width="${barWidth - 2}" height="${barH}" fill="${color}" rx="2">
         <title>${s.name}: ${valueFormat(val)}</title>
       </rect>
       <text x="${x + barWidth / 2 - 1}" y="${y - 4}" text-anchor="middle" font-size="9" fill="#666">${valueFormat(val)}</text>`;
-    }),
-  ).join('\n');
+      }),
+    )
+    .join('\n');
 
   const xLabels = labels
     .map((l, i) => {
@@ -103,7 +105,7 @@ const barChart = (params: {
 
 // --- Aggregation helpers ---
 
-const avg = (nums: number[]): number => nums.length > 0 ? nums.reduce((a, b) => a + b, 0) / nums.length : 0;
+const avg = (nums: number[]): number => (nums.length > 0 ? nums.reduce((a, b) => a + b, 0) / nums.length : 0);
 
 type ModelFixtureKey = string; // "model|fixture"
 const groupByModelFixture = (results: ClassifyBenchResult[]): Map<string, ClassifyBenchResult[]> => {
@@ -120,11 +122,21 @@ const groupByModelFixture = (results: ClassifyBenchResult[]): Map<string, Classi
 // --- Section: Classification ---
 
 const classifySection = (results: ClassifyBenchResult[]): string => {
-  if (results.length === 0) return '';
+  if (results.length === 0) {
+    return '';
+  }
 
   // Aggregate: average F1 across all fixtures per model+strategy
   const grouped = groupByModelFixture(results);
-  type AggRow = { model: string; strategy: string; avgP: number; avgR: number; avgF1: number; totalTime: number; totalArticles: number };
+  type AggRow = {
+    model: string;
+    strategy: string;
+    avgP: number;
+    avgR: number;
+    avgF1: number;
+    totalTime: number;
+    totalArticles: number;
+  };
   const aggRows: AggRow[] = [];
 
   for (const [key, runs] of grouped) {
@@ -168,7 +180,7 @@ const classifySection = (results: ClassifyBenchResult[]): string => {
 
   // Identify fixtures by number of articles
   const fixtureLabels: string[] = [];
-  const fixtureF1s: Map<string, number[]> = new Map();
+  const fixtureF1s = new Map<string, number[]>();
   for (const model of models) {
     fixtureF1s.set(model, []);
   }
@@ -198,9 +210,10 @@ const classifySection = (results: ClassifyBenchResult[]): string => {
   });
 
   // Summary table
-  const tableRows = aggRows.map((r) => {
-    const best = r.avgF1 === Math.max(...aggRows.filter((a) => a.strategy === r.strategy).map((a) => a.avgF1));
-    return `<tr>
+  const tableRows = aggRows
+    .map((r) => {
+      const best = r.avgF1 === Math.max(...aggRows.filter((a) => a.strategy === r.strategy).map((a) => a.avgF1));
+      return `<tr>
       <td>${r.model}</td>
       <td>${r.strategy}</td>
       <td>${pct(r.avgP)}</td>
@@ -209,7 +222,8 @@ const classifySection = (results: ClassifyBenchResult[]): string => {
       <td>${r.totalArticles}</td>
       <td>${(r.totalTime / 1000).toFixed(1)}s</td>
     </tr>`;
-  }).join('');
+    })
+    .join('');
 
   return `
     <section>
@@ -226,7 +240,9 @@ const classifySection = (results: ClassifyBenchResult[]): string => {
 // --- Section: Embeddings ---
 
 const embedSection = (results: EmbedBenchResult[]): string => {
-  if (results.length === 0) return '';
+  if (results.length === 0) {
+    return '';
+  }
 
   // Group by model, average across fixtures
   const byModel = new Map<string, EmbedBenchResult[]>();
@@ -283,14 +299,18 @@ const embedSection = (results: EmbedBenchResult[]): string => {
   });
 
   // Table
-  const tableRows = models.map((m, i) => `
+  const tableRows = models
+    .map(
+      (m, i) => `
     <tr>
       <td>${m}</td>
       <td>${(avgIntra[i] ?? 0).toFixed(3)}</td>
       <td>${(avgInter[i] ?? 0).toFixed(3)}</td>
       <td><strong>${(avgRatio[i] ?? 0).toFixed(2)}</strong></td>
-      <td>${((avg(byModel.get(m)?.map((r) => r.durationMs) ?? []) / 1000)).toFixed(1)}s</td>
-    </tr>`).join('');
+      <td>${(avg(byModel.get(m)?.map((r) => r.durationMs) ?? []) / 1000).toFixed(1)}s</td>
+    </tr>`,
+    )
+    .join('');
 
   return `
     <section>
@@ -308,7 +328,9 @@ const embedSection = (results: EmbedBenchResult[]): string => {
 // --- Section: Ranking ---
 
 const rankSection = (results: RankBenchResult[]): string => {
-  if (results.length === 0) return '';
+  if (results.length === 0) {
+    return '';
+  }
 
   const withModel = results as (RankBenchResult & { model?: string })[];
   const models = [...new Set(withModel.map((r) => shortModel(r.model ?? 'default')))];
@@ -348,11 +370,11 @@ const rankSection = (results: RankBenchResult[]): string => {
   });
 
   // Weight comparison: average NDCG across models for each weight config, no votes
-  const weightConfigs = [...new Set(
-    withModel
-      .filter((r) => r.scenario.includes('/no-votes/'))
-      .map((r) => r.scenario.split('/')[2] as string),
-  )];
+  const weightConfigs = [
+    ...new Set(
+      withModel.filter((r) => r.scenario.includes('/no-votes/')).map((r) => r.scenario.split('/')[2] as string),
+    ),
+  ];
 
   const weightChart = barChart({
     title: 'Avg NDCG by Weight Config (no votes)',
@@ -371,14 +393,18 @@ const rankSection = (results: RankBenchResult[]): string => {
   });
 
   // Summary table
-  const tableRows = models.map((m, i) => `
+  const tableRows = models
+    .map(
+      (m, i) => `
     <tr>
       <td>${m}</td>
       <td>${(noVoteNdcg[i] ?? 0).toFixed(3)}</td>
       <td>${(withVoteNdcg[i] ?? 0).toFixed(3)}</td>
-      <td>${((voteDelta[i] ?? 0) >= 0 ? '+' : '')}${(voteDelta[i] ?? 0).toFixed(3)}</td>
+      <td>${(voteDelta[i] ?? 0) >= 0 ? '+' : ''}${(voteDelta[i] ?? 0).toFixed(3)}</td>
       <td>${avg(noVoteDefault.filter((r) => shortModel(r.model ?? '') === m).map((r) => r.mrr)).toFixed(3)}</td>
-    </tr>`).join('');
+    </tr>`,
+    )
+    .join('');
 
   return `
     <section>
@@ -396,7 +422,9 @@ const rankSection = (results: RankBenchResult[]): string => {
 // --- Conclusions ---
 
 const conclusionsSection = (run: BenchRun): string => {
-  if (run.classify.length === 0 && run.embed.length === 0) return '';
+  if (run.classify.length === 0 && run.embed.length === 0) {
+    return '';
+  }
 
   // Find best models
   const grouped = groupByModelFixture(run.classify);
@@ -404,7 +432,9 @@ const conclusionsSection = (run: BenchRun): string => {
   let bestSimF1 = 0;
   for (const [key, runs] of grouped) {
     const [model, strategy] = key.split('|') as [string, string];
-    if (strategy !== 'similarity') continue;
+    if (strategy !== 'similarity') {
+      continue;
+    }
     const f1 = avg(runs.map((r) => r.macroF1));
     if (f1 > bestSimF1) {
       bestSimF1 = f1;

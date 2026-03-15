@@ -39,7 +39,11 @@ const SourcesPage = (): React.ReactElement => (
     <PageHeader
       title="Sources"
       subtitle="Manage your RSS feeds and podcasts"
-      actions={<Button variant="primary" size="sm">Add source</Button>}
+      actions={
+        <Button variant="primary" size="sm">
+          Add source
+        </Button>
+      }
     />
     <div className="space-y-3 mt-4">
       {['Ars Technica', 'The Guardian', 'Nature', 'Hacker News'].map((name) => (
@@ -62,7 +66,11 @@ const FocusesPage = (): React.ReactElement => (
     <PageHeader
       title="Focuses"
       subtitle="Define topic areas for article classification"
-      actions={<Button variant="primary" size="sm">New focus</Button>}
+      actions={
+        <Button variant="primary" size="sm">
+          New focus
+        </Button>
+      }
     />
     <div className="space-y-3 mt-4">
       {['Technology', 'Science', 'Global News', 'Culture'].map((name) => (
@@ -80,7 +88,11 @@ const EditionsPage = (): React.ReactElement => (
     <PageHeader
       title="Editions"
       subtitle="Configure your scheduled digests"
-      actions={<Button variant="primary" size="sm">New edition</Button>}
+      actions={
+        <Button variant="primary" size="sm">
+          New edition
+        </Button>
+      }
     />
     <div className="space-y-3 mt-4">
       {['Morning Brief', 'Deep Reads'].map((name) => (
@@ -110,7 +122,13 @@ const RoutedBuilder = ({ initialPath = '/sources' }: { initialPath?: string }): 
               onSettingsClick={() => {}}
             >
               <BuilderNav activeTab={initialPath.replace('/', '') as BuilderTab} />
-              {initialPath === '/focuses' ? <FocusesPage /> : initialPath === '/editions' ? <EditionsPage /> : <SourcesPage />}
+              {initialPath === '/focuses' ? (
+                <FocusesPage />
+              ) : initialPath === '/editions' ? (
+                <EditionsPage />
+              ) : (
+                <SourcesPage />
+              )}
             </ModeShell>
           )}
         />

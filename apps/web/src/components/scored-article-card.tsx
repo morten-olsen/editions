@@ -19,9 +19,15 @@ type ScoredArticleCardProps = {
 };
 
 const confidenceColor = (confidence: number, included: boolean): string => {
-  if (!included) return 'text-ink-faint';
-  if (confidence >= 0.7) return 'text-positive';
-  if (confidence >= 0.4) return 'text-accent';
+  if (!included) {
+    return 'text-ink-faint';
+  }
+  if (confidence >= 0.7) {
+    return 'text-positive';
+  }
+  if (confidence >= 0.4) {
+    return 'text-accent';
+  }
   return 'text-caution';
 };
 
@@ -60,7 +66,9 @@ const ScoredArticleCard = ({
           <div className="font-mono text-xs tracking-wide text-accent mb-0.5">{sourceName}</div>
 
           {/* Title */}
-          <div className={`font-serif text-sm font-medium tracking-tight leading-snug ${included ? 'text-ink' : 'text-ink-tertiary'}`}>
+          <div
+            className={`font-serif text-sm font-medium tracking-tight leading-snug ${included ? 'text-ink' : 'text-ink-tertiary'}`}
+          >
             {title}
           </div>
 

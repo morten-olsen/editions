@@ -9,10 +9,16 @@ import { EntityIcon } from '../components/entity-icon.tsx';
 type FocusItem = ReturnType<typeof useFocusesList>['focuses'][number];
 
 const confidenceLabel = (v: number): string => {
-  if (v === 0) return 'All articles';
+  if (v === 0) {
+    return 'All articles';
+  }
   const pct = Math.round(v * 100);
-  if (pct >= 80) return `${pct}% — tight`;
-  if (pct >= 50) return `${pct}% — moderate`;
+  if (pct >= 80) {
+    return `${pct}% — tight`;
+  }
+  if (pct >= 50) {
+    return `${pct}% — moderate`;
+  }
   return `${pct}% — loose`;
 };
 
@@ -78,9 +84,7 @@ const FocusCard = ({ focus }: { focus: FocusItem }): React.ReactElement => (
         >
           {focus.name}
         </Link>
-        {focus.description && (
-          <div className="text-sm text-ink-secondary mt-0.5 line-clamp-1">{focus.description}</div>
-        )}
+        {focus.description && <div className="text-sm text-ink-secondary mt-0.5 line-clamp-1">{focus.description}</div>}
       </div>
     </div>
 

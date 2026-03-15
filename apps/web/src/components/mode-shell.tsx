@@ -43,16 +43,32 @@ const modeForPath = (pathname: string): Mode => {
   // /focuses, /focuses/new, /focuses/:id/edit are builder mode — configuration
   // BuilderNav.tabForPath maps all /focuses paths to the "focuses" tab,
   // but that's fine since BuilderNav only renders in builder mode.
-  if (pathname.startsWith('/feed')) return 'feed';
-  if (/^\/focuses\/[^/]+$/.test(pathname)) return 'feed';
+  if (pathname.startsWith('/feed')) {
+    return 'feed';
+  }
+  if (/^\/focuses\/[^/]+$/.test(pathname)) {
+    return 'feed';
+  }
 
   // Builder mode: configuration
-  if (pathname.startsWith('/sources')) return 'builder';
-  if (pathname === '/focuses' || pathname === '/focuses/new') return 'builder';
-  if (/^\/focuses\/[^/]+\/edit$/.test(pathname)) return 'builder';
-  if (pathname === '/editions' || pathname === '/editions/new') return 'builder';
-  if (/^\/editions\/[^/]+\/edit$/.test(pathname)) return 'builder';
-  if (pathname.startsWith('/settings')) return 'builder';
+  if (pathname.startsWith('/sources')) {
+    return 'builder';
+  }
+  if (pathname === '/focuses' || pathname === '/focuses/new') {
+    return 'builder';
+  }
+  if (/^\/focuses\/[^/]+\/edit$/.test(pathname)) {
+    return 'builder';
+  }
+  if (pathname === '/editions' || pathname === '/editions/new') {
+    return 'builder';
+  }
+  if (/^\/editions\/[^/]+\/edit$/.test(pathname)) {
+    return 'builder';
+  }
+  if (pathname.startsWith('/settings')) {
+    return 'builder';
+  }
 
   // Everything else: magazines (home, edition issues, bookmarks)
   return 'magazines';
@@ -69,7 +85,6 @@ const defaultPathForMode: Record<Mode, string> = {
 const isFullScreenRoute = (pathname: string): boolean =>
   /\/articles\/[^/]+$/.test(pathname) || /\/magazine$/.test(pathname);
 
-
 /* ── Scroll restoration ──────────────────────────────────────────── */
 
 const scrollCache = new Map<string, number>();
@@ -79,12 +94,16 @@ const useScrollRestoration = (pathname: string, scrollRef: React.RefObject<HTMLE
 
   useEffect(() => {
     const el = scrollRef.current;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
     lastScrollY.current = el.scrollTop;
     let timer: ReturnType<typeof setTimeout> | null = null;
     const onScroll = (): void => {
       lastScrollY.current = el.scrollTop;
-      if (timer) clearTimeout(timer);
+      if (timer) {
+        clearTimeout(timer);
+      }
       timer = setTimeout(() => {
         scrollCache.set(pathname, el.scrollTop);
       }, 100);
@@ -92,14 +111,18 @@ const useScrollRestoration = (pathname: string, scrollRef: React.RefObject<HTMLE
     el.addEventListener('scroll', onScroll, { passive: true });
     return () => {
       el.removeEventListener('scroll', onScroll);
-      if (timer) clearTimeout(timer);
+      if (timer) {
+        clearTimeout(timer);
+      }
       scrollCache.set(pathname, lastScrollY.current);
     };
   }, [pathname, scrollRef]);
 
   useEffect(() => {
     const el = scrollRef.current;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
     const savedY = scrollCache.get(pathname);
     if (savedY != null && savedY > 0) {
       let attempts = 0;
@@ -218,9 +241,13 @@ const MobileDrawer = ({
   actions,
 }: MobileDrawerProps): React.ReactElement => {
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      return;
+    }
     const handler = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+      }
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
@@ -390,7 +417,9 @@ const ModeShell = ({
         actions={actions}
       />
 
-      <main ref={mainRef} className="relative flex-1 min-h-0 min-w-0 overflow-y-auto">{children}</main>
+      <main ref={mainRef} className="relative flex-1 min-h-0 min-w-0 overflow-y-auto">
+        {children}
+      </main>
     </div>
   );
 };

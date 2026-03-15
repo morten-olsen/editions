@@ -34,8 +34,12 @@ type ArticleCardProps = {
 
 const formatTime = (seconds: number, sourceType?: string | null): string => {
   const minutes = Math.round(seconds / 60);
-  if (minutes < 1) return '< 1 min';
-  if (!sourceType) return `${minutes} min`;
+  if (minutes < 1) {
+    return '< 1 min';
+  }
+  if (!sourceType) {
+    return `${minutes} min`;
+  }
   const suffix = sourceType === 'podcast' ? 'listen' : 'read';
   return `${minutes} min ${suffix}`;
 };
@@ -45,9 +49,15 @@ const formatDate = (iso: string): string => {
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffHours = diffMs / (1000 * 60 * 60);
-  if (diffHours < 1) return 'Just now';
-  if (diffHours < 24) return `${Math.floor(diffHours)}h ago`;
-  if (diffHours < 48) return 'Yesterday';
+  if (diffHours < 1) {
+    return 'Just now';
+  }
+  if (diffHours < 24) {
+    return `${Math.floor(diffHours)}h ago`;
+  }
+  if (diffHours < 48) {
+    return 'Yesterday';
+  }
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 };
 
@@ -95,7 +105,9 @@ const CardContent = ({
               </>
             )}
           </div>
-          <div className={`font-serif tracking-tight leading-snug ${muted ? 'text-sm text-ink-tertiary' : 'text-sm text-ink font-medium'}`}>
+          <div
+            className={`font-serif tracking-tight leading-snug ${muted ? 'text-sm text-ink-tertiary' : 'text-sm text-ink font-medium'}`}
+          >
             {title}
           </div>
         </div>
@@ -129,11 +141,7 @@ const CardContent = ({
       </h3>
 
       {/* Summary */}
-      {summary && (
-        <p className="font-serif text-sm leading-relaxed text-ink-secondary line-clamp-2 mb-3">
-          {summary}
-        </p>
-      )}
+      {summary && <p className="font-serif text-sm leading-relaxed text-ink-secondary line-clamp-2 mb-3">{summary}</p>}
 
       {/* Byline + meta */}
       <div className="flex items-center gap-2 text-xs text-ink-tertiary">

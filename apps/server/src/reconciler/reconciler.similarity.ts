@@ -79,9 +79,7 @@ const buildSimilarityQuery = (
     .innerJoin('sources', 'sources.id', 'articles.source_id')
     .innerJoin('focuses', 'focuses.user_id', 'sources.user_id')
     .leftJoin('article_focuses', (join) =>
-      join
-        .onRef('article_focuses.article_id', '=', 'articles.id')
-        .onRef('article_focuses.focus_id', '=', 'focuses.id'),
+      join.onRef('article_focuses.article_id', '=', 'articles.id').onRef('article_focuses.focus_id', '=', 'focuses.id'),
     )
     .leftJoin('article_embeddings', 'article_embeddings.article_id', 'articles.id')
     .select([
@@ -139,7 +137,12 @@ const createSimilarityStep = (params: {
     name: 'similarity',
     fetchBatch: async function* (): AsyncGenerator<SimilarityItem[]> {
       while (true) {
-        const rows = (await buildSimilarityQuery(db, embeddingModel, scopeFilter, batchSize).execute()) as SimilarityRow[];
+        const rows = (await buildSimilarityQuery(
+          db,
+          embeddingModel,
+          scopeFilter,
+          batchSize,
+        ).execute()) as SimilarityRow[];
         if (rows.length === 0) {
           break;
         }

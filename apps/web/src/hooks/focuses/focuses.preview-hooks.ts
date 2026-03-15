@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { useAuthHeaders } from '../../api/api.hooks.ts';
+
 import type { SourceSelection } from './focuses.types.ts';
 
 /* ── Types ───────────────────────────────────────────────────────── */
@@ -41,7 +42,9 @@ type UseFocusPreviewResult = {
 /* ── Time window → date range ────────────────────────────────────── */
 
 const windowToRange = (window: PreviewTimeWindow): { from?: string; to?: string } => {
-  if (window === 'all') return {};
+  if (window === 'all') {
+    return {};
+  }
   const now = new Date();
   if (window === 'today') {
     const start = new Date(now);
@@ -75,8 +78,12 @@ const useFocusPreview = (
 
       const range = windowToRange(timeWindow);
       const params = new URLSearchParams({ limit: String(PREVIEW_PAGE_SIZE), sort: 'top' });
-      if (range.from) params.set('from', range.from);
-      if (range.to) params.set('to', range.to);
+      if (range.from) {
+        params.set('from', range.from);
+      }
+      if (range.to) {
+        params.set('to', range.to);
+      }
 
       const res = await fetch(`/api/focuses/${focusId}/preview?${params.toString()}`, {
         method: 'POST',

@@ -49,7 +49,9 @@ const parseOpml = (xml: string): OpmlOutline[] => {
   while ((match = outlineRegex.exec(xml)) !== null) {
     const element = match[0];
     const rawXmlUrl = match[1];
-    if (!rawXmlUrl) continue;
+    if (!rawXmlUrl) {
+      continue;
+    }
     const xmlUrl = decodeXml(rawXmlUrl);
 
     const titleMatch = element.match(/\btitle\s*=\s*["']([^"']*)["']/i);

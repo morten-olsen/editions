@@ -203,7 +203,9 @@ const buildSteps = (
   return [
     createEmbedStep({ db, embedFn, embeddingModel: 'test-model', scopeFilter }),
     createSimilarityStep({ db, embedFn, embeddingModel: 'test-model', scopeFilter }),
-    ...(useNli ? [createNliStep({ db, classifyFn: classifyFn as ClassifyFn, classifierModel: 'test-classifier', scopeFilter })] : []),
+    ...(useNli
+      ? [createNliStep({ db, classifyFn: classifyFn as ClassifyFn, classifierModel: 'test-classifier', scopeFilter })]
+      : []),
     createMarkAnalysedStep({ db, scopeFilter }),
   ];
 };

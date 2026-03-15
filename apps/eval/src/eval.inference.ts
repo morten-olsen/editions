@@ -25,10 +25,7 @@ type InferenceEngine = {
 
 // --- Engine factory ---
 
-const createInferenceEngine = (params?: {
-  embeddingModel?: string;
-  classifierModel?: string;
-}): InferenceEngine => {
+const createInferenceEngine = (params?: { embeddingModel?: string; classifierModel?: string }): InferenceEngine => {
   const embeddingModel = params?.embeddingModel ?? 'Xenova/all-MiniLM-L6-v2';
   const classifierModel = params?.classifierModel ?? 'Xenova/bart-large-mnli';
 
@@ -75,10 +72,7 @@ const createInferenceEngine = (params?: {
     return results;
   };
 
-  const classify: ClassifyFn = async (
-    text: string,
-    labels: string[],
-  ): Promise<{ label: string; score: number }[]> => {
+  const classify: ClassifyFn = async (text: string, labels: string[]): Promise<{ label: string; score: number }[]> => {
     if (labels.length === 0) {
       return [];
     }

@@ -106,7 +106,7 @@ const run = async (): Promise<void> => {
 
     const preview = article.content
       ? article.content.slice(0, 200).replace(/\n/g, ' ')
-      : article.summary?.slice(0, 200) ?? '(no content)';
+      : (article.summary?.slice(0, 200) ?? '(no content)');
 
     console.log(`\n[${article.id}] ${article.title}`);
     console.log(`  ${preview}...`);

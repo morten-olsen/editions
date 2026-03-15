@@ -306,8 +306,14 @@ class FocusesService {
     const focus: Focus = {
       ...saved,
       minConfidence: overrides.minConfidence ?? saved.minConfidence,
-      minConsumptionTimeSeconds: overrides.minConsumptionTimeSeconds !== undefined ? overrides.minConsumptionTimeSeconds : saved.minConsumptionTimeSeconds,
-      maxConsumptionTimeSeconds: overrides.maxConsumptionTimeSeconds !== undefined ? overrides.maxConsumptionTimeSeconds : saved.maxConsumptionTimeSeconds,
+      minConsumptionTimeSeconds:
+        overrides.minConsumptionTimeSeconds !== undefined
+          ? overrides.minConsumptionTimeSeconds
+          : saved.minConsumptionTimeSeconds,
+      maxConsumptionTimeSeconds:
+        overrides.maxConsumptionTimeSeconds !== undefined
+          ? overrides.maxConsumptionTimeSeconds
+          : saved.maxConsumptionTimeSeconds,
       sources: overrides.sources ?? saved.sources,
     };
     return listFocusArticles({ services: this.#services, focus, userId, focusId, opts });

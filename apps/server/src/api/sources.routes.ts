@@ -57,15 +57,19 @@ const registerSourceReadRoutes = ({ fastify, services, authenticate }: RouteArgs
     schema: {
       security: [{ bearerAuth: [] }],
       response: {
-        200: z.array(z.object({
-          sourceId: z.string(),
-          focuses: z.array(z.object({
-            focusId: z.string(),
-            focusName: z.string(),
-            articleCount: z.number(),
-            avgConfidence: z.number(),
-          })),
-        })),
+        200: z.array(
+          z.object({
+            sourceId: z.string(),
+            focuses: z.array(
+              z.object({
+                focusId: z.string(),
+                focusName: z.string(),
+                articleCount: z.number(),
+                avgConfidence: z.number(),
+              }),
+            ),
+          }),
+        ),
       },
     },
     handler: async (req, _reply) => {

@@ -1,10 +1,11 @@
 import { prepareText } from '@editions/server/src/reconciler/reconciler.utils.ts';
-import {
-  rankArticles,
-  emptyVoteContext,
-  focusWeights,
+import { rankArticles, emptyVoteContext, focusWeights } from '@editions/server/src/votes/votes.scoring.ts';
+import type {
+  ScoringCandidate,
+  VoteContext,
+  VotedArticle,
+  ScoringWeights,
 } from '@editions/server/src/votes/votes.scoring.ts';
-import type { ScoringCandidate, VoteContext, VotedArticle, ScoringWeights } from '@editions/server/src/votes/votes.scoring.ts';
 
 import { EMBEDDING_MODELS } from '../eval.config.ts';
 import { loadFeedFixture, loadLabelSet, listFixtures } from '../eval.db.ts';
@@ -214,9 +215,7 @@ const run = async (): Promise<void> => {
     const parts = vr.scenario.split('/');
     const focus = parts[0];
     const weights = parts[2];
-    const baseline = noVoteResults.find(
-      (r) => r.model === vr.model && r.scenario === `${focus}/no-votes/${weights}`,
-    );
+    const baseline = noVoteResults.find((r) => r.model === vr.model && r.scenario === `${focus}/no-votes/${weights}`);
     if (baseline) {
       const delta = vr.ndcg - baseline.ndcg;
       const sign = (n: number): string => (n >= 0 ? '+' : '') + n.toFixed(3);

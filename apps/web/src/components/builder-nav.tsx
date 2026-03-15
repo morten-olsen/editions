@@ -20,9 +20,15 @@ const tabs: { id: BuilderTab; label: string; to: string }[] = [
 /* ── Route → Tab mapping ─────────────────────────────────────────── */
 
 const tabForPath = (pathname: string): BuilderTab | null => {
-  if (pathname.startsWith('/sources')) return 'sources';
-  if (pathname.startsWith('/focuses')) return 'focuses';
-  if (pathname.startsWith('/editions')) return 'editions';
+  if (pathname.startsWith('/sources')) {
+    return 'sources';
+  }
+  if (pathname.startsWith('/focuses')) {
+    return 'focuses';
+  }
+  if (pathname.startsWith('/editions')) {
+    return 'editions';
+  }
   return null;
 };
 

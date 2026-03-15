@@ -20,7 +20,10 @@ const NewFocusPage = (): React.ReactNode => {
 
   return (
     <div className="max-w-prose mx-auto px-4 py-6 md:px-8 md:py-8">
-      <PageHeader title="New topic" subtitle="Give it a name and description — you'll configure sources and thresholds next" />
+      <PageHeader
+        title="New topic"
+        subtitle="Give it a name and description — you'll configure sources and thresholds next"
+      />
 
       {hook.error && (
         <div

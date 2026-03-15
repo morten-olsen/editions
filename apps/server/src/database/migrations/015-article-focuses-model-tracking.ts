@@ -5,15 +5,9 @@ import type { Kysely } from 'kysely';
 // when scores were produced by a different model and need rescoring.
 
 const up = async (db: Kysely<unknown>): Promise<void> => {
-  await db.schema
-    .alterTable('article_focuses')
-    .addColumn('similarity_model', 'text')
-    .execute();
+  await db.schema.alterTable('article_focuses').addColumn('similarity_model', 'text').execute();
 
-  await db.schema
-    .alterTable('article_focuses')
-    .addColumn('nli_model', 'text')
-    .execute();
+  await db.schema.alterTable('article_focuses').addColumn('nli_model', 'text').execute();
 
   // Clear existing scores so they get recomputed with model tracking
   await sql`

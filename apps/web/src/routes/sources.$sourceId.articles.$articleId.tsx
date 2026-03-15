@@ -9,12 +9,7 @@ import { FocusInsight, type FocusClassification } from '../components/focus-insi
 import { Button } from '../components/button.tsx';
 import { MediaPlayer } from '../components/media-player.tsx';
 import { VoteControls } from '../components/vote-controls.tsx';
-import {
-  ArticleBody,
-  AnimatedSummary,
-  Byline,
-  easeOut,
-} from '../components/magazine/magazine.article.tsx';
+import { ArticleBody, AnimatedSummary, Byline, easeOut } from '../components/magazine/magazine.article.tsx';
 
 /* ── Article page ────────────────────────────────────────────────── */
 
@@ -61,7 +56,12 @@ const ArticlePage = (): React.ReactNode => {
       <ReaderHeader detail={detail} onBack={() => router.history.back()} />
 
       {/* Hero — editorial style, reusing magazine primitives */}
-      <div className="max-w-prose mx-auto w-full px-4 md:px-6 pt-16 pb-8" data-ai-id="article-hero" data-ai-role="section" data-ai-label="Article header">
+      <div
+        className="max-w-prose mx-auto w-full px-4 md:px-6 pt-16 pb-8"
+        data-ai-id="article-hero"
+        data-ai-role="section"
+        data-ai-label="Article header"
+      >
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

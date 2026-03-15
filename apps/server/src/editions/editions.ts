@@ -313,11 +313,7 @@ class EditionsService {
 
   // --- Generation ---
 
-  #collectForConfig = async (
-    userId: string,
-    configId: string,
-    config: EditionConfig,
-  ): Promise<GenerateResult> => {
+  #collectForConfig = async (userId: string, configId: string, config: EditionConfig): Promise<GenerateResult> => {
     const db = await this.#services.get(DatabaseService).getInstance();
     const sortedFocuses = [...config.focuses].sort((a, b) => a.position - b.position);
     const needsExcludedSet = config.excludePriorEditions || config.focuses.some((f) => f.excludePriorEditions === true);
@@ -429,14 +425,20 @@ class EditionsService {
 
     // Batch-load all article details in a single query instead of one-by-one
     const articleIds = editionArticles.map((ea) => ea.articleId);
-    const articleRows = articleIds.length > 0
-      ? await db
-          .selectFrom('articles')
-          .innerJoin('sources', 'sources.id', 'articles.source_id')
-          .select(['articles.id', 'articles.title', 'sources.name as source_name', 'articles.consumption_time_seconds'])
-          .where('articles.id', 'in', articleIds)
-          .execute()
-      : [];
+    const articleRows =
+      articleIds.length > 0
+        ? await db
+            .selectFrom('articles')
+            .innerJoin('sources', 'sources.id', 'articles.source_id')
+            .select([
+              'articles.id',
+              'articles.title',
+              'sources.name as source_name',
+              'articles.consumption_time_seconds',
+            ])
+            .where('articles.id', 'in', articleIds)
+            .execute()
+        : [];
 
     const articleMap = new Map(articleRows.map((row) => [row.id, row]));
 

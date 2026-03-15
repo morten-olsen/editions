@@ -31,12 +31,22 @@ const BuilderSplitView = ({
       {/* Desktop: side-by-side */}
       <div className="hidden lg:flex min-h-0 flex-1">
         {/* Config panel — scrollable */}
-        <div className="w-1/2 max-w-xl border-r border-border overflow-y-auto" data-ai-id="builder-config" data-ai-role="section" data-ai-label="Configuration">
+        <div
+          className="w-1/2 max-w-xl border-r border-border overflow-y-auto"
+          data-ai-id="builder-config"
+          data-ai-role="section"
+          data-ai-label="Configuration"
+        >
           <div className="p-6 lg:p-8">{config}</div>
         </div>
 
         {/* Preview panel — scrollable */}
-        <div className="flex-1 overflow-y-auto bg-surface-sunken/30" data-ai-id="builder-preview" data-ai-role="section" data-ai-label={previewLabel}>
+        <div
+          className="flex-1 overflow-y-auto bg-surface-sunken/30"
+          data-ai-id="builder-preview"
+          data-ai-role="section"
+          data-ai-label={previewLabel}
+        >
           <div className="p-6 lg:p-8">{preview}</div>
         </div>
       </div>

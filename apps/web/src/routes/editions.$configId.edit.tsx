@@ -237,7 +237,7 @@ const EditionPreviewPanel = ({
         </div>
         <div className="text-xs text-ink-faint">
           {hasFocuses
-            ? 'The selected focuses don\'t have matching articles yet. Make sure focuses have sources configured and classification has completed.'
+            ? "The selected focuses don't have matching articles yet. Make sure focuses have sources configured and classification has completed."
             : 'Add focuses on the left to preview what this edition would contain.'}
         </div>
       </div>

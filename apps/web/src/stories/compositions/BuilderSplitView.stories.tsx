@@ -51,12 +51,60 @@ const withRouter = (initialPath: string, Story: React.ComponentType): React.Reac
 const now = Date.now();
 
 const mockArticles = [
-  { id: '1', title: 'The quiet revolution in reader design', sourceName: 'Ars Technica', author: 'Samuel Axon', publishedAt: new Date(now - 2 * 3600000).toISOString(), consumptionTimeSeconds: 480, confidence: 0.92 },
-  { id: '2', title: 'TypeScript 6.0 introduces pattern matching', sourceName: 'Hacker News', author: null, publishedAt: new Date(now - 4 * 3600000).toISOString(), consumptionTimeSeconds: 360, confidence: 0.78 },
-  { id: '3', title: 'Why SQLite is the database you didn\'t know you needed', sourceName: 'Hacker News', author: null, publishedAt: new Date(now - 6 * 3600000).toISOString(), consumptionTimeSeconds: 720, confidence: 0.65 },
-  { id: '4', title: 'JWST captures light from the universe\'s first galaxies', sourceName: 'Nature', author: 'Dr. Emily Carter', publishedAt: new Date(now - 8 * 3600000).toISOString(), consumptionTimeSeconds: 300, confidence: 0.31 },
-  { id: '5', title: 'Europe\'s new data sovereignty framework explained', sourceName: 'The Guardian', author: 'Alex Hern', publishedAt: new Date(now - 10 * 3600000).toISOString(), consumptionTimeSeconds: 360, confidence: 0.22 },
-  { id: '6', title: 'Pacific trade agreement reaches final ratification', sourceName: 'Reuters', author: null, publishedAt: new Date(now - 12 * 3600000).toISOString(), consumptionTimeSeconds: 120, confidence: 0.08 },
+  {
+    id: '1',
+    title: 'The quiet revolution in reader design',
+    sourceName: 'Ars Technica',
+    author: 'Samuel Axon',
+    publishedAt: new Date(now - 2 * 3600000).toISOString(),
+    consumptionTimeSeconds: 480,
+    confidence: 0.92,
+  },
+  {
+    id: '2',
+    title: 'TypeScript 6.0 introduces pattern matching',
+    sourceName: 'Hacker News',
+    author: null,
+    publishedAt: new Date(now - 4 * 3600000).toISOString(),
+    consumptionTimeSeconds: 360,
+    confidence: 0.78,
+  },
+  {
+    id: '3',
+    title: "Why SQLite is the database you didn't know you needed",
+    sourceName: 'Hacker News',
+    author: null,
+    publishedAt: new Date(now - 6 * 3600000).toISOString(),
+    consumptionTimeSeconds: 720,
+    confidence: 0.65,
+  },
+  {
+    id: '4',
+    title: "JWST captures light from the universe's first galaxies",
+    sourceName: 'Nature',
+    author: 'Dr. Emily Carter',
+    publishedAt: new Date(now - 8 * 3600000).toISOString(),
+    consumptionTimeSeconds: 300,
+    confidence: 0.31,
+  },
+  {
+    id: '5',
+    title: "Europe's new data sovereignty framework explained",
+    sourceName: 'The Guardian',
+    author: 'Alex Hern',
+    publishedAt: new Date(now - 10 * 3600000).toISOString(),
+    consumptionTimeSeconds: 360,
+    confidence: 0.22,
+  },
+  {
+    id: '6',
+    title: 'Pacific trade agreement reaches final ratification',
+    sourceName: 'Reuters',
+    author: null,
+    publishedAt: new Date(now - 12 * 3600000).toISOString(),
+    consumptionTimeSeconds: 120,
+    confidence: 0.08,
+  },
 ];
 
 const mockSources = [
@@ -70,9 +118,15 @@ const mockSources = [
 /* ── Focus config panel ──────────────────────────────────────────── */
 
 const confidenceHint = (pct: number): string => {
-  if (pct >= 80) return 'Tight';
-  if (pct >= 50) return 'Moderate';
-  if (pct >= 20) return 'Loose';
+  if (pct >= 80) {
+    return 'Tight';
+  }
+  if (pct >= 50) {
+    return 'Moderate';
+  }
+  if (pct >= 20) {
+    return 'Loose';
+  }
   return 'Very loose';
 };
 
@@ -148,8 +202,12 @@ const FocusConfigPanel = ({
     </div>
 
     <div className="flex items-center gap-3">
-      <Button variant="primary" size="sm">Save changes</Button>
-      <Button variant="ghost" size="sm">Cancel</Button>
+      <Button variant="primary" size="sm">
+        Save changes
+      </Button>
+      <Button variant="ghost" size="sm">
+        Cancel
+      </Button>
     </div>
   </div>
 );
@@ -170,9 +228,7 @@ const FocusPreviewPanel = ({
   return (
     <div>
       <div className="flex items-baseline justify-between mb-4">
-        <h3 className="font-mono text-xs tracking-wide text-ink-faint uppercase">
-          Matching articles
-        </h3>
+        <h3 className="font-mono text-xs tracking-wide text-ink-faint uppercase">Matching articles</h3>
         <span className="font-mono text-xs text-ink-tertiary">
           {included.length} of {articles.length}
         </span>
@@ -218,8 +274,15 @@ const EditionTocPanel = (): React.ReactElement => (
     </div>
 
     {[
-      { name: 'Technology', articles: ['The quiet revolution in reader design', 'TypeScript 6.0 introduces pattern matching', 'Why SQLite is the database you didn\'t know you needed'] },
-      { name: 'Science', articles: ['JWST captures light from the universe\'s first galaxies'] },
+      {
+        name: 'Technology',
+        articles: [
+          'The quiet revolution in reader design',
+          'TypeScript 6.0 introduces pattern matching',
+          "Why SQLite is the database you didn't know you needed",
+        ],
+      },
+      { name: 'Science', articles: ["JWST captures light from the universe's first galaxies"] },
       { name: 'Global News', articles: ['Pacific trade agreement reaches final ratification'] },
     ].map((section, i) => (
       <div key={section.name} className="mb-6">
@@ -250,8 +313,11 @@ const InteractiveFocusBuilder = (): React.ReactElement => {
   const toggleSource = (id: string): void => {
     setSelectedSourceIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   };
@@ -313,8 +379,12 @@ const InteractiveEditionBuilder = (): React.ReactElement => (
             ))}
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="primary" size="sm">Save changes</Button>
-            <Button variant="ghost" size="sm">Cancel</Button>
+            <Button variant="primary" size="sm">
+              Save changes
+            </Button>
+            <Button variant="ghost" size="sm">
+              Cancel
+            </Button>
           </div>
         </div>
       }

@@ -18,7 +18,9 @@ const useReadingProgress = (articleId: string, initialProgress: number): void =>
   const getScrollRatio = useCallback((): number => {
     const scrollTop = window.scrollY;
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    if (docHeight <= 0) return 0;
+    if (docHeight <= 0) {
+      return 0;
+    }
     return Math.min(1, scrollTop / docHeight);
   }, []);
 
@@ -36,7 +38,9 @@ const useReadingProgress = (articleId: string, initialProgress: number): void =>
 
   // Restore scroll position on mount
   useEffect(() => {
-    if (restored.current) return;
+    if (restored.current) {
+      return;
+    }
     restored.current = true;
 
     const restore = (): void => {

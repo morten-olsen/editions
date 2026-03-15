@@ -67,36 +67,36 @@ const EditionListView = ({
     <div className="min-h-dvh bg-surface">
       {editionHeader}
       <article className="max-w-prose mx-auto px-4 py-8 md:px-6 md:py-12">
-      {edition.articles.length > 0 && (
-        <MagazinePromo
-          promoImage={promoImage ?? null}
-          articleCount={edition.articleCount}
-          totalReadingMinutes={edition.totalReadingMinutes}
-          onOpen={onOpenMagazine}
-        />
-      )}
+        {edition.articles.length > 0 && (
+          <MagazinePromo
+            promoImage={promoImage ?? null}
+            articleCount={edition.articleCount}
+            totalReadingMinutes={edition.totalReadingMinutes}
+            onOpen={onOpenMagazine}
+          />
+        )}
 
-      <EditionTitle edition={edition} sectionCount={sections.length} />
+        <EditionTitle edition={edition} sectionCount={sections.length} />
 
-      {edition.articles.length === 0 ? (
-        <div className="py-12 text-center text-sm text-ink-tertiary">
-          No articles matched the criteria for this edition.
+        {edition.articles.length === 0 ? (
+          <div className="py-12 text-center text-sm text-ink-tertiary">
+            No articles matched the criteria for this edition.
+          </div>
+        ) : (
+          <EditionSections sections={sections} votes={votes} onVote={onVote} />
+        )}
+
+        <Separator soft className="mt-12" />
+        <div className="py-10 text-center">
+          <div className="font-serif text-xl text-ink mb-3">End of edition</div>
+          <div className="text-sm text-ink-tertiary mb-6">
+            {edition.articleCount} articles
+            {edition.totalReadingMinutes && ` · ${edition.totalReadingMinutes} minutes`}
+          </div>
+          <Button variant="primary" size="sm" onClick={onMarkDone}>
+            Done
+          </Button>
         </div>
-      ) : (
-        <EditionSections sections={sections} votes={votes} onVote={onVote} />
-      )}
-
-      <Separator soft className="mt-12" />
-      <div className="py-10 text-center">
-        <div className="font-serif text-xl text-ink mb-3">End of edition</div>
-        <div className="text-sm text-ink-tertiary mb-6">
-          {edition.articleCount} articles
-          {edition.totalReadingMinutes && ` · ${edition.totalReadingMinutes} minutes`}
-        </div>
-        <Button variant="primary" size="sm" onClick={onMarkDone}>
-          Done
-        </Button>
-      </div>
       </article>
     </div>
   );

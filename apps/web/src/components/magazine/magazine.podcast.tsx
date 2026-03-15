@@ -158,7 +158,13 @@ const PodcastLayout = (props: MagazineArticleProps): React.ReactElement => {
             />
           </>
         ) : (
-          <ArticleFooter content={null} vote={vote} onVote={onVote} voteLabel={voteLabel} voteDelay={baseDelay + 0.15} />
+          <ArticleFooter
+            content={null}
+            vote={vote}
+            onVote={onVote}
+            voteLabel={voteLabel}
+            voteDelay={baseDelay + 0.15}
+          />
         )}
       </div>
     </MagazinePage>

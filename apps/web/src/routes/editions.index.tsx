@@ -38,7 +38,14 @@ const EditionsPage = (): React.ReactNode => {
       ) : (
         <div className="grid gap-3">
           {configs.map((config) => (
-            <EditionConfigCard key={config.id} config={config} deletingId={deletingId} generatingId={generatingId} onDelete={handleDelete} onGenerate={handleGenerate} />
+            <EditionConfigCard
+              key={config.id}
+              config={config}
+              deletingId={deletingId}
+              generatingId={generatingId}
+              onDelete={handleDelete}
+              onGenerate={handleGenerate}
+            />
           ))}
         </div>
       )}
@@ -130,10 +137,7 @@ const EditionConfigCard = ({
     {config.focuses.length > 0 && (
       <div className="flex flex-wrap gap-1.5">
         {config.focuses.map((f) => (
-          <span
-            key={f.focusId}
-            className="text-xs px-2 py-0.5 rounded-full bg-surface-sunken text-ink-tertiary"
-          >
+          <span key={f.focusId} className="text-xs px-2 py-0.5 rounded-full bg-surface-sunken text-ink-tertiary">
             {f.focusName}
           </span>
         ))}

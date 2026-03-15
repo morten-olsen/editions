@@ -1,9 +1,6 @@
 import { client } from '../../api/api.ts';
 
-const pollFetchTask = (
-  jobId: string,
-  headers: Record<string, string> | undefined,
-): Promise<string> =>
+const pollFetchTask = (jobId: string, headers: Record<string, string> | undefined): Promise<string> =>
   new Promise((resolve, reject) => {
     const check = async (): Promise<void> => {
       const { data: job } = await client.GET('/api/jobs/{jobId}', {

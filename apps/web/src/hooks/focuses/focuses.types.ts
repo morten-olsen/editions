@@ -1,10 +1,7 @@
 type VoteValue = 1 | -1 | null;
 
-type SourceMode = 'always' | 'match';
-
 type SourceSelection = {
   sourceId: string;
-  mode: SourceMode;
   weight: number;
   minConfidence: number | null;
 };
@@ -19,7 +16,9 @@ type FocusListItem = {
   id: string;
   name: string;
   description: string | null;
-  sources: { sourceId: string; mode: SourceMode }[];
+  icon: string | null;
+  minConfidence: number;
+  sources: { sourceId: string; weight: number; minConfidence: number | null }[];
   createdAt: string;
 };
 
@@ -27,7 +26,7 @@ type FocusDetail = {
   id: string;
   name: string;
   description: string | null;
-  sources: { sourceId: string; mode: SourceMode }[];
+  sources: { sourceId: string }[];
   createdAt: string;
   updatedAt: string;
 };
@@ -89,7 +88,6 @@ type VoteOverride = { vote?: VoteValue; globalVote?: VoteValue };
 
 export type {
   VoteValue,
-  SourceMode,
   SourceSelection,
   Source,
   FocusListItem,

@@ -3,7 +3,6 @@ import { Link } from '@tanstack/react-router';
 import { motion, type Transition } from 'motion/react';
 
 import { BookmarkButton } from './bookmark-button.tsx';
-import { Collapse } from './animate.tsx';
 import { VoteControls } from './vote-controls.tsx';
 import type { VoteValue } from './vote-controls.tsx';
 
@@ -22,24 +21,21 @@ type ArticleCardProps = {
   url?: string | null;
   href?: string;
   compact?: boolean;
-  /** When true, renders a muted, compact version for already-read articles */
   read?: boolean;
-  /** Global quality vote: "Is this a good article?" */
   vote?: VoteValue;
   onVote?: (value: VoteValue) => void;
-  /** Focus-scoped relevance vote: "Does this belong in this focus?" */
   focusVote?: VoteValue;
   onFocusVote?: (value: VoteValue) => void;
-  /** Bookmark state */
   bookmarked?: boolean;
   onBookmarkToggle?: () => void;
 };
 
+/* ── Helpers ──────────────────────────────────────────────────────── */
+
 const formatTime = (seconds: number, sourceType?: string | null): string => {
   const minutes = Math.round(seconds / 60);
-  if (minutes < 1) {
-    return '< 1 min';
-  }
+  if (minutes < 1) return '< 1 min';
+  if (!sourceType) return `${minutes} min`;
   const suffix = sourceType === 'podcast' ? 'listen' : 'read';
   return `${minutes} min ${suffix}`;
 };
@@ -49,121 +45,16 @@ const formatDate = (iso: string): string => {
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffHours = diffMs / (1000 * 60 * 60);
-
-  if (diffHours < 1) {
-    return 'Just now';
-  }
-  if (diffHours < 24) {
-    return `${Math.floor(diffHours)}h ago`;
-  }
-  if (diffHours < 48) {
-    return 'Yesterday';
-  }
+  if (diffHours < 1) return 'Just now';
+  if (diffHours < 24) return `${Math.floor(diffHours)}h ago`;
+  if (diffHours < 48) return 'Yesterday';
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 };
 
-const Dot = (): React.ReactElement => <span className="text-ink-faint">·</span>;
-
-/* ── Animation tokens ──────────────────────────────────────────────── */
-
 const ease = [0.25, 0.1, 0.25, 1] as const;
-
 const gentle: Transition = { duration: 0.35, ease };
 
-/* ── Sub-components ──────────────────────────────────────────────── */
-
 const MotionLink = motion.create(Link);
-
-type CardMetaProps = {
-  sourceName: string;
-  publishedAt?: string | null;
-  sourceType?: string | null;
-  consumptionTimeSeconds?: number | null;
-};
-
-const CardMeta = ({
-  sourceName,
-  publishedAt,
-  sourceType,
-  consumptionTimeSeconds,
-}: CardMetaProps): React.ReactElement => (
-  <div className="flex items-center gap-1.5 text-xs text-ink-tertiary">
-    <span>{sourceName}</span>
-    {publishedAt && (
-      <>
-        <Dot />
-        <span>{formatDate(publishedAt)}</span>
-      </>
-    )}
-    {sourceType === 'podcast' && (
-      <>
-        <Dot />
-        <span className="text-accent font-medium">Podcast</span>
-      </>
-    )}
-    {consumptionTimeSeconds && (
-      <>
-        <Dot />
-        <span>{formatTime(consumptionTimeSeconds, sourceType)}</span>
-      </>
-    )}
-  </div>
-);
-
-type CardTitleProps = {
-  title: string;
-  muted: boolean;
-  compact: boolean;
-};
-
-const CardTitle = ({ title, muted, compact }: CardTitleProps): React.ReactElement => (
-  <motion.div
-    animate={{ opacity: muted ? 0.7 : 1 }}
-    transition={gentle}
-    className={`font-serif font-medium tracking-tight leading-snug ${muted ? 'text-sm text-ink-tertiary' : compact ? 'text-sm text-ink' : 'text-lg text-ink'}`}
-  >
-    {title}
-  </motion.div>
-);
-
-type CardImageProps = {
-  imageUrl: string;
-};
-
-const CardImage = ({ imageUrl }: CardImageProps): React.ReactElement => (
-  <div className="flex flex-col sm:flex-row sm:gap-5">
-    <div className="sm:hidden -mx-1 mb-2 aspect-[3/1] rounded-md overflow-hidden bg-surface-sunken">
-      <img src={imageUrl} alt="" className="w-full h-full object-cover" />
-    </div>
-    <div className="hidden sm:block shrink-0 w-28 h-20 rounded-md overflow-hidden bg-surface-sunken">
-      <img src={imageUrl} alt="" className="w-full h-full object-cover" />
-    </div>
-  </div>
-);
-
-type CardActionsProps = {
-  vote?: VoteValue;
-  onVote?: (value: VoteValue) => void;
-  focusVote?: VoteValue;
-  onFocusVote?: (value: VoteValue) => void;
-  bookmarked?: boolean;
-  onBookmarkToggle?: () => void;
-};
-
-const CardActions = ({
-  vote,
-  onVote,
-  focusVote,
-  onFocusVote,
-  bookmarked,
-  onBookmarkToggle,
-}: CardActionsProps): React.ReactElement => (
-  <div className="flex items-center gap-4 mt-1">
-    {onFocusVote && <VoteControls value={focusVote ?? null} onVote={onFocusVote} label="Relevance" />}
-    {onVote && <VoteControls value={vote ?? null} onVote={onVote} label="Quality" />}
-    {onBookmarkToggle && <BookmarkButton bookmarked={bookmarked ?? false} onToggle={onBookmarkToggle} />}
-  </div>
-);
 
 /* ── Card content ────────────────────────────────────────────────── */
 
@@ -188,49 +79,88 @@ const CardContent = ({
   onBookmarkToggle,
 }: CardContentProps): React.ReactElement => {
   const muted = read;
-  const showDetails = !compact;
-  const hasImage = showDetails && imageUrl;
+  const hasImage = !compact && imageUrl && !muted;
   const hasActions = onVote !== undefined || onFocusVote !== undefined || onBookmarkToggle !== undefined;
+
+  if (compact || muted) {
+    return (
+      <div className="flex items-start gap-4">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 font-mono text-xs tracking-wide text-ink-faint mb-1">
+            <span className={muted ? '' : 'text-accent'}>{sourceName}</span>
+            {publishedAt && (
+              <>
+                <span>·</span>
+                <span>{formatDate(publishedAt)}</span>
+              </>
+            )}
+          </div>
+          <div className={`font-serif tracking-tight leading-snug ${muted ? 'text-sm text-ink-tertiary' : 'text-sm text-ink font-medium'}`}>
+            {title}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
-      <CardMeta
-        sourceName={sourceName}
-        publishedAt={publishedAt}
-        sourceType={sourceType}
-        consumptionTimeSeconds={consumptionTimeSeconds}
-      />
-      <CardTitle title={title} muted={muted} compact={compact} />
-      {showDetails && summary && (
-        <motion.div
-          animate={{ opacity: muted ? 0.6 : 1 }}
-          transition={gentle}
-          className={`text-sm leading-relaxed ${muted ? 'line-clamp-1 text-ink-faint' : 'line-clamp-2 text-ink-secondary'}`}
-        >
-          {summary}
-        </motion.div>
+      {/* Image — full-width above content */}
+      {hasImage && (
+        <div className="aspect-[3/1] rounded-lg overflow-hidden bg-surface-sunken mb-4">
+          <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+        </div>
       )}
-      <Collapse show={!!hasImage && !muted}>
-        <CardImage imageUrl={imageUrl ?? ''} />
-      </Collapse>
-      <Collapse show={showDetails && !muted && !!author}>
-        <div className="text-xs text-ink-tertiary">By {author}</div>
-      </Collapse>
-      <Collapse show={!muted && hasActions}>
-        <CardActions
-          vote={vote}
-          onVote={onVote}
-          focusVote={focusVote}
-          onFocusVote={onFocusVote}
-          bookmarked={bookmarked}
-          onBookmarkToggle={onBookmarkToggle}
-        />
-      </Collapse>
+
+      {/* Source badge */}
+      <div className="flex items-center gap-1.5 font-mono text-xs tracking-wide mb-2">
+        <span className="text-accent">{sourceName}</span>
+        {sourceType === 'podcast' && (
+          <>
+            <span className="text-ink-faint">·</span>
+            <span className="text-accent font-medium">Podcast</span>
+          </>
+        )}
+      </div>
+
+      {/* Title — editorial scale */}
+      <h3 className="font-serif text-xl font-medium tracking-tight leading-snug text-ink mb-2 group-hover:text-accent transition-colors duration-fast">
+        {title}
+      </h3>
+
+      {/* Summary */}
+      {summary && (
+        <p className="font-serif text-sm leading-relaxed text-ink-secondary line-clamp-2 mb-3">
+          {summary}
+        </p>
+      )}
+
+      {/* Byline + meta */}
+      <div className="flex items-center gap-2 text-xs text-ink-tertiary">
+        {author && <span>By {author}</span>}
+        {author && (publishedAt || consumptionTimeSeconds) && <span className="text-ink-faint">·</span>}
+        {publishedAt && <span>{formatDate(publishedAt)}</span>}
+        {consumptionTimeSeconds != null && (
+          <>
+            {publishedAt && <span className="text-ink-faint">·</span>}
+            <span>{formatTime(consumptionTimeSeconds, sourceType)}</span>
+          </>
+        )}
+      </div>
+
+      {/* Actions */}
+      {hasActions && !muted && (
+        <div className="flex items-center gap-4 mt-3">
+          {onFocusVote && <VoteControls value={focusVote ?? null} onVote={onFocusVote} label="Relevance" />}
+          {onVote && <VoteControls value={vote ?? null} onVote={onVote} label="Quality" />}
+          {onBookmarkToggle && <BookmarkButton bookmarked={bookmarked ?? false} onToggle={onBookmarkToggle} />}
+        </div>
+      )}
     </>
   );
 };
 
-/* ── Card ───────────────────────────────────────────────────────── */
+/* ── Card wrapper ────────────────────────────────────────────────── */
 
 const ArticleCard = ({ id, href, read = false, ...rest }: ArticleCardProps): React.ReactElement => {
   const aiId = `article-${id}`;
@@ -238,15 +168,14 @@ const ArticleCard = ({ id, href, read = false, ...rest }: ArticleCardProps): Rea
     .filter(Boolean)
     .join(' · ');
   const muted = read;
-  const wrapperClass = `flex flex-col gap-1.5 ${href ? 'cursor-pointer group' : ''}`;
 
   if (href) {
     return (
       <MotionLink
         to={href}
-        animate={{ opacity: muted ? 0.55 : 1, paddingTop: muted ? 8 : 16, paddingBottom: muted ? 8 : 16 }}
+        animate={{ opacity: muted ? 0.55 : 1 }}
         transition={gentle}
-        className={wrapperClass}
+        className={`block py-6 ${href ? 'cursor-pointer group' : ''}`}
         data-ai-id={aiId}
         data-ai-role="link"
         data-ai-label={aiLabel}
@@ -258,9 +187,9 @@ const ArticleCard = ({ id, href, read = false, ...rest }: ArticleCardProps): Rea
 
   return (
     <motion.div
-      animate={{ opacity: muted ? 0.55 : 1, paddingTop: muted ? 8 : 16, paddingBottom: muted ? 8 : 16 }}
+      animate={{ opacity: muted ? 0.55 : 1 }}
       transition={gentle}
-      className={wrapperClass}
+      className="py-6"
       data-ai-id={aiId}
       data-ai-role="section"
       data-ai-label={aiLabel}

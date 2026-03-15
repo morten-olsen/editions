@@ -69,14 +69,11 @@ type FocusesTable = {
   updated_at: Timestamp;
 };
 
-type FocusSourceMode = 'always' | 'match';
-
 type EditionBudgetType = 'time' | 'count';
 
 type FocusSourcesTable = {
   focus_id: string;
   source_id: string;
-  mode: FocusSourceMode;
   weight: ColumnType<number, number | undefined, number>;
   min_confidence: number | null;
 };
@@ -195,7 +192,6 @@ export type {
   SourceType,
   ArticlesTable,
   FocusesTable,
-  FocusSourceMode,
   FocusSourcesTable,
   ArticleFocusesTable,
   ArticleEmbeddingsTable,

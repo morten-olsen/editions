@@ -27,7 +27,7 @@ const EditSourcePage = (): React.ReactNode => {
   }
 
   return (
-    <>
+    <div className="max-w-prose mx-auto px-4 py-6 md:px-8 md:py-8">
       <PageHeader title="Edit source" />
       {hook.form.error && (
         <div
@@ -46,7 +46,7 @@ const EditSourcePage = (): React.ReactNode => {
           <DeleteSourceSection hook={hook} />
         </>
       )}
-    </>
+    </div>
   );
 };
 

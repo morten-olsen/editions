@@ -91,8 +91,9 @@ const buildSectionPages = (
           mediaType={article.mediaType}
           progress={article.progress}
           articleId={article.id}
-          focusVote={votes[article.id] ?? null}
-          onFocusVote={(value) => onVote(article.id, value)}
+          vote={votes[article.id] ?? null}
+          onVote={(value) => onVote(article.id, value)}
+          voteLabel="Edition"
         />,
       );
     });

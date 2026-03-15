@@ -133,7 +133,7 @@ const CoverContent = ({ edition, hasImage }: { edition: HomeEdition; hasImage: b
 
 const EditionTeaser = ({ edition }: { edition: HomeEdition }): React.ReactElement => (
   <Link
-    to="/editions/$configId/issues/$editionId"
+    to="/editions/$configId/issues/$editionId/magazine"
     params={{ configId: edition.editionConfigId, editionId: edition.id }}
     className="group block py-4 border-t border-border hover:border-accent transition-colors duration-fast"
   >

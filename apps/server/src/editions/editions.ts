@@ -6,6 +6,7 @@ import { VotesService } from '../votes/votes.ts';
 import type { Services } from '../services/services.ts';
 
 import { loadExcludedArticleIds, loadFocusDetails, collectArticlesForFocuses } from './editions.generate.ts';
+import type { GenerateResult } from './editions.generate.ts';
 import {
   mapFocusLinkRow,
   mapEditionArticleRow,
@@ -25,6 +26,26 @@ import type {
   EditionSummary,
   EditionArticle,
 } from './editions.queries.ts';
+
+// --- Preview types ---
+
+type EditionPreviewArticle = {
+  id: string;
+  title: string;
+  sourceName: string;
+  consumptionTimeSeconds: number | null;
+};
+
+type EditionPreviewSection = {
+  focusName: string;
+  articles: EditionPreviewArticle[];
+};
+
+type EditionPreview = {
+  sections: EditionPreviewSection[];
+  totalArticles: number;
+  totalReadingMinutes: number;
+};
 
 // --- Errors ---
 
@@ -292,14 +313,12 @@ class EditionsService {
 
   // --- Generation ---
 
-  generate = async (userId: string, configId: string): Promise<EditionDetail> => {
+  #collectForConfig = async (
+    userId: string,
+    configId: string,
+    config: EditionConfig,
+  ): Promise<GenerateResult> => {
     const db = await this.#services.get(DatabaseService).getInstance();
-    const config = await this.getConfig(userId, configId);
-
-    if (config.focuses.length === 0) {
-      throw new EditionError('Edition config has no focuses');
-    }
-
     const sortedFocuses = [...config.focuses].sort((a, b) => a.position - b.position);
     const needsExcludedSet = config.excludePriorEditions || config.focuses.some((f) => f.excludePriorEditions === true);
 
@@ -318,7 +337,7 @@ class EditionsService {
 
     const [globalVoteContext, editionVoteContext, userWeights] = voteData;
 
-    const { articles: editionArticles, totalReadingSeconds } = await collectArticlesForFocuses({
+    return collectArticlesForFocuses({
       db,
       userId,
       configId,
@@ -331,6 +350,17 @@ class EditionsService {
       votesService,
       editionWeights: userWeights.edition,
     });
+  };
+
+  generate = async (userId: string, configId: string): Promise<EditionDetail> => {
+    const db = await this.#services.get(DatabaseService).getInstance();
+    const config = await this.getConfig(userId, configId);
+
+    if (config.focuses.length === 0) {
+      throw new EditionError('Edition config has no focuses');
+    }
+
+    const { articles: editionArticles, totalReadingSeconds } = await this.#collectForConfig(userId, configId, config);
 
     const editionId = crypto.randomUUID();
     const now = new Date().toISOString();
@@ -365,6 +395,80 @@ class EditionsService {
 
     return this.getEdition(userId, editionId);
   };
+
+  previewGenerate = async (
+    userId: string,
+    configId: string,
+    overrides?: {
+      lookbackHours?: number;
+      excludePriorEditions?: boolean;
+      focuses?: EditionConfigFocus[];
+    },
+  ): Promise<EditionPreview> => {
+    const db = await this.#services.get(DatabaseService).getInstance();
+    const saved = await this.getConfig(userId, configId);
+
+    const config = {
+      ...saved,
+      lookbackHours: overrides?.lookbackHours ?? saved.lookbackHours,
+      excludePriorEditions: overrides?.excludePriorEditions ?? saved.excludePriorEditions,
+      focuses: overrides?.focuses ?? saved.focuses,
+    };
+
+    if (config.focuses.length === 0) {
+      return { sections: [], totalArticles: 0, totalReadingMinutes: 0 };
+    }
+
+    const { articles: editionArticles, totalReadingSeconds } = await this.#collectForConfig(userId, configId, config);
+
+    // Group collected articles into sections by focus
+    const focusNameMap = new Map<string, string>();
+    for (const fc of config.focuses) {
+      focusNameMap.set(fc.focusId, fc.focusName);
+    }
+
+    // Batch-load all article details in a single query instead of one-by-one
+    const articleIds = editionArticles.map((ea) => ea.articleId);
+    const articleRows = articleIds.length > 0
+      ? await db
+          .selectFrom('articles')
+          .innerJoin('sources', 'sources.id', 'articles.source_id')
+          .select(['articles.id', 'articles.title', 'sources.name as source_name', 'articles.consumption_time_seconds'])
+          .where('articles.id', 'in', articleIds)
+          .execute()
+      : [];
+
+    const articleMap = new Map(articleRows.map((row) => [row.id, row]));
+
+    const sectionMap = new Map<string, EditionPreviewSection>();
+    const sectionOrder: EditionPreviewSection[] = [];
+
+    for (const ea of editionArticles) {
+      let section = sectionMap.get(ea.focusId);
+      if (!section) {
+        section = { focusName: focusNameMap.get(ea.focusId) ?? ea.focusId, articles: [] };
+        sectionMap.set(ea.focusId, section);
+        sectionOrder.push(section);
+      }
+
+      const row = articleMap.get(ea.articleId);
+      if (row) {
+        section.articles.push({
+          id: row.id,
+          title: row.title,
+          sourceName: row.source_name,
+          consumptionTimeSeconds: row.consumption_time_seconds,
+        });
+      }
+    }
+
+    const resolvedCount = sectionOrder.reduce((sum, s) => sum + s.articles.length, 0);
+    return {
+      sections: sectionOrder,
+      totalArticles: resolvedCount,
+      totalReadingMinutes: Math.ceil(totalReadingSeconds / 60) || 0,
+    };
+  };
 }
 
 export type {
@@ -376,5 +480,8 @@ export type {
   EditionDetail,
   EditionSummary,
   EditionArticle,
+  EditionPreview,
+  EditionPreviewSection,
+  EditionPreviewArticle,
 };
 export { EditionsService, EditionError, EditionConfigNotFoundError, EditionNotFoundError };

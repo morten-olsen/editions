@@ -14,7 +14,7 @@ const NewSourcePage = (): React.ReactNode => {
   }
 
   return (
-    <>
+    <div className="max-w-prose mx-auto px-4 py-6 md:px-8 md:py-8">
       <PageHeader
         title="Add source"
         subtitle={form.sourceType === 'podcast' ? 'Add a podcast feed' : 'Add a new RSS feed to your collection'}
@@ -64,7 +64,7 @@ const NewSourcePage = (): React.ReactNode => {
           </Button>
         </div>
       </form>
-    </>
+    </div>
   );
 };
 

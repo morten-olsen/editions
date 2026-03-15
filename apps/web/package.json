@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "check": "tsc -b --noEmit",
     "preview": "vite preview",
-    "generate:api": "openapi-typescript ${API_URL:-http://localhost:3007}/api/docs/openapi.json -o src/api/api.types.ts",
+    "generate:api": "openapi-typescript ${API_URL}/api/docs/openapi.json -o src/api/api.types.ts",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },

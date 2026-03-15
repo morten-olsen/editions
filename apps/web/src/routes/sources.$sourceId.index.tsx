@@ -28,7 +28,7 @@ const SourceDetailPage = (): React.ReactNode => {
   }
 
   return (
-    <>
+    <div className="max-w-prose mx-auto px-4 py-6 md:px-8 md:py-8">
       <SourceHeader source={detail.source} sourceId={sourceId} detail={detail} />
       <SourceStatusMessages
         source={detail.source}
@@ -38,7 +38,7 @@ const SourceDetailPage = (): React.ReactNode => {
       <SourceMeta source={detail.source} articlesPage={detail.articlesPage} />
       <Separator soft className="mb-6" />
       <SourceArticles source={detail.source} sourceId={sourceId} detail={detail} />
-    </>
+    </div>
   );
 };
 

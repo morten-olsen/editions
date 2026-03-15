@@ -18,6 +18,7 @@ type ArticleDetail = {
   mediaUrl: string | null;
   mediaType: string | null;
   sourceType: string;
+  sourceName: string;
   imageUrl: string | null;
   publishedAt: string | null;
   readAt: string | null;

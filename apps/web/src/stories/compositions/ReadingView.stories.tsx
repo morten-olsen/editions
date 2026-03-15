@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { ReadingShell } from '../../components/app-shell.tsx';
 import { Button } from '../../components/button.tsx';
 import { Separator } from '../../components/separator.tsx';
 
@@ -26,7 +25,9 @@ const Header = (): React.ReactElement => (
 
 const ArticleReading: Story = {
   render: () => (
-    <ReadingShell header={<Header />}>
+    <div className="min-h-dvh bg-surface">
+      <Header />
+      <article className="max-w-prose mx-auto px-4 py-8 md:px-6 md:py-12">
       <div className="mb-10">
         <div className="flex items-center gap-1.5 text-xs text-ink-tertiary mb-4">
           <time>15 March 2026</time>
@@ -120,7 +121,8 @@ const ArticleReading: Story = {
           </Button>
         </div>
       </div>
-    </ReadingShell>
+      </article>
+    </div>
   ),
 };
 

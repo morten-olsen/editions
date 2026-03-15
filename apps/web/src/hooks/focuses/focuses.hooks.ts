@@ -5,7 +5,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useAuthHeaders, queryKeys } from '../../api/api.hooks.ts';
 import { client } from '../../api/api.ts';
 
-import type { SourceMode, SourceSelection, Source, FocusListItem } from './focuses.types.ts';
+import type { SourceSelection, Source, FocusListItem } from './focuses.types.ts';
 
 // ---------------------------------------------------------------------------
 // useFocusesList
@@ -46,7 +46,6 @@ type UseFocusSourceSelectionResult = {
   selectedSources: SourceSelection[];
   selectedIds: Set<string>;
   toggleSource: (sourceId: string) => void;
-  changeMode: (sourceId: string, mode: SourceMode) => void;
   changeWeight: (sourceId: string, weight: number) => void;
   changeMinConfidence: (sourceId: string, minConfidence: number | null) => void;
   setSelectedSources: React.Dispatch<React.SetStateAction<SourceSelection[]>>;
@@ -71,12 +70,8 @@ const useFocusSourceSelection = (params?: UseFocusSourceSelectionParams): UseFoc
       if (existing) {
         return prev.filter((s) => s.sourceId !== sourceId);
       }
-      return [...prev, { sourceId, mode: 'always' as const, weight: 1, minConfidence: null }];
+      return [...prev, { sourceId, weight: 1, minConfidence: null }];
     });
-  }, []);
-
-  const changeMode = useCallback((sourceId: string, mode: SourceMode): void => {
-    setSelectedSources((prev) => prev.map((s) => (s.sourceId === sourceId ? { ...s, mode } : s)));
   }, []);
 
   const changeWeight = useCallback((sourceId: string, weight: number): void => {
@@ -95,7 +90,6 @@ const useFocusSourceSelection = (params?: UseFocusSourceSelectionParams): UseFoc
     selectedSources,
     selectedIds,
     toggleSource,
-    changeMode,
     changeWeight,
     changeMinConfidence,
     setSelectedSources,
@@ -179,7 +173,7 @@ const useCreateFocus = (): UseCreateFocusResult => {
   const sourceSelection = useFocusSourceSelection();
 
   const createMutation = useMutation({
-    mutationFn: async (): Promise<void> => {
+    mutationFn: async (): Promise<string> => {
       const body = buildCreateFocusBody({
         name,
         description,
@@ -189,15 +183,16 @@ const useCreateFocus = (): UseCreateFocusResult => {
         maxReadingTime,
         sources: sourceSelection.selectedSources,
       });
-      const { error: err } = await client.POST('/api/focuses', { body, headers });
+      const { data, error: err } = await client.POST('/api/focuses', { body, headers });
       if (err) {
         throw new Error('error' in err ? (err as { error: string }).error : 'Failed to create focus');
       }
+      return (data as { id: string }).id;
     },
-    onSuccess: async (): Promise<void> => {
+    onSuccess: async (focusId: string): Promise<void> => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.nav });
       await queryClient.invalidateQueries({ queryKey: queryKeys.focuses.all });
-      await navigate({ to: '/focuses' });
+      await navigate({ to: '/focuses/$focusId/edit', params: { focusId } });
     },
     onError: (err: Error): void => setError(err.message),
   });
@@ -235,7 +230,6 @@ const useCreateFocus = (): UseCreateFocusResult => {
 
 export type {
   VoteValue,
-  SourceMode,
   SourceSelection,
   Source,
   FocusListItem,

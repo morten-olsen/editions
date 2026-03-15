@@ -33,7 +33,7 @@ const SettingsPage = (): React.ReactNode => {
   }
 
   return (
-    <>
+    <div className="max-w-prose mx-auto px-4 py-6 md:px-8 md:py-8">
       <PageHeader title="Settings" />
 
       <SettingsTabs activeTab={activeTab} onTabChange={setActiveTab} />
@@ -46,7 +46,7 @@ const SettingsPage = (): React.ReactNode => {
       {activeTab === 'votes' && <VotesSection />}
       {activeTab === 'scoring' && <ScoringSection token={auth.token} />}
       {activeTab === 'assistant' && <AiSection />}
-    </>
+    </div>
   );
 };
 

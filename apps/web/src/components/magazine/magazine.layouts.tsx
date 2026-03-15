@@ -28,8 +28,9 @@ const HeroLayout = (props: MagazineArticleProps): React.ReactElement => {
     imageUrl,
     sourceType,
     content,
-    focusVote,
-    onFocusVote,
+    vote,
+    onVote,
+    voteLabel,
   } = props;
   const hasContent = !!content;
 
@@ -73,7 +74,7 @@ const HeroLayout = (props: MagazineArticleProps): React.ReactElement => {
           </motion.div>
         )}
       </div>
-      <ArticleFooter content={content} focusVote={focusVote} onFocusVote={onFocusVote} />
+      <ArticleFooter content={content} vote={vote} onVote={onVote} voteLabel={voteLabel} />
     </MagazinePage>
   );
 };
@@ -91,8 +92,9 @@ const EditorialLayout = (props: MagazineArticleProps): React.ReactElement => {
     imageUrl,
     sourceType,
     content,
-    focusVote,
-    onFocusVote,
+    vote,
+    onVote,
+    voteLabel,
   } = props;
   const hasContent = !!content;
 
@@ -143,11 +145,11 @@ const EditorialLayout = (props: MagazineArticleProps): React.ReactElement => {
         {hasContent ? (
           <>
             <ArticleBody content={content} delay={0.5} />
-            {onFocusVote && <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} delay={0.65} />}
+            {onVote && <VoteRow vote={vote ?? null} onVote={onVote} label={voteLabel} delay={0.65} />}
             <NextPrompt delay={0.7} />
           </>
         ) : (
-          onFocusVote && <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} delay={0.5} />
+          onVote && <VoteRow vote={vote ?? null} onVote={onVote} label={voteLabel} delay={0.5} />
         )}
       </div>
     </MagazinePage>
@@ -200,8 +202,9 @@ const CompactLayout = (props: MagazineArticleProps): React.ReactElement => {
     imageUrl,
     sourceType,
     content,
-    focusVote,
-    onFocusVote,
+    vote,
+    onVote,
+    voteLabel,
   } = props;
   const hasContent = !!content;
 
@@ -236,8 +239,9 @@ const CompactLayout = (props: MagazineArticleProps): React.ReactElement => {
       </div>
       <ArticleFooter
         content={content}
-        focusVote={focusVote}
-        onFocusVote={onFocusVote}
+        vote={vote}
+        onVote={onVote}
+        voteLabel={voteLabel}
         voteWrapperClass="max-w-wide mx-auto w-full mt-8"
       />
     </MagazinePage>

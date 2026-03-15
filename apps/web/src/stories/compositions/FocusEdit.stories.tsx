@@ -10,9 +10,6 @@ import { IconPicker } from '../../components/icon-picker.tsx';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const selectClasses =
-  'rounded-md border border-border bg-surface px-2 py-1 text-xs text-ink-secondary focus:outline-none focus:ring-1 focus:ring-accent';
-
 const priorityLabel = (w: number): string => {
   if (w <= 0.1) {
     return 'Off';
@@ -49,8 +46,8 @@ const confidenceHint = (v: number): string => {
 
 type SourceSelection = {
   sourceId: string;
-  mode: 'always' | 'match';
   weight: number;
+  minConfidence: number | null;
 };
 
 const ALL_SOURCES = [
@@ -75,8 +72,8 @@ const FocusEditForm = ({ mode }: { mode: 'create' | 'edit' }): React.ReactElemen
   const [selectedSources, setSelectedSources] = useState<SourceSelection[]>(
     mode === 'edit'
       ? [
-          { sourceId: '1', mode: 'always', weight: 2 },
-          { sourceId: '2', mode: 'match', weight: 1 },
+          { sourceId: '1', weight: 2, minConfidence: null },
+          { sourceId: '2', weight: 1, minConfidence: 0.3 },
         ]
       : [],
   );
@@ -89,12 +86,8 @@ const FocusEditForm = ({ mode }: { mode: 'create' | 'edit' }): React.ReactElemen
       if (existing) {
         return prev.filter((s) => s.sourceId !== sourceId);
       }
-      return [...prev, { sourceId, mode: 'always', weight: 1 }];
+      return [...prev, { sourceId, weight: 1, minConfidence: null }];
     });
-  };
-
-  const changeMode = (sourceId: string, m: 'always' | 'match'): void => {
-    setSelectedSources((prev) => prev.map((s) => (s.sourceId === sourceId ? { ...s, mode: m } : s)));
   };
 
   const changeWeight = (sourceId: string, weight: number): void => {
@@ -187,16 +180,6 @@ const FocusEditForm = ({ mode }: { mode: 'create' | 'edit' }): React.ReactElemen
               >
                 <div className="flex items-center justify-between">
                   <Checkbox label={source.name} checked={isSelected} onCheckedChange={() => toggleSource(source.id)} />
-                  {isSelected && selection && (
-                    <select
-                      value={selection.mode}
-                      onChange={(e) => changeMode(source.id, e.target.value as 'always' | 'match')}
-                      className={selectClasses}
-                    >
-                      <option value="always">All articles</option>
-                      <option value="match">Matching only</option>
-                    </select>
-                  )}
                 </div>
                 {isSelected && selection && (
                   <div className="mt-2 pl-7 flex items-center gap-3">

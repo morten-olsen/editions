@@ -202,7 +202,7 @@ const QuickLinks = ({ configs }: { configs: HomeConfig[] }): React.ReactElement 
     {configs.map((cfg) => (
       <Link
         key={cfg.id}
-        to="/editions/$configId"
+        to="/editions/$configId/edit"
         params={{ configId: cfg.id }}
         className="font-mono text-xs tracking-wide text-ink-tertiary hover:text-ink transition-colors duration-fast"
       >

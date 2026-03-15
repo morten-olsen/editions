@@ -313,4 +313,31 @@ export type { UseEditSourceParams, EditSourceForm, UseEditSourceResult } from '.
 
 export { useEditSource } from './sources.edit-hooks.ts';
 
-export { useSourcesList, useCreateSource, useSourceDetail, PAGE_SIZE };
+// -- useClassificationStats --
+
+type FocusStat = { focusId: string; focusName: string; articleCount: number; avgConfidence: number };
+type SourceClassificationStats = { sourceId: string; focuses: FocusStat[] };
+
+const useClassificationStats = (): { stats: Map<string, FocusStat[]>; isLoading: boolean } => {
+  const headers = useAuthHeaders();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['sources', 'classification-stats'],
+    queryFn: async (): Promise<SourceClassificationStats[]> => {
+      const res = await fetch('/api/sources/classification-stats', { headers });
+      if (!res.ok) return [];
+      return (await res.json()) as SourceClassificationStats[];
+    },
+    enabled: !!headers,
+    staleTime: 30_000,
+  });
+
+  const stats = new Map<string, FocusStat[]>();
+  for (const entry of data ?? []) {
+    stats.set(entry.sourceId, entry.focuses);
+  }
+  return { stats, isLoading };
+};
+
+export type { FocusStat };
+export { useSourcesList, useCreateSource, useSourceDetail, useClassificationStats, PAGE_SIZE };

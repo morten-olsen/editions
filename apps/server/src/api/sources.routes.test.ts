@@ -313,3 +313,40 @@ describe('POST /api/sources/:id/fetch', () => {
     expect(body.jobId).toBeDefined();
   });
 });
+
+describe('classification stats', () => {
+  it('returns empty array when no sources or classifications exist', async () => {
+    const { headers } = await t.register();
+
+    const res = await t.inject({
+      method: 'GET',
+      url: '/api/sources/classification-stats',
+      headers,
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(JSON.parse(res.body)).toEqual([]);
+  });
+
+  it('returns empty stats when sources have no classifications', async () => {
+    const { headers } = await t.register();
+
+    // Create a source but don't classify anything
+    await t.inject({
+      method: 'POST',
+      url: '/api/sources',
+      headers,
+      payload: { name: 'Empty Source', url: 'https://empty.example.com/rss' },
+    });
+
+    const res = await t.inject({
+      method: 'GET',
+      url: '/api/sources/classification-stats',
+      headers,
+    });
+
+    expect(res.statusCode).toBe(200);
+    // No articles or classifications exist, so stats are empty
+    expect(JSON.parse(res.body)).toEqual([]);
+  });
+});

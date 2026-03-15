@@ -1,6 +1,6 @@
-import type { Kysely } from 'kysely';
+import { sql, type Kysely } from 'kysely';
 
-import type { DatabaseSchema, FocusSourceMode } from '../database/database.types.ts';
+import type { DatabaseSchema } from '../database/database.types.ts';
 
 import type { ReconcileStep } from './reconciler.runner.ts';
 import type { ScopeFilter } from './reconciler.utils.ts';
@@ -11,7 +11,6 @@ import type { EmbedFn } from './reconciler.embed.ts';
 type SimilarityRow = {
   article_id: string;
   focus_id: string;
-  mode: string;
   name: string;
   description: string | null;
   embedding: unknown;
@@ -20,7 +19,6 @@ type SimilarityRow = {
 type SimilarityItem = {
   articleId: string;
   focusId: string;
-  mode: FocusSourceMode;
   focusLabel: string;
   embedding: Float32Array | null;
 };
@@ -37,27 +35,29 @@ const dotProduct = (a: Float32Array, b: Float32Array): number => {
 
 // --- Persistence ---
 
-const upsertSimilarity = async (
+const batchUpsertSimilarity = async (
   db: Kysely<DatabaseSchema>,
-  articleId: string,
-  focusId: string,
-  similarity: number,
+  rows: { articleId: string; focusId: string; similarity: number }[],
   model: string,
 ): Promise<void> => {
-  const rounded = Math.round(similarity * 1000) / 1000;
+  if (rows.length === 0) {
+    return;
+  }
+  const now = new Date().toISOString();
+  const values = rows.map((r) => ({
+    article_id: r.articleId,
+    focus_id: r.focusId,
+    similarity: Math.round(r.similarity * 1000) / 1000,
+    similarity_model: model,
+  }));
   await db
     .insertInto('article_focuses')
-    .values({
-      article_id: articleId,
-      focus_id: focusId,
-      similarity: rounded,
-      similarity_model: model,
-    })
+    .values(values)
     .onConflict((oc) =>
       oc.columns(['article_id', 'focus_id']).doUpdateSet({
-        similarity: rounded,
-        similarity_model: model,
-        assigned_at: new Date().toISOString(),
+        similarity: sql`excluded.similarity`,
+        similarity_model: sql`excluded.similarity_model`,
+        assigned_at: now,
       }),
     )
     .execute();
@@ -71,20 +71,22 @@ const buildSimilarityQuery = (
   scopeFilter: ScopeFilter | undefined,
   batchSize: number,
 ) => {
+  // Join articles to focuses through their shared user (via sources), scoring every
+  // article against every focus for the same user. focus_sources controls display
+  // thresholds, not which pairs get scored.
   let q = db
-    .selectFrom('focus_sources')
-    .innerJoin('articles', 'articles.source_id', 'focus_sources.source_id')
-    .innerJoin('focuses', 'focuses.id', 'focus_sources.focus_id')
+    .selectFrom('articles')
+    .innerJoin('sources', 'sources.id', 'articles.source_id')
+    .innerJoin('focuses', 'focuses.user_id', 'sources.user_id')
     .leftJoin('article_focuses', (join) =>
       join
         .onRef('article_focuses.article_id', '=', 'articles.id')
-        .onRef('article_focuses.focus_id', '=', 'focus_sources.focus_id'),
+        .onRef('article_focuses.focus_id', '=', 'focuses.id'),
     )
     .leftJoin('article_embeddings', 'article_embeddings.article_id', 'articles.id')
     .select([
       'articles.id as article_id',
-      'focus_sources.focus_id',
-      'focus_sources.mode',
+      'focuses.id as focus_id',
       'focuses.name',
       'focuses.description',
       'article_embeddings.embedding',
@@ -100,10 +102,10 @@ const buildSimilarityQuery = (
     .limit(batchSize);
 
   if (scopeFilter?.focusIds && scopeFilter.focusIds.length > 0) {
-    q = q.where('focus_sources.focus_id', 'in', scopeFilter.focusIds);
+    q = q.where('focuses.id', 'in', scopeFilter.focusIds);
   }
   if (scopeFilter?.sourceIds && scopeFilter.sourceIds.length > 0) {
-    q = q.where('focus_sources.source_id', 'in', scopeFilter.sourceIds);
+    q = q.where('articles.source_id', 'in', scopeFilter.sourceIds);
   }
 
   return q;
@@ -114,7 +116,6 @@ const rowToSimilarityItem = (row: SimilarityRow): SimilarityItem => {
   return {
     articleId: row.article_id,
     focusId: row.focus_id,
-    mode: row.mode as FocusSourceMode,
     focusLabel: row.description ? `${row.name}: ${row.description}` : row.name,
     embedding: embeddingBuf
       ? new Float32Array(embeddingBuf.buffer, embeddingBuf.byteOffset, embeddingBuf.byteLength / 4)
@@ -150,12 +151,9 @@ const createSimilarityStep = (params: {
       }
     },
     processBatch: async (batch: SimilarityItem[]): Promise<void> => {
-      for (const item of batch) {
-        if (item.mode === 'always') {
-          await upsertSimilarity(db, item.articleId, item.focusId, 1.0, embeddingModel);
-          continue;
-        }
+      const upsertRows: { articleId: string; focusId: string; similarity: number }[] = [];
 
+      for (const item of batch) {
         if (!item.embedding) {
           continue;
         }
@@ -166,9 +164,14 @@ const createSimilarityStep = (params: {
           focusEmbeddingCache.set(item.focusLabel, focusEmbedding);
         }
 
-        const sim = dotProduct(item.embedding, focusEmbedding);
-        await upsertSimilarity(db, item.articleId, item.focusId, sim, embeddingModel);
+        upsertRows.push({
+          articleId: item.articleId,
+          focusId: item.focusId,
+          similarity: dotProduct(item.embedding, focusEmbedding),
+        });
       }
+
+      await batchUpsertSimilarity(db, upsertRows, embeddingModel);
     },
   };
 };

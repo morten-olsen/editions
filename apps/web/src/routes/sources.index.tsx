@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 
-import { useSourcesList } from '../hooks/sources/sources.hooks.ts';
+import { useSourcesList, useClassificationStats } from '../hooks/sources/sources.hooks.ts';
 import { useOpml } from '../hooks/sources/sources.opml-hooks.ts';
 import { PageHeader } from '../components/page-header.tsx';
 import { SourceCard } from '../components/source-card.tsx';
@@ -76,10 +76,11 @@ const ImportResultBanner = ({
 
 const SourcesPage = (): React.ReactNode => {
   const { sources, loading, reanalyseMutation } = useSourcesList();
+  const { stats } = useClassificationStats();
   const { exportOpml, pickAndImport, importMutation, importResult, importError, clearImportResult } = useOpml();
 
   return (
-    <>
+    <div className="max-w-prose mx-auto px-4 py-6 md:px-8 md:py-8">
       <PageHeader
         title="Sources"
         subtitle={loading ? 'Loading...' : `${sources.length} feeds configured`}
@@ -149,11 +150,12 @@ const SourcesPage = (): React.ReactNode => {
               lastFetchedAt={source.lastFetchedAt}
               fetchError={source.fetchError}
               href={`/sources/${source.id}`}
+              focusStats={stats.get(source.id)}
             />
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 };
 

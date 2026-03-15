@@ -5,7 +5,6 @@ import { confidenceHint } from '../../hooks/focuses/focuses.utils.ts';
 
 type FocusSource = {
   sourceId: string;
-  mode: 'always' | 'match';
   weight: number;
   minConfidence: number | null;
 };
@@ -20,18 +19,10 @@ const selectClasses =
   'rounded-md border border-border bg-surface px-2 py-1 text-xs text-ink-secondary focus:outline-none focus:ring-1 focus:ring-accent';
 
 const priorityLabel = (w: number): string => {
-  if (w <= 0.1) {
-    return 'Off';
-  }
-  if (w < 0.75) {
-    return 'Low';
-  }
-  if (w <= 1.25) {
-    return 'Normal';
-  }
-  if (w <= 2.1) {
-    return 'High';
-  }
+  if (w <= 0.1) return 'Off';
+  if (w < 0.75) return 'Low';
+  if (w <= 1.25) return 'Normal';
+  if (w <= 2.1) return 'High';
   return 'Top';
 };
 
@@ -40,7 +31,6 @@ const SourceSelectionList = ({
   selectedSources,
   selectedIds,
   onToggle,
-  onChangeMode,
   onChangeWeight,
   onChangeMinConfidence,
   idPrefix,
@@ -49,7 +39,6 @@ const SourceSelectionList = ({
   selectedSources: FocusSource[];
   selectedIds: Set<string>;
   onToggle: (sourceId: string) => void;
-  onChangeMode: (sourceId: string, mode: 'always' | 'match') => void;
   onChangeWeight: (sourceId: string, weight: number) => void;
   onChangeMinConfidence?: (sourceId: string, minConfidence: number | null) => void;
   idPrefix: string;
@@ -57,7 +46,7 @@ const SourceSelectionList = ({
   <div data-ai-id={`${idPrefix}-sources`} data-ai-role="list" data-ai-label="Source selection">
     <div className="text-sm font-medium text-ink mb-0.5">Sources</div>
     <p className="text-xs text-ink-tertiary mb-4">
-      Choose which sources feed this topic and how articles from each are selected.
+      Choose which sources feed this topic. All articles are scored — use the threshold to control how closely they must match.
     </p>
     {allSources.length === 0 ? (
       <div className="rounded-lg border border-dashed border-border py-6 text-center">
@@ -77,7 +66,6 @@ const SourceSelectionList = ({
               isSelected={isSelected}
               selection={selection ?? null}
               onToggle={() => onToggle(source.id)}
-              onChangeMode={(mode) => onChangeMode(source.id, mode)}
               onChangeWeight={(weight) => onChangeWeight(source.id, weight)}
               onChangeMinConfidence={onChangeMinConfidence ? (mc) => onChangeMinConfidence(source.id, mc) : undefined}
               idPrefix={idPrefix}
@@ -123,7 +111,7 @@ const SourceConfidenceOverride = ({
         data-ai-role="button"
         data-ai-label="Toggle match threshold override"
       >
-        {enabled ? 'Remove threshold override' : 'Override match threshold'}
+        {enabled ? 'Remove threshold override' : 'Set minimum match threshold'}
       </button>
       {enabled && (
         <div className="mt-1.5 flex items-center gap-3">
@@ -155,7 +143,6 @@ const SourceItem = ({
   isSelected,
   selection,
   onToggle,
-  onChangeMode,
   onChangeWeight,
   onChangeMinConfidence,
   idPrefix,
@@ -164,7 +151,6 @@ const SourceItem = ({
   isSelected: boolean;
   selection: FocusSource | null;
   onToggle: () => void;
-  onChangeMode: (mode: 'always' | 'match') => void;
   onChangeWeight: (weight: number) => void;
   onChangeMinConfidence?: (minConfidence: number | null) => void;
   idPrefix: string;
@@ -178,20 +164,6 @@ const SourceItem = ({
   >
     <div className="flex items-center justify-between">
       <Checkbox label={source.name} checked={isSelected} onCheckedChange={onToggle} />
-      {isSelected && selection && (
-        <select
-          value={selection.mode}
-          onChange={(e) => onChangeMode(e.target.value as 'always' | 'match')}
-          className={selectClasses}
-          data-ai-id={`${idPrefix}-source-${source.id}-mode`}
-          data-ai-role="input"
-          data-ai-label={`${source.name} article selection mode`}
-          data-ai-value={selection.mode}
-        >
-          <option value="always">All articles</option>
-          <option value="match">Matching only</option>
-        </select>
-      )}
     </div>
     {isSelected && selection && (
       <>
@@ -214,7 +186,7 @@ const SourceItem = ({
             {priorityLabel(selection.weight)}
           </span>
         </div>
-        {selection.mode === 'match' && onChangeMinConfidence && (
+        {onChangeMinConfidence && (
           <SourceConfidenceOverride
             value={selection.minConfidence}
             onChange={onChangeMinConfidence}

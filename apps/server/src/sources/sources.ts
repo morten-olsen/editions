@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { sql } from 'kysely';
 
 import { DatabaseService } from '../database/database.ts';
 import type { SourceType } from '../database/database.types.ts';
@@ -71,6 +72,7 @@ type ArticleDetail = Article & {
   mediaUrl: string | null;
   mediaType: string | null;
   sourceType: string;
+  sourceName: string;
   readAt: string | null;
   extractedAt: string | null;
   progress: number;
@@ -288,6 +290,7 @@ class SourcesService {
         'articles.progress',
         'articles.created_at',
         'sources.type as source_type',
+        'sources.name as source_name',
       ])
       .where('articles.id', '=', articleId)
       .where('sources.user_id', '=', userId)
@@ -310,6 +313,7 @@ class SourcesService {
       mediaUrl: row.media_url,
       mediaType: row.media_type,
       sourceType: row.source_type,
+      sourceName: row.source_name,
       imageUrl: row.image_url,
       publishedAt: row.published_at,
       readAt: row.read_at,
@@ -342,6 +346,45 @@ class SourcesService {
       .execute();
 
     return this.getArticle(userId, articleId);
+  };
+
+  getClassificationStats = async (userId: string): Promise<SourceClassificationStats[]> => {
+    const db = await this.#services.get(DatabaseService).getInstance();
+
+    const rows = await db
+      .selectFrom('sources')
+      .innerJoin('articles', 'articles.source_id', 'sources.id')
+      .innerJoin('article_focuses', 'article_focuses.article_id', 'articles.id')
+      .innerJoin('focuses', 'focuses.id', 'article_focuses.focus_id')
+      .select([
+        'sources.id as source_id',
+        'focuses.id as focus_id',
+        'focuses.name as focus_name',
+        db.fn.count('article_focuses.article_id').as('article_count'),
+        db.fn.avg(sql`COALESCE(article_focuses.nli, article_focuses.similarity)`).as('avg_confidence'),
+      ])
+      .where('sources.user_id', '=', userId)
+      .where('article_focuses.similarity', 'is not', null)
+      .groupBy(['sources.id', 'focuses.id', 'focuses.name'])
+      .execute();
+
+    // Group by source, weight by average confidence
+    const bySource = new Map<string, { focusId: string; focusName: string; articleCount: number; avgConfidence: number }[]>();
+    for (const row of rows) {
+      const arr = bySource.get(row.source_id) ?? [];
+      arr.push({
+        focusId: row.focus_id,
+        focusName: row.focus_name,
+        articleCount: Number(row.article_count),
+        avgConfidence: Number(row.avg_confidence ?? 0),
+      });
+      bySource.set(row.source_id, arr);
+    }
+
+    return Array.from(bySource.entries()).map(([sourceId, focuses]) => ({
+      sourceId,
+      focuses: focuses.sort((a, b) => b.avgConfidence - a.avgConfidence),
+    }));
   };
 
   delete = async (userId: string, id: string): Promise<void> => {
@@ -382,5 +425,10 @@ const toSource = (row: {
   updatedAt: row.updated_at,
 });
 
-export type { Source, Article, ArticleDetail, ArticlesPage, CreateSourceParams, UpdateSourceParams };
+type SourceClassificationStats = {
+  sourceId: string;
+  focuses: { focusId: string; focusName: string; articleCount: number; avgConfidence: number }[];
+};
+
+export type { Source, Article, ArticleDetail, ArticlesPage, CreateSourceParams, UpdateSourceParams, SourceClassificationStats };
 export { SourcesService, SourceError, SourceNotFoundError };

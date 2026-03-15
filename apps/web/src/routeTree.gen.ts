@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from "./routes/__root"
 import { Route as LoginRouteImport } from "./routes/login"
 import { Route as IndexRouteImport } from "./routes/index"
-import { Route as VotesIndexRouteImport } from "./routes/votes.index"
 import { Route as SourcesIndexRouteImport } from "./routes/sources.index"
 import { Route as SettingsIndexRouteImport } from "./routes/settings.index"
 import { Route as FocusesIndexRouteImport } from "./routes/focuses.index"
@@ -26,7 +25,6 @@ import { Route as EditionsNewRouteImport } from "./routes/editions.new"
 import { Route as EditionsConfigIdRouteImport } from "./routes/editions.$configId"
 import { Route as SourcesSourceIdIndexRouteImport } from "./routes/sources.$sourceId.index"
 import { Route as FocusesFocusIdIndexRouteImport } from "./routes/focuses.$focusId.index"
-import { Route as EditionsConfigIdIndexRouteImport } from "./routes/editions.$configId.index"
 import { Route as SourcesSourceIdEditRouteImport } from "./routes/sources.$sourceId.edit"
 import { Route as FocusesFocusIdEditRouteImport } from "./routes/focuses.$focusId.edit"
 import { Route as EditionsConfigIdEditRouteImport } from "./routes/editions.$configId.edit"
@@ -43,11 +41,6 @@ const LoginRoute = LoginRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: "/",
   path: "/",
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VotesIndexRoute = VotesIndexRouteImport.update({
-  id: "/votes/",
-  path: "/votes/",
   getParentRoute: () => rootRouteImport,
 } as any)
 const SourcesIndexRoute = SourcesIndexRouteImport.update({
@@ -120,11 +113,6 @@ const FocusesFocusIdIndexRoute = FocusesFocusIdIndexRouteImport.update({
   path: "/",
   getParentRoute: () => FocusesFocusIdRoute,
 } as any)
-const EditionsConfigIdIndexRoute = EditionsConfigIdIndexRouteImport.update({
-  id: "/",
-  path: "/",
-  getParentRoute: () => EditionsConfigIdRoute,
-} as any)
 const SourcesSourceIdEditRoute = SourcesSourceIdEditRouteImport.update({
   id: "/edit",
   path: "/edit",
@@ -180,11 +168,9 @@ export interface FileRoutesByFullPath {
   "/focuses/": typeof FocusesIndexRoute
   "/settings/": typeof SettingsIndexRoute
   "/sources/": typeof SourcesIndexRoute
-  "/votes/": typeof VotesIndexRoute
   "/editions/$configId/edit": typeof EditionsConfigIdEditRoute
   "/focuses/$focusId/edit": typeof FocusesFocusIdEditRoute
   "/sources/$sourceId/edit": typeof SourcesSourceIdEditRoute
-  "/editions/$configId/": typeof EditionsConfigIdIndexRoute
   "/focuses/$focusId/": typeof FocusesFocusIdIndexRoute
   "/sources/$sourceId/": typeof SourcesSourceIdIndexRoute
   "/editions/$configId/issues/$editionId": typeof EditionsConfigIdIssuesEditionIdRouteWithChildren
@@ -195,6 +181,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/login": typeof LoginRoute
+  "/editions/$configId": typeof EditionsConfigIdRouteWithChildren
   "/editions/new": typeof EditionsNewRoute
   "/focuses/new": typeof FocusesNewRoute
   "/sources/new": typeof SourcesNewRoute
@@ -204,11 +191,9 @@ export interface FileRoutesByTo {
   "/focuses": typeof FocusesIndexRoute
   "/settings": typeof SettingsIndexRoute
   "/sources": typeof SourcesIndexRoute
-  "/votes": typeof VotesIndexRoute
   "/editions/$configId/edit": typeof EditionsConfigIdEditRoute
   "/focuses/$focusId/edit": typeof FocusesFocusIdEditRoute
   "/sources/$sourceId/edit": typeof SourcesSourceIdEditRoute
-  "/editions/$configId": typeof EditionsConfigIdIndexRoute
   "/focuses/$focusId": typeof FocusesFocusIdIndexRoute
   "/sources/$sourceId": typeof SourcesSourceIdIndexRoute
   "/sources/$sourceId/articles/$articleId": typeof SourcesSourceIdArticlesArticleIdRoute
@@ -231,11 +216,9 @@ export interface FileRoutesById {
   "/focuses/": typeof FocusesIndexRoute
   "/settings/": typeof SettingsIndexRoute
   "/sources/": typeof SourcesIndexRoute
-  "/votes/": typeof VotesIndexRoute
   "/editions/$configId/edit": typeof EditionsConfigIdEditRoute
   "/focuses/$focusId/edit": typeof FocusesFocusIdEditRoute
   "/sources/$sourceId/edit": typeof SourcesSourceIdEditRoute
-  "/editions/$configId/": typeof EditionsConfigIdIndexRoute
   "/focuses/$focusId/": typeof FocusesFocusIdIndexRoute
   "/sources/$sourceId/": typeof SourcesSourceIdIndexRoute
   "/editions/$configId/issues/$editionId": typeof EditionsConfigIdIssuesEditionIdRouteWithChildren
@@ -260,11 +243,9 @@ export interface FileRouteTypes {
     | "/focuses/"
     | "/settings/"
     | "/sources/"
-    | "/votes/"
     | "/editions/$configId/edit"
     | "/focuses/$focusId/edit"
     | "/sources/$sourceId/edit"
-    | "/editions/$configId/"
     | "/focuses/$focusId/"
     | "/sources/$sourceId/"
     | "/editions/$configId/issues/$editionId"
@@ -275,6 +256,7 @@ export interface FileRouteTypes {
   to:
     | "/"
     | "/login"
+    | "/editions/$configId"
     | "/editions/new"
     | "/focuses/new"
     | "/sources/new"
@@ -284,11 +266,9 @@ export interface FileRouteTypes {
     | "/focuses"
     | "/settings"
     | "/sources"
-    | "/votes"
     | "/editions/$configId/edit"
     | "/focuses/$focusId/edit"
     | "/sources/$sourceId/edit"
-    | "/editions/$configId"
     | "/focuses/$focusId"
     | "/sources/$sourceId"
     | "/sources/$sourceId/articles/$articleId"
@@ -310,11 +290,9 @@ export interface FileRouteTypes {
     | "/focuses/"
     | "/settings/"
     | "/sources/"
-    | "/votes/"
     | "/editions/$configId/edit"
     | "/focuses/$focusId/edit"
     | "/sources/$sourceId/edit"
-    | "/editions/$configId/"
     | "/focuses/$focusId/"
     | "/sources/$sourceId/"
     | "/editions/$configId/issues/$editionId"
@@ -338,7 +316,6 @@ export interface RootRouteChildren {
   FocusesIndexRoute: typeof FocusesIndexRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
   SourcesIndexRoute: typeof SourcesIndexRoute
-  VotesIndexRoute: typeof VotesIndexRoute
 }
 
 declare module "@tanstack/react-router" {
@@ -355,13 +332,6 @@ declare module "@tanstack/react-router" {
       path: "/"
       fullPath: "/"
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/votes/": {
-      id: "/votes/"
-      path: "/votes"
-      fullPath: "/votes/"
-      preLoaderRoute: typeof VotesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/sources/": {
@@ -462,13 +432,6 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof FocusesFocusIdIndexRouteImport
       parentRoute: typeof FocusesFocusIdRoute
     }
-    "/editions/$configId/": {
-      id: "/editions/$configId/"
-      path: "/"
-      fullPath: "/editions/$configId/"
-      preLoaderRoute: typeof EditionsConfigIdIndexRouteImport
-      parentRoute: typeof EditionsConfigIdRoute
-    }
     "/sources/$sourceId/edit": {
       id: "/sources/$sourceId/edit"
       path: "/edit"
@@ -541,13 +504,11 @@ const EditionsConfigIdIssuesEditionIdRouteWithChildren =
 
 interface EditionsConfigIdRouteChildren {
   EditionsConfigIdEditRoute: typeof EditionsConfigIdEditRoute
-  EditionsConfigIdIndexRoute: typeof EditionsConfigIdIndexRoute
   EditionsConfigIdIssuesEditionIdRoute: typeof EditionsConfigIdIssuesEditionIdRouteWithChildren
 }
 
 const EditionsConfigIdRouteChildren: EditionsConfigIdRouteChildren = {
   EditionsConfigIdEditRoute: EditionsConfigIdEditRoute,
-  EditionsConfigIdIndexRoute: EditionsConfigIdIndexRoute,
   EditionsConfigIdIssuesEditionIdRoute:
     EditionsConfigIdIssuesEditionIdRouteWithChildren,
 }
@@ -600,7 +561,6 @@ const rootRouteChildren: RootRouteChildren = {
   FocusesIndexRoute: FocusesIndexRoute,
   SettingsIndexRoute: SettingsIndexRoute,
   SourcesIndexRoute: SourcesIndexRoute,
-  VotesIndexRoute: VotesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

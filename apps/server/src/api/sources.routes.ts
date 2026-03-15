@@ -49,6 +49,31 @@ const registerSourceReadRoutes = ({ fastify, services, authenticate }: RouteArgs
     },
   });
 
+  // Classification stats per source (focus distribution)
+  fastify.route({
+    method: 'GET',
+    url: '/sources/classification-stats',
+    onRequest: authenticate,
+    schema: {
+      security: [{ bearerAuth: [] }],
+      response: {
+        200: z.array(z.object({
+          sourceId: z.string(),
+          focuses: z.array(z.object({
+            focusId: z.string(),
+            focusName: z.string(),
+            articleCount: z.number(),
+            avgConfidence: z.number(),
+          })),
+        })),
+      },
+    },
+    handler: async (req, _reply) => {
+      const sources = services.get(SourcesService);
+      return sources.getClassificationStats(req.user.sub);
+    },
+  });
+
   // Get source
   fastify.route({
     method: 'GET',

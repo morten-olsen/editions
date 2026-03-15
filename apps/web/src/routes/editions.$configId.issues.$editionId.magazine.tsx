@@ -6,6 +6,8 @@ import { client } from '../api/api.ts';
 import { useAuthHeaders, queryKeys } from '../api/api.hooks.ts';
 import { Button } from '../components/button.tsx';
 import type { VoteValue } from '../components/vote-controls.tsx';
+import { groupByFocus } from '../views/editions/edition-types.ts';
+import type { EditionArticle, EditionDetail, FocusSection } from '../views/editions/edition-types.ts';
 import {
   MagazineLayout,
   MagazineCover,
@@ -16,65 +18,6 @@ import {
   type TocEntry,
 } from '../components/magazine/magazine.tsx';
 import { useMagazineProgress } from '../views/editions/edition-magazine-progress.ts';
-
-/* ── Types ────────────────────────────────────────────────────────── */
-
-type EditionArticle = {
-  id: string;
-  sourceId: string;
-  title: string;
-  author: string | null;
-  summary: string | null;
-  url: string | null;
-  imageUrl: string | null;
-  publishedAt: string | null;
-  consumptionTimeSeconds: number | null;
-  content: string | null;
-  mediaUrl: string | null;
-  mediaType: string | null;
-  sourceType: string;
-  readAt?: string | null;
-  progress: number;
-  sourceName: string;
-  focusId: string;
-  focusName: string;
-  position: number;
-};
-
-type EditionDetail = {
-  id: string;
-  editionConfigId: string;
-  title: string;
-  totalReadingMinutes: number | null;
-  articleCount: number;
-  currentPosition: number;
-  readAt: string | null;
-  publishedAt: string;
-  articles: EditionArticle[];
-};
-
-type FocusSection = {
-  focusId: string;
-  focusName: string;
-  articles: EditionArticle[];
-};
-
-/* ── Helpers ──────────────────────────────────────────────────────── */
-
-const groupByFocus = (articles: EditionArticle[]): FocusSection[] => {
-  const sections: FocusSection[] = [];
-  const map = new Map<string, FocusSection>();
-  for (const article of articles) {
-    let section = map.get(article.focusId);
-    if (!section) {
-      section = { focusId: article.focusId, focusName: article.focusName, articles: [] };
-      map.set(article.focusId, section);
-      sections.push(section);
-    }
-    section.articles.push(article);
-  }
-  return sections;
-};
 
 /* ── Hooks ────────────────────────────────────────────────────────── */
 
@@ -236,8 +179,9 @@ const buildSectionPages = (
           mediaType={article.mediaType}
           progress={article.progress}
           articleId={article.id}
-          focusVote={votes[article.id] ?? null}
-          onFocusVote={(value) => void onVote(article.id, value)}
+          vote={votes[article.id] ?? null}
+          onVote={(value) => void onVote(article.id, value)}
+          voteLabel="Edition"
         />,
       );
     });

@@ -31,10 +31,12 @@ type MagazineArticleProps = {
   content?: string | null;
   /** Position within the section (for layout variety) */
   positionInSection?: number;
-  /** Current user's focus relevance vote for this article */
-  focusVote?: VoteValue | null;
+  /** Current user's vote for this article */
+  vote?: VoteValue | null;
   /** Called when the user casts or removes a vote */
-  onFocusVote?: ((value: VoteValue) => void) | null;
+  onVote?: ((value: VoteValue) => void) | null;
+  /** Label shown next to vote controls */
+  voteLabel?: string;
 };
 
 /* ── Helpers ──────────────────────────────────────────────────────── */
@@ -123,19 +125,20 @@ const NextPrompt = ({ delay = 0.6 }: { delay?: number }): React.ReactElement => 
 /* ── Vote row ─────────────────────────────────────────────────────── */
 
 type VoteRowProps = {
-  focusVote: VoteValue | null;
-  onFocusVote: (value: VoteValue) => void;
+  vote: VoteValue | null;
+  onVote: (value: VoteValue) => void;
+  label?: string;
   delay?: number;
 };
 
-const VoteRow = ({ focusVote, onFocusVote, delay = 0.5 }: VoteRowProps): React.ReactElement => (
+const VoteRow = ({ vote, onVote, label = 'Quality', delay = 0.5 }: VoteRowProps): React.ReactElement => (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     transition={{ duration: 0.4, ease: easeOut, delay }}
     className="flex items-center justify-center pt-6 mt-6 border-t border-border"
   >
-    <VoteControls value={focusVote} onVote={onFocusVote} label="Relevance" />
+    <VoteControls value={vote} onVote={onVote} label={label} />
   </motion.div>
 );
 
@@ -184,21 +187,21 @@ const Byline = ({
 
 type ArticleFooterProps = {
   content?: string | null;
-  focusVote?: VoteValue | null;
-  onFocusVote?: ((value: VoteValue) => void) | null;
+  vote?: VoteValue | null;
+  onVote?: ((value: VoteValue) => void) | null;
+  voteLabel?: string;
   bodyDelay?: number;
   voteDelay?: number;
   nextDelay?: number;
-  /** Wrapper class for the prose container when content is present */
   wrapperClass?: string;
-  /** Wrapper class for the vote-only container when no content */
   voteWrapperClass?: string;
 };
 
 const ArticleFooter = ({
   content,
-  focusVote,
-  onFocusVote,
+  vote,
+  onVote,
+  voteLabel,
   bodyDelay = 0.4,
   voteDelay = 0.5,
   nextDelay = 0.6,
@@ -211,16 +214,16 @@ const ArticleFooter = ({
     return (
       <div className={wrapperClass}>
         <ArticleBody content={content} delay={bodyDelay} />
-        {onFocusVote && <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} delay={voteDelay} />}
+        {onVote && <VoteRow vote={vote ?? null} onVote={onVote} label={voteLabel} delay={voteDelay} />}
         <NextPrompt delay={nextDelay} />
       </div>
     );
   }
 
-  if (onFocusVote) {
+  if (onVote) {
     return (
       <div className={voteWrapperClass}>
-        <VoteRow focusVote={focusVote ?? null} onFocusVote={onFocusVote} delay={voteDelay} />
+        <VoteRow vote={vote ?? null} onVote={onVote} label={voteLabel} delay={voteDelay} />
       </div>
     );
   }

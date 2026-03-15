@@ -14,13 +14,16 @@ type UseEditionConfigsReturn = {
   configs: EditionConfig[];
   loading: boolean;
   deletingId: string | null;
+  generatingId: string | null;
   handleDelete: (id: string, name: string) => void;
+  handleGenerate: (id: string) => void;
 };
 
 const useEditionConfigs = (): UseEditionConfigsReturn => {
   const headers = useAuthHeaders();
   const queryClient = useQueryClient();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [generatingId, setGeneratingId] = useState<string | null>(null);
 
   const configsQuery = useQuery({
     queryKey: queryKeys.editions.configs,
@@ -44,6 +47,19 @@ const useEditionConfigs = (): UseEditionConfigsReturn => {
     },
   });
 
+  const generateMutation = useMutation({
+    mutationFn: async (id: string): Promise<void> => {
+      await client.POST('/api/editions/configs/{configId}/generate', {
+        params: { path: { configId: id } },
+        headers,
+      });
+    },
+    onSuccess: (): void => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.editions.configs });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.nav });
+    },
+  });
+
   const handleDelete = (id: string, name: string): void => {
     if (!confirm(`Delete "${name}"? This will also delete all generated editions.`)) {
       return;
@@ -52,11 +68,18 @@ const useEditionConfigs = (): UseEditionConfigsReturn => {
     deleteMutation.mutate(id, { onSettled: () => setDeletingId(null) });
   };
 
+  const handleGenerate = (id: string): void => {
+    setGeneratingId(id);
+    generateMutation.mutate(id, { onSettled: () => setGeneratingId(null) });
+  };
+
   return {
     configs: configsQuery.data ?? [],
     loading: configsQuery.isLoading,
     deletingId,
+    generatingId,
     handleDelete,
+    handleGenerate,
   };
 };
 
@@ -188,8 +211,8 @@ const useCreateEditionConfig = (): UseCreateEditionConfigReturn => {
   const focusSelection = useEditionFocusSelection();
 
   const createMutation = useMutation({
-    mutationFn: async (): Promise<void> => {
-      const { error: err } = await client.POST('/api/editions/configs', {
+    mutationFn: async (): Promise<string> => {
+      const { data, error: err } = await client.POST('/api/editions/configs', {
         body: {
           name,
           icon,
@@ -203,11 +226,12 @@ const useCreateEditionConfig = (): UseCreateEditionConfigReturn => {
       if (err) {
         throw new Error('error' in err ? (err as { error: string }).error : 'Failed to create edition');
       }
+      return (data as { id: string }).id;
     },
-    onSuccess: (): void => {
+    onSuccess: (configId: string): void => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.editions.configs });
       void queryClient.invalidateQueries({ queryKey: queryKeys.nav });
-      void navigate({ to: '/editions' });
+      void navigate({ to: '/editions/$configId/edit', params: { configId } });
     },
     onError: (err: Error): void => setError(err.message),
   });
@@ -258,7 +282,6 @@ export type {
 
 export type { UseEditionFocusSelectionReturn };
 
-export type { UseEditEditionConfigReturn, UseEditionConfigDetailReturn } from './editions.detail-hooks.ts';
 
 export {
   SCHEDULE_PRESETS,
@@ -273,6 +296,5 @@ export {
 
 export { useEditionView, useMagazineView } from './editions.view-hooks.ts';
 
-export { useEditEditionConfig, useEditionConfigDetail } from './editions.detail-hooks.ts';
 
 export { useEditionConfigs, useEditionFocusSelection, useCreateEditionConfig };

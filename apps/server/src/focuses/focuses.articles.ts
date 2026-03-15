@@ -98,6 +98,9 @@ const buildBaseQuery = (params: BaseQueryParams) => {
 
   const hasSourceOverrides = focus.sources.some((s) => s.minConfidence !== null);
 
+  // Filter to only articles from sources linked to this focus
+  const linkedSourceIds = focus.sources.map((s) => s.sourceId);
+
   let q = db
     .selectFrom('article_focuses')
     .innerJoin('articles', 'articles.id', 'article_focuses.article_id')
@@ -105,15 +108,29 @@ const buildBaseQuery = (params: BaseQueryParams) => {
     .where('article_focuses.focus_id', '=', focusId)
     .where('sources.user_id', '=', userId);
 
+  if (linkedSourceIds.length > 0) {
+    q = q.where('articles.source_id', 'in', linkedSourceIds);
+  } else {
+    // No sources linked — return nothing
+    q = q.where(sql`0`, '=', sql`1`);
+  }
+
   if (focus.minConfidence > 0 || hasSourceOverrides) {
     if (hasSourceOverrides) {
+      // Build threshold from the in-memory source config so previews
+      // with unsaved overrides work correctly
+      const cases = focus.sources
+        .filter((s) => s.minConfidence !== null)
+        .map((s) => sql`WHEN articles.source_id = ${s.sourceId} THEN ${s.minConfidence}`);
+
+      const thresholdExpr = cases.length > 0
+        ? sql`CASE ${sql.join(cases, sql` `)} ELSE ${focus.minConfidence} END`
+        : sql`${focus.minConfidence}`;
+
       q = q.where(
         sql`COALESCE(article_focuses.nli, article_focuses.similarity)`,
         '>=',
-        sql`COALESCE(
-          (SELECT fs.min_confidence FROM focus_sources fs WHERE fs.focus_id = ${focusId} AND fs.source_id = articles.source_id),
-          ${focus.minConfidence}
-        )`,
+        thresholdExpr,
       );
     } else {
       q = q.where(sql`COALESCE(article_focuses.nli, article_focuses.similarity)`, '>=', focus.minConfidence);

@@ -68,6 +68,7 @@ const articleDetailSchema = z.object({
   mediaUrl: z.string().nullable(),
   mediaType: z.string().nullable(),
   sourceType: z.string(),
+  sourceName: z.string(),
   imageUrl: z.string().nullable(),
   publishedAt: z.string().nullable(),
   readAt: z.string().nullable(),

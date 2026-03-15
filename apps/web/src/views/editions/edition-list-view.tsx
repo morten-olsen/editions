@@ -1,4 +1,3 @@
-import { ReadingShell } from '../../components/app-shell.tsx';
 import { Button } from '../../components/button.tsx';
 import { Separator } from '../../components/separator.tsx';
 import { ArticleCard } from '../../components/article-card.tsx';
@@ -65,7 +64,9 @@ const EditionListView = ({
   );
 
   return (
-    <ReadingShell header={editionHeader}>
+    <div className="min-h-dvh bg-surface">
+      {editionHeader}
+      <article className="max-w-prose mx-auto px-4 py-8 md:px-6 md:py-12">
       {edition.articles.length > 0 && (
         <MagazinePromo
           promoImage={promoImage ?? null}
@@ -96,7 +97,8 @@ const EditionListView = ({
           Done
         </Button>
       </div>
-    </ReadingShell>
+      </article>
+    </div>
   );
 };
 
@@ -215,8 +217,8 @@ const EditionSections = ({
                   sourceType={article.sourceType}
                   read={!!article.readAt}
                   href={`/sources/${article.sourceId}/articles/${article.id}`}
-                  focusVote={votes[article.id] ?? null}
-                  onFocusVote={(value) => void onVote(article.id, value)}
+                  vote={votes[article.id] ?? null}
+                  onVote={(value) => void onVote(article.id, value)}
                 />
               ))}
             </div>

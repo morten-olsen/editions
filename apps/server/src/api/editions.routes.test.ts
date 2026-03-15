@@ -36,7 +36,7 @@ const createFocus = async (
     headers,
     payload: {
       name,
-      sources: sourceIds.map((id) => ({ sourceId: id, mode: 'always' })),
+      sources: sourceIds.map((id) => ({ sourceId: id })),
     },
   });
   return (JSON.parse(res.body) as { id: string }).id;
@@ -428,5 +428,83 @@ describe('edition listing and viewing', () => {
 
     expect(res.statusCode).toBe(200);
     expect(JSON.parse(res.body).currentPosition).toBe(3);
+  });
+});
+
+describe('edition preview', () => {
+  it('returns 404 for non-existent config', async () => {
+    const { headers } = await t.register();
+
+    const res = await t.inject({
+      method: 'POST',
+      url: '/api/editions/configs/nonexistent/preview',
+      headers,
+      payload: {},
+    });
+
+    expect(res.statusCode).toBe(404);
+  });
+
+  it('returns empty sections for config with no focuses', async () => {
+    const { headers } = await t.register();
+
+    // Use existing helpers to create a source and focus, then config with a focus
+    const sourceId = await createSource(headers, 'preview-source');
+    const focusId = await createFocus(headers, 'Preview Focus', [sourceId]);
+
+    const createRes = await t.inject({
+      method: 'POST',
+      url: '/api/editions/configs',
+      headers,
+      payload: { name: 'Test Edition', schedule: '0 7 * * *', lookbackHours: 24, focuses: [{ focusId, position: 0, budgetType: 'count', budgetValue: 10 }] },
+    });
+    expect(createRes.statusCode).toBe(201);
+    const configId = (JSON.parse(createRes.body) as { id: string }).id;
+
+    // Preview — no articles exist so result should be empty
+    const res = await t.inject({
+      method: 'POST',
+      url: `/api/editions/configs/${configId}/preview`,
+      headers,
+      payload: {},
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.sections).toEqual([]);
+    expect(body.totalArticles).toBe(0);
+    expect(body.totalReadingMinutes).toBe(0);
+  });
+
+  it('does not create an actual edition', async () => {
+    const { headers } = await t.register();
+
+    const sourceId = await createSource(headers, 'preview-source2');
+    const focusId = await createFocus(headers, 'Preview Focus 2', [sourceId]);
+
+    const createRes = await t.inject({
+      method: 'POST',
+      url: '/api/editions/configs',
+      headers,
+      payload: { name: 'Test Edition 2', schedule: '0 7 * * *', lookbackHours: 24, focuses: [{ focusId, position: 0, budgetType: 'count', budgetValue: 10 }] },
+    });
+    expect(createRes.statusCode).toBe(201);
+    const configId = (JSON.parse(createRes.body) as { id: string }).id;
+
+    await t.inject({
+      method: 'POST',
+      url: `/api/editions/configs/${configId}/preview`,
+      headers,
+      payload: {},
+    });
+
+    // Verify no editions were created
+    const listRes = await t.inject({
+      method: 'GET',
+      url: `/api/editions/configs/${configId}/editions`,
+      headers,
+    });
+    expect(listRes.statusCode).toBe(200);
+    expect(JSON.parse(listRes.body)).toEqual([]);
   });
 });

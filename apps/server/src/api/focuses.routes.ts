@@ -10,7 +10,6 @@ import { ArticleNotFoundForVoteError, VotesService } from '../votes/votes.ts';
 
 const focusSourceSchema = z.object({
   sourceId: z.string(),
-  mode: z.enum(['always', 'match']),
   weight: z.number(),
   minConfidence: z.number().nullable(),
 });
@@ -31,7 +30,6 @@ const focusSchema = z.object({
 
 const createFocusSourceSchema = z.object({
   sourceId: z.string(),
-  mode: z.enum(['always', 'match']),
   weight: z.number().min(0).default(1),
   minConfidence: z.number().min(0).max(1).nullable().optional().default(null),
 });
@@ -246,6 +244,43 @@ const registerFocusArticleRoutes = ({ fastify, services, authenticate }: RouteAr
       const focuses = services.get(FocusesService);
       try {
         return await focuses.listArticles(req.user.sub, req.params.id, {
+          offset: req.query.offset,
+          limit: req.query.limit,
+          sort: req.query.sort,
+          from: req.query.from,
+          to: req.query.to,
+          status: req.query.status,
+        });
+      } catch (err) {
+        if (err instanceof FocusNotFoundError) {
+          return reply.code(404).send({ error: err.message });
+        }
+        throw err;
+      }
+    },
+  });
+
+  // Preview articles with config overrides (dry-run — doesn't save)
+  fastify.route({
+    method: 'POST',
+    url: '/focuses/:id/preview',
+    onRequest: authenticate,
+    schema: {
+      security: [{ bearerAuth: [] }],
+      params: idParamSchema,
+      body: z.object({
+        minConfidence: z.number().min(0).max(1).optional(),
+        minConsumptionTimeSeconds: z.number().int().min(0).nullable().optional(),
+        maxConsumptionTimeSeconds: z.number().int().min(0).nullable().optional(),
+        sources: z.array(createFocusSourceSchema).optional(),
+      }),
+      querystring: focusArticlesQuerySchema,
+      response: { 200: focusArticlesPageSchema, 404: errorResponseSchema },
+    },
+    handler: async (req, reply) => {
+      const focuses = services.get(FocusesService);
+      try {
+        return await focuses.previewArticles(req.user.sub, req.params.id, req.body, {
           offset: req.query.offset,
           limit: req.query.limit,
           sort: req.query.sort,

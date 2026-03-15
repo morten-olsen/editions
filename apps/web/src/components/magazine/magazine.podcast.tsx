@@ -99,8 +99,9 @@ const PodcastLayout = (props: MagazineArticleProps): React.ReactElement => {
     mediaType,
     progress,
     content,
-    focusVote,
-    onFocusVote,
+    vote,
+    onVote,
+    voteLabel,
   } = props;
   const hasContent = !!content;
   const baseDelay = mediaUrl ? 0.35 : 0.4;
@@ -150,13 +151,14 @@ const PodcastLayout = (props: MagazineArticleProps): React.ReactElement => {
             <ArticleBody content={content} delay={baseDelay + 0.15} />
             <ArticleFooter
               content={null}
-              focusVote={focusVote}
-              onFocusVote={onFocusVote}
+              vote={vote}
+              onVote={onVote}
+              voteLabel={voteLabel}
               voteDelay={baseDelay + 0.25}
             />
           </>
         ) : (
-          <ArticleFooter content={null} focusVote={focusVote} onFocusVote={onFocusVote} voteDelay={baseDelay + 0.15} />
+          <ArticleFooter content={null} vote={vote} onVote={onVote} voteLabel={voteLabel} voteDelay={baseDelay + 0.15} />
         )}
       </div>
     </MagazinePage>

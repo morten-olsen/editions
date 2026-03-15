@@ -85,9 +85,14 @@ const loadFocusDetails = async (
   userId: string,
   sortedFocuses: FocusConfig[],
 ): Promise<Map<string, FocusDetail>> => {
+  const focuses = await Promise.all(
+    sortedFocuses.map((fc) => focusesService.get(userId, fc.focusId)),
+  );
+
   const details = new Map<string, FocusDetail>();
-  for (const fc of sortedFocuses) {
-    const focus = await focusesService.get(userId, fc.focusId);
+  for (let i = 0; i < sortedFocuses.length; i++) {
+    const fc = sortedFocuses[i] as FocusConfig;
+    const focus = focuses[i] as Awaited<ReturnType<FocusesService['get']>>;
     const sourceWeights = new Map<string, number>();
     const sourceMinConfidence = new Map<string, number>();
     for (const src of focus.sources) {
@@ -120,6 +125,9 @@ const queryCandidates = async ({
   cutoff: string;
   focusInfo: FocusDetail;
 }): Promise<CandidateRow[]> => {
+  // Only consider articles from sources linked to this focus
+  const linkedSourceIds = [...focusInfo.sourceWeights.keys()];
+
   let query = db
     .selectFrom('article_focuses')
     .innerJoin('articles', 'articles.id', 'article_focuses.article_id')
@@ -139,17 +147,23 @@ const queryCandidates = async ({
     .where('articles.read_at', 'is', null)
     .where('articles.published_at', '>=', cutoff);
 
+  if (linkedSourceIds.length > 0) {
+    query = query.where('articles.source_id', 'in', linkedSourceIds);
+  } else {
+    query = query.where(sql`0`, '=', sql`1`);
+  }
+
   const hasSourceOverrides = focusInfo.sourceMinConfidence.size > 0;
   if (focusInfo.minConfidence > 0 || hasSourceOverrides) {
     if (hasSourceOverrides) {
-      query = query.where(
-        sql`COALESCE(article_focuses.nli, article_focuses.similarity)`,
-        '>=',
-        sql`COALESCE(
-          (SELECT fs.min_confidence FROM focus_sources fs WHERE fs.focus_id = ${focusId} AND fs.source_id = articles.source_id),
-          ${focusInfo.minConfidence}
-        )`,
+      // Build threshold from in-memory config (same as focuses.articles.ts)
+      const cases = [...focusInfo.sourceMinConfidence.entries()].map(
+        ([sourceId, minConf]) => sql`WHEN articles.source_id = ${sourceId} THEN ${minConf}`,
       );
+      const thresholdExpr = cases.length > 0
+        ? sql`CASE ${sql.join(cases, sql` `)} ELSE ${focusInfo.minConfidence} END`
+        : sql`${focusInfo.minConfidence}`;
+      query = query.where(sql`COALESCE(article_focuses.nli, article_focuses.similarity)`, '>=', thresholdExpr);
     } else {
       query = query.where(sql`COALESCE(article_focuses.nli, article_focuses.similarity)`, '>=', focusInfo.minConfidence);
     }

@@ -149,9 +149,9 @@ const seed = async (db: Kysely<DatabaseSchema>): Promise<void> => {
   await db
     .insertInto('focus_sources')
     .values([
-      { focus_id: 'focus-tech', source_id: 'src-tech', mode: 'match' },
-      { focus_id: 'focus-all', source_id: 'src-tech', mode: 'always' },
-      { focus_id: 'focus-all', source_id: 'src-news', mode: 'always' },
+      { focus_id: 'focus-tech', source_id: 'src-tech' },
+      { focus_id: 'focus-all', source_id: 'src-tech' },
+      { focus_id: 'focus-all', source_id: 'src-news' },
     ])
     .execute();
 };
@@ -224,7 +224,7 @@ afterEach(async () => {
 });
 
 describe('reconcile steps', () => {
-  it('assigns always-mode focuses and classifies match-mode focuses, saving all scores', async () => {
+  it('scores all articles against all focuses regardless of source links', async () => {
     const { embed } = createFakeEmbedder();
     const { classify } = createFakeClassifier();
 
@@ -232,26 +232,26 @@ describe('reconcile steps', () => {
 
     const assignments = await getAssignments(db);
 
-    // "Everything" focus (always mode): all 3 articles get similarity 1.0
-    const alwaysAssignments = assignments.filter((a) => a.focus_id === 'focus-all');
-    expect(alwaysAssignments).toHaveLength(3);
-    for (const a of alwaysAssignments) {
-      expect(a.similarity).toBe(1.0);
-      expect(a.nli).toBeNull();
+    // Every article × every focus = 3 articles × 2 focuses = 6 assignments
+    expect(assignments).toHaveLength(6);
+
+    // All assignments have real similarity and NLI scores
+    for (const a of assignments) {
+      expect(a.similarity).not.toBeNull();
+      expect(a.nli).not.toBeNull();
     }
 
-    // "Technology" focus (match mode): both tech-source articles get NLI scores
-    const techAssignments = assignments.filter((a) => a.focus_id === 'focus-tech');
-    expect(techAssignments).toHaveLength(2);
-
-    // AI article scores high via NLI
-    const aiTech = techAssignments.find((a) => a.article_id === 'art-ai');
+    // AI article scores high for Technology via NLI
+    const aiTech = assignments.find((a) => a.article_id === 'art-ai' && a.focus_id === 'focus-tech');
     expect(aiTech?.nli).toBeCloseTo(0.85, 1);
 
-    // Weather article scores low but is still saved
-    const weatherTech = techAssignments.find((a) => a.article_id === 'art-weather');
-    expect(weatherTech).toBeDefined();
-    expect(aiTech?.nli).not.toBeNull();
+    // Cross-source scoring: election article (from src-news) scored against
+    // focus-tech (which only has src-tech in focus_sources). This verifies
+    // that scoring is decoupled from source links.
+    const electionTech = assignments.find((a) => a.article_id === 'art-election' && a.focus_id === 'focus-tech');
+    expect(electionTech).toBeDefined();
+    expect(electionTech?.similarity).not.toBeNull();
+    expect(electionTech?.nli).not.toBeNull();
 
     // All 3 articles marked as analysed
     expect(await getAnalysedCount(db)).toBe(3);
@@ -298,7 +298,6 @@ describe('reconcile steps', () => {
       .values({
         focus_id: 'focus-politics',
         source_id: 'src-news',
-        mode: 'match',
       })
       .execute();
 
@@ -311,10 +310,14 @@ describe('reconcile steps', () => {
       }),
     );
 
+    // All 3 articles scored against politics focus (not just src-news articles)
     const politicsAssignments = (await getAssignments(db)).filter((a) => a.focus_id === 'focus-politics');
-    expect(politicsAssignments).toHaveLength(1);
-    expect((politicsAssignments[0] as (typeof politicsAssignments)[number]).article_id).toBe('art-election');
-    expect(effectiveConf(politicsAssignments[0] as (typeof politicsAssignments)[number])).toBeCloseTo(0.75, 1);
+    expect(politicsAssignments).toHaveLength(3);
+
+    // Election article should score high for politics
+    const electionPolitics = politicsAssignments.find((a) => a.article_id === 'art-election');
+    expect(electionPolitics).toBeDefined();
+    expect(effectiveConf(electionPolitics as (typeof politicsAssignments)[number])).toBeCloseTo(0.75, 1);
 
     const previousAssignments = (await getAssignments(db)).filter((a) => a.focus_id !== 'focus-politics');
     expect(previousAssignments).toEqual(assignmentsBefore);
@@ -382,7 +385,8 @@ describe('reconcile steps', () => {
 
     const assignments = await getAssignments(db);
     const allFocusAssignments = assignments.filter((a) => a.focus_id === 'focus-all');
-    expect(allFocusAssignments).toHaveLength(4);
+    // art-notext has no embedding, so it won't get a similarity score
+    expect(allFocusAssignments).toHaveLength(3);
 
     const { computeScore, emptyVoteContext, focusWeights } = await import('../votes/votes.scoring.ts');
 
@@ -446,13 +450,10 @@ describe('reconcile steps', () => {
       .execute();
     expect(embeddings).toHaveLength(0);
 
+    // Article without content has no embedding, so no similarity scores
     const assignments = await getAssignments(db);
-    const alwaysAssignment = assignments.find((a) => a.article_id === 'art-empty' && a.focus_id === 'focus-all');
-    expect(alwaysAssignment).toBeDefined();
-    expect(alwaysAssignment?.similarity).toBe(1.0);
-
-    const matchAssignment = assignments.find((a) => a.article_id === 'art-empty' && a.focus_id === 'focus-tech');
-    expect(matchAssignment).toBeUndefined();
+    const emptyAssignments = assignments.filter((a) => a.article_id === 'art-empty');
+    expect(emptyAssignments).toHaveLength(0);
 
     const analysedRow = await db
       .selectFrom('articles')

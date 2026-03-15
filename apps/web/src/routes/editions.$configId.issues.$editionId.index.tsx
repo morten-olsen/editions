@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -48,11 +48,13 @@ const useEditionReadState = (
   edition: EditionDetail | undefined,
 ): { isRead: boolean; setIsRead: (v: boolean) => void } => {
   const [isRead, setIsRead] = useState(false);
-  const [initialized, setInitialized] = useState(false);
-  if (edition && !initialized) {
-    setIsRead(!!edition.readAt);
-    setInitialized(true);
-  }
+
+  useEffect(() => {
+    if (edition) {
+      setIsRead(!!edition.readAt);
+    }
+  }, [edition?.id]);
+
   return { isRead, setIsRead };
 };
 
@@ -98,7 +100,7 @@ const useEditionActions = (
     },
     onSuccess: (): void => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.editions.forConfig(configId) });
-      void navigate({ to: '/editions/$configId', params: { configId } });
+      void navigate({ to: '/' });
     },
   });
 
@@ -127,7 +129,7 @@ const useEditionActions = (
         headers,
       });
     }
-    await navigate({ to: '/editions/$configId', params: { configId } });
+    await navigate({ to: '/' });
   };
 
   const handleDelete = (): void => {

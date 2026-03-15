@@ -885,6 +885,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/sources/classification-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            sourceId: string;
+                            focuses: {
+                                focusId: string;
+                                focusName: string;
+                                articleCount: number;
+                            }[];
+                        }[];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/sources/{id}": {
         parameters: {
             query?: never;
@@ -1149,6 +1191,7 @@ export interface paths {
                             mediaUrl: string | (null);
                             mediaType: string | (null);
                             sourceType: string;
+                            sourceName: string;
                             imageUrl: string | (null);
                             publishedAt: string | (null);
                             readAt: string | (null);
@@ -1224,6 +1267,7 @@ export interface paths {
                             mediaUrl: string | (null);
                             mediaType: string | (null);
                             sourceType: string;
+                            sourceName: string;
                             imageUrl: string | (null);
                             publishedAt: string | (null);
                             readAt: string | (null);
@@ -1435,9 +1479,8 @@ export interface paths {
                             maxConsumptionTimeSeconds: number | (null);
                             sources: {
                                 sourceId: string;
-                                /** @enum {string} */
-                                mode: "always" | "match";
                                 weight: number;
+                                minConfidence: number | (null);
                             }[];
                             createdAt: string;
                             updatedAt: string;
@@ -1465,10 +1508,10 @@ export interface paths {
                         maxConsumptionTimeSeconds?: number | (null);
                         sources?: {
                             sourceId: string;
-                            /** @enum {string} */
-                            mode: "always" | "match";
                             /** @default 1 */
                             weight?: number;
+                            /** @default null */
+                            minConfidence?: number | (null);
                         }[];
                     };
                 };
@@ -1491,9 +1534,8 @@ export interface paths {
                             maxConsumptionTimeSeconds: number | (null);
                             sources: {
                                 sourceId: string;
-                                /** @enum {string} */
-                                mode: "always" | "match";
                                 weight: number;
+                                minConfidence: number | (null);
                             }[];
                             createdAt: string;
                             updatedAt: string;
@@ -1543,9 +1585,8 @@ export interface paths {
                             maxConsumptionTimeSeconds: number | (null);
                             sources: {
                                 sourceId: string;
-                                /** @enum {string} */
-                                mode: "always" | "match";
                                 weight: number;
+                                minConfidence: number | (null);
                             }[];
                             createdAt: string;
                             updatedAt: string;
@@ -1639,9 +1680,8 @@ export interface paths {
                             maxConsumptionTimeSeconds: number | (null);
                             sources: {
                                 sourceId: string;
-                                /** @enum {string} */
-                                mode: "always" | "match";
                                 weight: number;
+                                minConfidence: number | (null);
                             }[];
                             createdAt: string;
                             updatedAt: string;
@@ -1742,6 +1782,100 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/focuses/{id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: {
+                    offset?: number;
+                    limit?: number;
+                    sort?: "top" | "recent";
+                    from?: string;
+                    to?: string;
+                    status?: "unread" | "read" | "all";
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        minConfidence?: number;
+                        minConsumptionTimeSeconds?: number | (null);
+                        maxConsumptionTimeSeconds?: number | (null);
+                        sources?: {
+                            sourceId: string;
+                            /** @default 1 */
+                            weight?: number;
+                            /** @default null */
+                            minConfidence?: number | (null);
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            articles: {
+                                id: string;
+                                sourceId: string;
+                                externalId: string;
+                                url: string | (null);
+                                title: string;
+                                author: string | (null);
+                                summary: string | (null);
+                                imageUrl: string | (null);
+                                publishedAt: string | (null);
+                                createdAt: string;
+                                consumptionTimeSeconds: number | (null);
+                                readAt: string | (null);
+                                confidence: number;
+                                score: number;
+                                vote: (1 | -1) | (null);
+                                globalVote: (1 | -1) | (null);
+                                sourceName: string;
+                                sourceType: string;
+                            }[];
+                            total: number;
+                            offset: number;
+                            limit: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/focuses/{id}/sources": {
         parameters: {
             query?: never;
@@ -1764,10 +1898,10 @@ export interface paths {
                     "application/json": {
                         sources: {
                             sourceId: string;
-                            /** @enum {string} */
-                            mode: "always" | "match";
                             /** @default 1 */
                             weight?: number;
+                            /** @default null */
+                            minConfidence?: number | (null);
                         }[];
                     };
                 };
@@ -1790,9 +1924,8 @@ export interface paths {
                             maxConsumptionTimeSeconds: number | (null);
                             sources: {
                                 sourceId: string;
-                                /** @enum {string} */
-                                mode: "always" | "match";
                                 weight: number;
+                                minConfidence: number | (null);
                             }[];
                             createdAt: string;
                             updatedAt: string;
@@ -2253,6 +2386,102 @@ export interface paths {
                                 focusName: string;
                                 position: number;
                             }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/editions/configs/{configId}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    configId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        lookbackHours?: number;
+                        excludePriorEditions?: boolean;
+                        focuses?: {
+                            focusId: string;
+                            focusName: string;
+                            position: number;
+                            /**
+                             * @default count
+                             * @enum {string}
+                             */
+                            budgetType?: "time" | "count";
+                            /** @default 10 */
+                            budgetValue?: number;
+                            /** @default null */
+                            lookbackHours?: number | (null);
+                            /** @default null */
+                            excludePriorEditions?: boolean | (null);
+                            /** @default 1 */
+                            weight?: number;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            sections: {
+                                focusName: string;
+                                articles: {
+                                    id: string;
+                                    title: string;
+                                    sourceName: string;
+                                    consumptionTimeSeconds: number | (null);
+                                }[];
+                            }[];
+                            totalArticles: number;
+                            totalReadingMinutes: number;
                         };
                     };
                 };

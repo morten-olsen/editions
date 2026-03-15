@@ -154,7 +154,7 @@ const useEditionView = ({ configId, editionId }: { configId: string; editionId: 
         headers,
       });
     }
-    await navigate({ to: '/editions/$configId', params: { configId } });
+    await navigate({ to: '/' });
   };
 
   const deleteMutation = useMutation({
@@ -163,7 +163,7 @@ const useEditionView = ({ configId, editionId }: { configId: string; editionId: 
     },
     onSuccess: (): void => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.editions.forConfig(configId) });
-      void navigate({ to: '/editions/$configId', params: { configId } });
+      void navigate({ to: '/' });
     },
   });
 

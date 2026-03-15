@@ -78,7 +78,6 @@ type EditFocusFormResult = {
   setMaxReadingTime: (v: string) => void;
   selectedSources: FocusSource[];
   toggleSource: (sourceId: string) => void;
-  changeMode: (sourceId: string, mode: 'always' | 'match') => void;
   changeWeight: (sourceId: string, weight: number) => void;
   changeMinConfidence: (sourceId: string, minConfidence: number | null) => void;
   selectedIds: Set<string>;
@@ -113,12 +112,8 @@ const useEditFocusForm = (focus: Focus | undefined): EditFocusFormResult => {
       if (existing) {
         return prev.filter((s) => s.sourceId !== sourceId);
       }
-      return [...prev, { sourceId, mode: 'always', weight: 1, minConfidence: null }];
+      return [...prev, { sourceId, weight: 1, minConfidence: null }];
     });
-  };
-
-  const changeMode = (sourceId: string, mode: 'always' | 'match'): void => {
-    setSelectedSources((prev) => prev.map((s) => (s.sourceId === sourceId ? { ...s, mode } : s)));
   };
 
   const changeWeight = (sourceId: string, weight: number): void => {
@@ -146,7 +141,6 @@ const useEditFocusForm = (focus: Focus | undefined): EditFocusFormResult => {
     setMaxReadingTime,
     selectedSources,
     toggleSource,
-    changeMode,
     changeWeight,
     changeMinConfidence,
     selectedIds,

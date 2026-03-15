@@ -193,9 +193,10 @@ const StaggerItem = ({
 type PageTransitionProps = {
   locationKey: string;
   children: React.ReactNode;
+  className?: string;
 };
 
-const PageTransition = ({ locationKey, children }: PageTransitionProps): React.ReactElement => (
+const PageTransition = ({ locationKey, children, className }: PageTransitionProps): React.ReactElement => (
   <motion.div
     key={locationKey}
     initial={{ opacity: 0, y: 4 }}
@@ -204,6 +205,7 @@ const PageTransition = ({ locationKey, children }: PageTransitionProps): React.R
       y: 0,
       transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] },
     }}
+    className={className}
   >
     {children}
   </motion.div>

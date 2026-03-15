@@ -1,4 +1,4 @@
-import type { Kysely } from 'kysely';
+import { sql, type Kysely } from 'kysely';
 
 import type { DatabaseSchema } from '../database/database.types.ts';
 
@@ -30,27 +30,29 @@ type NliItem = {
 
 // --- Persistence ---
 
-const upsertNli = async (
+const batchUpsertNli = async (
   db: Kysely<DatabaseSchema>,
-  articleId: string,
-  focusId: string,
-  nli: number,
+  rows: { articleId: string; focusId: string; nli: number }[],
   model: string,
 ): Promise<void> => {
-  const rounded = Math.round(nli * 1000) / 1000;
+  if (rows.length === 0) {
+    return;
+  }
+  const now = new Date().toISOString();
+  const values = rows.map((r) => ({
+    article_id: r.articleId,
+    focus_id: r.focusId,
+    nli: Math.round(r.nli * 1000) / 1000,
+    nli_model: model,
+  }));
   await db
     .insertInto('article_focuses')
-    .values({
-      article_id: articleId,
-      focus_id: focusId,
-      nli: rounded,
-      nli_model: model,
-    })
+    .values(values)
     .onConflict((oc) =>
       oc.columns(['article_id', 'focus_id']).doUpdateSet({
-        nli: rounded,
-        nli_model: model,
-        assigned_at: new Date().toISOString(),
+        nli: sql`excluded.nli`,
+        nli_model: sql`excluded.nli_model`,
+        assigned_at: now,
       }),
     )
     .execute();
@@ -64,29 +66,24 @@ const buildNliQuery = (
   scopeFilter: ScopeFilter | undefined,
   batchSize: number,
 ) => {
+  // Query articles × focuses that have similarity scores but need NLI
+  // No focus_sources join — NLI runs for all article-focus pairs
   let q = db
-    .selectFrom('focus_sources')
-    .innerJoin('articles', 'articles.source_id', 'focus_sources.source_id')
-    .innerJoin('focuses', 'focuses.id', 'focus_sources.focus_id')
+    .selectFrom('article_focuses')
+    .innerJoin('articles', 'articles.id', 'article_focuses.article_id')
+    .innerJoin('focuses', 'focuses.id', 'article_focuses.focus_id')
     .innerJoin('sources', 'sources.id', 'articles.source_id')
-    .leftJoin('article_focuses', (join) =>
-      join
-        .onRef('article_focuses.article_id', '=', 'articles.id')
-        .onRef('article_focuses.focus_id', '=', 'focus_sources.focus_id'),
-    )
     .select([
       'articles.id as article_id',
       'articles.title',
       'articles.content',
       'articles.summary',
       'sources.type as source_type',
-      'focus_sources.focus_id',
-      'focus_sources.mode',
+      'article_focuses.focus_id',
       'focuses.name',
       'focuses.description',
     ])
     .where('articles.extracted_at', 'is not', null)
-    .where('focus_sources.mode', '=', 'match')
     .where('article_focuses.similarity', 'is not', null)
     .where((eb) =>
       eb.or([
@@ -98,10 +95,10 @@ const buildNliQuery = (
     .limit(batchSize);
 
   if (scopeFilter?.focusIds && scopeFilter.focusIds.length > 0) {
-    q = q.where('focus_sources.focus_id', 'in', scopeFilter.focusIds);
+    q = q.where('article_focuses.focus_id', 'in', scopeFilter.focusIds);
   }
   if (scopeFilter?.sourceIds && scopeFilter.sourceIds.length > 0) {
-    q = q.where('focus_sources.source_id', 'in', scopeFilter.sourceIds);
+    q = q.where('articles.source_id', 'in', scopeFilter.sourceIds);
   }
 
   return q;
@@ -158,11 +155,15 @@ const createNliStep = (params: {
       }
     },
     processBatch: async (batch: NliItem[]): Promise<void> => {
+      const upsertRows: { articleId: string; focusId: string; nli: number }[] = [];
+
       for (const item of batch) {
         const results = await classifyFn(item.preparedText, [item.focusLabel]);
         const score = results[0]?.score ?? 0;
-        await upsertNli(db, item.articleId, item.focusId, score, classifierModel);
+        upsertRows.push({ articleId: item.articleId, focusId: item.focusId, nli: score });
       }
+
+      await batchUpsertNli(db, upsertRows, classifierModel);
     },
   };
 };

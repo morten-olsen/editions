@@ -4,15 +4,17 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { client } from '../api/api.ts';
 import { useAuthHeaders, queryKeys } from '../api/api.hooks.ts';
-import { PageHeader } from '../components/page-header.tsx';
 import { Input } from '../components/input.tsx';
 import { Button } from '../components/button.tsx';
 import { Checkbox } from '../components/checkbox.tsx';
 import { Separator } from '../components/separator.tsx';
 import { IconPicker } from '../components/icon-picker.tsx';
+import { BuilderSplitView } from '../components/builder-split-view.tsx';
 import { FocusConfigCard, AvailableFocusesList } from '../views/editions/focus-config-card.tsx';
 import type { FocusConfig, Focus } from '../views/editions/focus-config-card.tsx';
 import { ScheduleField, LookbackField } from '../views/editions/edition-form-fields.tsx';
+import { useEditionPreview } from '../hooks/editions/editions.preview-hooks.ts';
+import type { PreviewSection, EditionPreviewConfig } from '../hooks/editions/editions.preview-hooks.ts';
 import {
   useEditEditionData,
   useEditEditionForm,
@@ -20,7 +22,7 @@ import {
   isPresetSchedule,
   scheduleSelectValue,
 } from '../hooks/editions/editions.edit-hooks.ts';
-import type { EditionConfig, EditEditionFormResult } from '../hooks/editions/editions.edit-hooks.ts';
+import type { EditEditionFormResult } from '../hooks/editions/editions.edit-hooks.ts';
 
 /* ---- Mutation hook ---- */
 
@@ -47,7 +49,7 @@ const useUpdateEditionConfig = (
       void queryClient.invalidateQueries({ queryKey: queryKeys.editions.configs });
       void queryClient.invalidateQueries({ queryKey: queryKeys.editions.config(configId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.nav });
-      void navigate({ to: '/editions/$configId', params: { configId } });
+      void navigate({ to: '/editions' });
     },
     onError: (err: Error): void => {
       setError(err.message);
@@ -67,6 +69,26 @@ const EditEditionConfigPage = (): React.ReactNode => {
   const { configQuery, focusesQuery } = useEditEditionData(configId, headers);
   const form = useEditEditionForm(configQuery.data);
   const update = useUpdateEditionConfig(configId, headers);
+
+  const allFocuses = focusesQuery.data ?? [];
+  const focusNameMap = new Map(allFocuses.map((f) => [f.id, f.name]));
+
+  const previewConfig: EditionPreviewConfig = {
+    lookbackHours: form.lookbackHours,
+    excludePriorEditions: form.excludePriorEditions,
+    focuses: form.selectedFocuses.map((fc, idx) => ({
+      focusId: fc.focusId,
+      focusName: focusNameMap.get(fc.focusId) ?? fc.focusId,
+      position: idx,
+      budgetType: fc.budgetType,
+      budgetValue: fc.budgetValue,
+      lookbackHours: fc.lookbackHours,
+      excludePriorEditions: fc.excludePriorEditions,
+      weight: fc.weight,
+    })),
+  };
+
+  const preview = useEditionPreview(configId, configQuery.data ? previewConfig : undefined);
 
   if (!headers) {
     return null;
@@ -91,55 +113,66 @@ const EditEditionConfigPage = (): React.ReactNode => {
     e.preventDefault();
     const body = buildPatchBody(config, form);
     if (Object.keys(body).length === 0) {
-      void navigate({ to: '/editions/$configId', params: { configId } });
+      void navigate({ to: '/editions' });
       return;
     }
     update.mutate(body);
   };
 
   return (
-    <EditEditionForm
-      form={form}
-      config={config}
-      allFocuses={focusesQuery.data ?? []}
-      isPending={update.isPending}
-      error={update.error}
-      onSubmit={handleSubmit}
-      onCancel={() => void navigate({ to: '/editions/$configId', params: { configId } })}
+    <BuilderSplitView
+      config={
+        <EditionConfigPanel
+          form={form}
+          allFocuses={allFocuses}
+          isPending={update.isPending}
+          error={update.error}
+          onSubmit={handleSubmit}
+          onCancel={() => void navigate({ to: '/editions' })}
+        />
+      }
+      preview={
+        <EditionPreviewPanel
+          sections={preview.sections}
+          totalArticles={preview.totalArticles}
+          totalMinutes={preview.totalMinutes}
+          isLoading={preview.isLoading}
+          error={preview.error}
+          focuses={previewConfig.focuses}
+        />
+      }
+      previewLabel="Edition preview"
+      previewCount={preview.totalArticles}
     />
   );
 };
 
-/* ---- Form layout ---- */
+/* ── Config panel (left side) ────────────────────────────────────── */
 
-type EditEditionFormProps = {
-  form: EditEditionFormResult;
-  config: EditionConfig;
-  allFocuses: Focus[];
-  isPending: boolean;
-  error: string | null;
-  onSubmit: (e: React.FormEvent) => void;
-  onCancel: () => void;
-};
-
-const EditEditionForm = ({
+const EditionConfigPanel = ({
   form,
-  config: _config,
   allFocuses,
   isPending,
   error,
   onSubmit,
   onCancel,
-}: EditEditionFormProps): React.ReactNode => {
+}: {
+  form: EditEditionFormResult;
+  allFocuses: Focus[];
+  isPending: boolean;
+  error: string | null;
+  onSubmit: (e: React.FormEvent) => void;
+  onCancel: () => void;
+}): React.ReactNode => {
   const selectedIds = new Set(form.selectedFocuses.map((f) => f.focusId));
 
   return (
     <>
-      <PageHeader title="Edit edition" />
+      <h2 className="font-serif text-2xl font-medium tracking-tight text-ink mb-6">Edit edition</h2>
       {error && <FormError error={error} />}
       <form
         onSubmit={onSubmit}
-        className="max-w-lg flex flex-col gap-6"
+        className="flex flex-col gap-6"
         data-ai-id="edit-edition-form"
         data-ai-role="form"
         data-ai-label="Edit edition form"
@@ -162,6 +195,85 @@ const EditEditionForm = ({
         <FormActions isPending={isPending} onCancel={onCancel} />
       </form>
     </>
+  );
+};
+
+/* ── Preview panel (right side) ──────────────────────────────────── */
+
+const EditionPreviewPanel = ({
+  sections,
+  totalArticles,
+  totalMinutes,
+  isLoading,
+  error,
+  focuses,
+}: {
+  sections: PreviewSection[];
+  totalArticles: number;
+  totalMinutes: number;
+  isLoading: boolean;
+  error: Error | null;
+  focuses: EditionPreviewConfig['focuses'];
+}): React.ReactNode => {
+  if (isLoading) {
+    return <div className="py-8 text-center text-sm text-ink-tertiary">Loading preview…</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="py-8 text-center">
+        <div className="text-sm text-critical mb-1">Preview failed</div>
+        <div className="text-xs text-ink-faint">{error.message}</div>
+      </div>
+    );
+  }
+
+  if (sections.length === 0) {
+    const hasFocuses = focuses.length > 0;
+    return (
+      <div className="py-8 text-center">
+        <div className="text-sm text-ink-tertiary mb-1">
+          {hasFocuses ? 'No matching articles' : 'No focuses selected'}
+        </div>
+        <div className="text-xs text-ink-faint">
+          {hasFocuses
+            ? 'The selected focuses don\'t have matching articles yet. Make sure focuses have sources configured and classification has completed.'
+            : 'Add focuses on the left to preview what this edition would contain.'}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex items-baseline justify-between mb-6">
+        <h3 className="font-mono text-xs tracking-wide text-ink-faint uppercase">Latest issue</h3>
+        <span className="font-mono text-xs text-ink-tertiary">
+          {totalArticles} articles · {totalMinutes} min
+        </span>
+      </div>
+
+      {sections.map((section, i) => (
+        <div key={section.focusName} className="mb-6">
+          <div className="flex items-baseline gap-3 mb-2">
+            <span className="font-mono text-xs text-accent tracking-wide">{String(i + 1).padStart(2, '0')}</span>
+            <span className="font-serif text-lg font-medium tracking-tight text-ink">{section.focusName}</span>
+            <span className="font-mono text-xs text-ink-faint ml-auto">{section.articles.length}</span>
+          </div>
+          <div className="pl-8 flex flex-col gap-1.5">
+            {section.articles.map((article, j) => (
+              <div key={article.id} className="flex items-start gap-2">
+                <span className="font-mono text-xs text-ink-faint shrink-0 mt-0.5">{j + 1}.</span>
+                <div className="min-w-0">
+                  <span className="text-sm text-ink-secondary leading-snug">{article.title}</span>
+                  <span className="text-xs text-ink-faint ml-2">{article.sourceName}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
   );
 };
 

@@ -8,7 +8,6 @@ import { SourceCard } from '../../../web/src/components/source-card.tsx';
 import { ArticleCard } from '../../../web/src/components/article-card.tsx';
 import { VoteControls } from '../../../web/src/components/vote-controls.tsx';
 import { Button } from '../../../web/src/components/button.tsx';
-import { EditionSection } from '../../../web/src/components/edition-section.tsx';
 
 /* ── Sources guide ──────────────────────────────────────────────── */
 
@@ -172,42 +171,55 @@ const ShowcaseEditionConfig = (): React.ReactElement => (
   </div>
 );
 
+const editionArticles = [
+  {
+    id: 'e1',
+    title: 'The quiet revolution in reader design',
+    sourceName: 'Ars Technica',
+    author: 'Sarah Chen',
+    summary: 'How a new generation of reading apps is rethinking the relationship between content and interface.',
+    publishedAt: '2026-03-11T06:00:00Z',
+    consumptionTimeSeconds: 480,
+    imageUrl: 'https://picsum.photos/seed/reader-card/400/300',
+  },
+  {
+    id: 'e2',
+    title: 'TypeScript 6.0 introduces pattern matching',
+    sourceName: 'Hacker News',
+    summary: 'The long-awaited pattern matching RFC lands in TypeScript.',
+    publishedAt: '2026-03-10T12:00:00Z',
+    consumptionTimeSeconds: 180,
+  },
+  {
+    id: 'e3',
+    title: "Why SQLite is the database you didn't know you needed",
+    sourceName: 'Hacker News',
+    author: 'Richard Hipp',
+    summary: 'A deep dive into why embedded databases are making a comeback.',
+    publishedAt: '2026-03-09T18:00:00Z',
+    consumptionTimeSeconds: 720,
+    imageUrl: 'https://picsum.photos/seed/sqlite-card/400/300',
+  },
+];
+
 const ShowcaseEditionSection = (): React.ReactElement => (
   <div className="p-4">
-    <EditionSection
-      focusName="Technology"
-      index={0}
-      articles={[
-        {
-          id: 'e1',
-          title: 'The quiet revolution in reader design',
-          sourceName: 'Ars Technica',
-          author: 'Sarah Chen',
-          summary: 'How a new generation of reading apps is rethinking the relationship between content and interface.',
-          publishedAt: '2026-03-11T06:00:00Z',
-          consumptionTimeSeconds: 480,
-          imageUrl: 'https://picsum.photos/seed/reader-card/400/300',
-        },
-        {
-          id: 'e2',
-          title: 'TypeScript 6.0 introduces pattern matching',
-          sourceName: 'Hacker News',
-          summary: 'The long-awaited pattern matching RFC lands in TypeScript.',
-          publishedAt: '2026-03-10T12:00:00Z',
-          consumptionTimeSeconds: 180,
-        },
-        {
-          id: 'e3',
-          title: "Why SQLite is the database you didn't know you needed",
-          sourceName: 'Hacker News',
-          author: 'Richard Hipp',
-          summary: 'A deep dive into why embedded databases are making a comeback.',
-          publishedAt: '2026-03-09T18:00:00Z',
-          consumptionTimeSeconds: 720,
-          imageUrl: 'https://picsum.photos/seed/sqlite-card/400/300',
-        },
-      ]}
-    />
+    <section className="py-8">
+      <div className="flex items-baseline justify-between mb-2">
+        <div className="flex items-baseline gap-3">
+          <span className="text-xs font-mono text-accent tracking-wide">01</span>
+          <h2 className="font-serif text-xl font-medium tracking-tight text-ink">Technology</h2>
+        </div>
+        <div className="text-xs text-ink-tertiary">
+          {editionArticles.length} articles · {Math.round(editionArticles.reduce((s, a) => s + (a.consumptionTimeSeconds ?? 0), 0) / 60)} min
+        </div>
+      </div>
+      <div className="divide-y divide-border">
+        {editionArticles.map((article) => (
+          <ArticleCard key={article.id} {...article} />
+        ))}
+      </div>
+    </section>
   </div>
 );
 

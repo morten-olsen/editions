@@ -198,7 +198,13 @@ const InteractiveMagazine = (): React.ReactElement => {
           imageUrl="https://picsum.photos/seed/reader-mag/800/600"
           positionInSection={0}
           summary="How a new generation of reading apps is rethinking the relationship between content, interface, and the reader's attention span. The old paradigm of infinite scroll is giving way to something more intentional."
-          content="<p>For the better part of a decade, the dominant paradigm in digital reading has been the infinite scroll. But a growing number of designers are questioning whether the stream ever served the reader at all.</p><p>The thesis is simple: reading should end. A newspaper has a back page. A magazine has a final spread. Even a book, no matter how long, eventually runs out of pages. Digital reading abandoned this constraint somewhere around 2012, and we've been paying for it ever since.</p><p>A new wave of tools is pushing back. Apps like Editions, Readwise Reader, and Matter are experimenting with finite feeds — curated collections that respect the reader's time. You open them, you read, and at some point the app tells you: you're done. Go do something else.</p><p>The design implications are profound. Without infinite scroll, every article competes for a limited number of slots. Curation becomes the product, not the firehose. And the interface can finally be designed for reading — not for engagement, retention, or time-on-screen.</p>"
+          content={`For the better part of a decade, the dominant paradigm in digital reading has been the infinite scroll. But a growing number of designers are questioning whether the stream ever served the reader at all.
+
+The thesis is simple: reading should end. A newspaper has a back page. A magazine has a final spread. Even a book, no matter how long, eventually runs out of pages. Digital reading abandoned this constraint somewhere around 2012, and we've been paying for it ever since.
+
+A new wave of tools is pushing back. Apps like Editions, Readwise Reader, and Matter are experimenting with finite feeds — curated collections that respect the reader's time. You open them, you read, and at some point the app tells you: you're done. Go do something else.
+
+The design implications are profound. Without infinite scroll, every article competes for a limited number of slots. Curation becomes the product, not the firehose. And the interface can finally be designed for reading — not for engagement, retention, or time-on-screen.`}
         />
         {/* Editorial layout — position 1 */}
         <MagazineArticle
@@ -210,7 +216,9 @@ const InteractiveMagazine = (): React.ReactElement => {
           imageUrl="https://picsum.photos/seed/typescript-mag/800/450"
           positionInSection={1}
           summary="The long-awaited pattern matching RFC lands in TypeScript, bringing exhaustive checks and destructuring to a new level."
-          content="<p>Pattern matching has been the most requested TypeScript feature for half a decade. With version 6.0, it's finally real — and the implementation goes further than most expected.</p><p>The new match expression supports literal patterns, type narrowing, array destructuring, and guard clauses. Combined with TypeScript's existing discriminated unions, it makes exhaustive state handling nearly effortless. Early feedback from beta testers suggests it eliminates entire categories of switch-statement bugs.</p>"
+          content={`Pattern matching has been the most requested TypeScript feature for half a decade. With version 6.0, it's finally real — and the implementation goes further than most expected.
+
+The new match expression supports literal patterns, type narrowing, array destructuring, and guard clauses. Combined with TypeScript's existing discriminated unions, it makes exhaustive state handling nearly effortless. Early feedback from beta testers suggests it eliminates entire categories of switch-statement bugs.`}
         />
         <SectionPage name="Science" index={2} count={2} minutes={51} />
         {/* Compact layout — position 2 */}
@@ -223,7 +231,11 @@ const InteractiveMagazine = (): React.ReactElement => {
           imageUrl="https://picsum.photos/seed/jwst-mag/800/800"
           positionInSection={2}
           summary="New observations from the James Webb Space Telescope have revealed the earliest galaxies ever seen, forming just 300 million years after the Big Bang."
-          content='<p>The images, released Thursday in a special Nature supplement, show structures that challenge existing models of galaxy formation. Several of the newly discovered galaxies appear far more massive and structured than theory predicts for objects just 300 million years after the Big Bang.</p><p>"We expected to see small, irregular blobs," said Dr. Priya Natarajan of Yale. "Instead we&apos;re seeing disk-like structures with clear spiral arms. Our models will need significant revision."</p><p>The findings have immediate implications for dark matter research, as the early formation of large galaxies places new constraints on the timeline of cosmic structure assembly.</p>'
+          content={`The images, released Thursday in a special Nature supplement, show structures that challenge existing models of galaxy formation. Several of the newly discovered galaxies appear far more massive and structured than theory predicts for objects just 300 million years after the Big Bang.
+
+"We expected to see small, irregular blobs," said Dr. Priya Natarajan of Yale. "Instead we're seeing disk-like structures with clear spiral arms. Our models will need significant revision."
+
+The findings have immediate implications for dark matter research, as the early formation of large galaxies places new constraints on the timeline of cosmic structure assembly.`}
         />
         {/* Podcast layout */}
         <MagazineArticle

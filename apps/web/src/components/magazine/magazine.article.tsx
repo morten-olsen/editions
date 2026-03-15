@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { motion } from 'motion/react';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 import { VoteControls } from '../vote-controls.tsx';
 import type { VoteValue } from '../vote-controls.tsx';
@@ -25,7 +27,7 @@ type MagazineArticleProps = {
   mediaType?: string | null;
   /** Server-side playback progress (0.0–1.0) — used to restore position */
   progress?: number | null;
-  /** Extracted article body — rendered as HTML in a prose column */
+  /** Extracted article body — rendered as markdown in a prose column */
   content?: string | null;
   /** Position within the section (for layout variety) */
   positionInSection?: number;
@@ -78,8 +80,9 @@ const ArticleBody = ({ content, delay = 0.4 }: ArticleBodyProps): React.ReactEle
         prose-img:rounded-lg
         first-of-type:prose-p:text-lg first-of-type:prose-p:text-ink first-of-type:prose-p:leading-relaxed
         [&>p:first-of-type]:first-letter:float-left [&>p:first-of-type]:first-letter:text-5xl [&>p:first-of-type]:first-letter:font-serif [&>p:first-of-type]:first-letter:font-bold [&>p:first-of-type]:first-letter:leading-none [&>p:first-of-type]:first-letter:mr-2 [&>p:first-of-type]:first-letter:mt-1 [&>p:first-of-type]:first-letter:text-ink"
-      dangerouslySetInnerHTML={{ __html: content }}
-    />
+    >
+      <Markdown remarkPlugins={[remarkGfm]}>{content}</Markdown>
+    </div>
   </motion.div>
 );
 

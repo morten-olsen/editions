@@ -11,180 +11,165 @@ import {
   type TocEntry,
 } from '../../components/magazine/magazine.tsx';
 
-/* ── Sample article content (extracted HTML) ──────────────────────── */
+/* ── Sample article content (markdown) ────────────────────────────── */
 
-const readerDesignContent = `
-<p>For the better part of a decade, the dominant paradigm in digital reading has been the infinite scroll. Twitter pioneered it, Facebook perfected it, and RSS readers adopted it wholesale. The assumption was simple: more content, delivered faster, in an unbroken stream. But a growing number of designers and developers are questioning whether that assumption ever served readers at all.</p>
+const readerDesignContent = `For the better part of a decade, the dominant paradigm in digital reading has been the infinite scroll. Twitter pioneered it, Facebook perfected it, and RSS readers adopted it wholesale. The assumption was simple: more content, delivered faster, in an unbroken stream. But a growing number of designers and developers are questioning whether that assumption ever served readers at all.
 
-<p>The problem isn't technical — it's attentional. When everything arrives in a single undifferentiated stream, nothing feels important. A three-thousand-word investigation sits alongside a two-sentence hot take. A post from a friend you haven't heard from in months drowns under a flood of content from accounts you barely remember following. The firehose doesn't discriminate, and neither can the reader.</p>
+The problem isn't technical — it's attentional. When everything arrives in a single undifferentiated stream, nothing feels important. A three-thousand-word investigation sits alongside a two-sentence hot take. A post from a friend you haven't heard from in months drowns under a flood of content from accounts you barely remember following. The firehose doesn't discriminate, and neither can the reader.
 
-<h3>The finite alternative</h3>
+### The finite alternative
 
-<p>"The most radical thing you can do in 2026 is give someone an ending," says Mira Chen, lead designer at Streamline, a reading app that launched last month to quiet enthusiasm. "Every other app in the attention economy is designed to keep you scrolling. We designed ours so you reach the bottom and feel <em>done</em>."</p>
+"The most radical thing you can do in 2026 is give someone an ending," says Mira Chen, lead designer at Streamline, a reading app that launched last month to quiet enthusiasm. "Every other app in the attention economy is designed to keep you scrolling. We designed ours so you reach the bottom and feel *done*."
 
-<p>Streamline isn't alone. A wave of new reading apps — Editions, Reeder, Newsprint, Matter — share a common philosophy: reading should be bounded, curated, and calm. They draw inspiration not from social media feeds but from print magazines and morning newspapers, media that arrived finite by nature.</p>
+Streamline isn't alone. A wave of new reading apps — Editions, Reeder, Newsprint, Matter — share a common philosophy: reading should be bounded, curated, and calm. They draw inspiration not from social media feeds but from print magazines and morning newspapers, media that arrived finite by nature.
 
-<blockquote>
-<p>We're not building a feed. We're building something closer to a daily newspaper — assembled with intention, bounded by design, and meant to be finished.</p>
-</blockquote>
+> We're not building a feed. We're building something closer to a daily newspaper — assembled with intention, bounded by design, and meant to be finished.
 
-<h3>Source budgeting</h3>
+### Source budgeting
 
-<p>One technique gaining traction is "source budgeting" — algorithmically limiting how many articles from any single source can appear in a reading session. The idea is proportional representation: a prolific news wire shouldn't crowd out a small blog that publishes once a week. The reader subscribed to both for a reason.</p>
+One technique gaining traction is "source budgeting" — algorithmically limiting how many articles from any single source can appear in a reading session. The idea is proportional representation: a prolific news wire shouldn't crowd out a small blog that publishes once a week. The reader subscribed to both for a reason.
 
-<p>This approach requires a fundamental rethink of how feeds are assembled. Instead of sorting by recency and calling it done, these apps build curated editions: selecting a bounded set of articles that balance topics, sources, reading time, and importance. The result feels less like drinking from a firehose and more like reading a well-edited magazine.</p>
+This approach requires a fundamental rethink of how feeds are assembled. Instead of sorting by recency and calling it done, these apps build curated editions: selecting a bounded set of articles that balance topics, sources, reading time, and importance. The result feels less like drinking from a firehose and more like reading a well-edited magazine.
 
-<h3>Reading time as a first-class concept</h3>
+### Reading time as a first-class concept
 
-<p>Perhaps the most user-visible change is the emphasis on reading time. Rather than showing article counts — "47 unread" — these apps frame everything in minutes. "Your morning edition: 12 minutes." The shift is psychological as much as practical: it transforms reading from an obligation (clear the backlog) into a choice (I have fifteen minutes, here's what's worth reading).</p>
+Perhaps the most user-visible change is the emphasis on reading time. Rather than showing article counts — "47 unread" — these apps frame everything in minutes. "Your morning edition: 12 minutes." The shift is psychological as much as practical: it transforms reading from an obligation (clear the backlog) into a choice (I have fifteen minutes, here's what's worth reading).
 
-<p>For this to work, apps need to know how long articles actually take to read — which means extracting the full text, not just the RSS summary. Article extraction has gotten remarkably good, and the investment pays dividends beyond time estimation: it enables better topic classification, offline reading, and a consistent visual experience.</p>
+For this to work, apps need to know how long articles actually take to read — which means extracting the full text, not just the RSS summary. Article extraction has gotten remarkably good, and the investment pays dividends beyond time estimation: it enables better topic classification, offline reading, and a consistent visual experience.
 
-<h3>What comes next</h3>
+### What comes next
 
-<p>The quiet revolution in reader design isn't about features. It's about philosophy. These apps are betting that readers don't want more — they want enough. That the scroll isn't sacred. That "you're all caught up" is the most satisfying thing a reading app can say.</p>
+The quiet revolution in reader design isn't about features. It's about philosophy. These apps are betting that readers don't want more — they want enough. That the scroll isn't sacred. That "you're all caught up" is the most satisfying thing a reading app can say.
 
-<p>Whether the broader market agrees remains to be seen. But for a growing community of intentional readers, the firehose era is already over.</p>
+Whether the broader market agrees remains to be seen. But for a growing community of intentional readers, the firehose era is already over.
 `;
 
-const patternMatchingContent = `
-<p>The TypeScript team has officially merged the pattern matching RFC into the main branch, marking one of the most anticipated language additions since the introduction of template literal types. Pattern matching, long available in languages like Rust, Scala, and Haskell, brings exhaustive destructuring and conditional logic to TypeScript's type system in a way that feels both powerful and natural.</p>
+const patternMatchingContent = `The TypeScript team has officially merged the pattern matching RFC into the main branch, marking one of the most anticipated language additions since the introduction of template literal types. Pattern matching, long available in languages like Rust, Scala, and Haskell, brings exhaustive destructuring and conditional logic to TypeScript's type system in a way that feels both powerful and natural.
 
-<p>The new <code>match</code> expression allows developers to branch on the shape of data with compile-time exhaustiveness checking — meaning the compiler will error if you forget to handle a case. This is particularly valuable when working with discriminated unions, a pattern already common in TypeScript codebases.</p>
+The new \`match\` expression allows developers to branch on the shape of data with compile-time exhaustiveness checking — meaning the compiler will error if you forget to handle a case. This is particularly valuable when working with discriminated unions, a pattern already common in TypeScript codebases.
 
-<h3>The syntax</h3>
+### The syntax
 
-<p>The RFC introduces a new <code>match</code> keyword that works as an expression (it returns a value). The basic form mirrors what you'd find in Rust:</p>
+The RFC introduces a new \`match\` keyword that works as an expression (it returns a value). The basic form mirrors what you'd find in Rust:
 
-<p>Each arm of the match is checked at compile time. If you add a new variant to the union but forget to add a corresponding match arm, TypeScript will flag it as an error. This turns runtime bugs into compile-time errors — exactly the kind of safety TypeScript users have come to expect.</p>
+Each arm of the match is checked at compile time. If you add a new variant to the union but forget to add a corresponding match arm, TypeScript will flag it as an error. This turns runtime bugs into compile-time errors — exactly the kind of safety TypeScript users have come to expect.
 
-<h3>Beyond discriminated unions</h3>
+### Beyond discriminated unions
 
-<p>Pattern matching isn't limited to unions. The RFC supports matching on object shapes, array patterns, literal values, and even nested structures. You can bind variables within patterns, use guard clauses for additional conditions, and combine patterns with the <code>or</code> operator.</p>
+Pattern matching isn't limited to unions. The RFC supports matching on object shapes, array patterns, literal values, and even nested structures. You can bind variables within patterns, use guard clauses for additional conditions, and combine patterns with the \`or\` operator.
 
-<p>This expressiveness means that many common patterns — deeply nested conditionals, chains of <code>if/else</code> type narrowing, switch statements with manual type assertions — can be replaced with a single, readable <code>match</code> expression.</p>
+This expressiveness means that many common patterns — deeply nested conditionals, chains of \`if/else\` type narrowing, switch statements with manual type assertions — can be replaced with a single, readable \`match\` expression.
 
-<h3>Community reception</h3>
+### Community reception
 
-<p>The response has been overwhelmingly positive, though not without debate. Some developers worry about the learning curve, particularly for teams less familiar with functional programming concepts. Others argue that pattern matching will become as essential to TypeScript as generics — initially intimidating, eventually indispensable.</p>
+The response has been overwhelmingly positive, though not without debate. Some developers worry about the learning curve, particularly for teams less familiar with functional programming concepts. Others argue that pattern matching will become as essential to TypeScript as generics — initially intimidating, eventually indispensable.
 
-<p>The feature is expected to ship in TypeScript 6.0, currently scheduled for a fall release. In the meantime, the TypeScript Playground already supports an experimental flag for those eager to try it out.</p>
+The feature is expected to ship in TypeScript 6.0, currently scheduled for a fall release. In the meantime, the TypeScript Playground already supports an experimental flag for those eager to try it out.
 `;
 
-const sqliteContent = `
-<p>There's a quiet irony in the database world: the most widely deployed database engine on the planet is the one most backend developers have never seriously considered for production server applications. SQLite powers every iPhone, every Android device, every Mac, every Windows 10+ machine, every major web browser. It handles more concurrent users than any other database in existence. And yet, when it comes time to choose a database for a new web application, developers reach for PostgreSQL or MySQL almost reflexively.</p>
+const sqliteContent = `There's a quiet irony in the database world: the most widely deployed database engine on the planet is the one most backend developers have never seriously considered for production server applications. SQLite powers every iPhone, every Android device, every Mac, every Windows 10+ machine, every major web browser. It handles more concurrent users than any other database in existence. And yet, when it comes time to choose a database for a new web application, developers reach for PostgreSQL or MySQL almost reflexively.
 
-<p>That's starting to change. A growing cohort of developers — particularly in the self-hosted and small-scale application space — are discovering that SQLite isn't just "that embedded thing for mobile apps." For the right workload, it's a genuine superpower.</p>
+That's starting to change. A growing cohort of developers — particularly in the self-hosted and small-scale application space — are discovering that SQLite isn't just "that embedded thing for mobile apps." For the right workload, it's a genuine superpower.
 
-<h3>Why now?</h3>
+### Why now?
 
-<p>Several converging trends have made SQLite viable for server applications in ways it wasn't five years ago. WAL mode (Write-Ahead Logging) solved the most painful concurrency limitation: readers no longer block writers. Litestream enables real-time replication to S3-compatible storage, giving you backup and disaster recovery without operational complexity. And frameworks like Litestack, LiteFS, and Turso have built tooling that makes SQLite feel like a first-class server database.</p>
+Several converging trends have made SQLite viable for server applications in ways it wasn't five years ago. WAL mode (Write-Ahead Logging) solved the most painful concurrency limitation: readers no longer block writers. Litestream enables real-time replication to S3-compatible storage, giving you backup and disaster recovery without operational complexity. And frameworks like Litestack, LiteFS, and Turso have built tooling that makes SQLite feel like a first-class server database.
 
-<blockquote>
-<p>The best database is the one you don't have to operate. SQLite is a library, not a service — there's no daemon to monitor, no connection pool to tune, no cluster to coordinate.</p>
-</blockquote>
+> The best database is the one you don't have to operate. SQLite is a library, not a service — there's no daemon to monitor, no connection pool to tune, no cluster to coordinate.
 
-<h3>The performance story</h3>
+### The performance story
 
-<p>For read-heavy workloads — which describes most web applications — SQLite is remarkably fast. There's no network roundtrip, no serialization overhead, no connection establishment. A query goes from your application code to the database engine via a function call. The data lives in a single file on the same machine. Latency is measured in microseconds, not milliseconds.</p>
+For read-heavy workloads — which describes most web applications — SQLite is remarkably fast. There's no network roundtrip, no serialization overhead, no connection establishment. A query goes from your application code to the database engine via a function call. The data lives in a single file on the same machine. Latency is measured in microseconds, not milliseconds.
 
-<p>Write performance is more nuanced. SQLite serializes writes, which means a single writer at a time. For applications with modest write volumes — and "modest" is higher than most developers assume — this is a non-issue. A well-tuned SQLite instance on modern hardware can handle thousands of writes per second.</p>
+Write performance is more nuanced. SQLite serializes writes, which means a single writer at a time. For applications with modest write volumes — and "modest" is higher than most developers assume — this is a non-issue. A well-tuned SQLite instance on modern hardware can handle thousands of writes per second.
 
-<h3>The deployment story</h3>
+### The deployment story
 
-<p>This is where SQLite truly shines for small-scale self-hosted applications. Your entire database is a single file. Backup is <code>cp</code>. Migration to a new server is <code>scp</code>. There's no database service to install, configure, secure, update, or monitor. The operational complexity drops to nearly zero.</p>
+This is where SQLite truly shines for small-scale self-hosted applications. Your entire database is a single file. Backup is \`cp\`. Migration to a new server is \`scp\`. There's no database service to install, configure, secure, update, or monitor. The operational complexity drops to nearly zero.
 
-<p>For a personal app, a small team tool, or a self-hosted service with a handful of users, this simplicity is transformative. You're not trading capability for convenience — you're recognizing that the capability you actually need is well within what SQLite provides, and the operational simplicity is a genuine feature.</p>
+For a personal app, a small team tool, or a self-hosted service with a handful of users, this simplicity is transformative. You're not trading capability for convenience — you're recognizing that the capability you actually need is well within what SQLite provides, and the operational simplicity is a genuine feature.
 
-<h3>When to look elsewhere</h3>
+### When to look elsewhere
 
-<p>SQLite isn't the answer to everything. If you need multiple application servers writing to the same database, you need a client-server database. If your write volume genuinely requires concurrent writers, you need PostgreSQL. If you're building a multi-tenant SaaS platform, SQLite's single-file-per-database model becomes unwieldy at scale.</p>
+SQLite isn't the answer to everything. If you need multiple application servers writing to the same database, you need a client-server database. If your write volume genuinely requires concurrent writers, you need PostgreSQL. If you're building a multi-tenant SaaS platform, SQLite's single-file-per-database model becomes unwieldy at scale.
 
-<p>But for the surprisingly large category of applications that serve one user, one team, or one small community — the database you didn't know you needed has been on your machine all along.</p>
+But for the surprisingly large category of applications that serve one user, one team, or one small community — the database you didn't know you needed has been on your machine all along.
 `;
 
-const jwstContent = `
-<p>The James Webb Space Telescope has done it again. In a paper published today in Nature Astronomy, a team led by Dr. Emily Carter at the Space Telescope Science Institute reports the detection of spectroscopically confirmed galaxies at redshift z ≈ 16.4 — placing them roughly 230 million years after the Big Bang. If confirmed by independent analysis, these are the oldest galaxies ever observed, surpassing the previous record by nearly 50 million years.</p>
+const jwstContent = `The James Webb Space Telescope has done it again. In a paper published today in Nature Astronomy, a team led by Dr. Emily Carter at the Space Telescope Science Institute reports the detection of spectroscopically confirmed galaxies at redshift z ≈ 16.4 — placing them roughly 230 million years after the Big Bang. If confirmed by independent analysis, these are the oldest galaxies ever observed, surpassing the previous record by nearly 50 million years.
 
-<p>The discovery was made using JWST's Near-Infrared Spectrograph (NIRSpec), which captured detailed spectra of three candidate galaxies first identified as photometric dropouts in deep imaging from the JADES survey. The spectra reveal emission lines consistent with young stellar populations and very low metallicity — hallmarks of galaxies forming their first generation of stars.</p>
+The discovery was made using JWST's Near-Infrared Spectrograph (NIRSpec), which captured detailed spectra of three candidate galaxies first identified as photometric dropouts in deep imaging from the JADES survey. The spectra reveal emission lines consistent with young stellar populations and very low metallicity — hallmarks of galaxies forming their first generation of stars.
 
-<h3>Challenging the models</h3>
+### Challenging the models
 
-<p>What makes these observations particularly significant isn't just the record-breaking distance. It's that the galaxies appear more massive and more luminous than current models of early universe star formation predict. Standard Lambda-CDM cosmology expects the first galaxies to be small, faint, and slowly assembling — not the surprisingly bright objects JWST keeps finding.</p>
+What makes these observations particularly significant isn't just the record-breaking distance. It's that the galaxies appear more massive and more luminous than current models of early universe star formation predict. Standard Lambda-CDM cosmology expects the first galaxies to be small, faint, and slowly assembling — not the surprisingly bright objects JWST keeps finding.
 
-<blockquote>
-<p>We're not seeing the tiny, tentative galaxies our models predict. We're seeing something more vigorous, more luminous, and frankly more puzzling. The early universe was busier than we thought.</p>
-</blockquote>
+> We're not seeing the tiny, tentative galaxies our models predict. We're seeing something more vigorous, more luminous, and frankly more puzzling. The early universe was busier than we thought.
 
-<p>This isn't the first time JWST has challenged expectations about the early universe. Since its first deep field observations in 2022, the telescope has consistently revealed galaxies at high redshifts that appear "too big, too bright, too soon" — a phrase that has become something of a refrain in the astronomical community.</p>
+This isn't the first time JWST has challenged expectations about the early universe. Since its first deep field observations in 2022, the telescope has consistently revealed galaxies at high redshifts that appear "too big, too bright, too soon" — a phrase that has become something of a refrain in the astronomical community.
 
-<h3>Possible explanations</h3>
+### Possible explanations
 
-<p>Several hypotheses are being explored. Star formation in the early universe may have been more efficient than assumed, with a higher fraction of gas converting to stars. The initial mass function — the distribution of stellar masses — may have been top-heavy, producing more luminous massive stars. Or there may be physical processes not yet captured in simulations that accelerated early galaxy assembly.</p>
+Several hypotheses are being explored. Star formation in the early universe may have been more efficient than assumed, with a higher fraction of gas converting to stars. The initial mass function — the distribution of stellar masses — may have been top-heavy, producing more luminous massive stars. Or there may be physical processes not yet captured in simulations that accelerated early galaxy assembly.
 
-<p>Some theorists have proposed more radical explanations, including modifications to dark matter models or even challenges to aspects of standard cosmology. But most researchers counsel patience: the observations are still new, and the systematic uncertainties at these extreme redshifts are significant.</p>
+Some theorists have proposed more radical explanations, including modifications to dark matter models or even challenges to aspects of standard cosmology. But most researchers counsel patience: the observations are still new, and the systematic uncertainties at these extreme redshifts are significant.
 
-<h3>What's next</h3>
+### What's next
 
-<p>The JWST team plans to follow up with deeper spectroscopic observations during Cycle 4, targeting these and other high-redshift candidates with longer exposure times. The goal is to measure stellar masses, star formation rates, and chemical abundances with enough precision to meaningfully constrain theoretical models.</p>
+The JWST team plans to follow up with deeper spectroscopic observations during Cycle 4, targeting these and other high-redshift candidates with longer exposure times. The goal is to measure stellar masses, star formation rates, and chemical abundances with enough precision to meaningfully constrain theoretical models.
 
-<p>For now, the message from the edge of the observable universe is clear: the cosmos got started faster than we expected, and our theories have some catching up to do.</p>
+For now, the message from the edge of the observable universe is clear: the cosmos got started faster than we expected, and our theories have some catching up to do.
 `;
 
-const euDataContent = `
-<p>When the European Union's Digital Markets Act entered its first phase in 2023, the tech industry largely treated it as a compliance exercise — inconvenient but manageable. Three years later, as DMA Phase II takes effect this month, the mood has shifted. The new requirements go beyond tweaks to app store policies and default browser choices. They mandate genuine platform interoperability, data portability, and algorithmic transparency at a level no major jurisdiction has attempted before.</p>
+const euDataContent = `When the European Union's Digital Markets Act entered its first phase in 2023, the tech industry largely treated it as a compliance exercise — inconvenient but manageable. Three years later, as DMA Phase II takes effect this month, the mood has shifted. The new requirements go beyond tweaks to app store policies and default browser choices. They mandate genuine platform interoperability, data portability, and algorithmic transparency at a level no major jurisdiction has attempted before.
 
-<p>For everyday users, the changes will be both visible and invisible. Some will appear as new buttons and options in familiar apps. Others will reshape how data flows between services in ways that matter enormously but happen entirely behind the scenes.</p>
+For everyday users, the changes will be both visible and invisible. Some will appear as new buttons and options in familiar apps. Others will reshape how data flows between services in ways that matter enormously but happen entirely behind the scenes.
 
-<h3>Interoperability in practice</h3>
+### Interoperability in practice
 
-<p>The headline requirement is messaging interoperability. Under DMA Phase II, designated "gatekeepers" — currently Apple, Google, Meta, Microsoft, Amazon, and ByteDance — must allow third-party messaging services to interoperate with their platforms. In practical terms: a Signal user should be able to send a message to a WhatsApp user, and vice versa, without either party switching apps.</p>
+The headline requirement is messaging interoperability. Under DMA Phase II, designated "gatekeepers" — currently Apple, Google, Meta, Microsoft, Amazon, and ByteDance — must allow third-party messaging services to interoperate with their platforms. In practical terms: a Signal user should be able to send a message to a WhatsApp user, and vice versa, without either party switching apps.
 
-<p>The technical challenges are significant. End-to-end encryption must be maintained across protocols, message formats must be translated, and group messaging adds further complexity. The EU has given platforms 30 months to implement full group messaging interoperability, with basic one-to-one messaging required by October.</p>
+The technical challenges are significant. End-to-end encryption must be maintained across protocols, message formats must be translated, and group messaging adds further complexity. The EU has given platforms 30 months to implement full group messaging interoperability, with basic one-to-one messaging required by October.
 
-<h3>Data sovereignty</h3>
+### Data sovereignty
 
-<p>The second major pillar is data portability and sovereignty. Users must be able to export their data from any gatekeeper platform in a machine-readable, interoperable format — not just as a data dump, but in a form that can be meaningfully imported into a competing service. This applies to social graphs, content archives, purchase histories, and algorithmic preferences.</p>
+The second major pillar is data portability and sovereignty. Users must be able to export their data from any gatekeeper platform in a machine-readable, interoperable format — not just as a data dump, but in a form that can be meaningfully imported into a competing service. This applies to social graphs, content archives, purchase histories, and algorithmic preferences.
 
-<blockquote>
-<p>The goal isn't just to let users leave a platform. It's to ensure that switching costs don't become a form of lock-in. Your data, your relationships, your preferences — they should travel with you.</p>
-</blockquote>
+> The goal isn't just to let users leave a platform. It's to ensure that switching costs don't become a form of lock-in. Your data, your relationships, your preferences — they should travel with you.
 
-<h3>What it means for smaller players</h3>
+### What it means for smaller players
 
-<p>Perhaps the most consequential long-term effect will be on market dynamics. By lowering switching costs and enabling interoperability, the DMA aims to create space for smaller competitors who currently can't overcome the network effects of incumbent platforms. A new messaging app doesn't need to convince all your friends to switch — it just needs to offer a better experience while maintaining access to your existing conversations.</p>
+Perhaps the most consequential long-term effect will be on market dynamics. By lowering switching costs and enabling interoperability, the DMA aims to create space for smaller competitors who currently can't overcome the network effects of incumbent platforms. A new messaging app doesn't need to convince all your friends to switch — it just needs to offer a better experience while maintaining access to your existing conversations.
 
-<p>Whether this plays out as intended remains an open question. Critics argue that forced interoperability could reduce incentives for innovation, create security vulnerabilities, or simply be implemented in bad faith with technically compliant but practically useless interfaces. Supporters counter that the same arguments were made against number portability in telephony — and that today, nobody questions the right to keep your phone number when you switch carriers.</p>
+Whether this plays out as intended remains an open question. Critics argue that forced interoperability could reduce incentives for innovation, create security vulnerabilities, or simply be implemented in bad faith with technically compliant but practically useless interfaces. Supporters counter that the same arguments were made against number portability in telephony — and that today, nobody questions the right to keep your phone number when you switch carriers.
 
-<p>The next twelve months will determine whether DMA Phase II becomes a genuine inflection point for digital markets or another regulatory framework that sounds transformative on paper but changes little in practice.</p>
+The next twelve months will determine whether DMA Phase II becomes a genuine inflection point for digital markets or another regulatory framework that sounds transformative on paper but changes little in practice.
 `;
 
-const podcastShowNotes = `
-<p>In this episode, we sit down with two engineers who've spent the last year rebuilding their company's entire content pipeline around the idea of "finite feeds" — the principle that a reading experience should have a beginning, a middle, and an end.</p>
+const podcastShowNotes = `In this episode, we sit down with two engineers who've spent the last year rebuilding their company's entire content pipeline around the idea of "finite feeds" — the principle that a reading experience should have a beginning, a middle, and an end.
 
-<p>They walk us through the technical decisions behind source budgeting (how to algorithmically prevent any single source from dominating a feed), the surprisingly tricky problem of estimating reading time accurately across different content types, and why they chose SQLite over Postgres for a system that handles thousands of articles per day.</p>
+They walk us through the technical decisions behind source budgeting (how to algorithmically prevent any single source from dominating a feed), the surprisingly tricky problem of estimating reading time accurately across different content types, and why they chose SQLite over Postgres for a system that handles thousands of articles per day.
 
-<h3>Topics covered</h3>
+### Topics covered
 
-<p>We discuss the concept of "edition generation" — assembling a bounded set of articles that balances topics, sources, reading time, and importance — and how it differs from traditional feed ranking. The conversation touches on embedding-based topic classification, the trade-offs of server-side vs. client-side pagination, and why the team decided to extract full article text rather than relying on RSS summaries.</p>
+We discuss the concept of "edition generation" — assembling a bounded set of articles that balances topics, sources, reading time, and importance — and how it differs from traditional feed ranking. The conversation touches on embedding-based topic classification, the trade-offs of server-side vs. client-side pagination, and why the team decided to extract full article text rather than relying on RSS summaries.
 
-<h3>The SQLite decision</h3>
+### The SQLite decision
 
-<p>Perhaps the most interesting segment covers their database choice. The team explains why they moved from PostgreSQL to SQLite for their self-hosted product, how WAL mode and careful write serialization solved their concurrency concerns, and the operational simplicity gains that followed. "Our entire database is a single file. Backup is cp. There's no daemon to monitor, no connection pool to tune."</p>
+Perhaps the most interesting segment covers their database choice. The team explains why they moved from PostgreSQL to SQLite for their self-hosted product, how WAL mode and careful write serialization solved their concurrency concerns, and the operational simplicity gains that followed. "Our entire database is a single file. Backup is cp. There's no daemon to monitor, no connection pool to tune."
 
-<h3>Links</h3>
+### Links
 
-<p>Show notes and links to everything mentioned in this episode are available on our website. Special thanks to our guests for sharing their experience so openly — it's rare to get this level of technical detail about architectural decisions in production systems.</p>
+Show notes and links to everything mentioned in this episode are available on our website. Special thanks to our guests for sharing their experience so openly — it's rare to get this level of technical detail about architectural decisions in production systems.
 `;
 
-const tradeContent = `
-<p>After three years of negotiations that nearly collapsed twice, the Comprehensive Pacific Economic Partnership (CPEP) was formally ratified today in a ceremony in Auckland. The agreement, signed by twelve nations spanning from Chile to Japan, creates the world's largest free trade zone by GDP — surpassing both the EU single market and USMCA.</p>
+const tradeContent = `After three years of negotiations that nearly collapsed twice, the Comprehensive Pacific Economic Partnership (CPEP) was formally ratified today in a ceremony in Auckland. The agreement, signed by twelve nations spanning from Chile to Japan, creates the world's largest free trade zone by GDP — surpassing both the EU single market and USMCA.
 
-<p>The agreement eliminates tariffs on over 95% of goods traded between member nations over a ten-year phase-in period. It also includes provisions for digital trade, intellectual property harmonization, labor standards, and environmental commitments — making it one of the most comprehensive trade agreements in history.</p>
+The agreement eliminates tariffs on over 95% of goods traded between member nations over a ten-year phase-in period. It also includes provisions for digital trade, intellectual property harmonization, labor standards, and environmental commitments — making it one of the most comprehensive trade agreements in history.
 
-<p>Reaction has been cautiously optimistic. Trade economists project modest but meaningful GDP gains for most member nations, with smaller Pacific island economies expected to benefit disproportionately from improved market access. Critics, particularly labor unions in larger economies, warn that the agreement's enforcement mechanisms for labor and environmental standards lack teeth.</p>
+Reaction has been cautiously optimistic. Trade economists project modest but meaningful GDP gains for most member nations, with smaller Pacific island economies expected to benefit disproportionately from improved market access. Critics, particularly labor unions in larger economies, warn that the agreement's enforcement mechanisms for labor and environmental standards lack teeth.
 
-<p>The agreement enters into force in ninety days, with the first tariff reductions beginning in Q2 of next year.</p>
+The agreement enters into force in ninety days, with the first tariff reductions beginning in Q2 of next year.
 `;
 
 /* ── Sample data ──────────────────────────────────────────────────── */

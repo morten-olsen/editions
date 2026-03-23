@@ -162,6 +162,7 @@ const ReadMixedList: Story = {
 const VotableArticle = (): React.ReactElement => {
   const [focusVote, setFocusVote] = useState<VoteValue>(null);
   const [globalVote, setGlobalVote] = useState<VoteValue>(null);
+  const [bookmarked, setBookmarked] = useState(false);
 
   return (
     <div style={{ width: '40rem' }}>
@@ -172,6 +173,8 @@ const VotableArticle = (): React.ReactElement => {
         onFocusVote={setFocusVote}
         vote={globalVote}
         onVote={setGlobalVote}
+        bookmarked={bookmarked}
+        onBookmarkToggle={() => setBookmarked((b) => !b)}
       />
     </div>
   );
@@ -179,6 +182,24 @@ const VotableArticle = (): React.ReactElement => {
 
 const WithVoting: Story = {
   render: () => <VotableArticle />,
+};
+
+const WithBookmark: Story = {
+  render: () => {
+    const [bookmarked, setBookmarked] = useState(false);
+    return (
+      <div style={{ width: '40rem' }}>
+        <ArticleCard
+          {...sampleProps}
+          imageUrl="https://picsum.photos/seed/reader/400/300"
+          vote={1}
+          onVote={() => undefined}
+          bookmarked={bookmarked}
+          onBookmarkToggle={() => setBookmarked((b) => !b)}
+        />
+      </div>
+    );
+  },
 };
 
 const WithActiveVotes: Story = {
@@ -225,4 +246,4 @@ const WithActiveVotes: Story = {
 };
 
 export default meta;
-export { Default, WithImage, Compact, Read, ReadWithImage, List, ReadMixedList, WithVoting, WithActiveVotes };
+export { Default, WithImage, Compact, Read, ReadWithImage, List, ReadMixedList, WithVoting, WithBookmark, WithActiveVotes };

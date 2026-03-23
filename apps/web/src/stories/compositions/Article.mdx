@@ -1,0 +1,270 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design System/Compositions/Article" />
+
+<div style={{ maxWidth: "72rem", margin: "0 auto", padding: "4rem 0", fontFamily: "var(--font-sans)" }}>
+
+<div style={{ color: "var(--color-ink-tertiary)", fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: "1.5rem" }}>Compositions</div>
+
+# Article
+
+<div style={{ fontSize: "1.2rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginTop: "1rem", marginBottom: "4rem", maxWidth: "65ch" }}>
+  A composable article rendering system inspired by Radix UI's compound component pattern. Instead of a monolithic article component, the system provides atomic parts that compose into style presets and context-specific footers. One article, many presentations.
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", marginBottom: "4rem" }} />
+
+## Architecture
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "22rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", overflow: "hidden", background: "var(--color-surface)" }}>
+      <div style={{ borderBottom: "1px solid var(--color-border)", padding: "0.5rem 0.75rem" }}>
+        <span style={{ fontSize: "0.65rem", fontFamily: "var(--font-mono)", color: "var(--color-accent)", letterSpacing: "0.04em" }}>LAYER MODEL</span>
+      </div>
+      <div style={{ padding: "0.75rem", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+        {[
+          { label: "Compound parts", desc: "Article.*", bg: "var(--color-accent)", color: "white" },
+          { label: "Style presets", desc: "Editorial, Hero, Compact", bg: "var(--color-accent-subtle)", color: "var(--color-ink)" },
+          { label: "Footer variants", desc: "FeedFooter, FocusFooter, EditionFooter", bg: "var(--color-surface-sunken)", color: "var(--color-ink-secondary)" },
+        ].map((item, i) => (
+          <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.7rem", padding: "0.4rem 0.6rem", borderRadius: "0.25rem", background: item.bg, color: item.color }}>
+            <span style={{ fontWeight: 500 }}>{item.label}</span>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem", opacity: 0.75 }}>{item.desc}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>The system has three layers. <strong style={{ color: "var(--color-ink)" }}>Compound parts</strong> are the atoms — each renders one visual element of an article (title, image, byline, body, etc.). They are independently usable and composable.</p>
+    <p style={{ margin: "0 0 0.75rem" }}><strong style={{ color: "var(--color-ink)" }}>Style presets</strong> compose these parts into complete layouts. Editorial is centered and classical; Hero splits text and image into a grid; Compact uses an asymmetric sidebar. Each preset accepts a <code style={{ fontSize: "0.75rem", background: "var(--color-surface-sunken)", padding: "0.15rem 0.35rem", borderRadius: "0.25rem" }}>footer</code> slot.</p>
+    <p style={{ margin: 0 }}><strong style={{ color: "var(--color-ink)" }}>Footer variants</strong> provide the context-specific voting and navigation UI. The same article can show a Quality vote (feed), dual Relevance + Quality votes (focus), or an Edition vote with a "next article" prompt (magazine).</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Compound parts
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2rem", maxWidth: "65ch" }}>
+  Import as a namespace: <code style={{ fontSize: "0.75rem", background: "var(--color-surface-sunken)", padding: "0.15rem 0.35rem", borderRadius: "0.25rem" }}>import * as Article from 'components/article/article.tsx'</code>. Each part takes explicit props including <code style={{ fontSize: "0.75rem", background: "var(--color-surface-sunken)", padding: "0.15rem 0.35rem", borderRadius: "0.25rem" }}>delay</code> for staggered entrance animations.
+</div>
+
+<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem", marginBottom: "4rem" }}>
+  {[
+    { name: "Root", desc: "Container div. Accepts className for layout (max-w-prose, grid, etc.)." },
+    { name: "Source", desc: "Mono-set source badge in accent color. Optional publishedAt dot-separated." },
+    { name: "Title", desc: "Serif headline. Three sizes: base, lg, xl. Centered prop for editorial layouts." },
+    { name: "Divider", desc: "Decorative 48px rule. Animates from center outward via scaleX." },
+    { name: "Image", desc: "Rounded image container. Three aspect ratios: video (16:9), photo (4:3), square." },
+    { name: "Summary", desc: "Serif summary paragraph. Auto-hides when hasContent is true (body replaces it)." },
+    { name: "Byline", desc: "Author, date, reading time. Dot-separated, tertiary ink. Centered prop." },
+    { name: "Body", desc: "Full markdown rendering with prose typography and drop-cap first letter." },
+    { name: "VoteRow", desc: "Centered vote controls with border-top separator. Wraps VoteControls." },
+    { name: "Footer", desc: "Generic animated wrapper for footer content. Used by footer variants." },
+  ].map((part) => (
+    <div key={part.name} style={{ padding: "1rem", borderRadius: "0.5rem", border: "1px solid var(--color-border)" }}>
+      <div style={{ fontSize: "0.875rem", fontWeight: 500, fontFamily: "var(--font-mono)", color: "var(--color-accent)", marginBottom: "0.375rem" }}>Article.{part.name}</div>
+      <div style={{ fontSize: "0.75rem", color: "var(--color-ink-secondary)", lineHeight: 1.5 }}>{part.desc}</div>
+    </div>
+  ))}
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Style presets
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2rem", maxWidth: "65ch" }}>
+  Three layout presets compose the compound parts into complete article presentations. Each accepts an article data object and an optional <code style={{ fontSize: "0.75rem", background: "var(--color-surface-sunken)", padding: "0.15rem 0.35rem", borderRadius: "0.25rem" }}>footer</code> React node.
+</div>
+
+<div style={{ display: "flex", flexDirection: "column", gap: "2.5rem", marginBottom: "4rem" }}>
+  <div style={{ display: "flex", gap: "2rem", alignItems: "flex-start" }}>
+    <div style={{ width: "10rem", height: "7rem", flexShrink: 0, borderRadius: "0.5rem", border: "1px solid var(--color-border)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0.75rem", gap: "0.25rem" }}>
+      <div style={{ width: "2rem", height: "1px", background: "var(--color-border-strong)" }} />
+      <div style={{ width: "4rem", height: "0.35rem", borderRadius: "2px", background: "var(--color-ink)", opacity: 0.3 }} />
+      <div style={{ width: "5rem", height: "0.25rem", borderRadius: "2px", background: "var(--color-ink)", opacity: 0.15 }} />
+      <div style={{ width: "6rem", height: "2rem", borderRadius: "0.25rem", background: "var(--color-surface-sunken)", marginTop: "0.25rem" }} />
+      <div style={{ width: "3rem", height: "0.2rem", borderRadius: "2px", background: "var(--color-ink)", opacity: 0.1 }} />
+    </div>
+    <div>
+      <div style={{ fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.25rem" }}>Editorial</div>
+      <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, maxWidth: "50ch" }}>
+        Centered single-column layout. Source badge, display title, decorative divider, hero image, summary, byline, body, and footer — all center-aligned. The signature reading style, used for the article detail page and magazine editorial spreads.
+      </div>
+    </div>
+  </div>
+
+  <div style={{ display: "flex", gap: "2rem", alignItems: "flex-start" }}>
+    <div style={{ width: "10rem", height: "7rem", flexShrink: 0, borderRadius: "0.5rem", border: "1px solid var(--color-border)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", padding: "0.75rem" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", justifyContent: "center" }}>
+        <div style={{ width: "2rem", height: "0.2rem", borderRadius: "2px", background: "var(--color-accent)", opacity: 0.5 }} />
+        <div style={{ width: "3rem", height: "0.3rem", borderRadius: "2px", background: "var(--color-ink)", opacity: 0.3 }} />
+        <div style={{ width: "3.5rem", height: "0.2rem", borderRadius: "2px", background: "var(--color-ink)", opacity: 0.15 }} />
+      </div>
+      <div style={{ borderRadius: "0.25rem", background: "var(--color-surface-sunken)" }} />
+    </div>
+    <div>
+      <div style={{ fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.25rem" }}>Hero</div>
+      <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, maxWidth: "50ch" }}>
+        Two-column grid layout. Text content on the left, image on the right (reversed on mobile). Creates visual impact for lead articles. Article body flows into a centered single-column below the grid.
+      </div>
+    </div>
+  </div>
+
+  <div style={{ display: "flex", gap: "2rem", alignItems: "flex-start" }}>
+    <div style={{ width: "10rem", height: "7rem", flexShrink: 0, borderRadius: "0.5rem", border: "1px solid var(--color-border)", display: "grid", gridTemplateColumns: "1fr 2fr", gap: "0.5rem", padding: "0.75rem" }}>
+      <div style={{ borderRadius: "0.25rem", background: "var(--color-surface-sunken)", aspectRatio: "1" }} />
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", justifyContent: "center" }}>
+        <div style={{ width: "2rem", height: "0.2rem", borderRadius: "2px", background: "var(--color-accent)", opacity: 0.5 }} />
+        <div style={{ width: "3rem", height: "0.3rem", borderRadius: "2px", background: "var(--color-ink)", opacity: 0.3 }} />
+        <div style={{ width: "4rem", height: "0.2rem", borderRadius: "2px", background: "var(--color-ink)", opacity: 0.15 }} />
+      </div>
+    </div>
+    <div>
+      <div style={{ fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.25rem" }}>Compact</div>
+      <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, maxWidth: "50ch" }}>
+        Asymmetric sidebar layout. Square image (or accent-bordered text block when no image) on the left, text content on the right. Smaller typography. Compact feel for secondary articles.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Style selector
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2rem", maxWidth: "65ch" }}>
+  The <code style={{ fontSize: "0.75rem", background: "var(--color-surface-sunken)", padding: "0.15rem 0.35rem", borderRadius: "0.25rem" }}>ArticleView</code> component accepts a <code style={{ fontSize: "0.75rem", background: "var(--color-surface-sunken)", padding: "0.15rem 0.35rem", borderRadius: "0.25rem" }}>style</code> prop to select which preset renders the article. This enables a single component to serve the article page, magazine spreads, and any future presentation.
+</div>
+
+```tsx
+import { ArticleView } from 'components/article/article.presets.tsx';
+
+<ArticleView
+  style="editorial"      // "editorial" | "hero" | "compact"
+  title={article.title}
+  sourceName={article.sourceName}
+  content={article.content}
+  footer={<FeedFooter vote={vote} onVote={handleVote} />}
+/>
+```
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Footer variants
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2rem", maxWidth: "65ch" }}>
+  Three footer components provide context-specific voting and navigation. Each is passed to a preset's <code style={{ fontSize: "0.75rem", background: "var(--color-surface-sunken)", padding: "0.15rem 0.35rem", borderRadius: "0.25rem" }}>footer</code> slot.
+</div>
+
+<div style={{ display: "flex", flexDirection: "column", gap: "2rem", marginBottom: "4rem" }}>
+  <div style={{ display: "flex", gap: "2rem", alignItems: "flex-start" }}>
+    <div style={{ width: "8rem", flexShrink: 0, textAlign: "center" }}>
+      <div style={{ fontSize: "0.75rem", fontFamily: "var(--font-mono)", color: "var(--color-accent)", marginBottom: "0.25rem" }}>FeedFooter</div>
+      <div style={{ fontSize: "0.65rem", color: "var(--color-ink-faint)" }}>Global feed context</div>
+    </div>
+    <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+      Quality vote controls with "Done" and "View original" buttons. Used on the article reader page when accessed from the feed.
+    </div>
+  </div>
+  <div style={{ display: "flex", gap: "2rem", alignItems: "flex-start" }}>
+    <div style={{ width: "8rem", flexShrink: 0, textAlign: "center" }}>
+      <div style={{ fontSize: "0.75rem", fontFamily: "var(--font-mono)", color: "var(--color-accent)", marginBottom: "0.25rem" }}>FocusFooter</div>
+      <div style={{ fontSize: "0.65rem", color: "var(--color-ink-faint)" }}>Focus feed context</div>
+    </div>
+    <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+      Dual voting: Relevance (focus-scoped) and Quality (global) side by side. Allows the reader to say "good article, wrong focus" or "right focus, bad article" in a single interaction. Same Done/View original as FeedFooter.
+    </div>
+  </div>
+  <div style={{ display: "flex", gap: "2rem", alignItems: "flex-start" }}>
+    <div style={{ width: "8rem", flexShrink: 0, textAlign: "center" }}>
+      <div style={{ fontSize: "0.75rem", fontFamily: "var(--font-mono)", color: "var(--color-accent)", marginBottom: "0.25rem" }}>EditionFooter</div>
+      <div style={{ fontSize: "0.65rem", color: "var(--color-ink-faint)" }}>Magazine context</div>
+    </div>
+    <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+      Edition-scoped vote (temporary, doesn't affect global scoring) and a "Continue to next article" prompt that uses the magazine navigation context. The vote label reads "Edition" instead of "Quality".
+    </div>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Podcasts and the children slot
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2rem", maxWidth: "65ch" }}>
+  Every preset accepts a <code style={{ fontSize: "0.75rem", background: "var(--color-surface-sunken)", padding: "0.15rem 0.35rem", borderRadius: "0.25rem" }}>children</code> prop that renders between the byline and body. This is the natural injection point for a media player, an embed, or any content that sits between the article header and its body text.
+</div>
+
+```tsx
+import { Editorial } from 'components/article/article.presets.tsx';
+import { MediaPlayer } from 'components/media-player.tsx';
+
+<Editorial
+  title={podcast.title}
+  sourceName={podcast.sourceName}
+  summary={podcast.summary}
+  imageUrl={podcast.imageUrl}
+  content={podcast.showNotes}
+  sourceType="podcast"
+  footer={<FeedFooter vote={vote} onVote={handleVote} onDone={goBack} />}
+>
+  <div className="mt-8">
+    <MediaPlayer
+      mediaUrl={podcast.mediaUrl}
+      mediaType="audio/mpeg"
+    />
+  </div>
+</Editorial>
+```
+
+<div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginBottom: "2rem", maxWidth: "65ch" }}>
+  The same pattern works with any preset — Hero, Compact, or a fully custom compound composition. Podcast articles in the magazine view use a dedicated <code style={{ fontSize: "0.75rem", background: "var(--color-surface-sunken)", padding: "0.15rem 0.35rem", borderRadius: "0.25rem" }}>PodcastLayout</code> that composes Article parts directly for a more tailored presentation (centered album art, waveform decoration, etc.).
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Composing a custom layout
+
+<div style={{ color: "var(--color-ink-secondary)", fontSize: "0.833rem", marginBottom: "2rem", maxWidth: "65ch" }}>
+  When presets don't fit, compose directly with the compound parts. This example creates a side-by-side layout with the summary prominently displayed:
+</div>
+
+```tsx
+import * as Article from 'components/article/article.tsx';
+import { FeedFooter } from 'components/article/article.footers.tsx';
+
+<Article.Root className="max-w-wide mx-auto grid lg:grid-cols-2 gap-16">
+  <div>
+    <Article.Source name={sourceName} delay={0} />
+    <Article.Title size="xl" delay={0.1}>{title}</Article.Title>
+    <Article.Summary delay={0.2}>{summary}</Article.Summary>
+    <Article.Byline author={author} publishedAt={publishedAt} delay={0.3} />
+  </div>
+  <div>
+    <Article.Image src={imageUrl} aspect="photo" delay={0.15} />
+  </div>
+  <div className="lg:col-span-2">
+    <Article.Body content={content} delay={0.4} />
+    <FeedFooter vote={vote} onVote={handleVote} onDone={goBack} />
+  </div>
+</Article.Root>
+```
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## File structure
+
+<div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginBottom: "2rem", maxWidth: "65ch" }}>
+  The module follows the project's file organization convention:
+</div>
+
+<div style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", color: "var(--color-ink-secondary)", lineHeight: 2, padding: "1.5rem", borderRadius: "0.5rem", background: "var(--color-surface-sunken)", marginBottom: "4rem" }}>
+  <div>components/article/</div>
+  <div style={{ paddingLeft: "1.5rem" }}><span style={{ color: "var(--color-accent)" }}>article.tsx</span> <span style={{ color: "var(--color-ink-faint)" }}>— Compound parts (Root, Source, Title, ...)</span></div>
+  <div style={{ paddingLeft: "1.5rem" }}><span style={{ color: "var(--color-accent)" }}>article.presets.tsx</span> <span style={{ color: "var(--color-ink-faint)" }}>— Style layouts (Editorial, Hero, Compact, ArticleView)</span></div>
+  <div style={{ paddingLeft: "1.5rem" }}><span style={{ color: "var(--color-accent)" }}>article.footers.tsx</span> <span style={{ color: "var(--color-ink-faint)" }}>— Footer variants (FeedFooter, FocusFooter, EditionFooter)</span></div>
+</div>
+
+</div>

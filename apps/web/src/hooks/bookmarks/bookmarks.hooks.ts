@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { client } from '../../api/api.ts';
@@ -138,5 +138,73 @@ const useBookmarks = (): UseBookmarksResult => {
   };
 };
 
-export type { BookmarkWithArticle, BookmarksPage, UseBookmarksResult };
-export { useBookmarks, PAGE_SIZE };
+/* ── Bookmark status for a list of articles ──────────────────── */
+
+type UseBookmarkStatusResult = {
+  bookmarkedIds: Set<string>;
+  isBookmarked: (articleId: string) => boolean;
+  toggleBookmark: (articleId: string) => void;
+};
+
+const emptySet = new Set<string>();
+
+const useBookmarkStatus = (articleIds: string[]): UseBookmarkStatusResult => {
+  const headers = useAuthHeaders();
+  const queryClient = useQueryClient();
+  const sortedKey = [...articleIds].sort();
+  const queryKey = ['bookmarks', 'check', sortedKey] as const;
+
+  const { data: bookmarkedIds = emptySet } = useQuery<Set<string>>({
+    queryKey,
+    queryFn: async (): Promise<Set<string>> => {
+      const { data: bmData } = await client.POST('/api/bookmarks/check', {
+        body: { articleIds },
+        headers,
+      });
+      if (bmData) {
+        return new Set((bmData as { bookmarkedIds: string[] }).bookmarkedIds);
+      }
+      return new Set();
+    },
+    enabled: !!headers && articleIds.length > 0,
+  });
+
+  const toggleMutation = useMutation({
+    mutationFn: async ({ articleId, wasBookmarked }: { articleId: string; wasBookmarked: boolean }): Promise<void> => {
+      if (wasBookmarked) {
+        await client.DELETE('/api/articles/{articleId}/bookmark', { params: { path: { articleId } }, headers });
+      } else {
+        await client.PUT('/api/articles/{articleId}/bookmark', { params: { path: { articleId } }, headers });
+      }
+    },
+    onMutate: async ({ articleId, wasBookmarked }): Promise<void> => {
+      await queryClient.cancelQueries({ queryKey });
+      queryClient.setQueryData<Set<string>>(queryKey, (old) => {
+        const next = new Set(old);
+        if (wasBookmarked) {
+          next.delete(articleId);
+        } else {
+          next.add(articleId);
+        }
+        return next;
+      });
+    },
+    onError: (): void => {
+      void queryClient.invalidateQueries({ queryKey });
+    },
+  });
+
+  const isBookmarked = useCallback((articleId: string): boolean => bookmarkedIds.has(articleId), [bookmarkedIds]);
+
+  const toggleBookmark = useCallback(
+    (articleId: string): void => {
+      toggleMutation.mutate({ articleId, wasBookmarked: bookmarkedIds.has(articleId) });
+    },
+    [bookmarkedIds, toggleMutation],
+  );
+
+  return { bookmarkedIds, isBookmarked, toggleBookmark };
+};
+
+export type { BookmarkWithArticle, BookmarksPage, UseBookmarksResult, UseBookmarkStatusResult };
+export { useBookmarks, useBookmarkStatus, PAGE_SIZE };

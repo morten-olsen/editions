@@ -5,9 +5,11 @@ import { MediaPlayer, waveformHeights } from '../media-player.tsx';
 
 import { MagazinePage } from './magazine.layout.tsx';
 import type { MagazineArticleProps } from './magazine.article.tsx';
-import { ArticleBody, ArticleFooter, Byline, AnimatedSummary, easeOut } from './magazine.article.tsx';
+import * as Article from '../article/article.tsx';
+import { easeOut } from '../article/article.tsx';
+import { EditionFooter } from '../article/article.footers.tsx';
 
-/* ── Waveform decoration ─────────────────────────────────────────── */
+/* ── Waveform decoration ─────────────────────────────────────── */
 
 const Waveform = ({ delay = 0.3 }: { delay?: number }): React.ReactElement => (
   <motion.div
@@ -24,7 +26,7 @@ const Waveform = ({ delay = 0.3 }: { delay?: number }): React.ReactElement => (
   </motion.div>
 );
 
-/* ── Listen time display ─────────────────────────────────────────── */
+/* ── Listen time display ─────────────────────────────────────── */
 
 const ListenTime = ({ minutes, delay }: { minutes: number; delay: number }): React.ReactElement => (
   <motion.div
@@ -40,7 +42,7 @@ const ListenTime = ({ minutes, delay }: { minutes: number; delay: number }): Rea
   </motion.div>
 );
 
-/* ── Podcast media section ───────────────────────────────────────── */
+/* ── Podcast media section ───────────────────────────────────── */
 
 type PodcastMediaProps = {
   mediaUrl?: string | null;
@@ -83,7 +85,7 @@ const PodcastMedia = ({
   );
 };
 
-/* ── Podcast layout ──────────────────────────────────────────────── */
+/* ── Podcast layout ──────────────────────────────────────────── */
 
 const PodcastLayout = (props: MagazineArticleProps): React.ReactElement => {
   const {
@@ -102,6 +104,8 @@ const PodcastLayout = (props: MagazineArticleProps): React.ReactElement => {
     vote,
     onVote,
     voteLabel,
+    bookmarked,
+    onBookmarkToggle,
   } = props;
   const hasContent = !!content;
   const baseDelay = mediaUrl ? 0.35 : 0.4;
@@ -129,14 +133,9 @@ const PodcastLayout = (props: MagazineArticleProps): React.ReactElement => {
             <img src={imageUrl} alt="" className="w-full h-full object-cover" />
           </motion.div>
         )}
-        <motion.h2
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: easeOut, delay: 0.15 }}
-          className="font-serif text-3xl md:text-4xl tracking-tight leading-tight text-ink text-center mb-6"
-        >
+        <Article.Title centered size="lg" delay={0.15}>
           {title}
-        </motion.h2>
+        </Article.Title>
         <PodcastMedia
           mediaUrl={mediaUrl}
           mediaType={mediaType}
@@ -144,33 +143,25 @@ const PodcastLayout = (props: MagazineArticleProps): React.ReactElement => {
           progress={progress}
           consumptionTimeSeconds={consumptionTimeSeconds}
         />
-        <AnimatedSummary summary={summary} hasContent={hasContent} delay={baseDelay} className="text-center" />
-        <Byline author={author} publishedAt={publishedAt} centered={!hasContent} delay={baseDelay + 0.05} />
-        {hasContent ? (
-          <>
-            <ArticleBody content={content} delay={baseDelay + 0.15} />
-            <ArticleFooter
-              content={null}
-              vote={vote}
-              onVote={onVote}
-              voteLabel={voteLabel}
-              voteDelay={baseDelay + 0.25}
-            />
-          </>
-        ) : (
-          <ArticleFooter
-            content={null}
-            vote={vote}
-            onVote={onVote}
-            voteLabel={voteLabel}
-            voteDelay={baseDelay + 0.15}
-          />
-        )}
+        <Article.Summary centered hasContent={hasContent} delay={baseDelay}>
+          {summary}
+        </Article.Summary>
+        <Article.Byline author={author} publishedAt={publishedAt} centered={!hasContent} delay={baseDelay + 0.05} />
+        {hasContent && <Article.Body content={content} delay={baseDelay + 0.15} />}
+        <EditionFooter
+          vote={vote ?? null}
+          onVote={onVote}
+          label={voteLabel}
+          bookmarked={bookmarked}
+          onBookmarkToggle={onBookmarkToggle}
+          voteDelay={hasContent ? baseDelay + 0.25 : baseDelay + 0.15}
+          nextDelay={hasContent ? baseDelay + 0.35 : baseDelay + 0.25}
+        />
       </div>
     </MagazinePage>
   );
 };
 
-/* ── Exports ──────────────────────────────────────────────────────── */
+/* ── Exports ──────────────────────────────────────────────────── */
 
 export { PodcastLayout };

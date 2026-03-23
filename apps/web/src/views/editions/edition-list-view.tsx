@@ -10,6 +10,8 @@ type EditionListViewProps = {
   edition: EditionDetail;
   sections: FocusSection[];
   votes: Record<string, VoteValue>;
+  bookmarkedIds: Set<string>;
+  onBookmarkToggle: (articleId: string) => void;
   isRead: boolean;
   onToggleRead: () => void;
   onDelete: () => void;
@@ -23,6 +25,8 @@ const EditionListView = ({
   edition,
   sections,
   votes,
+  bookmarkedIds,
+  onBookmarkToggle,
   isRead,
   onToggleRead,
   onDelete,
@@ -83,7 +87,7 @@ const EditionListView = ({
             No articles matched the criteria for this edition.
           </div>
         ) : (
-          <EditionSections sections={sections} votes={votes} onVote={onVote} />
+          <EditionSections sections={sections} votes={votes} onVote={onVote} bookmarkedIds={bookmarkedIds} onBookmarkToggle={onBookmarkToggle} />
         )}
 
         <Separator soft className="mt-12" />
@@ -179,10 +183,14 @@ const EditionSections = ({
   sections,
   votes,
   onVote,
+  bookmarkedIds,
+  onBookmarkToggle,
 }: {
   sections: FocusSection[];
   votes: Record<string, VoteValue>;
   onVote: (articleId: string, value: VoteValue) => void;
+  bookmarkedIds: Set<string>;
+  onBookmarkToggle: (articleId: string) => void;
 }): React.ReactNode => (
   <>
     {sections.map((section, i) => {
@@ -219,6 +227,8 @@ const EditionSections = ({
                   href={`/sources/${article.sourceId}/articles/${article.id}`}
                   vote={votes[article.id] ?? null}
                   onVote={(value) => void onVote(article.id, value)}
+                  bookmarked={bookmarkedIds.has(article.id)}
+                  onBookmarkToggle={() => onBookmarkToggle(article.id)}
                 />
               ))}
             </div>

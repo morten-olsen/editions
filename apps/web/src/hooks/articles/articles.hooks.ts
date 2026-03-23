@@ -50,22 +50,6 @@ type UseArticleDetailResult = {
   handleMarkDoneAndBack: (goBack: () => void) => Promise<void>;
 };
 
-const formatConsumptionTime = (seconds: number, sourceType: string): string => {
-  const minutes = Math.round(seconds / 60);
-  const suffix = sourceType === 'podcast' ? 'listen' : 'read';
-  if (minutes < 1) {
-    return `< 1 min ${suffix}`;
-  }
-  return `${minutes} min ${suffix}`;
-};
-
-const formatPublishedDate = (iso: string): string =>
-  new Date(iso).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-
 const fetchArticleData = async (
   sourceId: string,
   articleId: string,
@@ -175,4 +159,4 @@ const useArticleDetail = ({ sourceId, articleId }: UseArticleDetailParams): UseA
 };
 
 export type { ArticleDetail, ArticleData, VoteValue, UseArticleDetailParams, UseArticleDetailResult };
-export { useArticleDetail, formatConsumptionTime, formatPublishedDate };
+export { useArticleDetail };

@@ -18,7 +18,9 @@ type MagazineViewProps = {
   edition: EditionDetail;
   sections: FocusSection[];
   votes: Record<string, VoteValue>;
+  bookmarkedIds: Set<string>;
   onVote: (articleId: string, value: VoteValue) => void;
+  onBookmarkToggle: (articleId: string) => void;
   onMarkArticleViewed: (sourceId: string, articleId: string) => void;
   onExit: () => void;
   onMarkDone: () => void;
@@ -59,7 +61,9 @@ const buildPageArticleMap = (sections: FocusSection[]): Map<number, { sourceId: 
 const buildSectionPages = (
   sections: FocusSection[],
   votes: Record<string, VoteValue>,
+  bookmarkedIds: Set<string>,
   onVote: (articleId: string, value: VoteValue) => void,
+  onBookmarkToggle: (articleId: string) => void,
 ): React.ReactElement[] => {
   const pages: React.ReactElement[] = [];
   sections.forEach((section, sIdx) => {
@@ -94,6 +98,8 @@ const buildSectionPages = (
           vote={votes[article.id] ?? null}
           onVote={(value) => onVote(article.id, value)}
           voteLabel="Edition"
+          bookmarked={bookmarkedIds.has(article.id)}
+          onBookmarkToggle={() => onBookmarkToggle(article.id)}
         />,
       );
     });
@@ -107,7 +113,9 @@ const MagazineView = ({
   edition,
   sections,
   votes,
+  bookmarkedIds,
   onVote,
+  onBookmarkToggle,
   onMarkArticleViewed,
   onExit,
   onMarkDone,
@@ -162,7 +170,7 @@ const MagazineView = ({
       highlights={highlightArticles}
     />,
     <MagazineToc key="toc" editionTitle={edition.title} sections={tocSections} onNavigate={handlePageChange} />,
-    ...buildSectionPages(sections, votes, onVote),
+    ...buildSectionPages(sections, votes, bookmarkedIds, onVote, onBookmarkToggle),
     <MagazineFinale
       key="finale"
       articleCount={edition.articleCount}

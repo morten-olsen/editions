@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -10,6 +10,7 @@ import { groupByFocus } from '../views/editions/edition-types.ts';
 import type { EditionDetail } from '../views/editions/edition-types.ts';
 import { MagazineView } from '../views/editions/edition-magazine-view.tsx';
 import { EditionListView } from '../views/editions/edition-list-view.tsx';
+import { useBookmarkStatus } from '../hooks/bookmarks/bookmarks.hooks.ts';
 
 type ViewMode = 'list' | 'magazine';
 
@@ -166,6 +167,8 @@ const EditionViewPage = (): React.ReactNode => {
 
   const { edition, isLoading, error } = useEditionViewData(editionId, headers);
   const actions = useEditionActions(configId, editionId, headers, edition);
+  const articleIds = useMemo(() => edition?.articles.map((a) => a.id) ?? [], [edition?.articles]);
+  const { bookmarkedIds, toggleBookmark } = useBookmarkStatus(articleIds);
   const handleExitMagazine = useCallback((): void => setView('list'), []);
 
   if (!headers || isLoading) {
@@ -199,7 +202,9 @@ const EditionViewPage = (): React.ReactNode => {
         edition={edition}
         sections={sections}
         votes={actions.votes}
+        bookmarkedIds={bookmarkedIds}
         onVote={(articleId, value) => void actions.handleEditionVote(articleId, value)}
+        onBookmarkToggle={toggleBookmark}
         onMarkArticleViewed={(sourceId, articleId) => void actions.handleMarkArticleViewed(sourceId, articleId)}
         onExit={handleExitMagazine}
         onMarkDone={() => void actions.handleMarkDoneAndBack()}
@@ -212,6 +217,8 @@ const EditionViewPage = (): React.ReactNode => {
       edition={edition}
       sections={sections}
       votes={actions.votes}
+      bookmarkedIds={bookmarkedIds}
+      onBookmarkToggle={toggleBookmark}
       isRead={actions.isRead}
       onToggleRead={() => void actions.handleToggleRead()}
       onDelete={actions.handleDelete}

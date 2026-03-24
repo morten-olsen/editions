@@ -5,8 +5,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { client } from '../api/api.ts';
 import { useAuthHeaders } from '../api/api.hooks.ts';
 import { SlideIn, StaggerList, StaggerItem, FadeIn } from '../components/animate.tsx';
-import { Button } from '../components/button.tsx';
-import { formatPubDate } from '../views/home/home-cards.tsx';
 
 // --- Types ---
 
@@ -35,7 +33,7 @@ const useConfigEditions = (
     queryKey: ['config-editions', configId, readFilter],
     queryFn: async (): Promise<EditionSummary[]> => {
       const res = await client.GET('/api/editions/configs/{configId}/editions', {
-        params: { path: { configId }, query: readFilter === 'unread' ? { read: 'false' } : {} },
+        params: { path: { configId }, query: readFilter === 'unread' ? { read: 'false' } : undefined },
         headers,
       });
       return (res.data ?? []) as unknown as EditionSummary[];

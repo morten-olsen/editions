@@ -232,7 +232,7 @@ type BodyProps = {
   delay?: number;
 };
 
-const buildMarkdownComponents = (onSaveUrl: (url: string) => void): Components => ({
+const buildMarkdownComponents = (onSaveUrl: (url: string) => Promise<void>): Components => ({
   a: ({ href, children, ...rest }) => (
     <ArticleLink href={href} onSaveUrl={onSaveUrl} {...rest}>
       {children}

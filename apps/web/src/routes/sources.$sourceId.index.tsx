@@ -34,6 +34,7 @@ const SourceDetailPage = (): React.ReactNode => {
         source={detail.source}
         fetchResult={detail.fetchResult}
         reanalyseResult={detail.reanalyseResult}
+        reExtractResult={detail.reExtractResult}
       />
       <SourceMeta source={detail.source} articlesPage={detail.articlesPage} />
       <Separator soft className="mb-6" />
@@ -55,8 +56,10 @@ type SourceData = {
 type DetailActions = {
   fetchMutation: { isPending: boolean };
   reanalyseMutation: { isPending: boolean };
+  reExtractMutation: { isPending: boolean };
   handleFetch: () => void;
   handleReanalyse: () => void;
+  handleReExtract: () => void;
 };
 
 const SourceHeader = ({
@@ -84,6 +87,14 @@ const SourceHeader = ({
             Edit
           </Button>
         </Link>
+        <Button
+          variant="secondary"
+          size="sm"
+          disabled={detail.reExtractMutation.isPending}
+          onClick={detail.handleReExtract}
+        >
+          {detail.reExtractMutation.isPending ? 'Re-extracting...' : 'Re-extract'}
+        </Button>
         <Button
           variant="secondary"
           size="sm"
@@ -119,10 +130,12 @@ const SourceStatusMessages = ({
   source,
   fetchResult,
   reanalyseResult,
+  reExtractResult,
 }: {
   source: SourceData;
   fetchResult: string | null;
   reanalyseResult: string | null;
+  reExtractResult: string | null;
 }): React.ReactNode => (
   <>
     {source.fetchError && (
@@ -153,6 +166,11 @@ const SourceStatusMessages = ({
         data-ai-label={reanalyseResult}
       >
         {reanalyseResult}
+      </div>
+    )}
+    {reExtractResult && (
+      <div className="text-sm text-ink-secondary mb-4">
+        {reExtractResult}
       </div>
     )}
   </>

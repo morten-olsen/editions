@@ -116,16 +116,16 @@ const SourcesPage = (): React.ReactNode => {
                 <Menu.Item onClick={pickAndImport} disabled={importMutation.isPending}>
                   {importMutation.isPending ? 'Importing...' : 'Import feeds'}
                 </Menu.Item>
-                <Menu.Separator />
-                <Menu.Label>Maintenance</Menu.Label>
-                <Menu.Item
-                  onClick={() => reExtractMutation.mutate()}
-                  disabled={reExtractMutation.isPending}
-                >
-                  {reExtractMutation.isPending ? 'Re-extracting...' : 'Re-extract all articles'}
-                </Menu.Item>
               </Menu.Content>
             </Menu.Root>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={reExtractMutation.isPending}
+              onClick={() => reExtractMutation.mutate()}
+            >
+              {reExtractMutation.isPending ? 'Re-extracting...' : 'Re-extract all'}
+            </Button>
             <Button
               variant="secondary"
               size="sm"

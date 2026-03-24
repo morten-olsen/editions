@@ -4,6 +4,8 @@ import TurndownService from 'turndown';
 
 import type { DatabaseSchema } from '../database/database.types.ts';
 
+import type { ExtractResult } from './extractors/extractors.ts';
+import { findExtractor } from './extractors/extractors.ts';
 import type { ReconcileStep } from './reconciler.runner.ts';
 import type { ScopeFilter } from './reconciler.utils.ts';
 
@@ -38,6 +40,25 @@ const computeReadingTime = (markdown: string): number => {
   return Math.ceil((wordCount / WORDS_PER_MINUTE) * 60);
 };
 
+const normalizeUrl = (raw: string): string => {
+  try {
+    const u = new URL(raw);
+    u.search = '';
+    u.hash = '';
+    return u.href.replace(/\/+$/, '');
+  } catch {
+    return raw;
+  }
+};
+
+const stripLeadingHeroImage = (markdown: string, heroUrl: string): string => {
+  const hero = normalizeUrl(heroUrl);
+  // Match a leading image — either plain ![alt](src) or linked [![alt](src)](href)
+  return markdown.replace(/^\s*(?:\[!\[[^\]]*\]\(([^)]+)\)\]\([^)]+\)|!\[[^\]]*\]\(([^)]+)\))\s*/, (match, linkedSrc, plainSrc) => {
+    return normalizeUrl(linkedSrc ?? plainSrc) === hero ? '' : match;
+  });
+};
+
 const saveFallbackContent = async (db: Kysely<DatabaseSchema>, itemId: string, htmlContent: string): Promise<void> => {
   const markdown = htmlToMarkdown(htmlContent);
   await db
@@ -54,9 +75,10 @@ const saveFallbackContent = async (db: Kysely<DatabaseSchema>, itemId: string, h
 const saveExtractedContent = async (
   db: Kysely<DatabaseSchema>,
   item: ExtractItem,
-  result: { content: string; title?: string; author?: string; description?: string; image?: string },
+  result: ExtractResult,
 ): Promise<void> => {
-  const markdown = htmlToMarkdown(result.content);
+  const raw = htmlToMarkdown(result.content);
+  const markdown = result.image ? stripLeadingHeroImage(raw, result.image) : raw;
   const updates: Record<string, unknown> = {
     content: markdown,
     consumption_time_seconds: computeReadingTime(markdown),
@@ -77,15 +99,31 @@ const saveExtractedContent = async (
   await db.updateTable('articles').set(updates).where('id', '=', item.id).execute();
 };
 
+const defaultExtract = async (url: string): Promise<ExtractResult | null> => {
+  const result = await extract(url);
+  if (!result?.content) {
+    return null;
+  }
+  return {
+    content: result.content,
+    title: result.title ?? undefined,
+    author: result.author ?? undefined,
+    description: result.description ?? undefined,
+    image: result.image ?? undefined,
+  };
+};
+
 const processExtractItem = async (db: Kysely<DatabaseSchema>, item: ExtractItem): Promise<void> => {
   if (item.sourceType === 'podcast') {
     return;
   }
 
   try {
-    const result = await extract(item.url);
-    if (result?.content) {
-      await saveExtractedContent(db, item, { ...result, content: result.content });
+    const extractor = findExtractor(item.url);
+    const result = extractor ? await extractor.extract(item.url) : await defaultExtract(item.url);
+
+    if (result) {
+      await saveExtractedContent(db, item, result);
     } else if (item.content) {
       await saveFallbackContent(db, item.id, item.content);
     }

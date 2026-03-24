@@ -30,6 +30,10 @@ type ReanalyseAllPayload = Record<string, never>;
 
 type ReExtractAllPayload = Record<string, never>;
 
+type ReExtractSourcePayload = {
+  sourceId: string;
+};
+
 type ExtractAndAnalysePayload = {
   sourceId: string;
   userId: string;
@@ -239,6 +243,40 @@ const handleReExtractAll = async (_payload: ReExtractAllPayload, services: Servi
   });
 };
 
+const handleReExtractSource = async (
+  payload: ReExtractSourcePayload,
+  services: Services,
+  job: Job,
+): Promise<void> => {
+  const db = await services.get(DatabaseService).getInstance();
+
+  const articleIds = await db
+    .selectFrom('articles')
+    .innerJoin('sources', 'sources.id', 'articles.source_id')
+    .select('articles.id')
+    .where('articles.source_id', '=', payload.sourceId)
+    .where('sources.type', '!=', 'podcast')
+    .where('articles.extracted_at', 'is not', null)
+    .execute();
+
+  if (articleIds.length > 0) {
+    const ids = articleIds.map((a) => a.id);
+    await db.deleteFrom('article_focuses').where('article_id', 'in', ids).execute();
+    await db.deleteFrom('article_embeddings').where('article_id', 'in', ids).execute();
+    await db
+      .updateTable('articles')
+      .set({ content: null, extracted_at: null, analysed_at: null })
+      .where('id', 'in', ids)
+      .execute();
+  }
+
+  const analysis = services.get(ReconcilerService);
+  await analysis.reconcile({
+    scopeFilter: { sourceIds: [payload.sourceId] },
+    onProgress: jobProgress(job),
+  });
+};
+
 const handleExtractAndAnalyse = async (
   payload: ExtractAndAnalysePayload,
   services: Services,
@@ -260,6 +298,7 @@ const registerJobHandlers = (services: Services): void => {
   jobService.register<ReanalyseSourcePayload>('reanalyse_source', handleReanalyseSource);
   jobService.register<ReanalyseAllPayload>('reanalyse_all', handleReanalyseAll);
   jobService.register<ReExtractAllPayload>('re_extract_all', handleReExtractAll);
+  jobService.register<ReExtractSourcePayload>('re_extract_source', handleReExtractSource);
   jobService.register<ExtractAndAnalysePayload>('extract_and_analyse', handleExtractAndAnalyse);
 };
 
@@ -269,6 +308,7 @@ export type {
   ReanalyseSourcePayload,
   ReanalyseAllPayload,
   ReExtractAllPayload,
+  ReExtractSourcePayload,
   ExtractAndAnalysePayload,
 };
 export { registerJobHandlers };

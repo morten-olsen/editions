@@ -179,8 +179,11 @@ type UseSourceDetailResult = {
   fetchResult: string | null;
   reanalyseMutation: UseMutationResult<string, Error, void, unknown>;
   reanalyseResult: string | null;
+  reExtractMutation: UseMutationResult<string, Error, void, unknown>;
+  reExtractResult: string | null;
   handleFetch: () => void;
   handleReanalyse: () => void;
+  handleReExtract: () => void;
   ready: boolean;
 };
 
@@ -240,6 +243,26 @@ const useReanalyseSourceMutation = (
     onError: (err: Error): void => setReanalyseResult(err.message),
   });
 
+const useReExtractSourceMutation = (
+  deps: SourceDetailDeps,
+  setReExtractResult: React.Dispatch<React.SetStateAction<string | null>>,
+): UseMutationResult<string, Error, void, unknown> =>
+  useMutation({
+    mutationFn: async (): Promise<string> => {
+      const res = await fetch(`/api/sources/${deps.sourceId}/re-extract`, {
+        method: 'POST',
+        headers: deps.headers,
+      });
+      if (!res.ok) {
+        throw new Error('Failed to start re-extraction');
+      }
+      const data = (await res.json()) as { enqueued: number };
+      return `Enqueued ${data.enqueued} articles for re-extraction`;
+    },
+    onSuccess: (message: string): void => setReExtractResult(message),
+    onError: (err: Error): void => setReExtractResult(err.message),
+  });
+
 // -- useSourceDetail --
 
 const useSourceDetail = ({ sourceId }: UseSourceDetailParams): UseSourceDetailResult => {
@@ -247,6 +270,7 @@ const useSourceDetail = ({ sourceId }: UseSourceDetailParams): UseSourceDetailRe
   const queryClient = useQueryClient();
   const [fetchResult, setFetchResult] = useState<string | null>(null);
   const [reanalyseResult, setReanalyseResult] = useState<string | null>(null);
+  const [reExtractResult, setReExtractResult] = useState<string | null>(null);
 
   const [articlesTotal, setArticlesTotal] = useState(0);
   const pagination = usePagination({ pageSize: PAGE_SIZE, total: articlesTotal });
@@ -283,6 +307,7 @@ const useSourceDetail = ({ sourceId }: UseSourceDetailParams): UseSourceDetailRe
   const deps: SourceDetailDeps = { sourceId, headers, queryClient, paginationOffset: pagination.offset };
   const fetchMutation = useFetchSourceMutation(deps, setFetchResult);
   const reanalyseMutation = useReanalyseSourceMutation(deps, setReanalyseResult);
+  const reExtractMutation = useReExtractSourceMutation(deps, setReExtractResult);
 
   return {
     source: sourceQuery.data,
@@ -295,6 +320,8 @@ const useSourceDetail = ({ sourceId }: UseSourceDetailParams): UseSourceDetailRe
     fetchResult,
     reanalyseMutation,
     reanalyseResult,
+    reExtractMutation,
+    reExtractResult,
     handleFetch: useCallback((): void => {
       setFetchResult(null);
       fetchMutation.mutate();
@@ -303,6 +330,10 @@ const useSourceDetail = ({ sourceId }: UseSourceDetailParams): UseSourceDetailRe
       setReanalyseResult(null);
       reanalyseMutation.mutate();
     }, [reanalyseMutation]),
+    handleReExtract: useCallback((): void => {
+      setReExtractResult(null);
+      reExtractMutation.mutate();
+    }, [reExtractMutation]),
     ready: !!headers,
   };
 };

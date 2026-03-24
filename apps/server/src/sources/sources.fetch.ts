@@ -23,6 +23,7 @@ type FeedItem = {
 const parser = new XMLParser({
   ignoreAttributes: false,
   attributeNamePrefix: '@_',
+  htmlEntities: true,
 });
 
 const parseRssFeed = (xml: string): FeedItem[] => {

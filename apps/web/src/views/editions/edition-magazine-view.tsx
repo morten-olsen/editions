@@ -25,6 +25,7 @@ type MagazineViewProps = {
   onGlobalVote: (articleId: string, value: VoteValue) => void;
   onFocusVote: (articleId: string, focusId: string, value: VoteValue) => void;
   onBookmarkToggle: (articleId: string) => void;
+  onSaveUrl: (url: string) => void;
   onMarkArticleViewed: (sourceId: string, articleId: string) => void;
   onExit: () => void;
   onMarkDone: () => void;
@@ -72,6 +73,7 @@ type BuildSectionPagesArgs = {
   onGlobalVote: (articleId: string, value: VoteValue) => void;
   onFocusVote: (articleId: string, focusId: string, value: VoteValue) => void;
   onBookmarkToggle: (articleId: string) => void;
+  onSaveUrl: (url: string) => void;
 };
 
 const buildSectionPages = (args: BuildSectionPagesArgs): React.ReactElement[] => {
@@ -125,6 +127,7 @@ const buildSectionPages = (args: BuildSectionPagesArgs): React.ReactElement[] =>
           onFocusVote={(value) => onFocusVote(article.id, article.focusId, value)}
           bookmarked={bookmarkedIds.has(article.id)}
           onBookmarkToggle={() => onBookmarkToggle(article.id)}
+          onSaveUrl={args.onSaveUrl}
         />,
       );
     });
@@ -145,6 +148,7 @@ const MagazineView = ({
   onGlobalVote,
   onFocusVote,
   onBookmarkToggle,
+  onSaveUrl,
   onMarkArticleViewed,
   onExit,
   onMarkDone,
@@ -193,8 +197,9 @@ const MagazineView = ({
         onGlobalVote,
         onFocusVote,
         onBookmarkToggle,
+        onSaveUrl,
       }),
-    [sections, votes, globalVotes, focusVotes, bookmarkedIds, onVote, onGlobalVote, onFocusVote, onBookmarkToggle],
+    [sections, votes, globalVotes, focusVotes, bookmarkedIds, onVote, onGlobalVote, onFocusVote, onBookmarkToggle, onSaveUrl],
   );
 
   const leadArticle = edition.articles[0] ?? { title: edition.title, sourceName: '' };

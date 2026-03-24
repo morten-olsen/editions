@@ -1,5 +1,9 @@
+import { useCallback } from 'react';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
+import { useMutation } from '@tanstack/react-query';
 
+import { client } from '../api/api.ts';
+import { useAuthHeaders } from '../api/api.hooks.ts';
 import { useArticleDetail } from '../hooks/articles/articles.hooks.ts';
 import { useReadingProgress } from '../hooks/articles/articles.reading-progress.ts';
 import { BookmarkButton } from '../components/bookmark-button.tsx';
@@ -12,9 +16,22 @@ import { FeedFooter } from '../components/article/article.footers.tsx';
 
 const ArticlePage = (): React.ReactNode => {
   const router = useRouter();
+  const headers = useAuthHeaders();
   const { sourceId, articleId } = Route.useParams();
 
   const detail = useArticleDetail({ sourceId, articleId });
+
+  const saveUrlMutation = useMutation({
+    mutationFn: async (url: string): Promise<void> => {
+      await client.POST('/api/bookmarks/save', { body: { url }, headers });
+    },
+  });
+  const handleSaveUrl = useCallback(
+    (url: string): void => {
+      saveUrlMutation.mutate(url);
+    },
+    [saveUrlMutation],
+  );
 
   const isPodcast = detail.article?.sourceType === 'podcast';
   useReadingProgress(articleId, isPodcast ? 0 : (detail.article?.progress ?? 0));
@@ -62,6 +79,7 @@ const ArticlePage = (): React.ReactNode => {
           imageUrl={article.imageUrl}
           sourceType={article.sourceType}
           content={displayContent}
+          onSaveUrl={handleSaveUrl}
           footer={
             <FeedFooter
               vote={detail.vote}

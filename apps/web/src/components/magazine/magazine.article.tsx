@@ -26,6 +26,7 @@ type MagazineArticleProps = {
   onGlobalVote?: ((value: VoteValue) => void) | null;
   bookmarked?: boolean;
   onBookmarkToggle?: (() => void) | null;
+  onSaveUrl?: ((url: string) => void) | null;
 };
 
 /* ── Exports ──────────────────────────────────────────────────── */

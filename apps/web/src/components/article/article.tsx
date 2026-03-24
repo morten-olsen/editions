@@ -3,8 +3,11 @@ import { motion } from 'motion/react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+import type { Components } from 'react-markdown';
+
 import { VoteControls } from '../vote-controls.tsx';
 import type { VoteValue } from '../vote-controls.tsx';
+import { ArticleLink } from './article-link.tsx';
 
 /* ── Constants ────────────────────────────────────────────────── */
 
@@ -225,32 +228,48 @@ const Byline = ({
 
 type BodyProps = {
   content: string;
+  onSaveUrl?: ((url: string) => void) | null;
   delay?: number;
 };
 
-const Body = ({ content, delay = 0.4 }: BodyProps): React.ReactElement => (
-  <motion.div
-    initial={{ opacity: 0, y: 12 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5, ease: easeOut, delay }}
-  >
-    <div className="w-px h-8 bg-border-strong mx-auto mb-10" />
-    <div
-      className="prose prose-neutral max-w-none font-serif text-lg leading-relaxed text-ink
-        prose-headings:font-serif prose-headings:tracking-tight prose-headings:text-ink
-        prose-p:text-ink-secondary prose-p:leading-relaxed
-        prose-a:text-accent prose-a:no-underline hover:prose-a:underline
-        prose-strong:text-ink prose-strong:font-medium
-        prose-blockquote:border-accent prose-blockquote:text-ink-secondary prose-blockquote:font-serif prose-blockquote:text-lg prose-blockquote:not-italic
-        prose-figcaption:text-ink-tertiary prose-figcaption:text-xs
-        prose-img:rounded-lg
-        first-of-type:prose-p:text-lg first-of-type:prose-p:text-ink first-of-type:prose-p:leading-relaxed
-        [&>p:first-of-type]:first-letter:float-left [&>p:first-of-type]:first-letter:text-5xl [&>p:first-of-type]:first-letter:font-serif [&>p:first-of-type]:first-letter:font-bold [&>p:first-of-type]:first-letter:leading-none [&>p:first-of-type]:first-letter:mr-2 [&>p:first-of-type]:first-letter:mt-1 [&>p:first-of-type]:first-letter:text-ink"
+const buildMarkdownComponents = (onSaveUrl: (url: string) => void): Components => ({
+  a: ({ href, children, ...rest }) => (
+    <ArticleLink href={href} onSaveUrl={onSaveUrl} {...rest}>
+      {children}
+    </ArticleLink>
+  ),
+});
+
+const Body = ({ content, onSaveUrl, delay = 0.4 }: BodyProps): React.ReactElement => {
+  const components = React.useMemo(
+    () => (onSaveUrl ? buildMarkdownComponents(onSaveUrl) : undefined),
+    [onSaveUrl],
+  );
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: easeOut, delay }}
     >
-      <Markdown remarkPlugins={remarkPlugins}>{content}</Markdown>
-    </div>
-  </motion.div>
-);
+      <div className="w-px h-8 bg-border-strong mx-auto mb-10" />
+      <div
+        className="prose prose-neutral max-w-none font-serif text-lg leading-relaxed text-ink
+          prose-headings:font-serif prose-headings:tracking-tight prose-headings:text-ink
+          prose-p:text-ink-secondary prose-p:leading-relaxed
+          prose-a:text-accent prose-a:no-underline hover:prose-a:underline
+          prose-strong:text-ink prose-strong:font-medium
+          prose-blockquote:border-accent prose-blockquote:text-ink-secondary prose-blockquote:font-serif prose-blockquote:text-lg prose-blockquote:not-italic
+          prose-figcaption:text-ink-tertiary prose-figcaption:text-xs
+          prose-img:rounded-lg
+          first-of-type:prose-p:text-lg first-of-type:prose-p:text-ink first-of-type:prose-p:leading-relaxed
+          [&>p:first-of-type]:first-letter:float-left [&>p:first-of-type]:first-letter:text-5xl [&>p:first-of-type]:first-letter:font-serif [&>p:first-of-type]:first-letter:font-bold [&>p:first-of-type]:first-letter:leading-none [&>p:first-of-type]:first-letter:mr-2 [&>p:first-of-type]:first-letter:mt-1 [&>p:first-of-type]:first-letter:text-ink"
+      >
+        <Markdown remarkPlugins={remarkPlugins} components={components}>{content}</Markdown>
+      </div>
+    </motion.div>
+  );
+};
 
 /* ── VoteRow ──────────────────────────────────────────────────── */
 

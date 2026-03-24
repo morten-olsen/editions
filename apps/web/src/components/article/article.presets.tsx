@@ -22,6 +22,7 @@ type PresetProps = ArticleData & {
   /** Content injected between byline and body (e.g. media player) */
   children?: React.ReactNode;
   footer?: React.ReactNode;
+  onSaveUrl?: ((url: string) => void) | null;
 };
 
 /* ── Editorial ───────────────────────────────────────────────── */
@@ -39,6 +40,7 @@ const Editorial = ({
   content,
   children,
   footer,
+  onSaveUrl,
 }: PresetProps): React.ReactElement => {
   const hasContent = !!content;
 
@@ -62,7 +64,7 @@ const Editorial = ({
         delay={hasContent ? 0.4 : 0.35}
       />
       {children}
-      {hasContent && <Article.Body content={content} delay={0.5} />}
+      {hasContent && <Article.Body content={content} onSaveUrl={onSaveUrl} delay={0.5} />}
       {footer}
     </Article.Root>
   );
@@ -83,6 +85,7 @@ const Hero = ({
   content,
   children,
   footer,
+  onSaveUrl,
 }: PresetProps): React.ReactElement => {
   const hasContent = !!content;
 
@@ -109,7 +112,7 @@ const Hero = ({
       {children && <div className="max-w-prose mx-auto w-full mt-8">{children}</div>}
       {(hasContent || footer) && (
         <div className="max-w-prose mx-auto w-full mt-12">
-          {hasContent && <Article.Body content={content} />}
+          {hasContent && <Article.Body content={content} onSaveUrl={onSaveUrl} />}
           {footer}
         </div>
       )}
@@ -165,6 +168,7 @@ const Compact = ({
   content,
   children,
   footer,
+  onSaveUrl,
 }: PresetProps): React.ReactElement => {
   const hasContent = !!content;
 
@@ -188,7 +192,7 @@ const Compact = ({
       {children && <div className="max-w-wide mx-auto w-full mt-8">{children}</div>}
       {(hasContent || footer) && (
         <div className="max-w-wide mx-auto w-full mt-8">
-          {hasContent && <Article.Body content={content} />}
+          {hasContent && <Article.Body content={content} onSaveUrl={onSaveUrl} />}
           {footer}
         </div>
       )}

@@ -42,6 +42,7 @@ const MagazineArticle = (props: MagazineArticleProps): React.ReactElement => {
         imageUrl={props.imageUrl}
         sourceType={props.sourceType}
         content={isPodcast ? null : props.content}
+        onSaveUrl={props.onSaveUrl}
         footer={
           <EditionFooter
             vote={props.vote ?? null}

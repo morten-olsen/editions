@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router';
+import { useMutation } from '@tanstack/react-query';
 
 import { client } from '../api/api.ts';
 import { useAuthHeaders } from '../api/api.hooks.ts';
@@ -28,6 +29,18 @@ const EditionPage = (): React.ReactNode => {
   const { focusVotes, handleFocusVote } = useFocusVoting();
   const handleMarkArticleViewed = useMarkArticleViewed();
   const { bookmarkedIds, toggleBookmark } = useBookmarkStatus(edition?.articles.map((a) => a.id) ?? []);
+
+  const saveUrlMutation = useMutation({
+    mutationFn: async (url: string): Promise<void> => {
+      await client.POST('/api/bookmarks/save', { body: { url }, headers });
+    },
+  });
+  const handleSaveUrl = useCallback(
+    (url: string): void => {
+      saveUrlMutation.mutate(url);
+    },
+    [saveUrlMutation],
+  );
 
   const handleExit = useCallback((): void => {
     if (window.history.length > 1) {
@@ -92,6 +105,7 @@ const EditionPage = (): React.ReactNode => {
       onGlobalVote={handleGlobalVote}
       onFocusVote={handleFocusVote}
       onBookmarkToggle={toggleBookmark}
+      onSaveUrl={handleSaveUrl}
       onMarkArticleViewed={handleMarkArticleViewed}
       onExit={handleExit}
       onMarkDone={() => void handleMarkDone()}

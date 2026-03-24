@@ -48,7 +48,13 @@ type SourceProps = {
   className?: string;
 };
 
-const Source = ({ name, publishedAt, delay = 0, centered = false, className = '' }: SourceProps): React.ReactElement => (
+const Source = ({
+  name,
+  publishedAt,
+  delay = 0,
+  centered = false,
+  className = '',
+}: SourceProps): React.ReactElement => (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
@@ -274,11 +280,7 @@ type FooterProps = {
 };
 
 const Footer = ({ children, delay = 0.5 }: FooterProps): React.ReactElement => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ duration: 0.4, ease: easeOut, delay }}
-  >
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, ease: easeOut, delay }}>
     {children}
   </motion.div>
 );

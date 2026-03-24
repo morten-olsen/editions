@@ -211,7 +211,8 @@ const ShowcaseEditionSection = (): React.ReactElement => (
           <h2 className="font-serif text-xl font-medium tracking-tight text-ink">Technology</h2>
         </div>
         <div className="text-xs text-ink-tertiary">
-          {editionArticles.length} articles · {Math.round(editionArticles.reduce((s, a) => s + (a.consumptionTimeSeconds ?? 0), 0) / 60)} min
+          {editionArticles.length} articles ·{' '}
+          {Math.round(editionArticles.reduce((s, a) => s + (a.consumptionTimeSeconds ?? 0), 0) / 60)} min
         </div>
       </div>
       <div className="divide-y divide-border">

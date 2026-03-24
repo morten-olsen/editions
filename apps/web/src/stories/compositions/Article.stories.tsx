@@ -152,9 +152,7 @@ const StyleSelectorRender = (): React.ReactElement => {
               type="button"
               onClick={() => setStyle(s)}
               className={`text-xs px-3 py-1 rounded-full cursor-pointer transition-colors duration-fast ${
-                style === s
-                  ? 'bg-accent text-white'
-                  : 'bg-surface-sunken text-ink-secondary hover:text-ink'
+                style === s ? 'bg-accent text-white' : 'bg-surface-sunken text-ink-secondary hover:text-ink'
               }`}
             >
               {s}
@@ -305,10 +303,7 @@ const samplePodcast = {
 const PodcastWithPlayer: Story = {
   render: () => (
     <div className="bg-surface min-h-dvh py-16 px-4">
-      <Editorial
-        {...samplePodcast}
-        content={podcastShowNotes}
-      >
+      <Editorial {...samplePodcast} content={podcastShowNotes}>
         <div className="mt-8">
           <MediaPlayer
             mediaUrl="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
@@ -324,10 +319,7 @@ const PodcastWithPlayer: Story = {
 const PodcastSummaryOnly: Story = {
   render: () => (
     <div className="bg-surface min-h-dvh py-16 px-4">
-      <Editorial
-        {...samplePodcast}
-        content={null}
-      >
+      <Editorial {...samplePodcast} content={null}>
         <div className="mt-8">
           <MediaPlayer
             mediaUrl="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
@@ -373,10 +365,7 @@ const PodcastWithFooter: Story = {
 const PodcastCompactLayout: Story = {
   render: () => (
     <div className="bg-surface min-h-dvh py-16 px-4">
-      <Compact
-        {...samplePodcast}
-        content={null}
-      >
+      <Compact {...samplePodcast} content={null}>
         <div className="mt-8">
           <MediaPlayer
             mediaUrl="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"

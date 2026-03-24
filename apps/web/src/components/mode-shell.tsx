@@ -83,7 +83,7 @@ const defaultPathForMode: Record<Mode, string> = {
 /* ── Full-screen route detection ─────────────────────────────────── */
 
 const isFullScreenRoute = (pathname: string): boolean =>
-  /\/articles\/[^/]+$/.test(pathname) || /\/magazine$/.test(pathname);
+  /\/articles\/[^/]+$/.test(pathname) || /\/issues\/[^/]+$/.test(pathname);
 
 /* ── Scroll restoration ──────────────────────────────────────────── */
 

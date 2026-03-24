@@ -220,7 +220,7 @@ import { MediaPlayer } from 'components/media-player.tsx';
 ```
 
 <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginBottom: "2rem", maxWidth: "65ch" }}>
-  The same pattern works with any preset — Hero, Compact, or a fully custom compound composition. Podcast articles in the magazine view use a dedicated <code style={{ fontSize: "0.75rem", background: "var(--color-surface-sunken)", padding: "0.15rem 0.35rem", borderRadius: "0.25rem" }}>PodcastLayout</code> that composes Article parts directly for a more tailored presentation (centered album art, waveform decoration, etc.).
+  The same pattern works with any preset — Hero, Compact, or a fully custom compound composition. Podcast articles are rendered through <code style={{ fontSize: "0.75rem", background: "var(--color-surface-sunken)", padding: "0.15rem 0.35rem", borderRadius: "0.25rem" }}>ArticleView</code> with the editorial style, passing a <code style={{ fontSize: "0.75rem", background: "var(--color-surface-sunken)", padding: "0.15rem 0.35rem", borderRadius: "0.25rem" }}>MediaPlayer</code> as children — the same approach in both the magazine and the standalone reader.
 </div>
 
 <div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />

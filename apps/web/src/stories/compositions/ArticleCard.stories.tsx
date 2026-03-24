@@ -246,4 +246,15 @@ const WithActiveVotes: Story = {
 };
 
 export default meta;
-export { Default, WithImage, Compact, Read, ReadWithImage, List, ReadMixedList, WithVoting, WithBookmark, WithActiveVotes };
+export {
+  Default,
+  WithImage,
+  Compact,
+  Read,
+  ReadWithImage,
+  List,
+  ReadMixedList,
+  WithVoting,
+  WithBookmark,
+  WithActiveVotes,
+};

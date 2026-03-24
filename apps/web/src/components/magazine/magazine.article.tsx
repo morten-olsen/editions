@@ -20,6 +20,10 @@ type MagazineArticleProps = {
   vote?: VoteValue | null;
   onVote?: ((value: VoteValue) => void) | null;
   voteLabel?: string;
+  focusVote?: VoteValue | null;
+  onFocusVote?: ((value: VoteValue) => void) | null;
+  globalVote?: VoteValue | null;
+  onGlobalVote?: ((value: VoteValue) => void) | null;
   bookmarked?: boolean;
   onBookmarkToggle?: (() => void) | null;
 };

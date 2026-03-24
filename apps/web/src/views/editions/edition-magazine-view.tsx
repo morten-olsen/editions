@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect } from 'react';
+import { useCallback, useMemo, useRef, useEffect } from 'react';
 
 import type { VoteValue } from '../../components/vote-controls.tsx';
 import {
@@ -18,8 +18,12 @@ type MagazineViewProps = {
   edition: EditionDetail;
   sections: FocusSection[];
   votes: Record<string, VoteValue>;
+  globalVotes: Record<string, VoteValue>;
+  focusVotes: Record<string, VoteValue>;
   bookmarkedIds: Set<string>;
   onVote: (articleId: string, value: VoteValue) => void;
+  onGlobalVote: (articleId: string, value: VoteValue) => void;
+  onFocusVote: (articleId: string, focusId: string, value: VoteValue) => void;
   onBookmarkToggle: (articleId: string) => void;
   onMarkArticleViewed: (sourceId: string, articleId: string) => void;
   onExit: () => void;
@@ -58,13 +62,30 @@ const buildPageArticleMap = (sections: FocusSection[]): Map<number, { sourceId: 
   return map;
 };
 
-const buildSectionPages = (
-  sections: FocusSection[],
-  votes: Record<string, VoteValue>,
-  bookmarkedIds: Set<string>,
-  onVote: (articleId: string, value: VoteValue) => void,
-  onBookmarkToggle: (articleId: string) => void,
-): React.ReactElement[] => {
+type BuildSectionPagesArgs = {
+  sections: FocusSection[];
+  votes: Record<string, VoteValue>;
+  globalVotes: Record<string, VoteValue>;
+  focusVotes: Record<string, VoteValue>;
+  bookmarkedIds: Set<string>;
+  onVote: (articleId: string, value: VoteValue) => void;
+  onGlobalVote: (articleId: string, value: VoteValue) => void;
+  onFocusVote: (articleId: string, focusId: string, value: VoteValue) => void;
+  onBookmarkToggle: (articleId: string) => void;
+};
+
+const buildSectionPages = (args: BuildSectionPagesArgs): React.ReactElement[] => {
+  const {
+    sections,
+    votes,
+    globalVotes,
+    focusVotes,
+    bookmarkedIds,
+    onVote,
+    onGlobalVote,
+    onFocusVote,
+    onBookmarkToggle,
+  } = args;
   const pages: React.ReactElement[] = [];
   sections.forEach((section, sIdx) => {
     const mins = Math.round(section.articles.reduce((sum, a) => sum + (a.consumptionTimeSeconds ?? 0), 0) / 60);
@@ -98,6 +119,10 @@ const buildSectionPages = (
           vote={votes[article.id] ?? null}
           onVote={(value) => onVote(article.id, value)}
           voteLabel="Edition"
+          globalVote={globalVotes[article.id] ?? null}
+          onGlobalVote={(value) => onGlobalVote(article.id, value)}
+          focusVote={focusVotes[article.id] ?? null}
+          onFocusVote={(value) => onFocusVote(article.id, article.focusId, value)}
           bookmarked={bookmarkedIds.has(article.id)}
           onBookmarkToggle={() => onBookmarkToggle(article.id)}
         />,
@@ -113,8 +138,12 @@ const MagazineView = ({
   edition,
   sections,
   votes,
+  globalVotes,
+  focusVotes,
   bookmarkedIds,
   onVote,
+  onGlobalVote,
+  onFocusVote,
   onBookmarkToggle,
   onMarkArticleViewed,
   onExit,
@@ -152,6 +181,22 @@ const MagazineView = ({
     return () => window.removeEventListener('keydown', handleKey);
   }, [onExit]);
 
+  const sectionPages = useMemo(
+    () =>
+      buildSectionPages({
+        sections,
+        votes,
+        globalVotes,
+        focusVotes,
+        bookmarkedIds,
+        onVote,
+        onGlobalVote,
+        onFocusVote,
+        onBookmarkToggle,
+      }),
+    [sections, votes, globalVotes, focusVotes, bookmarkedIds, onVote, onGlobalVote, onFocusVote, onBookmarkToggle],
+  );
+
   const leadArticle = edition.articles[0] ?? { title: edition.title, sourceName: '' };
   const highlightArticles = sections
     .slice(1, 3)
@@ -170,7 +215,7 @@ const MagazineView = ({
       highlights={highlightArticles}
     />,
     <MagazineToc key="toc" editionTitle={edition.title} sections={tocSections} onNavigate={handlePageChange} />,
-    ...buildSectionPages(sections, votes, bookmarkedIds, onVote, onBookmarkToggle),
+    ...sectionPages,
     <MagazineFinale
       key="finale"
       articleCount={edition.articleCount}

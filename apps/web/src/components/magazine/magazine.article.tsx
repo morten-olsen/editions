@@ -4,6 +4,7 @@ import type { VoteValue } from '../vote-controls.tsx';
 
 type MagazineArticleProps = {
   articleId?: string | null;
+  articleUrl?: string | null;
   title: string;
   sourceName: string;
   author?: string | null;

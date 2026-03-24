@@ -118,6 +118,7 @@ const buildSectionPages = (args: BuildSectionPagesArgs): React.ReactElement[] =>
           mediaType={article.mediaType}
           progress={article.progress}
           articleId={article.id}
+          articleUrl={article.url}
           vote={votes[article.id] ?? null}
           onVote={(value) => onVote(article.id, value)}
           voteLabel="Edition"

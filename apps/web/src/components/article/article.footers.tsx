@@ -97,6 +97,7 @@ type EditionFooterProps = {
   onGlobalVote?: ((value: VoteValue) => void) | null;
   bookmarked?: boolean;
   onBookmarkToggle?: (() => void) | null;
+  articleUrl?: string | null;
   voteDelay?: number;
   nextDelay?: number;
 };
@@ -133,6 +134,20 @@ const NextPrompt = ({ delay = 0.6 }: { delay?: number }): React.ReactElement => 
   );
 };
 
+const OriginalLinkButton = ({ url }: { url: string }): React.ReactElement => (
+  <a
+    href={url}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="shrink-0 rounded-md p-1 text-ink-faint hover:text-ink-secondary transition-colors duration-fast"
+    aria-label="View original"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+      <path d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16ZM6.39 5.67C7.11 4.48 8.18 3.5 10 3.5c1.82 0 2.89.98 3.61 2.17.35.58.61 1.22.8 1.83H5.59c.19-.61.45-1.25.8-1.83ZM5.2 9h9.6a9.7 9.7 0 0 1 0 2H5.2a9.7 9.7 0 0 1 0-2Zm.39 3.5h8.82c-.19.61-.45 1.25-.8 1.83C12.89 15.52 11.82 16.5 10 16.5c-1.82 0-2.89-.98-3.61-2.17a8.2 8.2 0 0 1-.8-1.83Z" />
+    </svg>
+  </a>
+);
+
 const EditionFooter = ({
   vote,
   onVote,
@@ -143,10 +158,11 @@ const EditionFooter = ({
   onGlobalVote,
   bookmarked,
   onBookmarkToggle,
+  articleUrl,
   voteDelay = 0.5,
   nextDelay = 0.6,
 }: EditionFooterProps): React.ReactElement => {
-  const hasActions = onVote || onFocusVote || onGlobalVote || onBookmarkToggle;
+  const hasActions = onVote || onFocusVote || onGlobalVote || onBookmarkToggle || articleUrl;
 
   return (
     <>
@@ -161,6 +177,7 @@ const EditionFooter = ({
           {onGlobalVote && <VoteControls value={globalVote ?? null} onVote={onGlobalVote} label="Quality" />}
           {onVote && <VoteControls value={vote ?? null} onVote={onVote} label={label} />}
           {onBookmarkToggle && <BookmarkButton bookmarked={bookmarked ?? false} onToggle={onBookmarkToggle} />}
+          {articleUrl && <OriginalLinkButton url={articleUrl} />}
         </motion.div>
       )}
       <NextPrompt delay={nextDelay} />

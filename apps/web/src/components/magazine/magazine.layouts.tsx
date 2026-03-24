@@ -54,6 +54,7 @@ const MagazineArticle = (props: MagazineArticleProps): React.ReactElement => {
             onGlobalVote={props.onGlobalVote}
             bookmarked={props.bookmarked}
             onBookmarkToggle={props.onBookmarkToggle}
+            articleUrl={props.articleUrl}
           />
         }
       >

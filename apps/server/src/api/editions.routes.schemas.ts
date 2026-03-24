@@ -124,6 +124,10 @@ const updateProgressSchema = z.object({
   currentPosition: z.number().int().min(0),
 });
 
+const listEditionsQuerySchema = z.object({
+  read: z.enum(['true', 'false']).optional(),
+});
+
 export {
   editionConfigSchema,
   createEditionConfigSchema,
@@ -136,4 +140,5 @@ export {
   editionIdParamSchema,
   editionArticleIdParamSchema,
   updateProgressSchema,
+  listEditionsQuerySchema,
 };

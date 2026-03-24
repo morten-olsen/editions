@@ -23,6 +23,7 @@ import {
   editionIdParamSchema,
   editionArticleIdParamSchema,
   updateProgressSchema,
+  listEditionsQuerySchema,
 } from './editions.routes.schemas.ts';
 
 // --- Types ---
@@ -235,7 +236,7 @@ const registerGenerateRoutes = ({ fastify, services, authenticate }: RouteArgs):
     },
   });
 
-  // List editions for a config
+  // List editions for a config (optional ?read=true|false filter)
   fastify.route({
     method: 'GET',
     url: '/editions/configs/:configId/editions',
@@ -243,12 +244,14 @@ const registerGenerateRoutes = ({ fastify, services, authenticate }: RouteArgs):
     schema: {
       security: [{ bearerAuth: [] }],
       params: configIdParamSchema,
+      querystring: listEditionsQuerySchema,
       response: { 200: z.array(editionSummarySchema), 404: errorResponseSchema },
     },
     handler: async (req, reply) => {
       const editions = services.get(EditionsService);
+      const read = req.query.read === 'true' ? true : req.query.read === 'false' ? false : undefined;
       try {
-        return await editions.listEditions(req.user.sub, req.params.configId);
+        return await editions.listEditions(req.user.sub, req.params.configId, { read });
       } catch (err) {
         if (err instanceof EditionConfigNotFoundError) {
           return reply.code(404).send({ error: err.message });

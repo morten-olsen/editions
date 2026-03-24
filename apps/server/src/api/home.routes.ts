@@ -44,11 +44,17 @@ const homeEditionSchema = z.object({
   highlights: z.array(homeHighlightSchema),
 });
 
+const homeSlotSchema = z.object({
+  config: homeConfigSchema,
+  edition: homeEditionSchema.nullable(),
+});
+
 const homeDataSchema = z.object({
   sourcesCount: z.number(),
   focusesCount: z.number(),
   configs: z.array(homeConfigSchema),
   editions: z.array(homeEditionSchema),
+  slots: z.array(homeSlotSchema),
 });
 
 // --- Routes ---

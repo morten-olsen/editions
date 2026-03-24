@@ -225,11 +225,15 @@ class EditionsService {
 
   // --- Generated Editions ---
 
-  listEditions = async (userId: string, configId: string): Promise<EditionSummary[]> => {
+  listEditions = async (
+    userId: string,
+    configId: string,
+    { read }: { read?: boolean } = {},
+  ): Promise<EditionSummary[]> => {
     const db = await this.#services.get(DatabaseService).getInstance();
     await this.getConfig(userId, configId);
 
-    const rows = await db
+    let query = db
       .selectFrom('editions')
       .innerJoin('edition_configs', 'edition_configs.id', 'editions.edition_config_id')
       .select([
@@ -246,8 +250,15 @@ class EditionsService {
       ])
       .where('editions.edition_config_id', '=', configId)
       .where('edition_configs.user_id', '=', userId)
-      .orderBy('editions.published_at', 'desc')
-      .execute();
+      .orderBy('editions.published_at', 'desc');
+
+    if (read === true) {
+      query = query.where('editions.read_at', 'is not', null);
+    } else if (read === false) {
+      query = query.where('editions.read_at', 'is', null);
+    }
+
+    const rows = await query.execute();
 
     return rows.map((row) => ({ ...mapEditionRow(row), configName: row.config_name }));
   };

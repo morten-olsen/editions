@@ -43,11 +43,17 @@ type HomeEdition = {
   highlights: HomeEditionHighlight[];
 };
 
+type HomeSlot = {
+  config: HomeConfig;
+  edition: HomeEdition | null;
+};
+
 type HomeData = {
   sourcesCount: number;
   focusesCount: number;
   configs: HomeConfig[];
   editions: HomeEdition[];
+  slots: HomeSlot[];
 };
 
 // --- Helpers ---
@@ -157,25 +163,27 @@ class HomeService {
       this.#countSources(db, userId),
       this.#countFocuses(db, userId),
       this.#fetchConfigs(db, userId),
-      this.#fetchUnreadEditions(db, userId),
+      this.#fetchLatestUnreadPerConfig(db, userId),
     ]);
 
-    if (editionRows.length === 0) {
-      return {
-        sourcesCount,
-        focusesCount,
-        configs,
-        editions: editionRows.map((row) => ({ ...mapEditionRow(row), sections: [], lead: null, highlights: [] })),
-      };
+    // Build editions with article previews
+    let editions: HomeEdition[] = [];
+    if (editionRows.length > 0) {
+      const articlesByEdition = await this.#fetchArticlePreviews(
+        db,
+        editionRows.map((r) => r.id),
+      );
+      editions = editionRows.map((edRow) => assembleEdition(edRow, articlesByEdition.get(edRow.id) ?? []));
     }
 
-    const articlesByEdition = await this.#fetchArticlePreviews(
-      db,
-      editionRows.map((r) => r.id),
-    );
-    const editions = editionRows.map((edRow) => assembleEdition(edRow, articlesByEdition.get(edRow.id) ?? []));
+    // Build slots: one per config, with the latest unread edition (or null)
+    const editionByConfig = new Map(editions.map((ed) => [ed.editionConfigId, ed]));
+    const slots: HomeSlot[] = configs.map((cfg) => ({
+      config: cfg,
+      edition: editionByConfig.get(cfg.id) ?? null,
+    }));
 
-    return { sourcesCount, focusesCount, configs, editions };
+    return { sourcesCount, focusesCount, configs, editions, slots };
   };
 
   #countSources = async (db: Kysely<DatabaseSchema>, userId: string): Promise<number> =>
@@ -202,10 +210,29 @@ class HomeService {
       .orderBy('created_at', 'desc')
       .execute();
 
-  #fetchUnreadEditions = async (db: Kysely<DatabaseSchema>, userId: string): Promise<EditionRow[]> =>
-    db
+  #fetchLatestUnreadPerConfig = async (db: Kysely<DatabaseSchema>, userId: string): Promise<EditionRow[]> => {
+    // For each edition config, return only the latest unread edition.
+    // This is the "magazine stand" model: one slot per config, showing
+    // the most recent unread issue. Once read, the next one surfaces.
+    const latestIds = db
       .selectFrom('editions')
       .innerJoin('edition_configs', 'edition_configs.id', 'editions.edition_config_id')
+      .select(({ fn }) => [
+        'editions.edition_config_id',
+        fn.max('editions.published_at').as('max_published_at'),
+      ])
+      .where('edition_configs.user_id', '=', userId)
+      .where('editions.read_at', 'is', null)
+      .groupBy('editions.edition_config_id');
+
+    return db
+      .selectFrom('editions')
+      .innerJoin('edition_configs', 'edition_configs.id', 'editions.edition_config_id')
+      .innerJoin(latestIds.as('latest'), (join) =>
+        join
+          .onRef('editions.edition_config_id', '=', 'latest.edition_config_id')
+          .onRef('editions.published_at', '=', 'latest.max_published_at'),
+      )
       .select([
         'editions.id',
         'editions.edition_config_id',
@@ -220,6 +247,7 @@ class HomeService {
       .where('editions.read_at', 'is', null)
       .orderBy('editions.published_at', 'desc')
       .execute();
+  };
 
   #fetchArticlePreviews = async (
     db: Kysely<DatabaseSchema>,
@@ -249,5 +277,5 @@ class HomeService {
   };
 }
 
-export type { HomeConfig, HomeEditionSection, HomeEditionLead, HomeEditionHighlight, HomeEdition, HomeData };
+export type { HomeConfig, HomeEditionSection, HomeEditionLead, HomeEditionHighlight, HomeEdition, HomeSlot, HomeData };
 export { HomeService };

@@ -5,14 +5,19 @@ import { client } from '../api/api.ts';
 import { useAuthHeaders } from '../api/api.hooks.ts';
 import { Button } from '../components/button.tsx';
 import { SlideIn, StaggerList, StaggerItem, FadeIn } from '../components/animate.tsx';
-import { CoverCard, EditionTeaser } from '../views/home/home-cards.tsx';
-import type { HomeEdition } from '../views/home/home-cards.tsx';
+import { SlotCard } from '../views/home/home-cards.tsx';
+import type { HomeSlot } from '../views/home/home-cards.tsx';
 
 // --- Types (match GET /api/home response) ---
 
 type HomeConfig = { id: string; name: string; icon: string | null };
 
-type HomeData = { sourcesCount: number; focusesCount: number; configs: HomeConfig[]; editions: HomeEdition[] };
+type HomeData = {
+  sourcesCount: number;
+  focusesCount: number;
+  configs: HomeConfig[];
+  slots: HomeSlot[];
+};
 
 // --- Data hook ---
 
@@ -171,19 +176,7 @@ const SetupGuide = ({ data }: { data: HomeData }): React.ReactElement => {
   );
 };
 
-/* ---------- Configured home (the newsstand) ---------- */
-
-const AllReadState = (): React.ReactElement => (
-  <div className="py-12 text-center">
-    <div className="text-4xl text-accent/20 mb-4 select-none" aria-hidden="true">
-      ~
-    </div>
-    <h1 className="font-serif text-2xl font-medium tracking-tight text-ink mb-2">All read</h1>
-    <p className="text-sm text-ink-tertiary leading-relaxed">
-      You're up to date. New editions will appear here when they're generated.
-    </p>
-  </div>
-);
+/* ---------- The magazine stand ---------- */
 
 const QuickLinks = ({ configs }: { configs: HomeConfig[] }): React.ReactElement => (
   <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2">
@@ -212,42 +205,20 @@ const QuickLinks = ({ configs }: { configs: HomeConfig[] }): React.ReactElement 
   </div>
 );
 
-const EditionsList = ({ editions }: { editions: HomeEdition[] }): React.ReactElement => {
-  const featured = editions[0];
-  const rest = editions.slice(1);
-  return (
-    <div>
-      <div className="mb-6">
-        <h1 className="font-serif text-3xl font-medium tracking-tight text-ink mb-2">Your reading list</h1>
-        <p className="text-sm text-ink-tertiary">
-          {editions.length === 1 ? 'One edition waiting.' : `${editions.length} editions waiting.`}
-        </p>
-      </div>
-      {featured && (
-        <StaggerList>
-          <StaggerItem>
-            <CoverCard edition={featured} />
-          </StaggerItem>
-        </StaggerList>
-      )}
-      {rest.length > 0 && (
-        <StaggerList className="mt-2">
-          {rest.map((edition) => (
-            <StaggerItem key={edition.id}>
-              <EditionTeaser edition={edition} />
-            </StaggerItem>
-          ))}
-          <div className="h-px bg-border" />
-        </StaggerList>
-      )}
-    </div>
-  );
-};
+const MagazineStand = ({ slots }: { slots: HomeSlot[] }): React.ReactElement => (
+  <StaggerList className="flex flex-col gap-6">
+    {slots.map((slot) => (
+      <StaggerItem key={slot.config.id}>
+        <SlotCard slot={slot} />
+      </StaggerItem>
+    ))}
+  </StaggerList>
+);
 
 const ConfiguredHome = ({ data }: { data: HomeData }): React.ReactElement => (
   <SlideIn from="up" distance={12}>
     <Masthead />
-    {data.editions.length > 0 ? <EditionsList editions={data.editions} /> : <AllReadState />}
+    <MagazineStand slots={data.slots} />
     <QuickLinks configs={data.configs} />
   </SlideIn>
 );

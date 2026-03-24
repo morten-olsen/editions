@@ -27,7 +27,9 @@ import { Route as SourcesSourceIdIndexRouteImport } from "./routes/sources.$sour
 import { Route as FocusesFocusIdIndexRouteImport } from "./routes/focuses.$focusId.index"
 import { Route as SourcesSourceIdEditRouteImport } from "./routes/sources.$sourceId.edit"
 import { Route as FocusesFocusIdEditRouteImport } from "./routes/focuses.$focusId.edit"
+import { Route as EditionsConfigIdIssuesRouteImport } from "./routes/editions.$configId.issues"
 import { Route as EditionsConfigIdEditRouteImport } from "./routes/editions.$configId.edit"
+import { Route as EditionsConfigIdIssuesIndexRouteImport } from "./routes/editions.$configId.issues.index"
 import { Route as SourcesSourceIdArticlesArticleIdRouteImport } from "./routes/sources.$sourceId.articles.$articleId"
 import { Route as EditionsConfigIdIssuesEditionIdRouteImport } from "./routes/editions.$configId.issues.$editionId"
 
@@ -121,11 +123,22 @@ const FocusesFocusIdEditRoute = FocusesFocusIdEditRouteImport.update({
   path: "/edit",
   getParentRoute: () => FocusesFocusIdRoute,
 } as any)
+const EditionsConfigIdIssuesRoute = EditionsConfigIdIssuesRouteImport.update({
+  id: "/issues",
+  path: "/issues",
+  getParentRoute: () => EditionsConfigIdRoute,
+} as any)
 const EditionsConfigIdEditRoute = EditionsConfigIdEditRouteImport.update({
   id: "/edit",
   path: "/edit",
   getParentRoute: () => EditionsConfigIdRoute,
 } as any)
+const EditionsConfigIdIssuesIndexRoute =
+  EditionsConfigIdIssuesIndexRouteImport.update({
+    id: "/",
+    path: "/",
+    getParentRoute: () => EditionsConfigIdIssuesRoute,
+  } as any)
 const SourcesSourceIdArticlesArticleIdRoute =
   SourcesSourceIdArticlesArticleIdRouteImport.update({
     id: "/articles/$articleId",
@@ -134,9 +147,9 @@ const SourcesSourceIdArticlesArticleIdRoute =
   } as any)
 const EditionsConfigIdIssuesEditionIdRoute =
   EditionsConfigIdIssuesEditionIdRouteImport.update({
-    id: "/issues/$editionId",
-    path: "/issues/$editionId",
-    getParentRoute: () => EditionsConfigIdRoute,
+    id: "/$editionId",
+    path: "/$editionId",
+    getParentRoute: () => EditionsConfigIdIssuesRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -155,12 +168,14 @@ export interface FileRoutesByFullPath {
   "/settings/": typeof SettingsIndexRoute
   "/sources/": typeof SourcesIndexRoute
   "/editions/$configId/edit": typeof EditionsConfigIdEditRoute
+  "/editions/$configId/issues": typeof EditionsConfigIdIssuesRouteWithChildren
   "/focuses/$focusId/edit": typeof FocusesFocusIdEditRoute
   "/sources/$sourceId/edit": typeof SourcesSourceIdEditRoute
   "/focuses/$focusId/": typeof FocusesFocusIdIndexRoute
   "/sources/$sourceId/": typeof SourcesSourceIdIndexRoute
   "/editions/$configId/issues/$editionId": typeof EditionsConfigIdIssuesEditionIdRoute
   "/sources/$sourceId/articles/$articleId": typeof SourcesSourceIdArticlesArticleIdRoute
+  "/editions/$configId/issues/": typeof EditionsConfigIdIssuesIndexRoute
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
@@ -182,6 +197,7 @@ export interface FileRoutesByTo {
   "/sources/$sourceId": typeof SourcesSourceIdIndexRoute
   "/editions/$configId/issues/$editionId": typeof EditionsConfigIdIssuesEditionIdRoute
   "/sources/$sourceId/articles/$articleId": typeof SourcesSourceIdArticlesArticleIdRoute
+  "/editions/$configId/issues": typeof EditionsConfigIdIssuesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -200,12 +216,14 @@ export interface FileRoutesById {
   "/settings/": typeof SettingsIndexRoute
   "/sources/": typeof SourcesIndexRoute
   "/editions/$configId/edit": typeof EditionsConfigIdEditRoute
+  "/editions/$configId/issues": typeof EditionsConfigIdIssuesRouteWithChildren
   "/focuses/$focusId/edit": typeof FocusesFocusIdEditRoute
   "/sources/$sourceId/edit": typeof SourcesSourceIdEditRoute
   "/focuses/$focusId/": typeof FocusesFocusIdIndexRoute
   "/sources/$sourceId/": typeof SourcesSourceIdIndexRoute
   "/editions/$configId/issues/$editionId": typeof EditionsConfigIdIssuesEditionIdRoute
   "/sources/$sourceId/articles/$articleId": typeof SourcesSourceIdArticlesArticleIdRoute
+  "/editions/$configId/issues/": typeof EditionsConfigIdIssuesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -225,12 +243,14 @@ export interface FileRouteTypes {
     | "/settings/"
     | "/sources/"
     | "/editions/$configId/edit"
+    | "/editions/$configId/issues"
     | "/focuses/$focusId/edit"
     | "/sources/$sourceId/edit"
     | "/focuses/$focusId/"
     | "/sources/$sourceId/"
     | "/editions/$configId/issues/$editionId"
     | "/sources/$sourceId/articles/$articleId"
+    | "/editions/$configId/issues/"
   fileRoutesByTo: FileRoutesByTo
   to:
     | "/"
@@ -252,6 +272,7 @@ export interface FileRouteTypes {
     | "/sources/$sourceId"
     | "/editions/$configId/issues/$editionId"
     | "/sources/$sourceId/articles/$articleId"
+    | "/editions/$configId/issues"
   id:
     | "__root__"
     | "/"
@@ -269,12 +290,14 @@ export interface FileRouteTypes {
     | "/settings/"
     | "/sources/"
     | "/editions/$configId/edit"
+    | "/editions/$configId/issues"
     | "/focuses/$focusId/edit"
     | "/sources/$sourceId/edit"
     | "/focuses/$focusId/"
     | "/sources/$sourceId/"
     | "/editions/$configId/issues/$editionId"
     | "/sources/$sourceId/articles/$articleId"
+    | "/editions/$configId/issues/"
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -422,12 +445,26 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof FocusesFocusIdEditRouteImport
       parentRoute: typeof FocusesFocusIdRoute
     }
+    "/editions/$configId/issues": {
+      id: "/editions/$configId/issues"
+      path: "/issues"
+      fullPath: "/editions/$configId/issues"
+      preLoaderRoute: typeof EditionsConfigIdIssuesRouteImport
+      parentRoute: typeof EditionsConfigIdRoute
+    }
     "/editions/$configId/edit": {
       id: "/editions/$configId/edit"
       path: "/edit"
       fullPath: "/editions/$configId/edit"
       preLoaderRoute: typeof EditionsConfigIdEditRouteImport
       parentRoute: typeof EditionsConfigIdRoute
+    }
+    "/editions/$configId/issues/": {
+      id: "/editions/$configId/issues/"
+      path: "/"
+      fullPath: "/editions/$configId/issues/"
+      preLoaderRoute: typeof EditionsConfigIdIssuesIndexRouteImport
+      parentRoute: typeof EditionsConfigIdIssuesRoute
     }
     "/sources/$sourceId/articles/$articleId": {
       id: "/sources/$sourceId/articles/$articleId"
@@ -438,22 +475,38 @@ declare module "@tanstack/react-router" {
     }
     "/editions/$configId/issues/$editionId": {
       id: "/editions/$configId/issues/$editionId"
-      path: "/issues/$editionId"
+      path: "/$editionId"
       fullPath: "/editions/$configId/issues/$editionId"
       preLoaderRoute: typeof EditionsConfigIdIssuesEditionIdRouteImport
-      parentRoute: typeof EditionsConfigIdRoute
+      parentRoute: typeof EditionsConfigIdIssuesRoute
     }
   }
 }
 
+interface EditionsConfigIdIssuesRouteChildren {
+  EditionsConfigIdIssuesEditionIdRoute: typeof EditionsConfigIdIssuesEditionIdRoute
+  EditionsConfigIdIssuesIndexRoute: typeof EditionsConfigIdIssuesIndexRoute
+}
+
+const EditionsConfigIdIssuesRouteChildren: EditionsConfigIdIssuesRouteChildren =
+  {
+    EditionsConfigIdIssuesEditionIdRoute: EditionsConfigIdIssuesEditionIdRoute,
+    EditionsConfigIdIssuesIndexRoute: EditionsConfigIdIssuesIndexRoute,
+  }
+
+const EditionsConfigIdIssuesRouteWithChildren =
+  EditionsConfigIdIssuesRoute._addFileChildren(
+    EditionsConfigIdIssuesRouteChildren,
+  )
+
 interface EditionsConfigIdRouteChildren {
   EditionsConfigIdEditRoute: typeof EditionsConfigIdEditRoute
-  EditionsConfigIdIssuesEditionIdRoute: typeof EditionsConfigIdIssuesEditionIdRoute
+  EditionsConfigIdIssuesRoute: typeof EditionsConfigIdIssuesRouteWithChildren
 }
 
 const EditionsConfigIdRouteChildren: EditionsConfigIdRouteChildren = {
   EditionsConfigIdEditRoute: EditionsConfigIdEditRoute,
-  EditionsConfigIdIssuesEditionIdRoute: EditionsConfigIdIssuesEditionIdRoute,
+  EditionsConfigIdIssuesRoute: EditionsConfigIdIssuesRouteWithChildren,
 }
 
 const EditionsConfigIdRouteWithChildren =

@@ -36,17 +36,28 @@ const CoverCard = ({ edition }: { edition: HomeEdition }): React.ReactElement =>
   const hasImage = !!edition.lead?.imageUrl;
 
   return (
-    <Link
-      to="/editions/$configId/issues/$editionId"
-      params={{ configId: edition.editionConfigId, editionId: edition.id }}
-      className="group block rounded-lg overflow-hidden relative isolate"
-    >
-      <CoverBackground imageUrl={edition.lead?.imageUrl ?? null} />
-      <div className={`flex flex-col justify-between p-5 min-h-56 ${hasImage ? 'text-white' : ''}`}>
-        <CoverTopBar configName={edition.configName} publishedAt={edition.publishedAt} hasImage={hasImage} />
-        <CoverContent edition={edition} hasImage={hasImage} />
+    <div className="group relative isolate">
+      <Link
+        to="/editions/$configId/issues/$editionId"
+        params={{ configId: edition.editionConfigId, editionId: edition.id }}
+        className="block rounded-lg overflow-hidden relative isolate"
+      >
+        <CoverBackground imageUrl={edition.lead?.imageUrl ?? null} />
+        <div className={`flex flex-col justify-between p-5 min-h-56 ${hasImage ? 'text-white' : ''}`}>
+          <CoverTopBar configName={edition.configName} publishedAt={edition.publishedAt} hasImage={hasImage} />
+          <CoverContent edition={edition} hasImage={hasImage} />
+        </div>
+      </Link>
+      <div className="mt-2 flex items-center justify-between">
+        <Link
+          to="/editions/$configId/issues"
+          params={{ configId: edition.editionConfigId }}
+          className="font-mono text-xs tracking-wide text-ink-faint hover:text-ink transition-colors duration-fast"
+        >
+          All issues →
+        </Link>
       </div>
-    </Link>
+    </div>
   );
 };
 
@@ -129,35 +140,39 @@ const CoverContent = ({ edition, hasImage }: { edition: HomeEdition; hasImage: b
   </div>
 );
 
-/* ── Edition teaser ──────────────────────────────────────────────── */
+/* ── Caught-up card (config with no unread edition) ───────────────── */
 
-const EditionTeaser = ({ edition }: { edition: HomeEdition }): React.ReactElement => (
-  <Link
-    to="/editions/$configId/issues/$editionId"
-    params={{ configId: edition.editionConfigId, editionId: edition.id }}
-    className="group block py-4 border-t border-border hover:border-accent transition-colors duration-fast"
-  >
-    <div className="flex items-start justify-between gap-4">
-      <div className="min-w-0 flex-1">
-        <div className="font-mono text-xs tracking-wide text-accent uppercase mb-1.5">
-          {edition.configName} · {formatPubDate(edition.publishedAt)}
-        </div>
-        <div className="font-serif text-lg font-medium tracking-tight text-ink group-hover:text-accent transition-colors duration-fast leading-snug">
-          {edition.title}
-        </div>
-        <div className="font-mono text-xs text-ink-faint mt-1.5 tracking-wide">
-          {edition.articleCount} articles
-          {edition.totalReadingMinutes != null && ` · ${edition.totalReadingMinutes} min`}
-        </div>
+type HomeConfig = { id: string; name: string; icon: string | null };
+
+type HomeSlot = {
+  config: HomeConfig;
+  edition: HomeEdition | null;
+};
+
+const CaughtUpCard = ({ config }: { config: HomeConfig }): React.ReactElement => (
+  <div>
+    <div className="rounded-lg bg-surface-sunken p-5 min-h-32 flex flex-col justify-between">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="font-mono text-xs tracking-wide uppercase text-accent">{config.name}</span>
       </div>
-      {edition.lead?.imageUrl && (
-        <div className="shrink-0 w-16 h-16 rounded-md overflow-hidden bg-surface-sunken">
-          <img src={edition.lead.imageUrl} alt="" className="w-full h-full object-cover" />
-        </div>
-      )}
+      <div className="mt-auto pt-4">
+        <p className="font-serif text-lg text-ink-tertiary tracking-tight">All caught up</p>
+      </div>
     </div>
-  </Link>
+    <div className="mt-2 flex items-center justify-between">
+      <Link
+        to="/editions/$configId/issues"
+        params={{ configId: config.id }}
+        className="font-mono text-xs tracking-wide text-ink-faint hover:text-ink transition-colors duration-fast"
+      >
+        All issues →
+      </Link>
+    </div>
+  </div>
 );
 
-export type { HomeEdition };
-export { CoverCard, EditionTeaser };
+const SlotCard = ({ slot }: { slot: HomeSlot }): React.ReactElement =>
+  slot.edition ? <CoverCard edition={slot.edition} /> : <CaughtUpCard config={slot.config} />;
+
+export type { HomeEdition, HomeSlot, HomeConfig };
+export { CoverCard, CaughtUpCard, SlotCard, formatPubDate };

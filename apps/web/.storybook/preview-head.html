@@ -1,3 +1,78 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet" />
+
+<!-- Reset Storybook addon-docs default typography so our MDX pages
+     use the design system tokens instead of Storybook's built-in styles. -->
+<style>
+  .sbdocs.sbdocs-wrapper {
+    background: var(--color-surface, inherit);
+  }
+  .sbdocs.sbdocs-content {
+    max-width: none;
+  }
+  /* Reset all heading styles within docs */
+  .sbdocs h1,
+  .sbdocs h2,
+  .sbdocs h3,
+  .sbdocs h4,
+  .sbdocs h5,
+  .sbdocs h6 {
+    all: revert;
+    font-family: var(--font-serif);
+    color: var(--color-ink);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin: 0 0 1rem;
+    border: none;
+  }
+  .sbdocs h1 {
+    font-size: 2.074rem;
+    font-weight: 500;
+  }
+  .sbdocs h2 {
+    font-size: 1.44rem;
+    font-weight: 500;
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+  .sbdocs h3 {
+    font-size: 1.2rem;
+    font-weight: 500;
+  }
+  /* Reset paragraph and inline styles */
+  .sbdocs p {
+    all: revert;
+    font-family: var(--font-sans);
+    color: var(--color-ink-secondary);
+    font-size: 0.833rem;
+    line-height: 1.625;
+    margin: 0 0 0.75rem;
+  }
+  .sbdocs code {
+    all: revert;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    background: var(--color-surface-sunken);
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.2rem;
+  }
+  .sbdocs strong {
+    color: var(--color-ink);
+  }
+  .sbdocs hr {
+    all: revert;
+    border: none;
+    height: 1px;
+    background: var(--color-border);
+    margin: 4rem 0;
+  }
+  .sbdocs a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+  .sbdocs a:hover {
+    color: var(--color-accent-hover);
+  }
+</style>

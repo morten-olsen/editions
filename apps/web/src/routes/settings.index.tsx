@@ -7,13 +7,15 @@ import { JobsSection } from '../views/settings/jobs-section.tsx';
 import { VotesSection } from '../views/settings/votes-section.tsx';
 import { ScoringSection } from '../views/settings/scoring-section.tsx';
 import { AiSection } from '../views/settings/ai-section.tsx';
+import { DataSection } from '../views/settings/data-section.tsx';
 
-type SettingsTab = 'jobs' | 'votes' | 'scoring' | 'assistant';
+type SettingsTab = 'jobs' | 'votes' | 'scoring' | 'data' | 'assistant';
 
 const TABS: { key: SettingsTab; label: string; badge?: string }[] = [
   { key: 'jobs', label: 'Jobs' },
   { key: 'votes', label: 'Votes' },
   { key: 'scoring', label: 'Scoring' },
+  { key: 'data', label: 'Data' },
   { key: 'assistant', label: 'Assistant', badge: 'alpha' },
 ];
 
@@ -21,6 +23,7 @@ const TAB_DESCRIPTIONS: Record<SettingsTab, string> = {
   jobs: 'Running and recent background jobs',
   votes: '',
   scoring: 'Customise how articles are ranked in each feed',
+  data: 'Export or import your data for portability between instances',
   assistant: 'Configure an AI assistant to help you set up Editions',
 };
 
@@ -45,6 +48,7 @@ const SettingsPage = (): React.ReactNode => {
       {activeTab === 'jobs' && <JobsSection token={auth.token} />}
       {activeTab === 'votes' && <VotesSection />}
       {activeTab === 'scoring' && <ScoringSection token={auth.token} />}
+      {activeTab === 'data' && <DataSection token={auth.token} />}
       {activeTab === 'assistant' && <AiSection />}
     </div>
   );

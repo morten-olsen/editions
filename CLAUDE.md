@@ -18,6 +18,7 @@ This file is for **gotchas** — things that aren't obvious and required effort 
 - [docs/feed-algorithms.md](docs/feed-algorithms.md) — Feed ranking algorithms: scoring formula, vote scoping, edition generation, source distribution
 - [docs/design-system.md](docs/design-system.md) — Design tokens, color palette, typography, spacing, motion, Storybook reference
 - [docs/ai-assistant.md](docs/ai-assistant.md) — AI assistant: annotation system, tools, agent loop, tutorials, chat UI
+- [docs/data-portability.md](docs/data-portability.md) — Data export/import: format, API, import behavior, reconciliation
 
 ## Coding Standards
 

@@ -228,7 +228,7 @@ const Byline = ({
 
 type BodyProps = {
   content: string;
-  onSaveUrl?: ((url: string) => void) | null;
+  onSaveUrl?: ((url: string) => Promise<void>) | null;
   delay?: number;
 };
 

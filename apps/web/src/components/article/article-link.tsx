@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Popover } from '../popover.tsx';
+import { useShowToast } from '../toast.tsx';
 
 /* ── Icons ───────────────────────────────────────────────────── */
 
@@ -19,17 +20,11 @@ const BookmarkIcon = (): React.ReactElement => (
 /* ── Component ───────────────────────────────────────────────── */
 
 type ArticleLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
-  onSaveUrl: (url: string) => void;
+  onSaveUrl: (url: string) => Promise<void>;
 };
 
 const ArticleLink = ({ href, children, onSaveUrl, ...rest }: ArticleLinkProps): React.ReactElement => {
-  const [saved, setSaved] = React.useState(false);
-
-  const handleOpenChange = (nextOpen: boolean): void => {
-    if (nextOpen) {
-      setSaved(false);
-    }
-  };
+  const showToast = useShowToast();
 
   const handleOpen = (): void => {
     if (href) {
@@ -38,14 +33,19 @@ const ArticleLink = ({ href, children, onSaveUrl, ...rest }: ArticleLinkProps): 
   };
 
   const handleBookmark = (): void => {
-    if (href) {
-      onSaveUrl(href);
-      setSaved(true);
+    if (!href) {
+      return;
     }
+    const url = href;
+    showToast({
+      title: 'Saving bookmark',
+      description: url,
+      action: () => onSaveUrl(url),
+    });
   };
 
   return (
-    <Popover.Root onOpenChange={handleOpenChange}>
+    <Popover.Root>
       <Popover.Trigger
         render={
           <a
@@ -66,7 +66,7 @@ const ArticleLink = ({ href, children, onSaveUrl, ...rest }: ArticleLinkProps): 
         </Popover.Close>
         <Popover.Close render={<Popover.Item />} onClick={handleBookmark}>
           <BookmarkIcon />
-          {saved ? 'Saved!' : 'Save bookmark'}
+          Save bookmark
         </Popover.Close>
       </Popover.Content>
     </Popover.Root>

@@ -27,8 +27,8 @@ const ArticlePage = (): React.ReactNode => {
     },
   });
   const handleSaveUrl = useCallback(
-    (url: string): void => {
-      saveUrlMutation.mutate(url);
+    async (url: string): Promise<void> => {
+      await saveUrlMutation.mutateAsync(url);
     },
     [saveUrlMutation],
   );

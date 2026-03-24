@@ -22,7 +22,7 @@ type PresetProps = ArticleData & {
   /** Content injected between byline and body (e.g. media player) */
   children?: React.ReactNode;
   footer?: React.ReactNode;
-  onSaveUrl?: ((url: string) => void) | null;
+  onSaveUrl?: ((url: string) => Promise<void>) | null;
 };
 
 /* ── Editorial ───────────────────────────────────────────────── */

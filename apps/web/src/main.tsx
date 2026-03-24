@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider, createRouter, createHashHistory } from '@tanstack/react-router';
 
 import { AuthProvider, useAuth } from './auth/auth.tsx';
+import { ToastProvider } from './components/toast.tsx';
 import { routeTree } from './routeTree.gen.ts';
 import './app.css';
 
@@ -39,7 +40,9 @@ createRoot(root).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <InnerApp />
+        <ToastProvider>
+          <InnerApp />
+        </ToastProvider>
       </AuthProvider>
     </QueryClientProvider>
   </StrictMode>,

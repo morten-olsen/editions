@@ -25,7 +25,7 @@ type MagazineViewProps = {
   onGlobalVote: (articleId: string, value: VoteValue) => void;
   onFocusVote: (articleId: string, focusId: string, value: VoteValue) => void;
   onBookmarkToggle: (articleId: string) => void;
-  onSaveUrl: (url: string) => void;
+  onSaveUrl: (url: string) => Promise<void>;
   onMarkArticleViewed: (sourceId: string, articleId: string) => void;
   onExit: () => void;
   onMarkDone: () => void;
@@ -73,7 +73,7 @@ type BuildSectionPagesArgs = {
   onGlobalVote: (articleId: string, value: VoteValue) => void;
   onFocusVote: (articleId: string, focusId: string, value: VoteValue) => void;
   onBookmarkToggle: (articleId: string) => void;
-  onSaveUrl: (url: string) => void;
+  onSaveUrl: (url: string) => Promise<void>;
 };
 
 const buildSectionPages = (args: BuildSectionPagesArgs): React.ReactElement[] => {

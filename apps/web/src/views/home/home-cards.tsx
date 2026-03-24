@@ -37,7 +37,7 @@ const CoverCard = ({ edition }: { edition: HomeEdition }): React.ReactElement =>
 
   return (
     <Link
-      to="/editions/$configId/issues/$editionId/magazine"
+      to="/editions/$configId/issues/$editionId"
       params={{ configId: edition.editionConfigId, editionId: edition.id }}
       className="group block rounded-lg overflow-hidden relative isolate"
     >
@@ -133,7 +133,7 @@ const CoverContent = ({ edition, hasImage }: { edition: HomeEdition; hasImage: b
 
 const EditionTeaser = ({ edition }: { edition: HomeEdition }): React.ReactElement => (
   <Link
-    to="/editions/$configId/issues/$editionId/magazine"
+    to="/editions/$configId/issues/$editionId"
     params={{ configId: edition.editionConfigId, editionId: edition.id }}
     className="group block py-4 border-t border-border hover:border-accent transition-colors duration-fast"
   >

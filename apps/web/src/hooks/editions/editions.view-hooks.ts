@@ -55,23 +55,88 @@ const useEditionVoting = (
   const headers = useAuthHeaders();
   const [votes, setVotes] = useState<Record<string, VoteValue>>({});
 
-  const handleVote = async (articleId: string, value: VoteValue): Promise<void> => {
-    setVotes((prev) => ({ ...prev, [articleId]: value }));
-    if (value === null) {
-      await client.DELETE('/api/editions/{editionId}/articles/{articleId}/vote', {
-        params: { path: { editionId, articleId } },
-        headers,
-      });
-    } else {
-      await client.PUT('/api/editions/{editionId}/articles/{articleId}/vote', {
-        params: { path: { editionId, articleId } },
-        body: { value },
-        headers,
-      });
-    }
-  };
+  const handleVote = useCallback(
+    async (articleId: string, value: VoteValue): Promise<void> => {
+      setVotes((prev) => ({ ...prev, [articleId]: value }));
+      if (value === null) {
+        await client.DELETE('/api/editions/{editionId}/articles/{articleId}/vote', {
+          params: { path: { editionId, articleId } },
+          headers,
+        });
+      } else {
+        await client.PUT('/api/editions/{editionId}/articles/{articleId}/vote', {
+          params: { path: { editionId, articleId } },
+          body: { value },
+          headers,
+        });
+      }
+    },
+    [editionId, headers],
+  );
 
   return { votes, handleVote };
+};
+
+/* ── useGlobalVoting (shared) ─────────────────────────────────────── */
+
+const useGlobalVoting = (): {
+  globalVotes: Record<string, VoteValue>;
+  handleGlobalVote: (articleId: string, value: VoteValue) => Promise<void>;
+} => {
+  const headers = useAuthHeaders();
+  const [globalVotes, setGlobalVotes] = useState<Record<string, VoteValue>>({});
+
+  const handleGlobalVote = useCallback(
+    async (articleId: string, value: VoteValue): Promise<void> => {
+      setGlobalVotes((prev) => ({ ...prev, [articleId]: value }));
+      if (value === null) {
+        await client.DELETE('/api/articles/{articleId}/vote', {
+          params: { path: { articleId } },
+          headers,
+        });
+      } else {
+        await client.PUT('/api/articles/{articleId}/vote', {
+          params: { path: { articleId } },
+          body: { value },
+          headers,
+        });
+      }
+    },
+    [headers],
+  );
+
+  return { globalVotes, handleGlobalVote };
+};
+
+/* ── useFocusVoting (shared) ─────────────────────────────────────── */
+
+const useFocusVoting = (): {
+  focusVotes: Record<string, VoteValue>;
+  handleFocusVote: (articleId: string, focusId: string, value: VoteValue) => Promise<void>;
+} => {
+  const headers = useAuthHeaders();
+  const [focusVotes, setFocusVotes] = useState<Record<string, VoteValue>>({});
+
+  const handleFocusVote = useCallback(
+    async (articleId: string, focusId: string, value: VoteValue): Promise<void> => {
+      setFocusVotes((prev) => ({ ...prev, [articleId]: value }));
+      if (value === null) {
+        await client.DELETE('/api/focuses/{id}/articles/{articleId}/vote', {
+          params: { path: { id: focusId, articleId } },
+          headers,
+        });
+      } else {
+        await client.PUT('/api/focuses/{id}/articles/{articleId}/vote', {
+          params: { path: { id: focusId, articleId } },
+          body: { value },
+          headers,
+        });
+      }
+    },
+    [headers],
+  );
+
+  return { focusVotes, handleFocusVote };
 };
 
 /* ── useMarkArticleViewed (shared) ────────────────────────────────── */
@@ -296,4 +361,12 @@ const useMagazineView = (editionId: string): UseMagazineViewReturn => {
 };
 
 export type { UseEditionViewReturn, UseMagazineViewReturn };
-export { useEditionView, useMagazineView };
+export {
+  useEditionDetailQuery,
+  useEditionVoting,
+  useGlobalVoting,
+  useFocusVoting,
+  useMarkArticleViewed,
+  useEditionView,
+  useMagazineView,
+};

@@ -84,6 +84,10 @@ type EditionFooterProps = {
   vote: VoteValue | null;
   onVote?: ((value: VoteValue) => void) | null;
   label?: string;
+  focusVote?: VoteValue | null;
+  onFocusVote?: ((value: VoteValue) => void) | null;
+  globalVote?: VoteValue | null;
+  onGlobalVote?: ((value: VoteValue) => void) | null;
   bookmarked?: boolean;
   onBookmarkToggle?: (() => void) | null;
   voteDelay?: number;
@@ -126,26 +130,36 @@ const EditionFooter = ({
   vote,
   onVote,
   label = 'Edition',
+  focusVote,
+  onFocusVote,
+  globalVote,
+  onGlobalVote,
   bookmarked,
   onBookmarkToggle,
   voteDelay = 0.5,
   nextDelay = 0.6,
-}: EditionFooterProps): React.ReactElement => (
-  <>
-    {(onVote || onBookmarkToggle) && (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, ease: easeOut, delay: voteDelay }}
-        className="flex items-center justify-center gap-4 pt-6 mt-6 border-t border-border"
-      >
-        {onVote && <VoteControls value={vote ?? null} onVote={onVote} label={label} />}
-        {onBookmarkToggle && <BookmarkButton bookmarked={bookmarked ?? false} onToggle={onBookmarkToggle} />}
-      </motion.div>
-    )}
-    <NextPrompt delay={nextDelay} />
-  </>
-);
+}: EditionFooterProps): React.ReactElement => {
+  const hasActions = onVote || onFocusVote || onGlobalVote || onBookmarkToggle;
+
+  return (
+    <>
+      {hasActions && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, ease: easeOut, delay: voteDelay }}
+          className="flex items-center justify-center gap-4 pt-6 mt-6 border-t border-border"
+        >
+          {onFocusVote && <VoteControls value={focusVote ?? null} onVote={onFocusVote} label="Relevance" />}
+          {onGlobalVote && <VoteControls value={globalVote ?? null} onVote={onGlobalVote} label="Quality" />}
+          {onVote && <VoteControls value={vote ?? null} onVote={onVote} label={label} />}
+          {onBookmarkToggle && <BookmarkButton bookmarked={bookmarked ?? false} onToggle={onBookmarkToggle} />}
+        </motion.div>
+      )}
+      <NextPrompt delay={nextDelay} />
+    </>
+  );
+};
 
 /* ── Exports ──────────────────────────────────────────────────── */
 

@@ -5,7 +5,7 @@ import { useReadingProgress } from '../hooks/articles/articles.reading-progress.
 import { BookmarkButton } from '../components/bookmark-button.tsx';
 import { Button } from '../components/button.tsx';
 import { MediaPlayer } from '../components/media-player.tsx';
-import { Editorial } from '../components/article/article.presets.tsx';
+import { ArticleView } from '../components/article/article.presets.tsx';
 import { FeedFooter } from '../components/article/article.footers.tsx';
 
 /* ── Article page ────────────────────────────────────────────── */
@@ -51,7 +51,8 @@ const ArticlePage = (): React.ReactNode => {
       <ReaderHeader detail={detail} onBack={() => router.history.back()} />
 
       <div className="px-4 md:px-6 pt-16 pb-8">
-        <Editorial
+        <ArticleView
+          style="editorial"
           title={article.title}
           sourceName={article.sourceName}
           author={article.author}
@@ -82,7 +83,7 @@ const ArticlePage = (): React.ReactNode => {
               />
             </div>
           )}
-        </Editorial>
+        </ArticleView>
       </div>
     </div>
   );

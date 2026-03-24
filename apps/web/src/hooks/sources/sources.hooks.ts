@@ -56,6 +56,7 @@ type UseSourcesListResult = {
   loading: boolean;
   sourcesQuery: UseQueryResult<Source[], Error>;
   reanalyseMutation: UseMutationResult<void, Error, void, unknown>;
+  reExtractMutation: UseMutationResult<void, Error, void, unknown>;
 };
 
 const useSourcesList = (): UseSourcesListResult => {
@@ -76,7 +77,19 @@ const useSourcesList = (): UseSourcesListResult => {
     },
   });
 
-  return { sources: sourcesQuery.data ?? [], loading: sourcesQuery.isLoading, sourcesQuery, reanalyseMutation };
+  const reExtractMutation = useMutation({
+    mutationFn: async (): Promise<void> => {
+      await fetch('/api/sources/re-extract-all', { method: 'POST', headers });
+    },
+  });
+
+  return {
+    sources: sourcesQuery.data ?? [],
+    loading: sourcesQuery.isLoading,
+    sourcesQuery,
+    reanalyseMutation,
+    reExtractMutation,
+  };
 };
 
 // -- useCreateSource --

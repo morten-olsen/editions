@@ -3,7 +3,12 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
 import { createAuthHook } from '../auth/auth.middleware.ts';
 import { DatabaseService } from '../database/database.ts';
-import type { RefreshSourcePayload, ReanalyseSourcePayload, ReanalyseAllPayload } from '../jobs/jobs.handlers.ts';
+import type {
+  RefreshSourcePayload,
+  ReanalyseSourcePayload,
+  ReanalyseAllPayload,
+  ReExtractAllPayload,
+} from '../jobs/jobs.handlers.ts';
 import { JobService } from '../jobs/jobs.ts';
 import type { Services } from '../services/services.ts';
 import { SourceNotFoundError, SourcesService } from '../sources/sources.ts';
@@ -358,6 +363,34 @@ const registerReanalyseRoutes = ({ fastify, services, authenticate }: RouteArgs)
       const count = Number(result.count);
       if (count > 0) {
         services.get(JobService).enqueue<ReanalyseAllPayload>('reanalyse_all', {}, { userId: req.user.sub });
+      }
+
+      return reply.code(202).send({ enqueued: count });
+    },
+  });
+
+  // Re-extract all articles (clear content + re-fetch from source URLs)
+  fastify.route({
+    method: 'POST',
+    url: '/sources/re-extract-all',
+    onRequest: authenticate,
+    schema: {
+      security: [{ bearerAuth: [] }],
+      response: { 202: z.object({ enqueued: z.number() }) },
+    },
+    handler: async (req, reply) => {
+      const db = await services.get(DatabaseService).getInstance();
+      const result = await db
+        .selectFrom('articles')
+        .innerJoin('sources', 'sources.id', 'articles.source_id')
+        .select(db.fn.countAll().as('count'))
+        .where('sources.type', '!=', 'podcast')
+        .where('articles.extracted_at', 'is not', null)
+        .executeTakeFirstOrThrow();
+
+      const count = Number(result.count);
+      if (count > 0) {
+        services.get(JobService).enqueue<ReExtractAllPayload>('re_extract_all', {}, { userId: req.user.sub });
       }
 
       return reply.code(202).send({ enqueued: count });

@@ -79,7 +79,7 @@ const ImportResultBanner = ({
 };
 
 const SourcesPage = (): React.ReactNode => {
-  const { sources, loading, reanalyseMutation } = useSourcesList();
+  const { sources, loading, reanalyseMutation, reExtractMutation } = useSourcesList();
   const { stats } = useClassificationStats();
   const { exportOpml, pickAndImport, importMutation, importResult, importError, clearImportResult } = useOpml();
 
@@ -115,6 +115,14 @@ const SourcesPage = (): React.ReactNode => {
                 <Menu.Item onClick={exportOpml}>Export feeds</Menu.Item>
                 <Menu.Item onClick={pickAndImport} disabled={importMutation.isPending}>
                   {importMutation.isPending ? 'Importing...' : 'Import feeds'}
+                </Menu.Item>
+                <Menu.Separator />
+                <Menu.Label>Maintenance</Menu.Label>
+                <Menu.Item
+                  onClick={() => reExtractMutation.mutate()}
+                  disabled={reExtractMutation.isPending}
+                >
+                  {reExtractMutation.isPending ? 'Re-extracting...' : 'Re-extract all articles'}
                 </Menu.Item>
               </Menu.Content>
             </Menu.Root>

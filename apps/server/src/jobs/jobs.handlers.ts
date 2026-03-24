@@ -28,6 +28,8 @@ type ReanalyseSourcePayload = {
 
 type ReanalyseAllPayload = Record<string, never>;
 
+type ReExtractAllPayload = Record<string, never>;
+
 type ExtractAndAnalysePayload = {
   sourceId: string;
   userId: string;
@@ -207,6 +209,36 @@ const handleReanalyseAll = async (_payload: ReanalyseAllPayload, services: Servi
   });
 };
 
+const handleReExtractAll = async (_payload: ReExtractAllPayload, services: Services, job: Job): Promise<void> => {
+  const db = await services.get(DatabaseService).getInstance();
+
+  // Clear content and extraction/analysis state for non-podcast articles
+  const articleIds = await db
+    .selectFrom('articles')
+    .innerJoin('sources', 'sources.id', 'articles.source_id')
+    .select('articles.id')
+    .where('sources.type', '!=', 'podcast')
+    .where('articles.extracted_at', 'is not', null)
+    .execute();
+
+  if (articleIds.length > 0) {
+    const ids = articleIds.map((a) => a.id);
+    await db.deleteFrom('article_focuses').where('article_id', 'in', ids).execute();
+    await db.deleteFrom('article_embeddings').where('article_id', 'in', ids).execute();
+    await db
+      .updateTable('articles')
+      .set({ content: null, extracted_at: null, analysed_at: null })
+      .where('id', 'in', ids)
+      .execute();
+  }
+
+  // Reconcile — extraction step will re-fetch content for all cleared articles
+  const analysis = services.get(ReconcilerService);
+  await analysis.reconcile({
+    onProgress: jobProgress(job),
+  });
+};
+
 const handleExtractAndAnalyse = async (
   payload: ExtractAndAnalysePayload,
   services: Services,
@@ -227,6 +259,7 @@ const registerJobHandlers = (services: Services): void => {
   jobService.register<ReconcileFocusPayload>('reconcile_focus', handleReconcileFocus);
   jobService.register<ReanalyseSourcePayload>('reanalyse_source', handleReanalyseSource);
   jobService.register<ReanalyseAllPayload>('reanalyse_all', handleReanalyseAll);
+  jobService.register<ReExtractAllPayload>('re_extract_all', handleReExtractAll);
   jobService.register<ExtractAndAnalysePayload>('extract_and_analyse', handleExtractAndAnalyse);
 };
 
@@ -235,6 +268,7 @@ export type {
   ReconcileFocusPayload,
   ReanalyseSourcePayload,
   ReanalyseAllPayload,
+  ReExtractAllPayload,
   ExtractAndAnalysePayload,
 };
 export { registerJobHandlers };

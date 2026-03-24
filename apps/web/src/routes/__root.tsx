@@ -110,6 +110,7 @@ const RootComponent = (): React.ReactNode => {
         username={username}
         onLogout={logout}
         onSettingsClick={() => navigate({ to: '/settings' })}
+        onBookmarksClick={() => navigate({ to: '/bookmarks' })}
         actions={<AiToggleButton />}
       >
         {activeMode === 'feed' && <FeedMobileNav />}

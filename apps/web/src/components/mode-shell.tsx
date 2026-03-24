@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-
 import { EntityIcon } from './entity-icon.tsx';
 
 /* ── Types ───────────────────────────────────────────────────────── */
@@ -13,6 +12,7 @@ type ModeBarProps = {
   username?: string;
   onLogout?: () => void;
   onSettingsClick?: () => void;
+  onBookmarksClick?: () => void;
   actions?: React.ReactNode;
 };
 
@@ -24,6 +24,7 @@ type ModeShellProps = {
   username?: string;
   onLogout?: () => void;
   onSettingsClick?: () => void;
+  onBookmarksClick?: () => void;
   actions?: React.ReactNode;
 };
 
@@ -149,6 +150,7 @@ const ModeBar = ({
   username,
   onLogout,
   onSettingsClick,
+  onBookmarksClick,
   actions,
 }: ModeBarProps): React.ReactElement => (
   <header
@@ -190,6 +192,19 @@ const ModeBar = ({
 
     <div className="shrink-0 flex items-center gap-3">
       {actions}
+      {onBookmarksClick && (
+        <button
+          type="button"
+          onClick={onBookmarksClick}
+          className="p-1 text-ink-faint hover:text-ink-tertiary transition-colors duration-fast cursor-pointer"
+          aria-label="Bookmarks"
+          data-ai-id="bookmarks-btn"
+          data-ai-role="button"
+          data-ai-label="Bookmarks"
+        >
+          <EntityIcon icon="bookmark" size={15} />
+        </button>
+      )}
       {onSettingsClick && (
         <button
           type="button"
@@ -227,6 +242,7 @@ type MobileDrawerProps = {
   username?: string;
   onLogout?: () => void;
   onSettingsClick?: () => void;
+  onBookmarksClick?: () => void;
   actions?: React.ReactNode;
 };
 
@@ -238,6 +254,7 @@ const MobileDrawer = ({
   username,
   onLogout,
   onSettingsClick,
+  onBookmarksClick,
   actions,
 }: MobileDrawerProps): React.ReactElement => {
   useEffect(() => {
@@ -323,6 +340,19 @@ const MobileDrawer = ({
 
             <div className="mt-auto px-3 py-4 border-t border-border flex flex-col gap-2">
               {actions && <div className="px-3 mb-1">{actions}</div>}
+              {onBookmarksClick && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onBookmarksClick();
+                    onClose();
+                  }}
+                  className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-ink-secondary hover:text-ink hover:bg-surface-sunken transition-colors duration-fast cursor-pointer"
+                >
+                  <EntityIcon icon="bookmark" size={16} className="shrink-0" />
+                  Bookmarks
+                </button>
+              )}
               {onSettingsClick && (
                 <button
                   type="button"
@@ -368,6 +398,7 @@ const ModeShell = ({
   username,
   onLogout,
   onSettingsClick,
+  onBookmarksClick,
   actions,
 }: ModeShellProps): React.ReactElement => {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -389,6 +420,7 @@ const ModeShell = ({
           username={username}
           onLogout={onLogout}
           onSettingsClick={onSettingsClick}
+          onBookmarksClick={onBookmarksClick}
           actions={actions}
         />
       </div>
@@ -414,6 +446,7 @@ const ModeShell = ({
         username={username}
         onLogout={onLogout}
         onSettingsClick={onSettingsClick}
+        onBookmarksClick={onBookmarksClick}
         actions={actions}
       />
 

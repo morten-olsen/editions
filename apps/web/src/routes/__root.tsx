@@ -51,6 +51,10 @@ const ModeLayout = ({ activeMode, pathname }: { activeMode: Mode; pathname: stri
     );
   }
 
+  if (activeMode === 'discover') {
+    return <>{content}</>;
+  }
+
   if (activeMode === 'builder') {
     return (
       <div className="absolute inset-0 flex flex-col">

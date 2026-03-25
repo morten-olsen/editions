@@ -35,6 +35,12 @@ const queryKeys = {
   bookmarks: {
     all: ['bookmarks'] as const,
   },
+  discovery: {
+    sources: ['discovery', 'sources'] as const,
+    focuses: ['discovery', 'focuses'] as const,
+    editionConfigs: ['discovery', 'edition-configs'] as const,
+    tags: ['discovery', 'tags'] as const,
+  },
   billing: {
     access: ['billing', 'access'] as const,
     subscription: ['billing', 'subscription'] as const,

@@ -335,9 +335,17 @@ const BuilderContent = (): React.ReactElement => (
 
 /* ── Interactive wrapper ─────────────────────────────────────────── */
 
+const DiscoverContent = (): React.ReactElement => (
+  <div className="max-w-prose mx-auto px-4 py-6 md:px-8 md:py-8">
+    <div className="text-2xl font-serif font-medium tracking-tight text-ink mb-2">Discover</div>
+    <div className="text-sm text-ink-secondary">Browse curated sources, focuses, and edition configurations</div>
+  </div>
+);
+
 const contentForMode: Record<Mode, React.ReactElement> = {
   magazines: <MagazinesContent />,
   feed: <FeedContent />,
+  discover: <DiscoverContent />,
   builder: <BuilderContent />,
 };
 

@@ -83,6 +83,7 @@ User-defined topic areas for classification.
 | user_id | text FK → users | |
 | name | text | e.g. "Technology", "Local News" |
 | description | text | Optional — helps guide the classifier |
+| origin_id | text | Nullable — links to discovery catalog template this was adopted from. Used for dedup during adoption |
 | min_confidence | real | 0.0–1.0, default 0. Articles below this confidence are excluded |
 | min_reading_time_seconds | integer | Optional — exclude articles shorter than this |
 | max_reading_time_seconds | integer | Optional — exclude articles longer than this |
@@ -174,6 +175,7 @@ Rules for periodically generating an Edition.
 | id | text PK | UUID |
 | user_id | text FK → users | |
 | name | text | e.g. "Morning Briefing" |
+| origin_id | text | Nullable — links to discovery catalog template this was adopted from. Used for dedup during adoption |
 | schedule | text | Cron expression |
 | lookback_hours | integer | Time window for article selection (e.g. 24, 168 for weekly) |
 | exclude_prior_editions | integer | SQLite boolean — skip articles already in prior editions of this config |

@@ -4,7 +4,7 @@ import { EntityIcon } from './entity-icon.tsx';
 
 /* ── Types ───────────────────────────────────────────────────────── */
 
-type Mode = 'magazines' | 'feed' | 'builder';
+type Mode = 'magazines' | 'feed' | 'discover' | 'builder';
 
 type ModeBarProps = {
   activeMode: Mode;
@@ -33,6 +33,7 @@ type ModeShellProps = {
 const modes: { id: Mode; label: string; icon: string }[] = [
   { id: 'magazines', label: 'Magazines', icon: 'book-open' },
   { id: 'feed', label: 'Feed', icon: 'layers' },
+  { id: 'discover', label: 'Discover', icon: 'compass' },
   { id: 'builder', label: 'Builder', icon: 'wrench' },
 ];
 
@@ -67,6 +68,9 @@ const modeForPath = (pathname: string): Mode => {
   if (/^\/editions\/[^/]+\/edit$/.test(pathname)) {
     return 'builder';
   }
+  if (pathname.startsWith('/discovery')) {
+    return 'discover';
+  }
   if (pathname.startsWith('/settings')) {
     return 'builder';
   }
@@ -78,6 +82,7 @@ const modeForPath = (pathname: string): Mode => {
 const defaultPathForMode: Record<Mode, string> = {
   magazines: '/',
   feed: '/feed',
+  discover: '/discovery',
   builder: '/sources',
 };
 

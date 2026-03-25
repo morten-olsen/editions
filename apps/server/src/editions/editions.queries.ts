@@ -33,6 +33,7 @@ type CreateEditionConfigParams = {
   userId: string;
   name: string;
   icon?: string | null;
+  originId?: string | null;
   schedule: string;
   lookbackHours: number;
   excludePriorEditions?: boolean;

@@ -411,6 +411,7 @@ export interface paths {
                             id: string;
                             username: string;
                             role: string;
+                            accessExpiresAt: string | (null);
                         };
                     };
                 };
@@ -459,6 +460,8 @@ export interface paths {
                     content: {
                         "application/json": {
                             allowSignups: boolean;
+                            paymentEnabled: boolean;
+                            stripePublishableKey: string;
                         };
                     };
                 };
@@ -467,6 +470,582 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/billing/subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            access: {
+                                /** @enum {string} */
+                                state: "active" | "trial" | "expired" | "unlimited";
+                                expiresAt: string | (null);
+                                daysRemaining: number | (null);
+                            };
+                            subscription: {
+                                status: string;
+                                interval: string;
+                                currentPeriodEnd: string;
+                                cancelAtPeriodEnd: boolean;
+                                stripePriceId: string;
+                            } | (null);
+                            paymentEnabled: boolean;
+                            pricing: {
+                                monthlyPriceCents: number;
+                                yearlyPriceCents: number;
+                                trialDays: number;
+                            } | (null);
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/billing/access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            state: "active" | "trial" | "expired" | "unlimited";
+                            expiresAt: string | (null);
+                            daysRemaining: number | (null);
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/billing/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        interval: "monthly" | "yearly";
+                        /** Format: uri */
+                        successUrl: string;
+                        /** Format: uri */
+                        cancelUrl: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            url: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                501: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/billing/portal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uri */
+                        returnUrl: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            url: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                501: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/billing/webhook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": Record<string, never>;
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/billing/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            enabled: boolean;
+                            trialDays: number;
+                            monthlyPriceCents: number;
+                            yearlyPriceCents: number;
+                            monthlyStripePriceId: string;
+                            yearlyStripePriceId: string;
+                            stripeProductId: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        enabled?: boolean;
+                        trialDays?: number;
+                        monthlyPriceCents?: number;
+                        yearlyPriceCents?: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            enabled: boolean;
+                            trialDays: number;
+                            monthlyPriceCents: number;
+                            yearlyPriceCents: number;
+                            monthlyStripePriceId: string;
+                            yearlyStripePriceId: string;
+                            stripeProductId: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                501: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/billing/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            username: string;
+                            role: string;
+                            accessExpiresAt: string | (null);
+                            /** @enum {string} */
+                            state: "active" | "trial" | "expired" | "unlimited";
+                            subscription: {
+                                status: string;
+                                interval: string;
+                                currentPeriodEnd: string;
+                                cancelAtPeriodEnd: boolean;
+                            } | (null);
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/billing/users/{userId}/access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        expiresAt: string | (null);
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            username: string;
+                            role: string;
+                            accessExpiresAt: string | (null);
+                            /** @enum {string} */
+                            state: "active" | "trial" | "expired" | "unlimited";
+                            subscription: {
+                                status: string;
+                                interval: string;
+                                currentPeriodEnd: string;
+                                cancelAtPeriodEnd: boolean;
+                            } | (null);
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/billing/users/{userId}/subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            success: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                501: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -696,6 +1275,651 @@ export interface paths {
                             };
                             articleId: string;
                             sourceId: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/data/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {number} */
+                            version: 1;
+                            exportedAt: string;
+                            sources: {
+                                type: string;
+                                name: string;
+                                url: string;
+                                config: {
+                                    [key: string]: unknown;
+                                };
+                                direction: string;
+                            }[];
+                            articles: {
+                                sourceUrl: string;
+                                externalId: string;
+                                url: string | (null);
+                                title: string;
+                                author: string | (null);
+                                summary: string | (null);
+                                content: string | (null);
+                                consumptionTimeSeconds: number | (null);
+                                imageUrl: string | (null);
+                                mediaUrl: string | (null);
+                                mediaType: string | (null);
+                                publishedAt: string | (null);
+                                extractedAt: string | (null);
+                                analysedAt: string | (null);
+                                readAt: string | (null);
+                                progress: number;
+                                embedding: {
+                                    data: string;
+                                    model: string;
+                                } | (null);
+                                focuses: {
+                                    focusName: string;
+                                    similarity: number | (null);
+                                    similarityModel: string | (null);
+                                    nli: number | (null);
+                                    nliModel: string | (null);
+                                }[];
+                            }[];
+                            focuses: {
+                                name: string;
+                                description: string | (null);
+                                icon: string | (null);
+                                minConfidence: number;
+                                minConsumptionTimeSeconds: number | (null);
+                                maxConsumptionTimeSeconds: number | (null);
+                                sources: {
+                                    url: string;
+                                    weight: number;
+                                    minConfidence: number | (null);
+                                }[];
+                            }[];
+                            editionConfigs: {
+                                name: string;
+                                icon: string | (null);
+                                schedule: string;
+                                lookbackHours: number;
+                                excludePriorEditions: boolean;
+                                enabled: boolean;
+                                focuses: {
+                                    focusName: string;
+                                    position: number;
+                                    budgetType: string;
+                                    budgetValue: number;
+                                    lookbackHours: number | (null);
+                                    excludePriorEditions: boolean | (null);
+                                    weight: number;
+                                }[];
+                                sourceBudgets: {
+                                    sourceUrl: string;
+                                    maxArticles: number | (null);
+                                    maxReadingMinutes: number | (null);
+                                }[];
+                            }[];
+                            editions: {
+                                editionConfigName: string;
+                                title: string;
+                                totalReadingMinutes: number | (null);
+                                articleCount: number;
+                                currentPosition: number;
+                                readAt: string | (null);
+                                publishedAt: string;
+                                articles: {
+                                    sourceUrl: string;
+                                    externalId: string;
+                                    focusName: string;
+                                    position: number;
+                                }[];
+                            }[];
+                            scoringWeights: {
+                                [key: string]: unknown;
+                            } | (null);
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/data/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {number} */
+                        version: 1;
+                        exportedAt: string;
+                        sources: {
+                            type: string;
+                            name: string;
+                            url: string;
+                            config: {
+                                [key: string]: unknown;
+                            };
+                            direction: string;
+                        }[];
+                        articles: {
+                            sourceUrl: string;
+                            externalId: string;
+                            url: string | (null);
+                            title: string;
+                            author: string | (null);
+                            summary: string | (null);
+                            content: string | (null);
+                            consumptionTimeSeconds: number | (null);
+                            imageUrl: string | (null);
+                            mediaUrl: string | (null);
+                            mediaType: string | (null);
+                            publishedAt: string | (null);
+                            extractedAt: string | (null);
+                            analysedAt: string | (null);
+                            readAt: string | (null);
+                            progress: number;
+                            embedding: {
+                                data: string;
+                                model: string;
+                            } | (null);
+                            focuses: {
+                                focusName: string;
+                                similarity: number | (null);
+                                similarityModel: string | (null);
+                                nli: number | (null);
+                                nliModel: string | (null);
+                            }[];
+                        }[];
+                        focuses: {
+                            name: string;
+                            description: string | (null);
+                            icon: string | (null);
+                            minConfidence: number;
+                            minConsumptionTimeSeconds: number | (null);
+                            maxConsumptionTimeSeconds: number | (null);
+                            sources: {
+                                url: string;
+                                weight: number;
+                                minConfidence: number | (null);
+                            }[];
+                        }[];
+                        editionConfigs: {
+                            name: string;
+                            icon: string | (null);
+                            schedule: string;
+                            lookbackHours: number;
+                            excludePriorEditions: boolean;
+                            enabled: boolean;
+                            focuses: {
+                                focusName: string;
+                                position: number;
+                                budgetType: string;
+                                budgetValue: number;
+                                lookbackHours: number | (null);
+                                excludePriorEditions: boolean | (null);
+                                weight: number;
+                            }[];
+                            sourceBudgets: {
+                                sourceUrl: string;
+                                maxArticles: number | (null);
+                                maxReadingMinutes: number | (null);
+                            }[];
+                        }[];
+                        editions: {
+                            editionConfigName: string;
+                            title: string;
+                            totalReadingMinutes: number | (null);
+                            articleCount: number;
+                            currentPosition: number;
+                            readAt: string | (null);
+                            publishedAt: string;
+                            articles: {
+                                sourceUrl: string;
+                                externalId: string;
+                                focusName: string;
+                                position: number;
+                            }[];
+                        }[];
+                        scoringWeights: {
+                            [key: string]: unknown;
+                        } | (null);
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            sources: number;
+                            articles: number;
+                            focuses: number;
+                            editionConfigs: number;
+                            editions: number;
+                            scoringWeightsImported: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/discovery/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string[];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/discovery/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    search?: string;
+                    tag?: string;
+                    offset?: number;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                id: string;
+                                name: string;
+                                type: string;
+                                url: string;
+                                description: string;
+                                tags: string[];
+                                coverImage: string | (null);
+                                adopted: boolean;
+                            }[];
+                            total: number;
+                            offset: number;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/discovery/focuses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    search?: string;
+                    tag?: string;
+                    offset?: number;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                id: string;
+                                name: string;
+                                description: string;
+                                icon: string;
+                                coverImage: string | (null);
+                                minConfidence: number;
+                                sources: {
+                                    sourceId: string;
+                                    weight: number;
+                                }[];
+                                adopted: boolean;
+                            }[];
+                            total: number;
+                            offset: number;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/discovery/edition-configs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    search?: string;
+                    tag?: string;
+                    offset?: number;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                id: string;
+                                name: string;
+                                description: string;
+                                icon: string;
+                                coverImage: string | (null);
+                                schedule: string;
+                                lookbackHours: number;
+                                focuses: {
+                                    focusId: string;
+                                    position: number;
+                                    budgetType: string;
+                                    budgetValue: number;
+                                    weight: number;
+                                }[];
+                                adopted: boolean;
+                            }[];
+                            total: number;
+                            offset: number;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/discovery/sources/{id}/adopt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            sourceId: string;
+                            created: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/discovery/focuses/{id}/adopt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            focusId: string;
+                            created: boolean;
+                            sourcesCreated: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/discovery/edition-configs/{id}/adopt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            editionConfigId: string;
+                            created: boolean;
+                            focusesCreated: number;
+                            sourcesCreated: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
                         };
                     };
                 };
@@ -1361,6 +2585,56 @@ export interface paths {
         trace?: never;
     };
     "/api/sources/{id}/reanalyse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            enqueued: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sources/{id}/re-extract": {
         parameters: {
             query?: never;
             header?: never;

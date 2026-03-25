@@ -16,6 +16,7 @@ import { Route as SettingsIndexRouteImport } from "./routes/settings.index"
 import { Route as FocusesIndexRouteImport } from "./routes/focuses.index"
 import { Route as FeedIndexRouteImport } from "./routes/feed.index"
 import { Route as EditionsIndexRouteImport } from "./routes/editions.index"
+import { Route as DiscoveryIndexRouteImport } from "./routes/discovery.index"
 import { Route as BookmarksIndexRouteImport } from "./routes/bookmarks.index"
 import { Route as SourcesNewRouteImport } from "./routes/sources.new"
 import { Route as SourcesSourceIdRouteImport } from "./routes/sources.$sourceId"
@@ -66,6 +67,11 @@ const FeedIndexRoute = FeedIndexRouteImport.update({
 const EditionsIndexRoute = EditionsIndexRouteImport.update({
   id: "/editions/",
   path: "/editions/",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiscoveryIndexRoute = DiscoveryIndexRouteImport.update({
+  id: "/discovery/",
+  path: "/discovery/",
   getParentRoute: () => rootRouteImport,
 } as any)
 const BookmarksIndexRoute = BookmarksIndexRouteImport.update({
@@ -162,6 +168,7 @@ export interface FileRoutesByFullPath {
   "/sources/$sourceId": typeof SourcesSourceIdRouteWithChildren
   "/sources/new": typeof SourcesNewRoute
   "/bookmarks/": typeof BookmarksIndexRoute
+  "/discovery/": typeof DiscoveryIndexRoute
   "/editions/": typeof EditionsIndexRoute
   "/feed/": typeof FeedIndexRoute
   "/focuses/": typeof FocusesIndexRoute
@@ -185,6 +192,7 @@ export interface FileRoutesByTo {
   "/focuses/new": typeof FocusesNewRoute
   "/sources/new": typeof SourcesNewRoute
   "/bookmarks": typeof BookmarksIndexRoute
+  "/discovery": typeof DiscoveryIndexRoute
   "/editions": typeof EditionsIndexRoute
   "/feed": typeof FeedIndexRoute
   "/focuses": typeof FocusesIndexRoute
@@ -210,6 +218,7 @@ export interface FileRoutesById {
   "/sources/$sourceId": typeof SourcesSourceIdRouteWithChildren
   "/sources/new": typeof SourcesNewRoute
   "/bookmarks/": typeof BookmarksIndexRoute
+  "/discovery/": typeof DiscoveryIndexRoute
   "/editions/": typeof EditionsIndexRoute
   "/feed/": typeof FeedIndexRoute
   "/focuses/": typeof FocusesIndexRoute
@@ -237,6 +246,7 @@ export interface FileRouteTypes {
     | "/sources/$sourceId"
     | "/sources/new"
     | "/bookmarks/"
+    | "/discovery/"
     | "/editions/"
     | "/feed/"
     | "/focuses/"
@@ -260,6 +270,7 @@ export interface FileRouteTypes {
     | "/focuses/new"
     | "/sources/new"
     | "/bookmarks"
+    | "/discovery"
     | "/editions"
     | "/feed"
     | "/focuses"
@@ -284,6 +295,7 @@ export interface FileRouteTypes {
     | "/sources/$sourceId"
     | "/sources/new"
     | "/bookmarks/"
+    | "/discovery/"
     | "/editions/"
     | "/feed/"
     | "/focuses/"
@@ -310,6 +322,7 @@ export interface RootRouteChildren {
   SourcesSourceIdRoute: typeof SourcesSourceIdRouteWithChildren
   SourcesNewRoute: typeof SourcesNewRoute
   BookmarksIndexRoute: typeof BookmarksIndexRoute
+  DiscoveryIndexRoute: typeof DiscoveryIndexRoute
   EditionsIndexRoute: typeof EditionsIndexRoute
   FeedIndexRoute: typeof FeedIndexRoute
   FocusesIndexRoute: typeof FocusesIndexRoute
@@ -366,6 +379,13 @@ declare module "@tanstack/react-router" {
       path: "/editions"
       fullPath: "/editions/"
       preLoaderRoute: typeof EditionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/discovery/": {
+      id: "/discovery/"
+      path: "/discovery"
+      fullPath: "/discovery/"
+      preLoaderRoute: typeof DiscoveryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/bookmarks/": {
@@ -552,6 +572,7 @@ const rootRouteChildren: RootRouteChildren = {
   SourcesSourceIdRoute: SourcesSourceIdRouteWithChildren,
   SourcesNewRoute: SourcesNewRoute,
   BookmarksIndexRoute: BookmarksIndexRoute,
+  DiscoveryIndexRoute: DiscoveryIndexRoute,
   EditionsIndexRoute: EditionsIndexRoute,
   FeedIndexRoute: FeedIndexRoute,
   FocusesIndexRoute: FocusesIndexRoute,

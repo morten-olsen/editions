@@ -31,6 +31,7 @@ type CreateFocusParams = {
   name: string;
   description?: string;
   icon?: string | null;
+  originId?: string | null;
   minConfidence?: number;
   minConsumptionTimeSeconds?: number | null;
   maxConsumptionTimeSeconds?: number | null;
@@ -172,6 +173,7 @@ class FocusesService {
         name: params.name,
         description: params.description ?? null,
         icon: params.icon ?? null,
+        origin_id: params.originId ?? null,
         ...(params.minConfidence !== undefined ? { min_confidence: params.minConfidence } : {}),
         ...(params.minConsumptionTimeSeconds !== undefined
           ? { min_consumption_time_seconds: params.minConsumptionTimeSeconds }

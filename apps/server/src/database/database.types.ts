@@ -64,6 +64,7 @@ type FocusesTable = {
   name: string;
   description: string | null;
   icon: string | null;
+  origin_id: string | null;
   min_confidence: ColumnType<number, number | undefined, number>;
   min_consumption_time_seconds: number | null;
   max_consumption_time_seconds: number | null;
@@ -102,6 +103,7 @@ type EditionConfigsTable = {
   user_id: string;
   name: string;
   icon: string | null;
+  origin_id: string | null;
   schedule: string;
   lookback_hours: number;
   exclude_prior_editions: number; // SQLite boolean

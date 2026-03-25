@@ -1,0 +1,105 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design System/Compositions/Discovery" />
+
+<div style={{ maxWidth: "72rem", margin: "0 auto", padding: "4rem 0", fontFamily: "var(--font-sans)" }}>
+
+<div style={{ color: "var(--color-ink-tertiary)", fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: "1.5rem" }}>Compositions</div>
+
+# Discovery
+
+<div style={{ fontSize: "1.2rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginTop: "1rem", marginBottom: "4rem", maxWidth: "65ch" }}>
+  The discovery page helps new users get started by browsing curated sources, focuses, and edition configurations. One click adopts an item — cascading creation handles all dependencies automatically.
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", marginBottom: "4rem" }} />
+
+## Design philosophy
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", overflow: "hidden", background: "var(--color-surface)" }}>
+      <div style={{ padding: "0.75rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          {["Editions", "Focuses", "Sources"].map((label, i) => (
+            <div key={label} style={{ fontSize: "0.7rem", fontFamily: "var(--font-mono)", letterSpacing: "0.04em", textTransform: "uppercase", padding: "0.25rem 0.5rem", color: i === 0 ? "var(--color-ink)" : "var(--color-ink-faint)", borderBottom: i === 0 ? "1px solid var(--color-ink)" : "none" }}>{label}</div>
+          ))}
+        </div>
+        {["Morning Briefing", "Tech Weekly", "World Observer"].map((name) => (
+          <div key={name} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.5rem", borderRadius: "0.375rem", border: "1px solid var(--color-border)", fontSize: "0.75rem" }}>
+            <span style={{ fontFamily: "var(--font-serif)", color: "var(--color-ink)" }}>{name}</span>
+            <span style={{ fontSize: "0.65rem", padding: "0.2rem 0.5rem", borderRadius: "0.25rem", background: "var(--color-accent)", color: "var(--color-accent-ink)" }}>Add</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>Discovery lives in the builder section alongside Sources, Focuses, and Editions. It surfaces a curated catalog of content that users can adopt with a single click.</p>
+    <p style={{ margin: "0 0 0.75rem" }}>The page uses three tabs — **Editions** (the high-value action), **Focuses**, and **Sources** — ordered by impact. Adopting an edition config cascades: it creates all referenced focuses and their sources automatically, deduplicating against existing items.</p>
+    <p style={{ margin: 0 }}>Items already in the user's account show a quiet "Added" label with a checkmark instead of the add button. This provides immediate feedback without being noisy.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Cascading adoption
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", padding: "0.75rem", background: "var(--color-surface)", fontSize: "0.7rem", fontFamily: "var(--font-mono)", display: "flex", flexDirection: "column", gap: "0.375rem" }}>
+      <div style={{ color: "var(--color-ink)", fontWeight: 500 }}>Adopt "Morning Briefing"</div>
+      <div style={{ color: "var(--color-ink-tertiary)", paddingLeft: "0.75rem" }}>├─ Focus: World News</div>
+      <div style={{ color: "var(--color-ink-faint)", paddingLeft: "1.5rem" }}>├─ BBC News (new)</div>
+      <div style={{ color: "var(--color-ink-faint)", paddingLeft: "1.5rem" }}>├─ Reuters (new)</div>
+      <div style={{ color: "var(--color-accent)", paddingLeft: "1.5rem" }}>├─ The Guardian (exists)</div>
+      <div style={{ color: "var(--color-ink-faint)", paddingLeft: "1.5rem" }}>└─ AP News (new)</div>
+      <div style={{ color: "var(--color-ink-tertiary)", paddingLeft: "0.75rem" }}>├─ Focus: Technology</div>
+      <div style={{ color: "var(--color-ink-faint)", paddingLeft: "1.5rem" }}>├─ Ars Technica (new)</div>
+      <div style={{ color: "var(--color-ink-faint)", paddingLeft: "1.5rem" }}>└─ ...</div>
+      <div style={{ color: "var(--color-ink-tertiary)", paddingLeft: "0.75rem" }}>└─ Focus: Science</div>
+      <div style={{ color: "var(--color-ink-faint)", paddingLeft: "1.5rem" }}>└─ ...</div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>When a user adopts an edition config, the system walks the dependency tree: for each focus the edition references, and for each source each focus references.</p>
+    <p style={{ margin: "0 0 0.75rem" }}>At each level, deduplication kicks in: sources match by **URL** (a natural identity), focuses and edition configs match by **origin_id** (linking back to the catalog template they came from).</p>
+    <p style={{ margin: 0 }}>The result: a user can adopt multiple edition configs that share focuses without ending up with duplicate topic feeds. Two configs that both reference "Technology" will share the same user focus.</p>
+  </div>
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Card anatomy
+
+<div style={{ display: "flex", gap: "4rem", marginBottom: "4rem", alignItems: "flex-start" }}>
+  <div style={{ width: "20rem", flexShrink: 0 }}>
+    <div style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", overflow: "hidden", background: "var(--color-surface-raised)" }}>
+      <div style={{ padding: "1rem" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
+          <div style={{ width: "2.5rem", height: "2.5rem", borderRadius: "0.5rem", background: "var(--color-accent-subtle)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.8rem", color: "var(--color-accent)" }}>&#9728;</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: "var(--font-serif)", fontSize: "1.1rem", fontWeight: 500, color: "var(--color-ink)" }}>Morning Briefing</div>
+            <div style={{ fontSize: "0.75rem", color: "var(--color-ink-secondary)", marginTop: "0.25rem", lineHeight: 1.5 }}>A calm start to your day with the top stories.</div>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.75rem", fontSize: "0.7rem", color: "var(--color-ink-tertiary)" }}>
+          <span>Daily at 7am</span>
+          <span>3 focuses</span>
+        </div>
+        <div style={{ display: "flex", gap: "0.375rem", marginTop: "0.5rem" }}>
+          {["World News", "Technology", "Science"].map((name) => (
+            <span key={name} style={{ padding: "0.15rem 0.5rem", fontSize: "0.65rem", borderRadius: "9999px", background: "var(--color-accent-subtle)", color: "var(--color-accent)" }}>{name}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
+    <p style={{ margin: "0 0 0.75rem" }}>Edition cards are the most prominent — they're the high-value action. Each shows the config name, description, schedule in human-readable form, and the focuses it includes as pills.</p>
+    <p style={{ margin: "0 0 0.75rem" }}>Focus cards show the focus name, description, icon, and its associated sources as small pills. Source cards show the feed name, domain, description, and content tags.</p>
+    <p style={{ margin: 0 }}>All three card types support an optional **cover image** for visual richness when catalog entries include one.</p>
+  </div>
+</div>
+
+</div>

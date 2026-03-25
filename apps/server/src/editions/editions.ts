@@ -133,6 +133,7 @@ class EditionsService {
         user_id: params.userId,
         name: params.name,
         icon: params.icon ?? null,
+        origin_id: params.originId ?? null,
         schedule: params.schedule,
         lookback_hours: params.lookbackHours,
         exclude_prior_editions: params.excludePriorEditions ? 1 : 0,

@@ -5,3 +5,30 @@ onlyBuiltDependencies:
   - better-sqlite3
   - onnxruntime-node
   - sharp
+
+catalog:
+  # Shared runtime
+  react: ^19.2.0
+  react-dom: ^19.2.0
+  typescript: ~5.9.3
+
+  # Shared UI
+  lucide-react: ^0.577.0
+  motion: ^12.35.2
+  tailwindcss: ^4.0.0
+  "@tailwindcss/typography": ^0.5.19
+  "@tailwindcss/vite": ^4.0.0
+
+  # Shared type defs
+  "@types/react": ^19.2.7
+  "@types/react-dom": ^19.2.3
+  "@types/better-sqlite3": ^7.0.0
+  "@types/turndown": ^5.0.6
+
+  # Shared server deps
+  better-sqlite3: ^11.0.0
+  kysely: ^0.28.14
+  turndown: ^7.2.2
+  "@extractus/article-extractor": ^8.0.20
+  "@huggingface/transformers": ^3.8.1
+  fast-xml-parser: ^5.5.9

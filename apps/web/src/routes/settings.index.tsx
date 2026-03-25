@@ -1,17 +1,21 @@
-import { useState } from 'react';
-import { createFileRoute } from '@tanstack/react-router';
+import { useEffect, useState } from 'react';
+import { createFileRoute, useSearch } from '@tanstack/react-router';
 
 import { useAuth } from '../auth/auth.tsx';
-import { PageHeader } from '../components/page-header.tsx';
+import { SettingsSidebar, SettingsMobileNav } from '../components/settings-nav.tsx';
+import type { SettingsTab } from '../components/settings-nav.tsx';
+import { useUserSubscription } from '../hooks/billing/billing.hooks.ts';
 import { JobsSection } from '../views/settings/jobs-section.tsx';
 import { VotesSection } from '../views/settings/votes-section.tsx';
 import { ScoringSection } from '../views/settings/scoring-section.tsx';
 import { AiSection } from '../views/settings/ai-section.tsx';
 import { DataSection } from '../views/settings/data-section.tsx';
+import { SubscriptionSection } from '../views/settings/subscription-section.tsx';
+import { AccessSection } from '../views/settings/access-section.tsx';
 
-type SettingsTab = 'jobs' | 'votes' | 'scoring' | 'data' | 'assistant';
+type SettingsTabKey = 'jobs' | 'votes' | 'scoring' | 'data' | 'assistant' | 'subscription' | 'access';
 
-const TABS: { key: SettingsTab; label: string; badge?: string }[] = [
+const ALWAYS_TABS: SettingsTab[] = [
   { key: 'jobs', label: 'Jobs' },
   { key: 'votes', label: 'Votes' },
   { key: 'scoring', label: 'Scoring' },
@@ -19,76 +23,82 @@ const TABS: { key: SettingsTab; label: string; badge?: string }[] = [
   { key: 'assistant', label: 'Assistant', badge: 'alpha' },
 ];
 
-const TAB_DESCRIPTIONS: Record<SettingsTab, string> = {
+const TAB_DESCRIPTIONS: Record<SettingsTabKey, string> = {
   jobs: 'Running and recent background jobs',
   votes: '',
   scoring: 'Customise how articles are ranked in each feed',
   data: 'Export or import your data for portability between instances',
   assistant: 'Configure an AI assistant to help you set up Editions',
+  subscription: 'Manage your subscription and billing',
+  access: 'Configure pricing, trials, and manage user access',
 };
 
 const SettingsPage = (): React.ReactNode => {
   const auth = useAuth();
-  const [activeTab, setActiveTab] = useState<SettingsTab>('jobs');
+  const search = useSearch({ from: '/settings/' });
+  const { data: billing } = useUserSubscription();
+  const paymentEnabled = billing?.paymentEnabled ?? false;
+  const isAdmin = auth.status === 'authenticated' && auth.user.role === 'admin';
+
+  const tabs: SettingsTab[] = [
+    ...ALWAYS_TABS,
+    ...(paymentEnabled ? [{ key: 'subscription', label: 'Subscription' }] : []),
+    ...(isAdmin ? [{ key: 'access', label: 'Access', badge: 'admin' }] : []),
+  ];
+
+  const initialTab = (search as Record<string, unknown>).tab as SettingsTabKey | undefined;
+  const [activeTab, setActiveTab] = useState<SettingsTabKey>(
+    initialTab && tabs.some((t) => t.key === initialTab) ? initialTab : 'jobs',
+  );
+
+  useEffect(() => {
+    if (initialTab && tabs.some((t) => t.key === initialTab) && initialTab !== activeTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (auth.status !== 'authenticated') {
     return null;
   }
 
+  const description = TAB_DESCRIPTIONS[activeTab];
+
   return (
-    <div className="max-w-prose mx-auto px-4 py-6 md:px-8 md:py-8">
-      <PageHeader title="Settings" />
+    <>
+      {/* Mobile: horizontal chip nav */}
+      <SettingsMobileNav tabs={tabs} activeTab={activeTab} onTabChange={(k) => setActiveTab(k as SettingsTabKey)} />
 
-      <SettingsTabs activeTab={activeTab} onTabChange={setActiveTab} />
+      {/* Desktop: sidebar + content */}
+      <div className="relative max-w-prose mx-auto px-4 py-6 md:px-8 md:py-8">
+        <div className="absolute right-full top-6 hidden lg:block mr-4">
+          <SettingsSidebar tabs={tabs} activeTab={activeTab} onTabChange={(k) => setActiveTab(k as SettingsTabKey)} />
+        </div>
 
-      {activeTab !== 'votes' && TAB_DESCRIPTIONS[activeTab] && (
-        <p className="text-sm text-ink-secondary mb-6">{TAB_DESCRIPTIONS[activeTab]}</p>
-      )}
+        {description && <p className="text-sm text-ink-secondary mb-6">{description}</p>}
 
-      {activeTab === 'jobs' && <JobsSection token={auth.token} />}
-      {activeTab === 'votes' && <VotesSection />}
-      {activeTab === 'scoring' && <ScoringSection token={auth.token} />}
-      {activeTab === 'data' && <DataSection token={auth.token} />}
-      {activeTab === 'assistant' && <AiSection />}
-    </div>
+        {activeTab === 'jobs' && <JobsSection token={auth.token} />}
+        {activeTab === 'votes' && <VotesSection />}
+        {activeTab === 'scoring' && <ScoringSection token={auth.token} />}
+        {activeTab === 'data' && <DataSection token={auth.token} />}
+        {activeTab === 'assistant' && <AiSection />}
+        {activeTab === 'subscription' && <SubscriptionSection />}
+        {activeTab === 'access' && <AccessSection />}
+      </div>
+    </>
   );
 };
 
-const SettingsTabs = ({
-  activeTab,
-  onTabChange,
-}: {
-  activeTab: SettingsTab;
-  onTabChange: (tab: SettingsTab) => void;
-}): React.ReactNode => (
-  <div
-    className="flex gap-1 border-b border-border mb-6"
-    data-ai-id="settings-tabs"
-    data-ai-role="section"
-    data-ai-label="Settings tabs"
-  >
-    {TABS.map((tab) => (
-      <button
-        key={tab.key}
-        type="button"
-        onClick={() => onTabChange(tab.key)}
-        className={`relative flex h-10 items-center justify-center px-4 text-sm font-medium outline-none select-none transition-colors duration-fast cursor-pointer ${activeTab === tab.key ? 'text-ink after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-accent' : 'text-ink-tertiary hover:text-ink-secondary'}`}
-        data-ai-id={`settings-tab-${tab.key}`}
-        data-ai-role="button"
-        data-ai-label={tab.label}
-        data-ai-state={activeTab === tab.key ? 'selected' : 'idle'}
-      >
-        {tab.label}
-        {tab.badge && (
-          <span className="ml-1.5 text-[10px] font-medium text-accent/60 uppercase tracking-wider">{tab.badge}</span>
-        )}
-      </button>
-    ))}
-  </div>
-);
+type SettingsSearch = {
+  tab?: string;
+  checkout?: string;
+};
 
 const Route = createFileRoute('/settings/')({
   component: SettingsPage,
+  validateSearch: (search: Record<string, unknown>): SettingsSearch => ({
+    tab: typeof search['tab'] === 'string' ? search['tab'] : undefined,
+    checkout: typeof search['checkout'] === 'string' ? search['checkout'] : undefined,
+  }),
 });
 
 export { Route };

@@ -3,7 +3,9 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
 import { AuthService, InvalidCredentialsError, UsernameExistsError } from '../auth/auth.ts';
 import { createAuthHook } from '../auth/auth.middleware.ts';
+import { BillingService } from '../billing/billing.ts';
 import { ConfigService } from '../config/config.ts';
+import { DatabaseService } from '../database/database.ts';
 import type { Services } from '../services/services.ts';
 
 const credentialsSchema = z.object({
@@ -21,6 +23,7 @@ const userResponseSchema = z.object({
   id: z.string(),
   username: z.string(),
   role: z.string(),
+  accessExpiresAt: z.string().nullable(),
 });
 
 const errorResponseSchema = z.object({
@@ -49,6 +52,8 @@ const createAuthRoutes =
         const auth = services.get(AuthService);
         try {
           const result = await auth.register(req.body.username, req.body.password);
+          // Apply trial if payment is enabled
+          await services.get(BillingService).applyTrial(result.id);
           return reply.code(201).send(result);
         } catch (err) {
           if (err instanceof UsernameExistsError) {
@@ -97,10 +102,17 @@ const createAuthRoutes =
         },
       },
       handler: async (req, _reply) => {
+        const db = await services.get(DatabaseService).getInstance();
+        const user = await db
+          .selectFrom('users')
+          .select('access_expires_at')
+          .where('id', '=', req.user.sub)
+          .executeTakeFirst();
         return {
           id: req.user.sub,
           username: req.user.username,
           role: req.user.role,
+          accessExpiresAt: user?.access_expires_at ?? null,
         };
       },
     });

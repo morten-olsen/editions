@@ -14,6 +14,8 @@ type UsersTable = {
   password_hash: string | null;
   role: UserRole;
   scoring_weights: string | null; // JSON: UserScoringWeights
+  access_expires_at: string | null;
+  stripe_customer_id: string | null;
   created_at: Timestamp;
   updated_at: Timestamp;
 };
@@ -164,6 +166,29 @@ type BookmarksTable = {
   created_at: Timestamp;
 };
 
+type SubscriptionStatus = 'active' | 'past_due' | 'cancelled' | 'unpaid';
+type SubscriptionInterval = 'monthly' | 'yearly';
+
+type SubscriptionsTable = {
+  id: string;
+  user_id: string;
+  stripe_subscription_id: string;
+  stripe_price_id: string;
+  status: SubscriptionStatus;
+  interval: SubscriptionInterval;
+  current_period_start: string;
+  current_period_end: string;
+  cancel_at_period_end: number; // SQLite boolean
+  created_at: Timestamp;
+  updated_at: Timestamp;
+};
+
+type SettingsTable = {
+  key: string;
+  value: string; // JSON
+  updated_at: Timestamp;
+};
+
 // --- Full schema ---
 
 type DatabaseSchema = {
@@ -181,6 +206,8 @@ type DatabaseSchema = {
   edition_articles: EditionArticlesTable;
   article_votes: ArticleVotesTable;
   bookmarks: BookmarksTable;
+  subscriptions: SubscriptionsTable;
+  settings: SettingsTable;
 };
 
 export type {
@@ -204,4 +231,8 @@ export type {
   ArticleVoteValue,
   ArticleVotesTable,
   BookmarksTable,
+  SubscriptionStatus,
+  SubscriptionInterval,
+  SubscriptionsTable,
+  SettingsTable,
 };

@@ -1,6 +1,7 @@
 import { z } from 'zod/v4';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
+import { createAccessHook } from '../auth/access.middleware.ts';
 import { createAuthHook } from '../auth/auth.middleware.ts';
 import {
   EditionConfigNotFoundError,
@@ -32,6 +33,7 @@ type RouteArgs = {
   fastify: Parameters<FastifyPluginAsyncZod>[0];
   services: Services;
   authenticate: ReturnType<typeof createAuthHook>;
+  requireAccess: ReturnType<typeof createAccessHook>;
 };
 
 // --- Route registration helpers ---
@@ -76,12 +78,12 @@ const registerConfigReadRoutes = ({ fastify, services, authenticate }: RouteArgs
   });
 };
 
-const registerConfigWriteRoutes = ({ fastify, services, authenticate }: RouteArgs): void => {
+const registerConfigWriteRoutes = ({ fastify, services, authenticate, requireAccess }: RouteArgs): void => {
   // Create edition config
   fastify.route({
     method: 'POST',
     url: '/editions/configs',
-    onRequest: authenticate,
+    onRequest: [authenticate, requireAccess],
     schema: {
       security: [{ bearerAuth: [] }],
       body: createEditionConfigSchema,
@@ -98,7 +100,7 @@ const registerConfigWriteRoutes = ({ fastify, services, authenticate }: RouteArg
   fastify.route({
     method: 'PATCH',
     url: '/editions/configs/:configId',
-    onRequest: authenticate,
+    onRequest: [authenticate, requireAccess],
     schema: {
       security: [{ bearerAuth: [] }],
       params: configIdParamSchema,
@@ -122,7 +124,7 @@ const registerConfigWriteRoutes = ({ fastify, services, authenticate }: RouteArg
   fastify.route({
     method: 'DELETE',
     url: '/editions/configs/:configId',
-    onRequest: authenticate,
+    onRequest: [authenticate, requireAccess],
     schema: {
       security: [{ bearerAuth: [] }],
       params: configIdParamSchema,
@@ -143,11 +145,11 @@ const registerConfigWriteRoutes = ({ fastify, services, authenticate }: RouteArg
   });
 };
 
-const registerGenerateRoutes = ({ fastify, services, authenticate }: RouteArgs): void => {
+const registerGenerateRoutes = ({ fastify, services, authenticate, requireAccess }: RouteArgs): void => {
   fastify.route({
     method: 'POST',
     url: '/editions/configs/:configId/generate',
-    onRequest: authenticate,
+    onRequest: [authenticate, requireAccess],
     schema: {
       security: [{ bearerAuth: [] }],
       params: configIdParamSchema,
@@ -427,7 +429,8 @@ const createEditionsRoutes =
   (services: Services): FastifyPluginAsyncZod =>
   async (fastify) => {
     const authenticate = createAuthHook(services);
-    const args = { fastify, services, authenticate };
+    const requireAccess = createAccessHook(services);
+    const args = { fastify, services, authenticate, requireAccess };
 
     registerConfigReadRoutes(args);
     registerConfigWriteRoutes(args);

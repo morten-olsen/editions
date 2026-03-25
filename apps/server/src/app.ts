@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import Fastify from 'fastify';
+import fastifyRawBody from 'fastify-raw-body';
 import fastifyStatic from '@fastify/static';
 import fastifySwagger from '@fastify/swagger';
 import scalarReference from '@scalar/fastify-api-reference';
@@ -12,6 +13,8 @@ import {
   validatorCompiler,
   hasZodFastifySchemaValidationErrors,
 } from 'fastify-type-provider-zod';
+
+import { AccessExpiredError, BillingNotConfiguredError } from './billing/billing.ts';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 
@@ -49,6 +52,18 @@ const createFastifyInstance = (logger: boolean): FastifyInstance & { withTypePro
       return reply.code(400).send({
         error: 'Validation Error',
         details: err.validation,
+      });
+    }
+    if (err instanceof AccessExpiredError) {
+      return reply.code(402).send({
+        error: err.message,
+        code: 'ACCESS_EXPIRED',
+      });
+    }
+    if (err instanceof BillingNotConfiguredError) {
+      return reply.code(501).send({
+        error: err.message,
+        code: 'BILLING_NOT_CONFIGURED',
       });
     }
     throw err;
@@ -119,6 +134,7 @@ const createApp = async ({ logger = true }: { logger?: boolean } = {}): Promise<
 
   const fastify = createFastifyInstance(logger);
 
+  await fastify.register(fastifyRawBody, { global: false, runFirst: true });
   await registerSwagger(fastify as Parameters<typeof registerRoutes>[0]);
   await registerRoutes(fastify as Parameters<typeof registerRoutes>[0], services);
   await registerStaticAssets(fastify);

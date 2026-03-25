@@ -1,5 +1,6 @@
 import { Cron } from 'croner';
 
+import { BillingService } from '../billing/billing.ts';
 import { DatabaseService } from '../database/database.ts';
 import { EditionsService } from '../editions/editions.ts';
 import { JobService } from '../jobs/jobs.ts';
@@ -65,17 +66,29 @@ class SchedulerService {
 
   #fetchDueSources = async (): Promise<void> => {
     const db = await this.#services.get(DatabaseService).getInstance();
+    const billing = this.#services.get(BillingService);
     const jobService = this.#services.get(JobService);
 
     const cutoff = new Date(Date.now() - this.#config.fetchIntervalMinutes * 60 * 1000).toISOString();
+    const now = new Date().toISOString();
 
-    // Find all RSS sources that haven't been fetched recently
-    const dueSources = await db
+    // Find all RSS sources that haven't been fetched recently,
+    // excluding users whose access has expired
+    let query = db
       .selectFrom('sources')
-      .select(['id', 'user_id', 'name'])
-      .where('type', '=', 'rss')
-      .where((eb) => eb.or([eb('last_fetched_at', 'is', null), eb('last_fetched_at', '<', cutoff)]))
-      .execute();
+      .innerJoin('users', 'users.id', 'sources.user_id')
+      .select(['sources.id', 'sources.user_id', 'sources.name'])
+      .where('sources.type', '=', 'rss')
+      .where((eb) => eb.or([eb('sources.last_fetched_at', 'is', null), eb('sources.last_fetched_at', '<', cutoff)]));
+
+    if (await billing.isPaymentEnabled()) {
+      // Only fetch for users with valid access (null = unlimited, or future expiry)
+      query = query.where((eb) =>
+        eb.or([eb('users.access_expires_at', 'is', null), eb('users.access_expires_at', '>', now)]),
+      );
+    }
+
+    const dueSources = await query.execute();
 
     for (const source of dueSources) {
       jobService.enqueue<RefreshSourcePayload>(
@@ -92,16 +105,26 @@ class SchedulerService {
 
   #generateDueEditions = async (): Promise<void> => {
     const db = await this.#services.get(DatabaseService).getInstance();
+    const billing = this.#services.get(BillingService);
     const editionsService = this.#services.get(EditionsService);
 
-    // Find all enabled edition configs
-    const configs = await db
-      .selectFrom('edition_configs')
-      .select(['id', 'user_id', 'name', 'schedule'])
-      .where('enabled', '=', 1)
-      .execute();
-
     const now = new Date();
+    const nowIso = now.toISOString();
+
+    // Find all enabled edition configs, excluding users whose access has expired
+    let query = db
+      .selectFrom('edition_configs')
+      .innerJoin('users', 'users.id', 'edition_configs.user_id')
+      .select(['edition_configs.id', 'edition_configs.user_id', 'edition_configs.name', 'edition_configs.schedule'])
+      .where('edition_configs.enabled', '=', 1);
+
+    if (await billing.isPaymentEnabled()) {
+      query = query.where((eb) =>
+        eb.or([eb('users.access_expires_at', 'is', null), eb('users.access_expires_at', '>', nowIso)]),
+      );
+    }
+
+    const configs = await query.execute();
 
     for (const config of configs) {
       try {

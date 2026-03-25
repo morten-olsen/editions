@@ -6,4 +6,5 @@ dist/
 *.db-shm
 .env
 .env.local
+editions.json
 apps/web/openapi.json

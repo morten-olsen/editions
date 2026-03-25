@@ -35,6 +35,12 @@ const queryKeys = {
   bookmarks: {
     all: ['bookmarks'] as const,
   },
+  billing: {
+    access: ['billing', 'access'] as const,
+    subscription: ['billing', 'subscription'] as const,
+    settings: ['billing', 'settings'] as const,
+    adminUsers: ['billing', 'admin', 'users'] as const,
+  },
   article: {
     vote: (id: string) => ['articles', id, 'vote'] as const,
     bookmark: (id: string) => ['articles', id, 'bookmark'] as const,

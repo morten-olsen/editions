@@ -19,6 +19,7 @@ This file is for **gotchas** — things that aren't obvious and required effort 
 - [docs/design-system.md](docs/design-system.md) — Design tokens, color palette, typography, spacing, motion, Storybook reference
 - [docs/ai-assistant.md](docs/ai-assistant.md) — AI assistant: annotation system, tools, agent loop, tutorials, chat UI
 - [docs/data-portability.md](docs/data-portability.md) — Data export/import: format, API, import behavior, reconciliation
+- [docs/payments.md](docs/payments.md) — Stripe payments: access gating, subscriptions, pricing, webhooks, admin/user UI
 
 ## Coding Standards
 

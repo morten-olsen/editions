@@ -5,6 +5,7 @@ import type { Services } from '../services/services.ts';
 
 import { createArticlesRoutes } from './articles.routes.ts';
 import { createAuthRoutes } from './auth.routes.ts';
+import { createBillingRoutes } from './billing.routes.ts';
 import { createConfigRoutes } from './config.routes.ts';
 import { createBookmarksRoutes } from './bookmarks.routes.ts';
 import { createDataRoutes } from './data.routes.ts';
@@ -41,6 +42,7 @@ const registerRoutes = async (fastify: Parameters<FastifyPluginAsyncZod>[0], ser
       await api.register(createArticlesRoutes(services));
       await api.register(createAuthRoutes(services));
       await api.register(createConfigRoutes(services));
+      await api.register(createBillingRoutes(services));
       await api.register(createBookmarksRoutes(services));
       await api.register(createDataRoutes(services));
       await api.register(createSourcesRoutes(services));

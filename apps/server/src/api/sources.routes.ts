@@ -1,6 +1,7 @@
 import { z } from 'zod/v4';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
+import { createAccessHook } from '../auth/access.middleware.ts';
 import { createAuthHook } from '../auth/auth.middleware.ts';
 import { DatabaseService } from '../database/database.ts';
 import type {
@@ -35,6 +36,7 @@ type RouteArgs = {
   fastify: Parameters<FastifyPluginAsyncZod>[0];
   services: Services;
   authenticate: ReturnType<typeof createAuthHook>;
+  requireAccess: ReturnType<typeof createAccessHook>;
 };
 
 // --- Route registration helpers ---
@@ -108,12 +110,12 @@ const registerSourceReadRoutes = ({ fastify, services, authenticate }: RouteArgs
   });
 };
 
-const registerSourceWriteRoutes = ({ fastify, services, authenticate }: RouteArgs): void => {
+const registerSourceWriteRoutes = ({ fastify, services, authenticate, requireAccess }: RouteArgs): void => {
   // Create source
   fastify.route({
     method: 'POST',
     url: '/sources',
-    onRequest: authenticate,
+    onRequest: [authenticate, requireAccess],
     schema: {
       security: [{ bearerAuth: [] }],
       body: createSourceSchema,
@@ -136,7 +138,7 @@ const registerSourceWriteRoutes = ({ fastify, services, authenticate }: RouteArg
   fastify.route({
     method: 'PATCH',
     url: '/sources/:id',
-    onRequest: authenticate,
+    onRequest: [authenticate, requireAccess],
     schema: {
       security: [{ bearerAuth: [] }],
       params: idParamSchema,
@@ -160,7 +162,7 @@ const registerSourceWriteRoutes = ({ fastify, services, authenticate }: RouteArg
   fastify.route({
     method: 'DELETE',
     url: '/sources/:id',
-    onRequest: authenticate,
+    onRequest: [authenticate, requireAccess],
     schema: {
       security: [{ bearerAuth: [] }],
       params: idParamSchema,
@@ -261,11 +263,11 @@ const registerArticleRoutes = ({ fastify, services, authenticate }: RouteArgs): 
   });
 };
 
-const registerFetchRoute = ({ fastify, services, authenticate }: RouteArgs): void => {
+const registerFetchRoute = ({ fastify, services, authenticate, requireAccess }: RouteArgs): void => {
   fastify.route({
     method: 'POST',
     url: '/sources/:id/fetch',
-    onRequest: authenticate,
+    onRequest: [authenticate, requireAccess],
     schema: {
       security: [{ bearerAuth: [] }],
       params: idParamSchema,
@@ -299,12 +301,12 @@ const registerFetchRoute = ({ fastify, services, authenticate }: RouteArgs): voi
   });
 };
 
-const registerReanalyseRoutes = ({ fastify, services, authenticate }: RouteArgs): void => {
+const registerReanalyseRoutes = ({ fastify, services, authenticate, requireAccess }: RouteArgs): void => {
   // Reanalyse all articles in a source
   fastify.route({
     method: 'POST',
     url: '/sources/:id/reanalyse',
-    onRequest: authenticate,
+    onRequest: [authenticate, requireAccess],
     schema: {
       security: [{ bearerAuth: [] }],
       params: idParamSchema,
@@ -348,7 +350,7 @@ const registerReanalyseRoutes = ({ fastify, services, authenticate }: RouteArgs)
   fastify.route({
     method: 'POST',
     url: '/sources/:id/re-extract',
-    onRequest: authenticate,
+    onRequest: [authenticate, requireAccess],
     schema: {
       security: [{ bearerAuth: [] }],
       params: idParamSchema,
@@ -394,7 +396,7 @@ const registerReanalyseRoutes = ({ fastify, services, authenticate }: RouteArgs)
   fastify.route({
     method: 'POST',
     url: '/sources/reanalyse-all',
-    onRequest: authenticate,
+    onRequest: [authenticate, requireAccess],
     schema: {
       security: [{ bearerAuth: [] }],
       response: { 202: z.object({ enqueued: z.number() }) },
@@ -420,7 +422,7 @@ const registerReanalyseRoutes = ({ fastify, services, authenticate }: RouteArgs)
   fastify.route({
     method: 'POST',
     url: '/sources/re-extract-all',
-    onRequest: authenticate,
+    onRequest: [authenticate, requireAccess],
     schema: {
       security: [{ bearerAuth: [] }],
       response: { 202: z.object({ enqueued: z.number() }) },
@@ -445,7 +447,7 @@ const registerReanalyseRoutes = ({ fastify, services, authenticate }: RouteArgs)
   });
 };
 
-const registerOpmlRoutes = ({ fastify, services, authenticate }: RouteArgs): void => {
+const registerOpmlRoutes = ({ fastify, services, authenticate, requireAccess }: RouteArgs): void => {
   // Export sources as OPML
   fastify.route({
     method: 'GET',
@@ -467,7 +469,7 @@ const registerOpmlRoutes = ({ fastify, services, authenticate }: RouteArgs): voi
   fastify.route({
     method: 'POST',
     url: '/sources/opml',
-    onRequest: authenticate,
+    onRequest: [authenticate, requireAccess],
     schema: {
       security: [{ bearerAuth: [] }],
       body: z.object({ opml: z.string() }),
@@ -527,7 +529,8 @@ const createSourcesRoutes =
   (services: Services): FastifyPluginAsyncZod =>
   async (fastify) => {
     const authenticate = createAuthHook(services);
-    const args = { fastify, services, authenticate };
+    const requireAccess = createAccessHook(services);
+    const args = { fastify, services, authenticate, requireAccess };
 
     registerOpmlRoutes(args);
     registerSourceReadRoutes(args);

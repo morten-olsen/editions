@@ -7,6 +7,7 @@ import type { Mode } from '../components/mode-shell.tsx';
 import { BuilderNav, tabForPath } from '../components/builder-nav.tsx';
 import { FeedSidebar, FeedMobileNav } from '../components/feed-nav.tsx';
 import { AiProvider, AiChatDrawer, AiCursor, AiToggleButton, useAi } from '../ai/ai.ts';
+import { AccessBanner } from '../views/billing/access-banner.tsx';
 
 type RouterContext = {
   auth: ReturnType<typeof useAuth>;
@@ -25,12 +26,19 @@ const AiOverlay = (): React.ReactNode => {
   );
 };
 
+const isSettingsRoute = (pathname: string): boolean => pathname.startsWith('/settings');
+
 const ModeLayout = ({ activeMode, pathname }: { activeMode: Mode; pathname: string }): React.ReactElement => {
   const content = (
     <PageTransition locationKey={pathname}>
       <Outlet />
     </PageTransition>
   );
+
+  // Settings has its own sidebar/mobile nav — render content directly
+  if (isSettingsRoute(pathname)) {
+    return <>{content}</>;
+  }
 
   if (activeMode === 'feed') {
     return (
@@ -114,6 +122,7 @@ const RootComponent = (): React.ReactNode => {
         actions={<AiToggleButton />}
       >
         {activeMode === 'feed' && <FeedMobileNav />}
+        <AccessBanner />
         <ModeLayout activeMode={activeMode} pathname={pathname} />
         <AiOverlay />
       </ModeShell>

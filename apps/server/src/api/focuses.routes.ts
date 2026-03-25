@@ -1,6 +1,7 @@
 import { z } from 'zod/v4';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
+import { createAccessHook } from '../auth/access.middleware.ts';
 import { createAuthHook } from '../auth/auth.middleware.ts';
 import { FocusNotFoundError, FocusesService } from '../focuses/focuses.ts';
 import type { Services } from '../services/services.ts';
@@ -108,6 +109,7 @@ type RouteArgs = {
   fastify: Parameters<FastifyPluginAsyncZod>[0];
   services: Services;
   authenticate: ReturnType<typeof createAuthHook>;
+  requireAccess: ReturnType<typeof createAccessHook>;
 };
 
 // --- Route registration helpers ---
@@ -152,12 +154,12 @@ const registerFocusReadRoutes = ({ fastify, services, authenticate }: RouteArgs)
   });
 };
 
-const registerFocusWriteRoutes = ({ fastify, services, authenticate }: RouteArgs): void => {
+const registerFocusWriteRoutes = ({ fastify, services, authenticate, requireAccess }: RouteArgs): void => {
   // Create focus
   fastify.route({
     method: 'POST',
     url: '/focuses',
-    onRequest: authenticate,
+    onRequest: [authenticate, requireAccess],
     schema: {
       security: [{ bearerAuth: [] }],
       body: createFocusSchema,
@@ -183,7 +185,7 @@ const registerFocusWriteRoutes = ({ fastify, services, authenticate }: RouteArgs
   fastify.route({
     method: 'PATCH',
     url: '/focuses/:id',
-    onRequest: authenticate,
+    onRequest: [authenticate, requireAccess],
     schema: {
       security: [{ bearerAuth: [] }],
       params: idParamSchema,
@@ -207,7 +209,7 @@ const registerFocusWriteRoutes = ({ fastify, services, authenticate }: RouteArgs
   fastify.route({
     method: 'DELETE',
     url: '/focuses/:id',
-    onRequest: authenticate,
+    onRequest: [authenticate, requireAccess],
     schema: {
       security: [{ bearerAuth: [] }],
       params: idParamSchema,
@@ -388,7 +390,8 @@ const createFocusesRoutes =
   (services: Services): FastifyPluginAsyncZod =>
   async (fastify) => {
     const authenticate = createAuthHook(services);
-    const args = { fastify, services, authenticate };
+    const requireAccess = createAccessHook(services);
+    const args = { fastify, services, authenticate, requireAccess };
 
     registerFocusReadRoutes(args);
     registerFocusWriteRoutes(args);

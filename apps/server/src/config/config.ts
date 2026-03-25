@@ -30,12 +30,19 @@ const analysisSchema = z.object({
   classifier: z.enum(['nli', 'similarity', 'hybrid']).default('similarity'),
 });
 
+const stripeSchema = z.object({
+  secretKey: z.string().default(''),
+  webhookSecret: z.string().default(''),
+  publishableKey: z.string().default(''),
+});
+
 const configSchema = z.object({
   server: serverSchema.default({ host: '0.0.0.0', port: 3007 }),
   database: databaseSchema.default({ filename: 'editions.db' }),
   auth: authSchema.default({ jwtSecret: '', allowSignups: true }),
   scheduler: schedulerSchema.default({ enabled: true, fetchIntervalMinutes: 60 }),
   analysis: analysisSchema.default({ classifier: 'similarity' }),
+  stripe: stripeSchema.default({ secretKey: '', webhookSecret: '', publishableKey: '' }),
 });
 
 type Config = z.infer<typeof configSchema>;
@@ -106,6 +113,14 @@ const envOverrides = (): Record<string, unknown> => {
       ...((overrides['auth'] as Record<string, unknown>) ?? {}),
       allowSignups: env['EDITIONS_ALLOW_SIGNUPS'] !== 'false',
     };
+  }
+
+  if (env['EDITIONS_STRIPE_SECRET_KEY'] || env['EDITIONS_STRIPE_WEBHOOK_SECRET'] || env['EDITIONS_STRIPE_PUBLISHABLE_KEY']) {
+    const stripe: Record<string, unknown> = {};
+    if (env['EDITIONS_STRIPE_SECRET_KEY']) stripe['secretKey'] = env['EDITIONS_STRIPE_SECRET_KEY'];
+    if (env['EDITIONS_STRIPE_WEBHOOK_SECRET']) stripe['webhookSecret'] = env['EDITIONS_STRIPE_WEBHOOK_SECRET'];
+    if (env['EDITIONS_STRIPE_PUBLISHABLE_KEY']) stripe['publishableKey'] = env['EDITIONS_STRIPE_PUBLISHABLE_KEY'];
+    overrides['stripe'] = stripe;
   }
 
   return overrides;

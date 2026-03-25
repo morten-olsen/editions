@@ -608,6 +608,7 @@ const createDataRoutes =
     fastify.route({
       method: 'POST',
       url: '/data/import',
+      bodyLimit: 50 * 1024 * 1024, // 50 MB — exports with embeddings can be large
       onRequest: authenticate,
       schema: {
         security: [{ bearerAuth: [] }],

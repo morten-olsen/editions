@@ -1,0 +1,8 @@
+# .config/wt.toml
+
+[pre-start]
+copy-db = "wt step copy-ignored"
+deps = "pnpm install"
+
+[pre-merge]
+check = "task check"

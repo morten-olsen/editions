@@ -1,0 +1,226 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design System/Compositions/Paged Article/Writing Layouts" />
+
+
+<div style={{ maxWidth: "72rem", margin: "0 auto", padding: "4rem 0", fontFamily: "var(--font-sans)" }}>
+
+<div style={{ color: "var(--color-ink-tertiary)", fontSize: "0.833rem", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: "1.5rem" }}>Guide</div>
+
+# Writing page layouts
+
+<div style={{ fontSize: "1.2rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginTop: "1rem", marginBottom: "4rem", maxWidth: "65ch" }}>
+  Page layouts are functions that act as a magazine designer: they receive a blank page and unconsumed article content, compose the page by placing regions at exact coordinates, and return what remains. This guide covers how to write new layouts.
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", marginBottom: "4rem" }} />
+
+## The signature
+
+<div style={{ marginBottom: "4rem" }}>
+
+Every layout function has the same type:
+
+```ts
+type PageLayoutFn = (
+  content: ArticleContent,
+  config: PageConfig,
+) => { page: Page; remaining: ArticleContent };
+```
+
+**`content`** is what's left to lay out:
+- `content.meta` — article metadata (title, hero, author, etc.), `null` once consumed by an opener
+- `content.elements` — body elements (text, image, spacing, hr) consumed front-to-back
+
+**`config`** is the page's physical constraints:
+- `width`, `height` — container dimensions (from ResizeObserver, not viewport)
+- `padding` — top, bottom, horizontal
+- `columns` — 1 or 2
+- `columnGap`, `navHeight`, `footerHeight`
+
+**Return**: a `Page` (flat array of positioned `Region[]`) and the `remaining` content for the next layout function.
+
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## A minimal example
+
+<div style={{ marginBottom: "4rem" }}>
+
+Here's a layout that places a centered pull-quote from the first blockquote element, with body text flowing in columns below:
+
+```ts
+import { layoutWithLines } from '@chenglou/pretext';
+import { getPrepared, SERIF_STACK } from './paged-article.measure.ts';
+
+const pullQuoteLayout: PageLayoutFn = (content, config) => {
+  const cw = contentWidth(config);
+  const regions: Region[] = [];
+  let y = 0;
+  let elements = content.elements;
+
+  // Find and consume the first blockquote
+  const bqIdx = elements.findIndex(
+    (el) => el.kind === 'text' && el.variant === 'blockquote',
+  );
+
+  if (bqIdx >= 0) {
+    const bq = elements[bqIdx] as TextElement;
+    const quoteFont = `italic 24px ${SERIF_STACK}`;
+    const prepared = getPrepared(bq.text, quoteFont);
+    const maxW = Math.min(cw, 500);
+    const result = layoutWithLines(prepared, maxW, 36);
+
+    // Center the quote horizontally
+    const quoteX = (cw - maxW) / 2;
+
+    regions.push({
+      kind: 'text',
+      x: quoteX, y, width: maxW,
+      text: bq.text,
+      inlineSpans: bq.inlineSpans,
+      allLines: result.lines,
+      font: quoteFont,
+      lineHeight: 36,
+      startLine: 0,
+      endLine: result.lineCount,
+      role: 'blockquote',
+    });
+
+    y += result.height + 36; // generous gap after quote
+
+    // Remove the blockquote from elements
+    elements = [...elements.slice(0, bqIdx), ...elements.slice(bqIdx + 1)];
+  }
+
+  // Flow remaining body content below
+  const { regions: bodyRegions, remaining } = flowIntoColumns(elements, y, config);
+  regions.push(...bodyRegions);
+
+  return {
+    page: { regions },
+    remaining: { meta: content.meta, elements: remaining },
+  };
+};
+```
+
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Key helpers
+
+<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem", marginBottom: "4rem" }}>
+  {[
+    { name: "placeText(text, font, lh, width, x, y, role)", desc: "Measure text with pretext and return a positioned TextRegion + its height. The simplest way to place a block of text." },
+    { name: "flowIntoColumns(elements, startY, config)", desc: "Flow body elements into columns starting at startY. Handles splitting, orphan/widow protection, and adds the column separator. Returns placed regions + unconsumed elements." },
+    { name: "flowTextAroundObstacle(text, font, lh, spans, fullW, narrowW, narrowX, fullX, y, spanLines, role)", desc: "Re-measure text with layoutNextLine using variable widths. First N lines at narrowW (beside an obstacle), rest at fullW. Returns TextRegion[] for narrow and full portions." },
+    { name: "placeDropCapParagraph(el, x, y, width)", desc: "Place a paragraph with a drop cap avoidance element. Measures the first character large, flows remaining text around it. Returns Region[] + total height." },
+    { name: "contentWidth(config) / colWidth(config) / pageHeight(config)", desc: "Dimension helpers that compute available space from the PageConfig. Use these instead of manual arithmetic." },
+    { name: "getPrepared(text, font)", desc: "Get a cached PreparedTextWithSegments from pretext. Font-dependent but width-independent — cached across layouts." },
+  ].map(h => (
+    <div key={h.name} style={{ border: "1px solid var(--color-border)", borderRadius: "0.5rem", padding: "1rem", background: "var(--color-surface)" }}>
+      <div style={{ fontSize: "0.7rem", fontFamily: "var(--font-mono)", color: "var(--color-accent)", marginBottom: "0.5rem", lineHeight: 1.4 }}>{h.name}</div>
+      <div style={{ fontSize: "0.75rem", color: "var(--color-ink-secondary)", lineHeight: 1.5 }}>{h.desc}</div>
+    </div>
+  ))}
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## Rules for layout functions
+
+<div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginBottom: "4rem" }}>
+
+<div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+
+<div style={{ display: "flex", gap: "0.75rem" }}>
+  <div style={{ width: "1.5rem", height: "1.5rem", borderRadius: "9999px", background: "var(--color-accent)", color: "var(--color-accent-ink)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.7rem", fontWeight: 600, flexShrink: 0 }}>1</div>
+  <div><strong style={{ color: "var(--color-ink)" }}>Every element must be positioned absolutely.</strong> Set x, y, and width on every region. The renderer does not add margins, padding, or flow layout — it paints regions where you put them.</div>
+</div>
+
+<div style={{ display: "flex", gap: "0.75rem" }}>
+  <div style={{ width: "1.5rem", height: "1.5rem", borderRadius: "9999px", background: "var(--color-accent)", color: "var(--color-accent-ink)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.7rem", fontWeight: 600, flexShrink: 0 }}>2</div>
+  <div><strong style={{ color: "var(--color-ink)" }}>Measure all text with pretext.</strong> Use <code style={{ fontFamily: "var(--font-mono)", background: "var(--color-surface-sunken)", padding: "0.1rem 0.3rem", borderRadius: "0.2rem", fontSize: "0.8rem" }}>placeText</code> or <code style={{ fontFamily: "var(--font-mono)", background: "var(--color-surface-sunken)", padding: "0.1rem 0.3rem", borderRadius: "0.2rem", fontSize: "0.8rem" }}>getPrepared</code> + <code style={{ fontFamily: "var(--font-mono)", background: "var(--color-surface-sunken)", padding: "0.1rem 0.3rem", borderRadius: "0.2rem", fontSize: "0.8rem" }}>layoutWithLines</code>. Never guess text height — measure it.</div>
+</div>
+
+<div style={{ display: "flex", gap: "0.75rem" }}>
+  <div style={{ width: "1.5rem", height: "1.5rem", borderRadius: "9999px", background: "var(--color-accent)", color: "var(--color-accent-ink)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.7rem", fontWeight: 600, flexShrink: 0 }}>3</div>
+  <div><strong style={{ color: "var(--color-ink)" }}>Use the full font stack.</strong> Font strings must include fallbacks (e.g. <code style={{ fontFamily: "var(--font-mono)", background: "var(--color-surface-sunken)", padding: "0.1rem 0.3rem", borderRadius: "0.2rem", fontSize: "0.8rem" }}>SERIF_STACK</code>, <code style={{ fontFamily: "var(--font-mono)", background: "var(--color-surface-sunken)", padding: "0.1rem 0.3rem", borderRadius: "0.2rem", fontSize: "0.8rem" }}>SANS_STACK</code>, <code style={{ fontFamily: "var(--font-mono)", background: "var(--color-surface-sunken)", padding: "0.1rem 0.3rem", borderRadius: "0.2rem", fontSize: "0.8rem" }}>MONO_STACK</code>) so the canvas measurement matches CSS rendering.</div>
+</div>
+
+<div style={{ display: "flex", gap: "0.75rem" }}>
+  <div style={{ width: "1.5rem", height: "1.5rem", borderRadius: "9999px", background: "var(--color-accent)", color: "var(--color-accent-ink)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.7rem", fontWeight: 600, flexShrink: 0 }}>4</div>
+  <div><strong style={{ color: "var(--color-ink)" }}>Stay within <code style={{ fontFamily: "var(--font-mono)", background: "var(--color-surface-sunken)", padding: "0.1rem 0.3rem", borderRadius: "0.2rem", fontSize: "0.8rem" }}>pageHeight(config)</code>.</strong> This accounts for padding, nav bar, and reserved footer space. Content beyond this boundary will be clipped.</div>
+</div>
+
+<div style={{ display: "flex", gap: "0.75rem" }}>
+  <div style={{ width: "1.5rem", height: "1.5rem", borderRadius: "9999px", background: "var(--color-accent)", color: "var(--color-accent-ink)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.7rem", fontWeight: 600, flexShrink: 0 }}>5</div>
+  <div><strong style={{ color: "var(--color-ink)" }}>Return unconsumed content faithfully.</strong> Elements you don't use must be returned in <code style={{ fontFamily: "var(--font-mono)", background: "var(--color-surface-sunken)", padding: "0.1rem 0.3rem", borderRadius: "0.2rem", fontSize: "0.8rem" }}>remaining</code>. The engine calls the next layout function with whatever you return — if you drop elements, they're gone.</div>
+</div>
+
+<div style={{ display: "flex", gap: "0.75rem" }}>
+  <div style={{ width: "1.5rem", height: "1.5rem", borderRadius: "9999px", background: "var(--color-accent)", color: "var(--color-accent-ink)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.7rem", fontWeight: 600, flexShrink: 0 }}>6</div>
+  <div><strong style={{ color: "var(--color-ink)" }}>Set <code style={{ fontFamily: "var(--font-mono)", background: "var(--color-surface-sunken)", padding: "0.1rem 0.3rem", borderRadius: "0.2rem", fontSize: "0.8rem" }}>meta: null</code> once consumed.</strong> If your layout renders the title/hero, set <code style={{ fontFamily: "var(--font-mono)", background: "var(--color-surface-sunken)", padding: "0.1rem 0.3rem", borderRadius: "0.2rem", fontSize: "0.8rem" }}>remaining.meta = null</code> so later layouts don't render it again.</div>
+</div>
+
+</div>
+
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## How the engine chains layouts
+
+<div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginBottom: "4rem" }}>
+
+```ts
+const layouts: PageLayoutFn[] = [
+  openerLayout('feature'),  // page 1: title + hero + drop cap + columns
+  bodyLayout,               // page 2+: repeated until content is empty
+];
+
+const pages = buildPages(content, config, layouts);
+```
+
+The first layout in the sequence handles page 1. The second handles page 2. When the sequence runs out, **the last layout repeats** for all remaining pages. So `[openerLayout, bodyLayout]` means: one opener page, then as many body pages as needed.
+
+You can insert specialty layouts in the middle:
+
+```ts
+const layouts: PageLayoutFn[] = [
+  openerLayout('feature'),   // page 1
+  pullQuoteLayout,           // page 2: featured blockquote
+  bodyLayout,                // page 3+: repeated
+];
+```
+
+The engine stops when `remaining.meta` is null and `remaining.elements` is empty.
+
+</div>
+
+<div style={{ height: "1px", background: "var(--color-border)", margin: "4rem 0" }} />
+
+## File structure
+
+<div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625, marginBottom: "4rem" }}>
+
+```
+paged-article/
+  paged-article.ts              ← public API (import from here)
+  paged-article.segments.ts     ← markdown → typed segments
+  paged-article.measure.ts      ← pretext measurement, font stacks, cache
+  paged-article.layouts.ts      ← types + layout functions (you write these)
+  paged-article.engine.ts       ← prepare + build loop + responsive config
+  paged-article.render.tsx      ← React renderer for Region[]
+  paged-article.hooks.ts        ← container size, font loading
+  paged-article.view.tsx        ← drop-in React component
+```
+
+New layout functions go in `paged-article.layouts.ts`. Export them and add to the layout sequence in `paged-article.engine.ts` (or let the consumer pass a custom sequence).
+
+</div>
+
+
+</div>

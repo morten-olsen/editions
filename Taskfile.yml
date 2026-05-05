@@ -25,7 +25,6 @@ tasks:
   ci:install:
     desc: Install with frozen lockfile (CI-only)
     cmds:
-      - corepack enable
       - pnpm install --frozen-lockfile
 
   dev:

@@ -34,7 +34,9 @@ steps:
       - mise install
       - task ci:install
       - task build:site
-      - task build:storybook
+      # TODO: re-enable once Storybook segfault during Vite chunk rendering
+      # is resolved (likely native-module / memory issue in the runner).
+      # - task build:storybook
 
   publish-site:
     image: code.olsen.cloud/ci/pages-deploy:latest
@@ -46,12 +48,13 @@ steps:
         from_secret: pages_admin_token
     depends_on: [build]
 
-  publish-storybook:
-    image: code.olsen.cloud/ci/pages-deploy:latest
-    settings:
-      host: mortenolsen.pro
-      path: /editions/design-system
-      dir: ./apps/web/storybook-static
-      token:
-        from_secret: pages_admin_token
-    depends_on: [build]
+  # TODO: re-enable once Storybook builds without segfaulting in the runner.
+  # publish-storybook:
+  #   image: code.olsen.cloud/ci/pages-deploy:latest
+  #   settings:
+  #     host: mortenolsen.pro
+  #     path: /editions/design-system
+  #     dir: ./apps/web/storybook-static
+  #     token:
+  #       from_secret: pages_admin_token
+  #   depends_on: [build]

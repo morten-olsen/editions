@@ -29,6 +29,7 @@ steps:
       ASTRO_BASE: /editions
     commands:
       - mise install
+      - corepack enable
       - pnpm install --frozen-lockfile
       - task build:site
       - task build:storybook

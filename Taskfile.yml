@@ -25,6 +25,10 @@ tasks:
   ci:install:
     desc: Install with frozen lockfile (CI-only)
     cmds:
+      # The mise runner image doesn't enable corepack shims after Node install
+      # (node.corepack default behaviour varies by mise version), so do it
+      # explicitly. Idempotent.
+      - corepack enable
       - pnpm install --frozen-lockfile
 
   dev:

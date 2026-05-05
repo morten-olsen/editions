@@ -28,9 +28,11 @@ steps:
       ASTRO_SITE: https://mortenolsen.pro
       ASTRO_BASE: /editions
     commands:
+      # Astro + Storybook builds don't need the server's native modules — use
+      # ci:install (which skips postinstall scripts) so we don't need python3
+      # in this step.
       - mise install
-      - corepack enable
-      - pnpm install --frozen-lockfile
+      - task ci:install
       - task build:site
       - task build:storybook
 

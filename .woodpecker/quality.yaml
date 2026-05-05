@@ -9,5 +9,9 @@ steps:
   quality:
     image: code.olsen.cloud/ci/mise:latest
     commands:
+      # better-sqlite3 has no Node 24 prebuilds yet, so it compiles from source
+      # via node-gyp. The mise image already has build-essential; only Python
+      # is missing.
+      - apt-get update && apt-get install -y --no-install-recommends python3
       - mise install
       - task ci:quality

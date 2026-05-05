@@ -23,13 +23,22 @@ tasks:
       - pnpm install
 
   ci:install:
-    desc: Install with frozen lockfile (CI-only)
+    desc: Install with frozen lockfile, no postinstall scripts (CI-only)
     cmds:
       # The mise runner image doesn't enable corepack shims after Node install
       # (node.corepack default behaviour varies by mise version), so do it
       # explicitly. Idempotent.
       - corepack enable
-      - pnpm install --frozen-lockfile
+      # --ignore-scripts: skip native module compilation (better-sqlite3 needs
+      # python3 + g++ which aren't in the runner image). Tasks that actually
+      # need the native modules (ci:quality) run ci:rebuild-native afterwards
+      # in a step that has installed the build deps.
+      - pnpm install --frozen-lockfile --ignore-scripts
+
+  ci:rebuild-native:
+    desc: Rebuild native modules listed in pnpm.onlyBuiltDependencies
+    cmds:
+      - pnpm rebuild
 
   dev:
     desc: Start server and web app in dev mode
@@ -121,6 +130,7 @@ tasks:
     desc: Type-check, lint, test — what Woodpecker quality.yaml runs
     cmds:
       - task: ci:install
+      - task: ci:rebuild-native
       - task: check
       - task: lint:eslint
       - task: test

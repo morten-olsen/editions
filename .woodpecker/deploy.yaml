@@ -14,12 +14,12 @@
 when:
   - event: [push, manual]
     branch: main
-    path:
-      - 'apps/website/**'
-      - 'apps/web/.storybook/**'
-      - 'apps/web/src/**/*.stories.*'
-      - 'apps/web/src/**/*.mdx'
-      - '.woodpecker/deploy.yaml'
+    # path:
+    #   - 'apps/website/**'
+    #   - 'apps/web/.storybook/**'
+    #   - 'apps/web/src/**/*.stories.*'
+    #   - 'apps/web/src/**/*.mdx'
+    #   - '.woodpecker/deploy.yaml'
 
 steps:
   build:

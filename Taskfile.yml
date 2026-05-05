@@ -23,22 +23,15 @@ tasks:
       - pnpm install
 
   ci:install:
-    desc: Install with frozen lockfile, no postinstall scripts (CI-only)
+    desc: Install with frozen lockfile, building native modules (CI-only)
     cmds:
-      # The mise runner image doesn't enable corepack shims after Node install
-      # (node.corepack default behaviour varies by mise version), so do it
-      # explicitly. Idempotent.
+      # The mise runner image doesn't enable corepack shims after Node install,
+      # so do it explicitly. Idempotent.
       - corepack enable
-      # --ignore-scripts: skip native module compilation (better-sqlite3 needs
-      # python3 + g++ which aren't in the runner image). Tasks that actually
-      # need the native modules (ci:quality) run ci:rebuild-native afterwards
-      # in a step that has installed the build deps.
-      - pnpm install --frozen-lockfile --ignore-scripts
-
-  ci:rebuild-native:
-    desc: Rebuild native modules listed in pnpm.onlyBuiltDependencies
-    cmds:
-      - pnpm rebuild
+      # mise (via mise.toml) provides node + python; the runner image already
+      # has build-essential. That covers everything node-gyp needs to compile
+      # better-sqlite3 from source, plus sharp and onnxruntime-node prebuilts.
+      - pnpm install --frozen-lockfile
 
   dev:
     desc: Start server and web app in dev mode
@@ -127,18 +120,13 @@ tasks:
       - task: build:storybook
 
   ci:quality:
-    desc: Type-check — what Woodpecker quality.yaml runs
+    desc: Type-check, test — what Woodpecker quality.yaml runs
     cmds:
       - task: ci:install
       - task: check
       # TODO: re-enable once existing lint failures are cleaned up.
       # - task: lint:eslint
-      # TODO: re-enable once native bindings (better-sqlite3) build cleanly
-      # in the runner. Tests fail today with "missing bindings". Re-enabling
-      # also requires putting back ci:rebuild-native above and python3 in
-      # the quality.yaml runner step.
-      # - task: ci:rebuild-native
-      # - task: test
+      - task: test
 
   ci:compliance:
     desc: License check — what Woodpecker compliance.yaml runs

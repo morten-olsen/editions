@@ -8,6 +8,8 @@
 # with it. Once GHA is retired, drop in a semantic-release step before the
 # build and let it write the version.
 
+name: build
+
 when:
   - event: [push, manual]
     branch: main

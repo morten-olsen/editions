@@ -1,8 +1,12 @@
 [tools]
 node = "24"
+python = "3.13"
 "npm:@go-task/cli" = "latest"
 
 # pnpm comes from corepack — the version is pinned in package.json#packageManager.
+# python is needed by node-gyp to build better-sqlite3 from source (no Node 24
+# prebuilds yet). Provided here so mise install in the runner gives us the
+# whole build toolchain — no per-step apt-get.
 
 [env]
 # Silence the pnpm warning about NODE_AUTH_TOKEN in ~/.npmrc

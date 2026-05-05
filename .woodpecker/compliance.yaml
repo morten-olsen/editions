@@ -1,6 +1,8 @@
 # License compliance + Trivy filesystem scan (deps, secrets, misconfig).
 # Runs in parallel with quality.
 
+name: compliance
+
 when:
   - event: [push, pull_request, manual]
 

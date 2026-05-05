@@ -1,6 +1,8 @@
-# Build, type-check, lint, test. Runs on every PR and every push.
+# Type-check + test. Runs on every PR and every push.
 # All real work lives in the Taskfile so `task ci:quality` reproduces this
 # locally byte-for-byte.
+
+name: quality
 
 when:
   - event: [push, pull_request, manual]
@@ -9,9 +11,5 @@ steps:
   quality:
     image: code.olsen.cloud/ci/mise:latest
     commands:
-      # TODO: re-add `apt-get install python3` here once tests are re-enabled
-      # in ci:quality — better-sqlite3 has no Node 24 prebuilds yet so it
-      # compiles from source, and the mise image only ships build-essential
-      # (gcc/make), not Python.
       - mise install
       - task ci:quality

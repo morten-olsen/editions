@@ -1,0 +1,13 @@
+# Build, type-check, lint, test. Runs on every PR and every push.
+# All real work lives in the Taskfile so `task ci:quality` reproduces this
+# locally byte-for-byte.
+
+when:
+  - event: [push, pull_request, manual]
+
+steps:
+  quality:
+    image: code.olsen.cloud/ci/mise:latest
+    commands:
+      - mise install
+      - task ci:quality

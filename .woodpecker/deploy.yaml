@@ -1,0 +1,38 @@
+# Build the marketing site (Astro) + design-system Storybook and publish to
+# https://mortenolsen.pro/editions/.
+#
+# The pages server stores content per (host, path) mount, so /editions is an
+# independent slice of mortenolsen.pro — pushing here does not touch the apex.
+#
+# Runs in parallel with the existing GitHub Pages deploy (.github/workflows/
+# website.yml). Once the migration is complete, delete that workflow.
+
+when:
+  - event: [push, manual]
+    branch: main
+    path:
+      - 'apps/website/**'
+      - 'apps/web/.storybook/**'
+      - 'apps/web/src/**/*.stories.*'
+      - 'apps/web/src/**/*.mdx'
+      - '.woodpecker/deploy.yaml'
+
+steps:
+  build:
+    image: code.olsen.cloud/ci/mise:latest
+    environment:
+      ASTRO_SITE: https://mortenolsen.pro
+      ASTRO_BASE: /editions
+    commands:
+      - mise install
+      - task build:website
+
+  publish:
+    image: code.olsen.cloud/ci/pages-deploy:latest
+    settings:
+      host: mortenolsen.pro
+      path: /editions
+      dir: ./apps/website/dist
+      token:
+        from_secret: pages_admin_token
+    depends_on: [build]

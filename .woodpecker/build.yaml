@@ -1,0 +1,34 @@
+# Build and push the server image to the Forgejo OCI registry.
+# Runs in parallel with the existing GitHub Actions release pipeline (which
+# pushes to ghcr.io and deploys to Fly). Once the migration is complete,
+# remove .github/workflows/release.yml and add a deploy step here.
+#
+# Tags: `latest` and `<short-sha>`. Versioning (semver tags) is currently
+# owned by the GitHub tag action — adding semantic-release here would race
+# with it. Once GHA is retired, drop in a semantic-release step before the
+# build and let it write the version.
+
+when:
+  - event: [push, manual]
+    branch: main
+
+depends_on:
+  - quality
+  - compliance
+
+steps:
+  build:
+    image: code.olsen.cloud/ci/kaniko-build:latest
+    settings:
+      auth:
+        from_secret: forgejo_registry_auth
+
+  scan:
+    image: code.olsen.cloud/ci/trivy:latest
+    settings:
+      target: image
+      image: code.olsen.cloud/${CI_REPO}:${CI_COMMIT_SHA:0:8}
+      severity: HIGH,CRITICAL
+      exit_code: 1
+      ignore_unfixed: true
+    depends_on: [build]

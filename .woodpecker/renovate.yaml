@@ -1,0 +1,15 @@
+# Self-hosted Renovate scoped to this repo. Trigger via cron in the
+# Woodpecker UI (e.g. weekly Sunday 03:00 UTC).
+#
+# Renovate auto-detects mise.toml, package.json, pnpm-lock.yaml, and
+# Dockerfile. Tune via renovate.json at the repo root.
+
+when:
+  - event: [cron, manual]
+
+steps:
+  renovate:
+    image: code.olsen.cloud/ci/renovate:latest
+    settings:
+      token:
+        from_secret: renovate_forgejo_token

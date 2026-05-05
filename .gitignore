@@ -1,5 +1,6 @@
 node_modules/
 dist/
+.task/
 *.db
 *.db-journal
 *.db-wal

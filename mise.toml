@@ -1,7 +1,7 @@
 [tools]
 node = "24"
 pnpm = "10"
-task = "latest"
+"npm:@go-task/cli" = "latest"
 
 [env]
 # Silence the pnpm warning about NODE_AUTH_TOKEN in ~/.npmrc

@@ -1,0 +1,24 @@
+# License compliance + Trivy filesystem scan (deps, secrets, misconfig).
+# Runs in parallel with quality.
+
+when:
+  - event: [push, pull_request, manual]
+
+steps:
+  license:
+    image: code.olsen.cloud/ci/mise:latest
+    commands:
+      - mise install
+      - task ci:compliance
+
+  scan:
+    image: code.olsen.cloud/ci/trivy:latest
+    settings:
+      target: fs
+      severity: HIGH,CRITICAL
+      exit_code: 1
+      ignore_unfixed: true
+      # Skip the install tree — Trivy reads pnpm-lock.yaml directly, and
+      # walking node_modules races with the parallel `pnpm install` step.
+      skip_dirs: node_modules
+    depends_on: []

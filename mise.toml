@@ -1,7 +1,8 @@
 [tools]
 node = "24"
-pnpm = "10"
 "npm:@go-task/cli" = "latest"
+
+# pnpm comes from corepack — the version is pinned in package.json#packageManager.
 
 [env]
 # Silence the pnpm warning about NODE_AUTH_TOKEN in ~/.npmrc

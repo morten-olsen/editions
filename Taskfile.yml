@@ -25,6 +25,7 @@ tasks:
   ci:install:
     desc: Install with frozen lockfile (CI-only)
     cmds:
+      - corepack enable
       - pnpm install --frozen-lockfile
 
   dev:
@@ -97,13 +98,21 @@ tasks:
         pnpm dlx license-checker --production
         --onlyAllow 'MIT;Apache-2.0;ISC;BSD-2-Clause;BSD-3-Clause;0BSD;CC0-1.0;CC-BY-3.0;CC-BY-4.0;Unlicense;Python-2.0'
 
-  build:website:
-    desc: Build Astro site + Storybook into apps/website/dist (consumed by deploy.yaml)
+  build:site:
+    desc: Build the Astro marketing site (apps/website/dist)
     cmds:
       - pnpm --filter @editions/website build
+
+  build:storybook:
+    desc: Build Storybook static export (apps/web/storybook-static)
+    cmds:
       - pnpm --filter @editions/web build-storybook
-      - rm -rf apps/website/dist/design-system
-      - cp -r apps/web/storybook-static apps/website/dist/design-system
+
+  build:website:
+    desc: Build both site and Storybook (deploy.yaml runs the two underlying tasks)
+    cmds:
+      - task: build:site
+      - task: build:storybook
 
   ci:quality:
     desc: Type-check, lint, test — what Woodpecker quality.yaml runs

@@ -1,8 +1,12 @@
-# Build the marketing site (Astro) + design-system Storybook and publish to
-# https://mortenolsen.pro/editions/.
+# Build the marketing site (Astro) and the design-system Storybook, and
+# publish them to two independent path mounts on the homelab pages server:
 #
-# The pages server stores content per (host, path) mount, so /editions is an
-# independent slice of mortenolsen.pro — pushing here does not touch the apex.
+#   https://mortenolsen.pro/editions/                — Astro
+#   https://mortenolsen.pro/editions/design-system/  — Storybook
+#
+# The pages server resolves longest-prefix first, so /editions/design-system
+# requests hit the Storybook mount and never fall through to the Astro mount.
+# Publishing one does not invalidate the other.
 #
 # Runs in parallel with the existing GitHub Pages deploy (.github/workflows/
 # website.yml). Once the migration is complete, delete that workflow.
@@ -25,14 +29,27 @@ steps:
       ASTRO_BASE: /editions
     commands:
       - mise install
-      - task build:website
+      - corepack enable
+      - pnpm install --frozen-lockfile
+      - task build:site
+      - task build:storybook
 
-  publish:
+  publish-site:
     image: code.olsen.cloud/ci/pages-deploy:latest
     settings:
       host: mortenolsen.pro
       path: /editions
       dir: ./apps/website/dist
+      token:
+        from_secret: pages_admin_token
+    depends_on: [build]
+
+  publish-storybook:
+    image: code.olsen.cloud/ci/pages-deploy:latest
+    settings:
+      host: mortenolsen.pro
+      path: /editions/design-system
+      dir: ./apps/web/storybook-static
       token:
         from_secret: pages_admin_token
     depends_on: [build]

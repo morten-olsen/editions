@@ -26,7 +26,7 @@ catalog:
   "@types/turndown": ^5.0.6
 
   # Shared server deps
-  better-sqlite3: ^11.0.0
+  better-sqlite3: ^13.0.3
   kysely: ^0.28.14
   turndown: ^7.2.2
   "@extractus/article-extractor": ^8.0.20

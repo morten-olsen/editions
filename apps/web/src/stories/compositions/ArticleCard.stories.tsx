@@ -184,22 +184,24 @@ const WithVoting: Story = {
   render: () => <VotableArticle />,
 };
 
+const BookmarkableArticle = (): React.ReactElement => {
+  const [bookmarked, setBookmarked] = useState(false);
+  return (
+    <div style={{ width: '40rem' }}>
+      <ArticleCard
+        {...sampleProps}
+        imageUrl="https://picsum.photos/seed/reader/400/300"
+        vote={1}
+        onVote={() => undefined}
+        bookmarked={bookmarked}
+        onBookmarkToggle={() => setBookmarked((b) => !b)}
+      />
+    </div>
+  );
+};
+
 const WithBookmark: Story = {
-  render: () => {
-    const [bookmarked, setBookmarked] = useState(false);
-    return (
-      <div style={{ width: '40rem' }}>
-        <ArticleCard
-          {...sampleProps}
-          imageUrl="https://picsum.photos/seed/reader/400/300"
-          vote={1}
-          onVote={() => undefined}
-          bookmarked={bookmarked}
-          onBookmarkToggle={() => setBookmarked((b) => !b)}
-        />
-      </div>
-    );
-  },
+  render: () => <BookmarkableArticle />,
 };
 
 const WithActiveVotes: Story = {

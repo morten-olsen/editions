@@ -8,6 +8,9 @@ import { PageHeader } from '../../components/page-header.tsx';
 import { Button } from '../../components/button.tsx';
 import { Separator } from '../../components/separator.tsx';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function -- intentional no-op for story callbacks
+const noop = (): void => {};
+
 /* ── Mock data ───────────────────────────────────────────────────── */
 
 const now = Date.now();
@@ -73,8 +76,8 @@ const AppLayoutShell = ({ initialMode = 'feed' }: { initialMode?: Mode }): React
       onModeChange={setMode}
       pathname={defaultPathForMode[mode]}
       username="alice"
-      onLogout={() => {}}
-      onSettingsClick={() => {}}
+      onLogout={noop}
+      onSettingsClick={noop}
     >
       {mode === 'builder' && <BuilderNav activeTab="sources" />}
       <div className="max-w-prose mx-auto px-4 py-6 md:px-8 md:py-8">

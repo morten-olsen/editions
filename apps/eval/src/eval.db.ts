@@ -98,13 +98,12 @@ const seedFromFixtures = async (
       })
       .execute();
 
-    // Link focus to source (all focuses use 'match' mode for eval)
+    // Link focus to source
     await db
       .insertInto('focus_sources')
       .values({
         focus_id: focusId,
         source_id: sourceId,
-        mode: 'match',
       })
       .execute();
   }

@@ -16,12 +16,12 @@ type ArticleExtractor = {
 
 // --- Registry ---
 
-import { hackerNewsExtractor } from './extractors.hn.ts';
+// Empty until a site needs behaviour the default extractor can't provide.
+// A previous Hacker News entry was deleted because it duplicated the
+// default extraction exactly — add entries only when they diverge.
+const extractors: ArticleExtractor[] = [];
 
-const extractors: ArticleExtractor[] = [hackerNewsExtractor];
-
-const findExtractor = (url: string): ArticleExtractor | undefined =>
-  extractors.find((e) => e.match(url));
+const findExtractor = (url: string): ArticleExtractor | undefined => extractors.find((e) => e.match(url));
 
 // --- Exports ---
 

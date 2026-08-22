@@ -2,8 +2,8 @@ import { sql } from 'kysely';
 import type { Kysely } from 'kysely';
 
 import type { DatabaseSchema } from '../database/database.types.ts';
-import { VotesService, mergeVoteContexts } from '../votes/votes.ts';
-import { computeScore } from '../votes/votes.scoring.ts';
+import { effectiveConfidence, mergeVoteContexts, minConfidenceFilterSql, scoreAndRank } from '../ranking/ranking.ts';
+import { VotesService } from '../votes/votes.ts';
 import type { Services } from '../services/services.ts';
 
 import type { Focus } from './focuses.ts';
@@ -96,8 +96,6 @@ type BaseQueryParams = {
 const buildBaseQuery = (params: BaseQueryParams) => {
   const { db, focusId, userId, focus, filters } = params;
 
-  const hasSourceOverrides = focus.sources.some((s) => s.minConfidence !== null);
-
   // Filter to only articles from sources linked to this focus
   const linkedSourceIds = focus.sources.map((s) => s.sourceId);
 
@@ -115,23 +113,20 @@ const buildBaseQuery = (params: BaseQueryParams) => {
     q = q.where(sql`0`, '=', sql`1`);
   }
 
-  if (focus.minConfidence > 0 || hasSourceOverrides) {
-    if (hasSourceOverrides) {
-      // Build threshold from the in-memory source config so previews
-      // with unsaved overrides work correctly
-      const cases = focus.sources
-        .filter((s) => s.minConfidence !== null)
-        .map((s) => sql`WHEN articles.source_id = ${s.sourceId} THEN ${s.minConfidence}`);
-
-      const thresholdExpr =
-        cases.length > 0
-          ? sql`CASE ${sql.join(cases, sql` `)} ELSE ${focus.minConfidence} END`
-          : sql`${focus.minConfidence}`;
-
-      q = q.where(sql`COALESCE(article_focuses.nli, article_focuses.similarity)`, '>=', thresholdExpr);
-    } else {
-      q = q.where(sql`COALESCE(article_focuses.nli, article_focuses.similarity)`, '>=', focus.minConfidence);
+  // Threshold from the in-memory source config so previews
+  // with unsaved overrides work correctly
+  const perSourceMinConfidence = new Map<string, number>();
+  for (const s of focus.sources) {
+    if (s.minConfidence !== null) {
+      perSourceMinConfidence.set(s.sourceId, s.minConfidence);
     }
+  }
+  const confidenceFilter = minConfidenceFilterSql({
+    minConfidence: focus.minConfidence,
+    perSource: perSourceMinConfidence,
+  });
+  if (confidenceFilter) {
+    q = q.where(confidenceFilter);
   }
   if (filters.from) {
     q = q.where('articles.published_at', '>=', filters.from);
@@ -171,7 +166,10 @@ const mapRowToArticle = (
   consumptionTimeSeconds: row.consumption_time_seconds as number | null,
   readAt: row.read_at as string | null,
   createdAt: row.created_at as string,
-  confidence: (row.nli as number | null) ?? (row.similarity as number | null) ?? 0,
+  confidence: effectiveConfidence({
+    nli: row.nli as number | null,
+    similarity: row.similarity as number | null,
+  }),
   score,
   vote: votes?.focus ?? null,
   globalVote: votes?.global ?? null,
@@ -199,7 +197,7 @@ const listRecent = async (ctx: ListContext, base: BaseQuery): Promise<FocusArtic
 
   return {
     articles: rows.map((row) => {
-      const confidence = row.nli ?? row.similarity ?? 0;
+      const confidence = effectiveConfidence(row);
       return mapRowToArticle(row as unknown as Record<string, unknown>, votesMap.get(row.id), confidence);
     }),
     total: ctx.total,
@@ -227,34 +225,23 @@ const listTop = async (ctx: ListContext, base: BaseQuery): Promise<FocusArticles
     sourceWeights.set(src.sourceId, src.weight);
   }
 
-  const candidates = rows.map((row) => {
-    const embeddingBuf = row.embedding as Buffer | null;
-    const embedding = embeddingBuf
-      ? new Float32Array(embeddingBuf.buffer, embeddingBuf.byteOffset, embeddingBuf.byteLength / 4)
-      : null;
-    return {
-      ...row,
-      embedding,
-      articleId: row.id,
-      publishedAt: row.published_at,
-    };
-  });
-
-  const scored = candidates.map((c) => ({
-    item: c,
-    score: computeScore(c, voteContext, userWeights.focus) * (sourceWeights.get(c.source_id) ?? 1),
+  const candidates = rows.map((row) => ({
+    ...row,
+    articleId: row.id,
+    sourceId: row.source_id,
+    publishedAt: row.published_at,
   }));
-  scored.sort((a, b) => b.score - a.score);
 
-  const page = scored.slice(ctx.offset, ctx.offset + ctx.limit);
-  const articleIds = page.map((s) => s.item.id);
+  const ranked = scoreAndRank({ candidates, voteContext, weights: userWeights.focus, sourceWeights });
+
+  const page = ranked.slice(ctx.offset, ctx.offset + ctx.limit);
+  const articleIds = page.map((r) => r.item.id);
   const votesMap = await votesService.getVotesByArticleIds(ctx.userId, articleIds, ctx.focusId);
 
   return {
-    articles: page.map((s) => {
-      const c = s.item;
-      return mapRowToArticle(c as unknown as Record<string, unknown>, votesMap.get(c.id), s.score);
-    }),
+    articles: page.map(({ item, score }) =>
+      mapRowToArticle(item as unknown as Record<string, unknown>, votesMap.get(item.id), score),
+    ),
     total: ctx.total,
     offset: ctx.offset,
     limit: ctx.limit,

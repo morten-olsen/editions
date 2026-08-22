@@ -1,7 +1,12 @@
 import { sql } from 'kysely';
 import type { Kysely } from 'kysely';
 
-const addColumnIfNotExists = async (db: Kysely<unknown>, table: string, column: string, type: string): Promise<void> => {
+const addColumnIfNotExists = async (
+  db: Kysely<unknown>,
+  table: string,
+  column: string,
+  type: string,
+): Promise<void> => {
   const rows = await sql<{ name: string }>`PRAGMA table_info(${sql.ref(table)})`.execute(db);
   const exists = rows.rows.some((r) => r.name === column);
   if (!exists) {

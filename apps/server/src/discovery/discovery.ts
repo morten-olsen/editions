@@ -1,7 +1,6 @@
 import { DatabaseService } from '../database/database.ts';
 import { FocusesService } from '../focuses/focuses.ts';
 import { JobService } from '../jobs/jobs.ts';
-import type { RefreshSourcePayload } from '../jobs/jobs.handlers.ts';
 import { SourcesService } from '../sources/sources.ts';
 import { EditionsService } from '../editions/editions.ts';
 import type { Services } from '../services/services.ts';
@@ -15,11 +14,7 @@ import {
   editionConfigById,
   allTags,
 } from './discovery.catalog.ts';
-import type {
-  DiscoverySource,
-  DiscoveryFocus,
-  DiscoveryEditionConfig,
-} from './discovery.catalog.ts';
+import type { DiscoverySource, DiscoveryFocus, DiscoveryEditionConfig } from './discovery.catalog.ts';
 
 // --- Errors ---
 
@@ -75,18 +70,30 @@ type AdoptEditionConfigResult = {
 
 // --- Filtering helpers ---
 
+// Look up an id recorded during a cascading adopt — the maps are always
+// populated before use, so a miss indicates a catalog inconsistency.
+const requireMappedId = (map: Map<string, string>, key: string): string => {
+  const id = map.get(key);
+  if (id === undefined) {
+    throw new DiscoveryError(`Missing adopted id for discovery item: ${key}`);
+  }
+  return id;
+};
+
 const matchesSearch = (query: string, fields: string[]): boolean => {
   const q = query.toLowerCase();
   return fields.some((f) => f.toLowerCase().includes(q));
 };
 
-const filterItems = <T>(
-  items: T[],
-  search: string | undefined,
-  textFields: (item: T) => string[],
-  tag: string | undefined,
-  tagFields?: (item: T) => string[],
-): T[] => {
+type FilterItemsArgs<T> = {
+  items: T[];
+  search: string | undefined;
+  textFields: (item: T) => string[];
+  tag: string | undefined;
+  tagFields?: (item: T) => string[];
+};
+
+const filterItems = <T>({ items, search, textFields, tag, tagFields }: FilterItemsArgs<T>): T[] => {
   let result = items;
   if (search) {
     result = result.filter((item) => matchesSearch(search, textFields(item)));
@@ -125,21 +132,37 @@ class DiscoveryService {
 
   listSources = (params: DiscoveryListParams = {}): DiscoveryPage<DiscoverySource> => {
     return paginate(
-      filterItems(discoverySources, params.search, (s) => [s.name, s.description], params.tag, (s) => s.tags),
+      filterItems({
+        items: discoverySources,
+        search: params.search,
+        textFields: (s) => [s.name, s.description],
+        tag: params.tag,
+        tagFields: (s) => s.tags,
+      }),
       params,
     );
   };
 
   listFocuses = (params: DiscoveryListParams = {}): DiscoveryPage<DiscoveryFocus> => {
     return paginate(
-      filterItems(discoveryFocuses, params.search, (f) => [f.name, f.description], params.tag),
+      filterItems({
+        items: discoveryFocuses,
+        search: params.search,
+        textFields: (f) => [f.name, f.description],
+        tag: params.tag,
+      }),
       params,
     );
   };
 
   listEditionConfigs = (params: DiscoveryListParams = {}): DiscoveryPage<DiscoveryEditionConfig> => {
     return paginate(
-      filterItems(discoveryEditionConfigs, params.search, (e) => [e.name, e.description], params.tag),
+      filterItems({
+        items: discoveryEditionConfigs,
+        search: params.search,
+        textFields: (e) => [e.name, e.description],
+        tag: params.tag,
+      }),
       params,
     );
   };
@@ -148,19 +171,33 @@ class DiscoveryService {
 
   getAdoptionStatus = async (
     userId: string,
-  ): Promise<{ adoptedSourceUrls: Set<string>; adoptedFocusOrigins: Set<string>; adoptedEditionOrigins: Set<string> }> => {
+  ): Promise<{
+    adoptedSourceUrls: Set<string>;
+    adoptedFocusOrigins: Set<string>;
+    adoptedEditionOrigins: Set<string>;
+  }> => {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     const [sources, focuses, configs] = await Promise.all([
       db.selectFrom('sources').select('url').where('user_id', '=', userId).execute(),
-      db.selectFrom('focuses').select('origin_id').where('user_id', '=', userId).where('origin_id', 'is not', null).execute(),
-      db.selectFrom('edition_configs').select('origin_id').where('user_id', '=', userId).where('origin_id', 'is not', null).execute(),
+      db
+        .selectFrom('focuses')
+        .select('origin_id')
+        .where('user_id', '=', userId)
+        .where('origin_id', 'is not', null)
+        .execute(),
+      db
+        .selectFrom('edition_configs')
+        .select('origin_id')
+        .where('user_id', '=', userId)
+        .where('origin_id', 'is not', null)
+        .execute(),
     ]);
 
     return {
       adoptedSourceUrls: new Set(sources.map((s) => s.url)),
-      adoptedFocusOrigins: new Set(focuses.map((f) => f.origin_id!)),
-      adoptedEditionOrigins: new Set(configs.map((c) => c.origin_id!)),
+      adoptedFocusOrigins: new Set(focuses.map((f) => f.origin_id).filter((id): id is string => id !== null)),
+      adoptedEditionOrigins: new Set(configs.map((c) => c.origin_id).filter((id): id is string => id !== null)),
     };
   };
 
@@ -194,11 +231,7 @@ class DiscoveryService {
     });
 
     // Trigger initial fetch so the source has articles for focus classification
-    this.#services.get(JobService).enqueue<RefreshSourcePayload>(
-      'refresh_source',
-      { sourceId: source.id, userId },
-      { userId },
-    );
+    this.#services.get(JobService).enqueue('refresh_source', { sourceId: source.id, userId }, { userId });
 
     return { sourceId: source.id, created: true };
   };
@@ -245,7 +278,7 @@ class DiscoveryService {
       originId: discoveryFocusId,
       minConfidence: template.minConfidence,
       sources: template.sources.map((s) => ({
-        sourceId: sourceIdMap.get(s.sourceId)!,
+        sourceId: requireMappedId(sourceIdMap, s.sourceId),
         weight: s.weight,
         minConfidence: null,
       })),
@@ -299,7 +332,7 @@ class DiscoveryService {
       schedule: template.schedule,
       lookbackHours: template.lookbackHours,
       focuses: template.focuses.map((f) => ({
-        focusId: focusIdMap.get(f.focusId)!,
+        focusId: requireMappedId(focusIdMap, f.focusId),
         position: f.position,
         budgetType: f.budgetType,
         budgetValue: f.budgetValue,

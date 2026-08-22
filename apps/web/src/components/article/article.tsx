@@ -2,11 +2,11 @@ import * as React from 'react';
 import { motion } from 'motion/react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-
 import type { Components } from 'react-markdown';
 
 import { VoteControls } from '../vote-controls.tsx';
 import type { VoteValue } from '../vote-controls.tsx';
+
 import { ArticleLink } from './article-link.tsx';
 
 /* ── Constants ────────────────────────────────────────────────── */
@@ -241,10 +241,7 @@ const buildMarkdownComponents = (onSaveUrl: (url: string) => Promise<void>): Com
 });
 
 const Body = ({ content, onSaveUrl, delay = 0.4 }: BodyProps): React.ReactElement => {
-  const components = React.useMemo(
-    () => (onSaveUrl ? buildMarkdownComponents(onSaveUrl) : undefined),
-    [onSaveUrl],
-  );
+  const components = React.useMemo(() => (onSaveUrl ? buildMarkdownComponents(onSaveUrl) : undefined), [onSaveUrl]);
 
   return (
     <motion.div
@@ -265,7 +262,9 @@ const Body = ({ content, onSaveUrl, delay = 0.4 }: BodyProps): React.ReactElemen
           first-of-type:prose-p:text-lg first-of-type:prose-p:text-ink first-of-type:prose-p:leading-relaxed
           [&>p:first-of-type]:first-letter:float-left [&>p:first-of-type]:first-letter:text-5xl [&>p:first-of-type]:first-letter:font-serif [&>p:first-of-type]:first-letter:font-bold [&>p:first-of-type]:first-letter:leading-none [&>p:first-of-type]:first-letter:mr-2 [&>p:first-of-type]:first-letter:mt-1 [&>p:first-of-type]:first-letter:text-ink"
       >
-        <Markdown remarkPlugins={remarkPlugins} components={components}>{content}</Markdown>
+        <Markdown remarkPlugins={remarkPlugins} components={components}>
+          {content}
+        </Markdown>
       </div>
     </motion.div>
   );

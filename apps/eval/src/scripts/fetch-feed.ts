@@ -70,23 +70,14 @@ const extractFullContent = async (articleUrl: string): Promise<string | null> =>
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
-// --- Main ---
-
-const run = async (): Promise<void> => {
-  console.log(`Fetching ${url}...`);
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-  }
-
-  const xml = await response.text();
+// Handle RSS 2.0 and Atom feeds
+const parseFeed = (xml: string): { channelTitle: string; items: Record<string, unknown>[] } => {
   const parser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: '@_',
   });
   const parsed = parser.parse(xml) as Record<string, unknown>;
 
-  // Handle RSS 2.0 and Atom feeds
   const rss = parsed['rss'] as Record<string, unknown> | undefined;
   const channel = (rss?.['channel'] ?? parsed['feed']) as Record<string, unknown>;
 
@@ -100,6 +91,101 @@ const run = async (): Promise<void> => {
         ? ((channel['title'] as Record<string, unknown>)['#text'] as string)
         : 'Unknown Feed';
 
+  return { channelTitle, items };
+};
+
+const extractTitle = (item: Record<string, unknown>, index: number): string =>
+  typeof item['title'] === 'string'
+    ? item['title']
+    : typeof item['title'] === 'object'
+      ? ((item['title'] as Record<string, unknown>)['#text'] as string)
+      : `Article ${index + 1}`;
+
+const extractLink = (item: Record<string, unknown>): string | null =>
+  typeof item['link'] === 'string'
+    ? item['link']
+    : typeof item['link'] === 'object'
+      ? ((item['link'] as Record<string, unknown>)['@_href'] as string)
+      : null;
+
+const extractAuthor = (item: Record<string, unknown>): string | null => {
+  const raw = item['author'] ?? item['dc:creator'] ?? null;
+  if (raw === null) {
+    return null;
+  }
+  if (typeof raw === 'string') {
+    return raw;
+  }
+  if (Array.isArray(raw)) {
+    return raw.join(', ');
+  }
+  return String(raw);
+};
+
+// Extract full article content from URL (matching the real pipeline)
+const resolveContent = async (params: {
+  item: Record<string, unknown>;
+  title: string;
+  link: string | null;
+  index: number;
+  total: number;
+}): Promise<string> => {
+  const { item, title, link, index, total } = params;
+  let content = extractRssContent(item);
+
+  if (!skipExtract && link) {
+    process.stdout.write(`  [${index + 1}/${total}] ${title.slice(0, 60)}...`);
+    const fullContent = await extractFullContent(link);
+    if (fullContent) {
+      content = fullContent;
+      process.stdout.write(` ${content.length} chars\n`);
+    } else {
+      process.stdout.write(` (fallback to RSS)\n`);
+    }
+    // Rate limit
+    if (index < total - 1) {
+      await sleep(500);
+    }
+  }
+
+  return content;
+};
+
+const buildArticle = async (params: {
+  item: Record<string, unknown>;
+  index: number;
+  total: number;
+}): Promise<FixtureArticle> => {
+  const { item, index, total } = params;
+
+  const title = extractTitle(item, index);
+  const link = extractLink(item);
+  const pubDate = (item['pubDate'] ?? item['published'] ?? item['updated'] ?? null) as string | null;
+  const content = await resolveContent({ item, title, link, index, total });
+
+  return {
+    id: `article-${String(index + 1).padStart(3, '0')}`,
+    title,
+    content,
+    summary: extractSummary(item),
+    url: link,
+    author: extractAuthor(item),
+    publishedAt: pubDate ? new Date(pubDate).toISOString() : null,
+  };
+};
+
+// --- Main ---
+
+const run = async (): Promise<void> => {
+  console.log(`Fetching ${url}...`);
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+
+  const xml = await response.text();
+  const { channelTitle, items } = parseFeed(xml);
+
   console.log(`Found ${items.length} items in "${channelTitle}"`);
 
   if (!skipExtract) {
@@ -107,65 +193,9 @@ const run = async (): Promise<void> => {
   }
 
   const articles: FixtureArticle[] = [];
-
   for (let index = 0; index < items.length; index++) {
     const item = items[index] as Record<string, unknown>;
-
-    const title =
-      typeof item['title'] === 'string'
-        ? item['title']
-        : typeof item['title'] === 'object'
-          ? ((item['title'] as Record<string, unknown>)['#text'] as string)
-          : `Article ${index + 1}`;
-
-    const link =
-      typeof item['link'] === 'string'
-        ? item['link']
-        : typeof item['link'] === 'object'
-          ? ((item['link'] as Record<string, unknown>)['@_href'] as string)
-          : null;
-
-    const pubDate = (item['pubDate'] ?? item['published'] ?? item['updated'] ?? null) as string | null;
-
-    let content = extractRssContent(item);
-
-    // Extract full article content from URL (matching the real pipeline)
-    if (!skipExtract && link) {
-      process.stdout.write(`  [${index + 1}/${items.length}] ${title.slice(0, 60)}...`);
-      const fullContent = await extractFullContent(link);
-      if (fullContent) {
-        content = fullContent;
-        process.stdout.write(` ${content.length} chars\n`);
-      } else {
-        process.stdout.write(` (fallback to RSS)\n`);
-      }
-      // Rate limit
-      if (index < items.length - 1) {
-        await sleep(500);
-      }
-    }
-
-    articles.push({
-      id: `article-${String(index + 1).padStart(3, '0')}`,
-      title,
-      content,
-      summary: extractSummary(item),
-      url: link,
-      author: (() => {
-        const raw = item['author'] ?? item['dc:creator'] ?? null;
-        if (raw === null) {
-          return null;
-        }
-        if (typeof raw === 'string') {
-          return raw;
-        }
-        if (Array.isArray(raw)) {
-          return raw.join(', ');
-        }
-        return String(raw);
-      })(),
-      publishedAt: pubDate ? new Date(pubDate).toISOString() : null,
-    });
+    articles.push(await buildArticle({ item, index, total: items.length }));
   }
 
   const fixture: FeedFixture = {

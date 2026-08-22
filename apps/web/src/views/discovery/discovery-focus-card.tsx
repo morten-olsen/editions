@@ -2,7 +2,6 @@ import * as React from 'react';
 
 import { Button } from '../../components/button.tsx';
 import { EntityIcon } from '../../components/entity-icon.tsx';
-
 import type { DiscoveryFocus } from '../../hooks/discovery/discovery.hooks.ts';
 
 type DiscoveryFocusCardProps = {
@@ -19,9 +18,7 @@ const DiscoveryFocusCard = ({ focus, sourceNames, onAdopt, adopting }: Discovery
     data-ai-role="section"
     data-ai-label={focus.name}
   >
-    {focus.coverImage && (
-      <img src={focus.coverImage} alt="" className="w-full h-32 object-cover" />
-    )}
+    {focus.coverImage && <img src={focus.coverImage} alt="" className="w-full h-32 object-cover" />}
 
     <div className="p-4">
       <div className="flex items-start gap-3">
@@ -39,12 +36,7 @@ const DiscoveryFocusCard = ({ focus, sourceNames, onAdopt, adopting }: Discovery
               Added
             </span>
           ) : (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => onAdopt(focus.id)}
-              disabled={adopting}
-            >
+            <Button variant="secondary" size="sm" onClick={() => onAdopt(focus.id)} disabled={adopting}>
               Add
             </Button>
           )}

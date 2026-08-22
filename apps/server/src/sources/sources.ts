@@ -6,6 +6,8 @@ import { DatabaseService } from '../database/database.ts';
 import type { SourceType } from '../database/database.types.ts';
 import type { Services } from '../services/services.ts';
 
+import { fetchAndStoreFeed } from './sources.fetch.ts';
+
 // --- Errors ---
 
 class SourceError extends Error {
@@ -30,23 +32,23 @@ type CreateSourceParams = {
   url: string;
   type?: string;
   direction?: string;
-  config?: Record<string, unknown>;
 };
 
 type UpdateSourceParams = {
   name?: string;
   url?: string;
   direction?: string;
-  config?: Record<string, unknown>;
 };
 
+// The sources.config column (type-specific settings JSON) is deliberately NOT
+// part of this interface — nothing reads or writes it yet except the
+// data-portability module, which round-trips the raw column.
 type Source = {
   id: string;
   userId: string;
   type: string;
   name: string;
   url: string;
-  config: Record<string, unknown>;
   direction: string;
   lastFetchedAt: string | null;
   fetchError: string | null;
@@ -161,7 +163,6 @@ class SourcesService {
     const db = await this.#services.get(DatabaseService).getInstance();
 
     const id = crypto.randomUUID();
-    const config = JSON.stringify(params.config ?? {});
 
     await db
       .insertInto('sources')
@@ -171,7 +172,7 @@ class SourcesService {
         type: (params.type ?? 'rss') as SourceType,
         name: params.name,
         url: params.url,
-        config,
+        config: '{}',
         direction: params.direction ?? 'newest',
       })
       .execute();
@@ -198,13 +199,18 @@ class SourcesService {
     if (params.direction !== undefined) {
       values.direction = params.direction;
     }
-    if (params.config !== undefined) {
-      values.config = JSON.stringify(params.config);
-    }
 
     await db.updateTable('sources').set(values).where('id', '=', id).where('user_id', '=', userId).execute();
 
     return this.get(userId, id);
+  };
+
+  // Fetch the source's feed and upsert its items as articles.
+  // Records fetch errors on the source row; rethrows so callers see failure.
+  ingestFeed = async (userId: string, sourceId: string): Promise<void> => {
+    const source = await this.get(userId, sourceId);
+    const db = await this.#services.get(DatabaseService).getInstance();
+    await fetchAndStoreFeed({ db, source });
   };
 
   listArticles = async (
@@ -409,7 +415,6 @@ const toSource = (row: {
   type: string;
   name: string;
   url: string;
-  config: string;
   direction: string;
   last_fetched_at: string | null;
   fetch_error: string | null;
@@ -421,7 +426,6 @@ const toSource = (row: {
   type: row.type,
   name: row.name,
   url: row.url,
-  config: JSON.parse(row.config) as Record<string, unknown>,
   direction: row.direction,
   lastFetchedAt: row.last_fetched_at,
   fetchError: row.fetch_error,

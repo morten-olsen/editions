@@ -1,5 +1,3 @@
-import crypto from 'node:crypto';
-
 import Stripe from 'stripe';
 
 import { ConfigService } from '../config/config.ts';
@@ -7,6 +5,8 @@ import { DatabaseService } from '../database/database.ts';
 import { Services } from '../services/services.ts';
 
 import type { AccessState, AccessStatus, PaymentSettings, UpdatePaymentSettings } from './billing.schemas.ts';
+import { applyBillingWebhookEvent } from './billing.webhooks.ts';
+import type { WebhookDeps } from './billing.webhooks.ts';
 
 // --- Constants ---
 
@@ -38,6 +38,46 @@ class AccessExpiredError extends Error {
   }
 }
 
+// --- Private helpers ---
+
+// Create a new Stripe price for one billing interval when the configured
+// amount changed, deactivating the previous price. Returns the price id to
+// store ('' when the interval is disabled or was just disabled).
+const syncIntervalPrice = async ({
+  stripe,
+  productId,
+  interval,
+  newCents,
+  currentCents,
+  currentPriceId,
+}: {
+  stripe: Stripe;
+  productId: string;
+  interval: 'month' | 'year';
+  newCents: number | undefined;
+  currentCents: number;
+  currentPriceId: string;
+}): Promise<string> => {
+  if (newCents === undefined || newCents === currentCents) {
+    return currentPriceId;
+  }
+
+  let priceId = '';
+  if (newCents > 0) {
+    const price = await stripe.prices.create({
+      product: productId,
+      unit_amount: newCents,
+      currency: 'usd',
+      recurring: { interval },
+    });
+    priceId = price.id;
+  }
+  if (currentPriceId) {
+    await stripe.prices.update(currentPriceId, { active: false });
+  }
+  return priceId;
+};
+
 type AdminUserView = {
   id: string;
   username: string;
@@ -59,7 +99,9 @@ class BillingService {
   }
 
   #getStripe = (): Stripe => {
-    if (this.#stripe) return this.#stripe;
+    if (this.#stripe) {
+      return this.#stripe;
+    }
     const config = this.#services.get(ConfigService).config.stripe;
     if (!config.secretKey) {
       throw new BillingNotConfiguredError();
@@ -74,8 +116,12 @@ class BillingService {
   };
 
   isPaymentEnabled = async (): Promise<boolean> => {
-    if (!this.isStripeConfigured()) return false;
-    if (this.#paymentEnabledCache !== null) return this.#paymentEnabledCache;
+    if (!this.isStripeConfigured()) {
+      return false;
+    }
+    if (this.#paymentEnabledCache !== null) {
+      return this.#paymentEnabledCache;
+    }
     const settings = await this.getSettings();
     this.#paymentEnabledCache = settings.enabled;
     return this.#paymentEnabledCache;
@@ -84,12 +130,20 @@ class BillingService {
   // --- Access assertion ---
 
   assertAccess = async (userId: string): Promise<void> => {
-    if (!(await this.isPaymentEnabled())) return;
+    if (!(await this.isPaymentEnabled())) {
+      return;
+    }
     const db = await this.#services.get(DatabaseService).getInstance();
     const user = await db.selectFrom('users').select('access_expires_at').where('id', '=', userId).executeTakeFirst();
-    if (!user) throw new AccessExpiredError();
-    if (user.access_expires_at === null) return; // unlimited
-    if (new Date(user.access_expires_at).getTime() > Date.now()) return; // still active
+    if (!user) {
+      throw new AccessExpiredError();
+    }
+    if (user.access_expires_at === null) {
+      return;
+    } // unlimited
+    if (new Date(user.access_expires_at).getTime() > Date.now()) {
+      return;
+    } // still active
     throw new AccessExpiredError();
   };
 
@@ -97,68 +151,66 @@ class BillingService {
 
   getSettings = async (): Promise<PaymentSettings> => {
     const db = await this.#services.get(DatabaseService).getInstance();
-    const row = await db.selectFrom('settings').select('value').where('key', '=', PAYMENT_SETTINGS_KEY).executeTakeFirst();
-    if (!row) return { ...DEFAULT_PAYMENT_SETTINGS };
+    const row = await db
+      .selectFrom('settings')
+      .select('value')
+      .where('key', '=', PAYMENT_SETTINGS_KEY)
+      .executeTakeFirst();
+    if (!row) {
+      return { ...DEFAULT_PAYMENT_SETTINGS };
+    }
     return { ...DEFAULT_PAYMENT_SETTINGS, ...(JSON.parse(row.value) as Partial<PaymentSettings>) };
   };
 
-  updateSettings = async (patch: UpdatePaymentSettings): Promise<PaymentSettings> => {
-    const current = await this.getSettings();
-
+  // Only touch Stripe when prices actually change
+  #syncStripePrices = async (
+    patch: UpdatePaymentSettings,
+    current: PaymentSettings,
+  ): Promise<{ productId: string; monthlyPriceId: string; yearlyPriceId: string }> => {
     const hasPriceChanges =
       (patch.monthlyPriceCents !== undefined && patch.monthlyPriceCents !== current.monthlyPriceCents) ||
       (patch.yearlyPriceCents !== undefined && patch.yearlyPriceCents !== current.yearlyPriceCents);
 
-    let productId = current.stripeProductId;
-    let monthlyPriceId = current.monthlyStripePriceId;
-    let yearlyPriceId = current.yearlyStripePriceId;
-
-    // Only touch Stripe when prices actually change
-    if (hasPriceChanges) {
-      const stripe = this.#getStripe();
-
-      // Ensure we have a Stripe product
-      if (!productId) {
-        const product = await stripe.products.create({ name: 'Editions Subscription' });
-        productId = product.id;
-      }
-
-      // Handle monthly price change
-      if (patch.monthlyPriceCents !== undefined && patch.monthlyPriceCents !== current.monthlyPriceCents) {
-        if (patch.monthlyPriceCents > 0) {
-          const price = await stripe.prices.create({
-            product: productId,
-            unit_amount: patch.monthlyPriceCents,
-            currency: 'usd',
-            recurring: { interval: 'month' },
-          });
-          monthlyPriceId = price.id;
-        } else {
-          monthlyPriceId = '';
-        }
-        if (current.monthlyStripePriceId) {
-          await stripe.prices.update(current.monthlyStripePriceId, { active: false });
-        }
-      }
-
-      // Handle yearly price change
-      if (patch.yearlyPriceCents !== undefined && patch.yearlyPriceCents !== current.yearlyPriceCents) {
-        if (patch.yearlyPriceCents > 0) {
-          const price = await stripe.prices.create({
-            product: productId,
-            unit_amount: patch.yearlyPriceCents,
-            currency: 'usd',
-            recurring: { interval: 'year' },
-          });
-          yearlyPriceId = price.id;
-        } else {
-          yearlyPriceId = '';
-        }
-        if (current.yearlyStripePriceId) {
-          await stripe.prices.update(current.yearlyStripePriceId, { active: false });
-        }
-      }
+    if (!hasPriceChanges) {
+      return {
+        productId: current.stripeProductId,
+        monthlyPriceId: current.monthlyStripePriceId,
+        yearlyPriceId: current.yearlyStripePriceId,
+      };
     }
+
+    const stripe = this.#getStripe();
+
+    // Ensure we have a Stripe product
+    let productId = current.stripeProductId;
+    if (!productId) {
+      const product = await stripe.products.create({ name: 'Editions Subscription' });
+      productId = product.id;
+    }
+
+    const monthlyPriceId = await syncIntervalPrice({
+      stripe,
+      productId,
+      interval: 'month',
+      newCents: patch.monthlyPriceCents,
+      currentCents: current.monthlyPriceCents,
+      currentPriceId: current.monthlyStripePriceId,
+    });
+    const yearlyPriceId = await syncIntervalPrice({
+      stripe,
+      productId,
+      interval: 'year',
+      newCents: patch.yearlyPriceCents,
+      currentCents: current.yearlyPriceCents,
+      currentPriceId: current.yearlyStripePriceId,
+    });
+
+    return { productId, monthlyPriceId, yearlyPriceId };
+  };
+
+  updateSettings = async (patch: UpdatePaymentSettings): Promise<PaymentSettings> => {
+    const current = await this.getSettings();
+    const { productId, monthlyPriceId, yearlyPriceId } = await this.#syncStripePrices(patch, current);
 
     const updated: PaymentSettings = {
       enabled: patch.enabled ?? current.enabled,
@@ -187,7 +239,9 @@ class BillingService {
   getAccessStatus = async (userId: string): Promise<AccessStatus> => {
     const db = await this.#services.get(DatabaseService).getInstance();
     const user = await db.selectFrom('users').select('access_expires_at').where('id', '=', userId).executeTakeFirst();
-    if (!user) return { state: 'expired', expiresAt: null, daysRemaining: null };
+    if (!user) {
+      return { state: 'expired', expiresAt: null, daysRemaining: null };
+    }
     return this.#computeAccessStatus(user.access_expires_at);
   };
 
@@ -210,10 +264,14 @@ class BillingService {
     return { state: 'active', expiresAt, daysRemaining };
   };
 
-  getAccessStatusWithSubscription = async (userId: string): Promise<{ access: AccessStatus; hasSubscription: boolean }> => {
+  getAccessStatusWithSubscription = async (
+    userId: string,
+  ): Promise<{ access: AccessStatus; hasSubscription: boolean }> => {
     const db = await this.#services.get(DatabaseService).getInstance();
     const user = await db.selectFrom('users').select('access_expires_at').where('id', '=', userId).executeTakeFirst();
-    if (!user) return { access: { state: 'expired', expiresAt: null, daysRemaining: null }, hasSubscription: false };
+    if (!user) {
+      return { access: { state: 'expired', expiresAt: null, daysRemaining: null }, hasSubscription: false };
+    }
 
     const sub = await db
       .selectFrom('subscriptions')
@@ -240,7 +298,9 @@ class BillingService {
       .where('id', '=', userId)
       .executeTakeFirstOrThrow();
 
-    if (user.stripe_customer_id) return user.stripe_customer_id;
+    if (user.stripe_customer_id) {
+      return user.stripe_customer_id;
+    }
 
     const stripe = this.#getStripe();
     const customer = await stripe.customers.create({
@@ -283,7 +343,9 @@ class BillingService {
       metadata: { editions_user_id: userId },
     });
 
-    if (!session.url) throw new Error('Failed to create checkout session');
+    if (!session.url) {
+      throw new Error('Failed to create checkout session');
+    }
     return session.url;
   };
 
@@ -303,154 +365,25 @@ class BillingService {
 
   // --- Webhooks ---
 
+  // Verify half: signature check needs Stripe + the webhook secret
   handleWebhookEvent = async (rawBody: string | Buffer, signature: string): Promise<void> => {
     const stripe = this.#getStripe();
     const webhookSecret = this.#services.get(ConfigService).config.stripe.webhookSecret;
 
     const event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
-
-    switch (event.type) {
-      case 'checkout.session.completed':
-        await this.#handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
-        break;
-      case 'invoice.paid':
-        await this.#handleInvoicePaid(event.data.object as Stripe.Invoice);
-        break;
-      case 'invoice.payment_failed':
-        await this.#handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
-        break;
-      case 'customer.subscription.updated':
-        await this.#handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
-        break;
-      case 'customer.subscription.deleted':
-        await this.#handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
-        break;
-    }
+    await this.applyWebhookEvent(event);
   };
 
-  #handleCheckoutCompleted = async (session: Stripe.Checkout.Session): Promise<void> => {
-    const userId = session.metadata?.['editions_user_id'];
-    if (!userId || !session.subscription) return;
-
-    const stripe = this.#getStripe();
-    const subscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription.id;
-    const sub = await stripe.subscriptions.retrieve(subscriptionId);
-    const item = sub.items.data[0];
-    if (!item) return;
-
-    await this.#upsertSubscription(userId, sub, item);
+  // Apply half: pure event routing — testable from a JSON fixture, no signature.
+  // Event handling lives in billing.webhooks.ts.
+  applyWebhookEvent = async (event: Stripe.Event): Promise<void> => {
+    await applyBillingWebhookEvent(this.#webhookDeps(), event);
   };
 
-  #getSubscriptionIdFromInvoice = (invoice: Stripe.Invoice): string | null => {
-    const subDetails = invoice.parent?.subscription_details;
-    if (!subDetails) return null;
-    return typeof subDetails.subscription === 'string' ? subDetails.subscription : subDetails.subscription.id;
-  };
-
-  #handleInvoicePaid = async (invoice: Stripe.Invoice): Promise<void> => {
-    const subscriptionId = this.#getSubscriptionIdFromInvoice(invoice);
-    if (!subscriptionId) return;
-
-    const stripe = this.#getStripe();
-    const sub = await stripe.subscriptions.retrieve(subscriptionId);
-    const item = sub.items.data[0];
-    if (!item) return;
-
-    const db = await this.#services.get(DatabaseService).getInstance();
-    const existing = await db
-      .selectFrom('subscriptions')
-      .select('user_id')
-      .where('stripe_subscription_id', '=', subscriptionId)
-      .executeTakeFirst();
-
-    if (existing) {
-      await this.#upsertSubscription(existing.user_id, sub, item);
-    }
-  };
-
-  #handleInvoicePaymentFailed = async (invoice: Stripe.Invoice): Promise<void> => {
-    const subscriptionId = this.#getSubscriptionIdFromInvoice(invoice);
-    if (!subscriptionId) return;
-
-    const db = await this.#services.get(DatabaseService).getInstance();
-    await db
-      .updateTable('subscriptions')
-      .set({ status: 'past_due', updated_at: new Date().toISOString() })
-      .where('stripe_subscription_id', '=', subscriptionId)
-      .execute();
-  };
-
-  #handleSubscriptionUpdated = async (sub: Stripe.Subscription): Promise<void> => {
-    const db = await this.#services.get(DatabaseService).getInstance();
-    const existing = await db
-      .selectFrom('subscriptions')
-      .select('user_id')
-      .where('stripe_subscription_id', '=', sub.id)
-      .executeTakeFirst();
-
-    if (!existing) return;
-
-    const item = sub.items.data[0];
-    if (!item) return;
-
-    await this.#upsertSubscription(existing.user_id, sub, item);
-  };
-
-  #handleSubscriptionDeleted = async (sub: Stripe.Subscription): Promise<void> => {
-    const db = await this.#services.get(DatabaseService).getInstance();
-    await db
-      .updateTable('subscriptions')
-      .set({ status: 'cancelled', updated_at: new Date().toISOString() })
-      .where('stripe_subscription_id', '=', sub.id)
-      .execute();
-    // access_expires_at stays at current_period_end — runs out naturally
-  };
-
-  #upsertSubscription = async (userId: string, sub: Stripe.Subscription, item: Stripe.SubscriptionItem): Promise<void> => {
-    const db = await this.#services.get(DatabaseService).getInstance();
-    const now = new Date().toISOString();
-    const periodEnd = new Date(item.current_period_end * 1000).toISOString();
-    const periodStart = new Date(item.current_period_start * 1000).toISOString();
-    const interval = item.price.recurring?.interval === 'year' ? 'yearly' : 'monthly';
-    const status = sub.status === 'active' ? 'active' : sub.status === 'past_due' ? 'past_due' : 'active';
-
-    await db
-      .insertInto('subscriptions')
-      .values({
-        id: crypto.randomUUID(),
-        user_id: userId,
-        stripe_subscription_id: sub.id,
-        stripe_price_id: item.price.id,
-        status,
-        interval,
-        current_period_start: periodStart,
-        current_period_end: periodEnd,
-        cancel_at_period_end: sub.cancel_at_period_end ? 1 : 0,
-        created_at: now,
-        updated_at: now,
-      })
-      .onConflict((oc) =>
-        oc.column('user_id').doUpdateSet({
-          stripe_subscription_id: sub.id,
-          stripe_price_id: item.price.id,
-          status,
-          interval,
-          current_period_start: periodStart,
-          current_period_end: periodEnd,
-          cancel_at_period_end: sub.cancel_at_period_end ? 1 : 0,
-          updated_at: now,
-        }),
-      )
-      .execute();
-
-    // Extend access — only if this would extend it, never shorten
-    await db
-      .updateTable('users')
-      .set({ access_expires_at: periodEnd })
-      .where('id', '=', userId)
-      .where((eb) => eb.or([eb('access_expires_at', 'is', null), eb('access_expires_at', '<', periodEnd)]))
-      .execute();
-  };
+  #webhookDeps = (): WebhookDeps => ({
+    getDb: () => this.#services.get(DatabaseService).getInstance(),
+    getStripe: this.#getStripe,
+  });
 
   // --- Admin: user access management ---
 
@@ -468,7 +401,9 @@ class BillingService {
       .where('status', 'in', ['active', 'past_due'])
       .executeTakeFirst();
 
-    if (!sub) return;
+    if (!sub) {
+      return;
+    }
 
     const stripe = this.#getStripe();
     await stripe.subscriptions.cancel(sub.stripe_subscription_id);
@@ -517,7 +452,9 @@ class BillingService {
       .select(['id', 'username', 'role', 'access_expires_at'])
       .where('id', '=', userId)
       .executeTakeFirst();
-    if (!user) return null;
+    if (!user) {
+      return null;
+    }
     const sub = await db.selectFrom('subscriptions').selectAll().where('user_id', '=', userId).executeTakeFirst();
     return this.#formatUserAccess(user, sub);
   };
@@ -525,9 +462,13 @@ class BillingService {
   // --- Trial setup ---
 
   applyTrial = async (userId: string): Promise<void> => {
-    if (!(await this.isPaymentEnabled())) return;
+    if (!(await this.isPaymentEnabled())) {
+      return;
+    }
     const settings = await this.getSettings();
-    if (settings.trialDays <= 0) return;
+    if (settings.trialDays <= 0) {
+      return;
+    }
 
     const expiresAt = new Date(Date.now() + settings.trialDays * 24 * 60 * 60 * 1000).toISOString();
     const db = await this.#services.get(DatabaseService).getInstance();

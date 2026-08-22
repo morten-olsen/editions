@@ -13,11 +13,10 @@ import {
   validatorCompiler,
   hasZodFastifySchemaValidationErrors,
 } from 'fastify-type-provider-zod';
-
-import { AccessExpiredError, BillingNotConfiguredError } from './billing/billing.ts';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 
+import { AccessExpiredError, BillingNotConfiguredError } from './billing/billing.ts';
 import { registerRoutes } from './api/api.ts';
 import { ConfigService } from './config/config.ts';
 import { DatabaseService } from './database/database.ts';
@@ -28,6 +27,7 @@ import { Services, destroySymbol } from './services/services.ts';
 
 type App = {
   server: FastifyInstance;
+  services: Services;
   start: () => Promise<void>;
   stop: () => Promise<void>;
 };
@@ -123,7 +123,7 @@ const recoverUnanalysedArticles = async (services: Services, log: FastifyInstanc
     .executeTakeFirstOrThrow();
   const recovered = Number(result.count);
   if (recovered > 0) {
-    services.get(JobService).enqueue<Record<string, never>>('reanalyse_all', {}, {});
+    services.get(JobService).enqueue('reanalyse_all', {}, {});
     log.info(`Enqueued ${recovered} articles for analysis recovery`);
   }
 };
@@ -158,7 +158,7 @@ const createApp = async ({ logger = true }: { logger?: boolean } = {}): Promise<
     await services.destroy();
   };
 
-  return { server: fastify, start, stop };
+  return { server: fastify, services, start, stop };
 };
 
 export type { App };

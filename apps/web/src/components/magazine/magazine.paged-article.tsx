@@ -13,6 +13,8 @@ import type { ArticlePage, ArticleOpener, PaginateResult } from './magazine.pagi
 import type { MeasuredTextSegment } from './magazine.measure.ts';
 import type { InlineSpan, TextSegment } from './magazine.segments.ts';
 import { MagazinePage } from './magazine.layout.tsx';
+import type { ArticleStyle } from './magazine.openers.tsx';
+import { ArticlePageOpener } from './magazine.openers.tsx';
 
 /* ── Constants ────────────────────────────────────────────────── */
 
@@ -21,10 +23,6 @@ const easeOut = [0, 0, 0.15, 1] as const;
 /** Height reserved for the bottom navigation bar */
 const NAV_BAR_HEIGHT = 56;
 
-/* ── Article style (visual variety) ───────────────────────────── */
-
-type ArticleStyle = 'standard' | 'feature' | 'minimal';
-
 /* ── Inline markup rendering ──────────────────────────────────── */
 
 /**
@@ -32,7 +30,9 @@ type ArticleStyle = 'standard' | 'feature' | 'minimal';
  * Uses indexOf with a search-start hint to handle repeated substrings.
  */
 const findLineOffset = (fullText: string, lineText: string, searchFrom: number): number => {
-  if (lineText.length === 0) return searchFrom;
+  if (lineText.length === 0) {
+    return searchFrom;
+  }
   const idx = fullText.indexOf(lineText, searchFrom);
   // Fallback: if exact match fails (rare edge case with whitespace normalization),
   // use the search-from position
@@ -43,7 +43,6 @@ const findLineOffset = (fullText: string, lineText: string, searchFrom: number):
  * Render a line's text with inline markup spans applied.
  */
 const renderLineWithSpans = (
-  _fullText: string,
   spans: InlineSpan[],
   lineText: string,
   lineStart: number,
@@ -78,7 +77,11 @@ const renderLineWithSpans = (
 
     switch (span.kind) {
       case 'bold':
-        elements.push(<strong key={key} className="font-semibold text-ink">{spanText}</strong>);
+        elements.push(
+          <strong key={key} className="font-semibold text-ink">
+            {spanText}
+          </strong>,
+        );
         break;
       case 'italic':
         elements.push(<em key={key}>{spanText}</em>);
@@ -92,7 +95,13 @@ const renderLineWithSpans = (
         break;
       case 'link':
         elements.push(
-          <a key={key} href={span.href} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
+          <a
+            key={key}
+            href={span.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent hover:underline"
+          >
             {spanText}
           </a>,
         );
@@ -188,10 +197,10 @@ const TextRegion = ({ measured, lineRange, isDropCap }: TextRegionProps): React.
                 <span className="float-left text-[3.2em] font-serif font-semibold leading-[0.8] mr-2 mt-0.5 text-ink">
                   {line.text[0]}
                 </span>
-                {renderLineWithSpans(segment.text, segment.inlineSpans, line.text.slice(1), lineOffset + 1, `l${lineIdx}`)}
+                {renderLineWithSpans(segment.inlineSpans, line.text.slice(1), lineOffset + 1, `l${lineIdx}`)}
               </>
             ) : (
-              renderLineWithSpans(segment.text, segment.inlineSpans, line.text, lineOffset, `l${lineIdx}`)
+              renderLineWithSpans(segment.inlineSpans, line.text, lineOffset, `l${lineIdx}`)
             )}
           </span>
         );
@@ -230,94 +239,31 @@ const HrRegion = (): React.ReactElement => (
   </div>
 );
 
-/* ── Article opener variants ──────────────────────────────────── */
-
-type OpenerProps = {
-  opener: ArticleOpener;
-  style: ArticleStyle;
-  imageHeight?: number;
-};
-
-const ArticlePageOpener = ({ opener, style, imageHeight }: OpenerProps): React.ReactElement => {
-  if (style === 'feature') {
-    return <FeatureOpener opener={opener} imageHeight={imageHeight} />;
-  }
-  if (style === 'minimal') {
-    return <MinimalOpener opener={opener} />;
-  }
-  return <StandardOpener opener={opener} imageHeight={imageHeight} />;
-};
-
-/** Standard opener: source → title → byline → image → divider */
-const StandardOpener = ({ opener, imageHeight }: { opener: ArticleOpener; imageHeight?: number }): React.ReactElement => (
-  <div className="mb-4">
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, ease: easeOut }}
-      className="text-xs font-mono tracking-wide text-accent mb-2">{opener.sourceName}</motion.div>
-    <motion.h2 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: easeOut, delay: 0.1 }}
-      className="font-serif text-2xl md:text-3xl tracking-tight leading-tight text-ink mb-2">{opener.title}</motion.h2>
-    <OpenerByline opener={opener} delay={0.2} />
-    {opener.imageUrl && imageHeight && (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, ease: easeOut, delay: 0.15 }}
-        className="rounded-lg overflow-hidden bg-surface-sunken my-3" style={{ height: imageHeight }}>
-        <img src={opener.imageUrl} alt="" className="w-full h-full object-cover" />
-      </motion.div>
-    )}
-    <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.5, ease: easeOut, delay: 0.25 }}
-      className="w-12 h-px bg-border-strong origin-left mb-3" />
-  </div>
-);
-
-/** Feature opener: large title with accent treatment, image below */
-const FeatureOpener = ({ opener, imageHeight }: { opener: ArticleOpener; imageHeight?: number }): React.ReactElement => (
-  <div className="mb-4">
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, ease: easeOut }}
-      className="text-xs font-mono tracking-widest text-accent uppercase mb-3">{opener.sourceName}</motion.div>
-    <motion.h2 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: easeOut, delay: 0.1 }}
-      className="font-serif text-3xl md:text-4xl lg:text-5xl tracking-tight leading-none text-ink mb-3">{opener.title}</motion.h2>
-    {opener.summary && (
-      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, ease: easeOut, delay: 0.2 }}
-        className="font-serif text-lg leading-relaxed text-ink-secondary mb-3 max-w-prose">{opener.summary}</motion.p>
-    )}
-    <OpenerByline opener={opener} delay={0.25} />
-    {opener.imageUrl && imageHeight && (
-      <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, ease: easeOut, delay: 0.15 }}
-        className="rounded-lg overflow-hidden bg-surface-sunken my-3" style={{ height: imageHeight }}>
-        <img src={opener.imageUrl} alt="" className="w-full h-full object-cover" />
-      </motion.div>
-    )}
-    <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.5, ease: easeOut, delay: 0.3 }}
-      className="w-16 h-px bg-accent origin-left mb-3" />
-  </div>
-);
-
-/** Minimal opener: subtle section rule, compact typography */
-const MinimalOpener = ({ opener }: { opener: ArticleOpener }): React.ReactElement => (
-  <div className="mb-4">
-    <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.4, ease: easeOut }}
-      className="w-8 h-px bg-border-strong origin-left mb-3" />
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, ease: easeOut, delay: 0.1 }}
-      className="text-xs font-mono tracking-wide text-ink-tertiary mb-2">{opener.sourceName}</motion.div>
-    <motion.h2 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: easeOut, delay: 0.15 }}
-      className="font-serif text-xl md:text-2xl tracking-tight leading-snug text-ink mb-2">{opener.title}</motion.h2>
-    <OpenerByline opener={opener} delay={0.2} />
-  </div>
-);
-
-/** Shared byline row */
-const OpenerByline = ({ opener, delay }: { opener: ArticleOpener; delay: number }): React.ReactElement => (
-  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, ease: easeOut, delay }}
-    className="flex items-center gap-3 text-xs text-ink-tertiary mb-2">
-    {opener.author && <span>By {opener.author}</span>}
-    {opener.consumptionTimeSeconds && (
-      <>
-        {opener.author && <span className="text-ink-faint">·</span>}
-        <span>{Math.round(opener.consumptionTimeSeconds / 60)} min {opener.sourceType === 'podcast' ? 'listen' : 'read'}</span>
-      </>
-    )}
-  </motion.div>
-);
-
 /* ── PagedArticlePage ─────────────────────────────────────────── */
+
+type ArticlePageFooterProps = {
+  contentWidth: number;
+  footer?: React.ReactNode;
+  isLastPage: boolean;
+};
+
+const ArticlePageFooter = ({ contentWidth, footer, isLastPage }: ArticlePageFooterProps): React.ReactElement | null => {
+  if (!isLastPage || !footer) {
+    return null;
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4, ease: easeOut, delay: 0.2 }}
+      className="mt-auto pt-4"
+      style={{ width: contentWidth }}
+    >
+      {footer}
+    </motion.div>
+  );
+};
 
 type PagedArticlePageProps = {
   page: ArticlePage;
@@ -361,7 +307,9 @@ const PagedArticlePage = ({
             <ArticlePageOpener
               opener={opener}
               style={style}
-              imageHeight={opener.imageUrl ? Math.min(contentWidth / (16 / 9), effectiveContentHeight * 0.25) : undefined}
+              imageHeight={
+                opener.imageUrl ? Math.min(contentWidth / (16 / 9), effectiveContentHeight * 0.25) : undefined
+              }
             />
           </div>
         )}
@@ -381,11 +329,7 @@ const PagedArticlePage = ({
               const x = region.column === 0 ? 0 : columnWidth + columnGap;
 
               return (
-                <div
-                  key={rIdx}
-                  className="absolute"
-                  style={{ top: region.y, left: x, width: columnWidth }}
-                >
+                <div key={rIdx} className="absolute" style={{ top: region.y, left: x, width: columnWidth }}>
                   <RegionRenderer
                     region={region}
                     isDropCap={
@@ -401,18 +345,7 @@ const PagedArticlePage = ({
           </div>
         )}
 
-        {/* Footer on last page */}
-        {page.isLastPage && footer && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4, ease: easeOut, delay: 0.2 }}
-            className="mt-auto pt-4"
-            style={{ width: contentWidth }}
-          >
-            {footer}
-          </motion.div>
-        )}
+        <ArticlePageFooter contentWidth={contentWidth} footer={footer} isLastPage={page.isLastPage} />
       </motion.div>
     </MagazinePage>
   );
@@ -433,11 +366,7 @@ const RegionRenderer = ({ region, isDropCap }: RegionRendererProps): React.React
     case 'heading':
     case 'blockquote':
       return (
-        <TextRegion
-          measured={measured as MeasuredTextSegment}
-          lineRange={region.lineRange}
-          isDropCap={isDropCap}
-        />
+        <TextRegion measured={measured as MeasuredTextSegment} lineRange={region.lineRange} isDropCap={isDropCap} />
       );
 
     case 'image':
@@ -456,8 +385,12 @@ const RegionRenderer = ({ region, isDropCap }: RegionRendererProps): React.React
 /** Rotate article styles for visual variety, like the old hero/editorial/compact rotation */
 const styleForPosition = (positionInSection: number): ArticleStyle => {
   const variant = positionInSection % 3;
-  if (variant === 0) return 'feature';
-  if (variant === 1) return 'standard';
+  if (variant === 0) {
+    return 'feature';
+  }
+  if (variant === 1) {
+    return 'standard';
+  }
   return 'minimal';
 };
 

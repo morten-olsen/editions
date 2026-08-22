@@ -79,7 +79,8 @@ const longArticle: ArticleInput = {
   title: 'The quiet revolution in reader design',
   sourceName: 'Ars Technica',
   author: 'Samuel Axon',
-  summary: "How a new generation of reading apps is rethinking the relationship between content, interface, and the reader's attention span.",
+  summary:
+    "How a new generation of reading apps is rethinking the relationship between content, interface, and the reader's attention span.",
   publishedAt: new Date(now - 3 * 60 * 60 * 1000).toISOString(),
   consumptionTimeSeconds: 480,
   imageUrl: 'https://picsum.photos/seed/reader-paged/800/600',

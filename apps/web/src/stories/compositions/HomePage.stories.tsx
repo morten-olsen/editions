@@ -99,11 +99,51 @@ const sampleEditions: HomeEdition[] = [
 ];
 
 const sampleIssues: EditionSummary[] = [
-  { id: 'ed-1', title: 'Morning Brief — Mar 24', publishedAt: '2026-03-24T07:00:00Z', articleCount: 8, totalReadingMinutes: 14, readAt: null, configName: 'Morning Brief' },
-  { id: 'ed-3', title: 'Morning Brief — Mar 23', publishedAt: '2026-03-23T07:00:00Z', articleCount: 6, totalReadingMinutes: 11, readAt: null, configName: 'Morning Brief' },
-  { id: 'ed-5', title: 'Morning Brief — Mar 22', publishedAt: '2026-03-22T07:00:00Z', articleCount: 7, totalReadingMinutes: 12, readAt: null, configName: 'Morning Brief' },
-  { id: 'ed-7', title: 'Morning Brief — Mar 21', publishedAt: '2026-03-21T07:00:00Z', articleCount: 5, totalReadingMinutes: 9, readAt: '2026-03-21T19:00:00Z', configName: 'Morning Brief' },
-  { id: 'ed-9', title: 'Morning Brief — Mar 20', publishedAt: '2026-03-20T07:00:00Z', articleCount: 8, totalReadingMinutes: 15, readAt: '2026-03-20T18:30:00Z', configName: 'Morning Brief' },
+  {
+    id: 'ed-1',
+    title: 'Morning Brief — Mar 24',
+    publishedAt: '2026-03-24T07:00:00Z',
+    articleCount: 8,
+    totalReadingMinutes: 14,
+    readAt: null,
+    configName: 'Morning Brief',
+  },
+  {
+    id: 'ed-3',
+    title: 'Morning Brief — Mar 23',
+    publishedAt: '2026-03-23T07:00:00Z',
+    articleCount: 6,
+    totalReadingMinutes: 11,
+    readAt: null,
+    configName: 'Morning Brief',
+  },
+  {
+    id: 'ed-5',
+    title: 'Morning Brief — Mar 22',
+    publishedAt: '2026-03-22T07:00:00Z',
+    articleCount: 7,
+    totalReadingMinutes: 12,
+    readAt: null,
+    configName: 'Morning Brief',
+  },
+  {
+    id: 'ed-7',
+    title: 'Morning Brief — Mar 21',
+    publishedAt: '2026-03-21T07:00:00Z',
+    articleCount: 5,
+    totalReadingMinutes: 9,
+    readAt: '2026-03-21T19:00:00Z',
+    configName: 'Morning Brief',
+  },
+  {
+    id: 'ed-9',
+    title: 'Morning Brief — Mar 20',
+    publishedAt: '2026-03-20T07:00:00Z',
+    articleCount: 8,
+    totalReadingMinutes: 15,
+    readAt: '2026-03-20T18:30:00Z',
+    configName: 'Morning Brief',
+  },
 ];
 
 /* ── Presentational components ────────────────────────────────────── */
@@ -185,7 +225,9 @@ const CoverCardStatic = ({ edition }: { edition: HomeEdition }): React.ReactElem
           <div className="mt-auto pt-4">
             {edition.lead && (
               <>
-                <div className={`font-mono text-xs tracking-wide mb-2 ${hasImage ? 'text-white/60' : 'text-ink-faint'}`}>
+                <div
+                  className={`font-mono text-xs tracking-wide mb-2 ${hasImage ? 'text-white/60' : 'text-ink-faint'}`}
+                >
                   {edition.lead.sourceName}
                 </div>
                 <h3
@@ -498,57 +540,55 @@ const AllRead: Story = {
 };
 
 /* All Issues view — unread filter */
-const AllIssuesUnread: Story = {
-  render: () => {
-    const [filter, setFilter] = useState<'unread' | 'all'>('unread');
-    const issues = filter === 'unread' ? sampleIssues.filter((i) => !i.readAt) : sampleIssues;
+const AllIssuesDemo = (): React.ReactElement => {
+  const [filter, setFilter] = useState<'unread' | 'all'>('unread');
+  const issues = filter === 'unread' ? sampleIssues.filter((i) => !i.readAt) : sampleIssues;
 
-    return (
-      <ContentShell>
-        <div className="mb-8">
-          <span className="font-mono text-xs tracking-wide text-ink-faint mb-4 inline-block cursor-pointer">
-            ← Back
-          </span>
-          <div className="flex items-baseline justify-between gap-4">
-            <h1 className="font-serif text-2xl font-medium tracking-tight text-ink">Morning Brief</h1>
-            <FilterToggle value={filter} onChange={setFilter} />
-          </div>
+  return (
+    <ContentShell>
+      <div className="mb-8">
+        <span className="font-mono text-xs tracking-wide text-ink-faint mb-4 inline-block cursor-pointer">← Back</span>
+        <div className="flex items-baseline justify-between gap-4">
+          <h1 className="font-serif text-2xl font-medium tracking-tight text-ink">Morning Brief</h1>
+          <FilterToggle value={filter} onChange={setFilter} />
         </div>
-        <div>
-          {issues.map((issue) => (
-            <div key={issue.id} className="py-4 border-t border-border group">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <div className="flex items-baseline gap-3 mb-1">
-                    <span className="font-mono text-xs tracking-wide text-ink-faint">
-                      {formatFullDate(issue.publishedAt)}
-                    </span>
-                    {issue.readAt && <span className="font-mono text-xs tracking-wide text-accent">read</span>}
-                  </div>
-                  <div className="font-serif text-lg font-medium tracking-tight text-ink leading-snug">
-                    {issue.title}
-                  </div>
-                  <div className="font-mono text-xs text-ink-faint mt-1.5 tracking-wide">
-                    {issue.articleCount} articles
-                    {issue.totalReadingMinutes != null && ` · ${issue.totalReadingMinutes} min`}
-                  </div>
+      </div>
+      <div>
+        {issues.map((issue) => (
+          <div key={issue.id} className="py-4 border-t border-border group">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="flex items-baseline gap-3 mb-1">
+                  <span className="font-mono text-xs tracking-wide text-ink-faint">
+                    {formatFullDate(issue.publishedAt)}
+                  </span>
+                  {issue.readAt && <span className="font-mono text-xs tracking-wide text-accent">read</span>}
                 </div>
-                <span className="shrink-0 opacity-0 group-hover:opacity-100 font-mono text-xs tracking-wide text-ink-faint hover:text-critical transition-opacity duration-fast cursor-pointer">
-                  Delete
-                </span>
+                <div className="font-serif text-lg font-medium tracking-tight text-ink leading-snug">{issue.title}</div>
+                <div className="font-mono text-xs text-ink-faint mt-1.5 tracking-wide">
+                  {issue.articleCount} articles
+                  {issue.totalReadingMinutes != null && ` · ${issue.totalReadingMinutes} min`}
+                </div>
               </div>
+              <span className="shrink-0 opacity-0 group-hover:opacity-100 font-mono text-xs tracking-wide text-ink-faint hover:text-critical transition-opacity duration-fast cursor-pointer">
+                Delete
+              </span>
             </div>
-          ))}
-          <div className="h-px bg-border" />
-        </div>
-        <div className="mt-8">
-          <span className="font-mono text-xs tracking-wide text-ink-tertiary hover:text-ink transition-colors duration-fast cursor-pointer">
-            Edition settings
-          </span>
-        </div>
-      </ContentShell>
-    );
-  },
+          </div>
+        ))}
+        <div className="h-px bg-border" />
+      </div>
+      <div className="mt-8">
+        <span className="font-mono text-xs tracking-wide text-ink-tertiary hover:text-ink transition-colors duration-fast cursor-pointer">
+          Edition settings
+        </span>
+      </div>
+    </ContentShell>
+  );
+};
+
+const AllIssuesUnread: Story = {
+  render: () => <AllIssuesDemo />,
 };
 
 /* Mixed stand — one config has an unread edition, the other is caught up */

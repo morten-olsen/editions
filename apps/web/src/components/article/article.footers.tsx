@@ -148,6 +148,36 @@ const OriginalLinkButton = ({ url }: { url: string }): React.ReactElement => (
   </a>
 );
 
+const EditionFooterActions = ({
+  vote,
+  onVote,
+  label,
+  focusVote,
+  onFocusVote,
+  globalVote,
+  onGlobalVote,
+  bookmarked,
+  onBookmarkToggle,
+  articleUrl,
+  voteDelay,
+}: Omit<EditionFooterProps, 'nextDelay' | 'label' | 'voteDelay'> & {
+  label: string;
+  voteDelay: number;
+}): React.ReactElement => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.4, ease: easeOut, delay: voteDelay }}
+    className="flex items-center justify-center gap-4 pt-6 mt-6 border-t border-border"
+  >
+    {onFocusVote && <VoteControls value={focusVote ?? null} onVote={onFocusVote} label="Relevance" />}
+    {onGlobalVote && <VoteControls value={globalVote ?? null} onVote={onGlobalVote} label="Quality" />}
+    {onVote && <VoteControls value={vote ?? null} onVote={onVote} label={label} />}
+    {onBookmarkToggle && <BookmarkButton bookmarked={bookmarked ?? false} onToggle={onBookmarkToggle} />}
+    {articleUrl && <OriginalLinkButton url={articleUrl} />}
+  </motion.div>
+);
+
 const EditionFooter = ({
   vote,
   onVote,
@@ -167,18 +197,19 @@ const EditionFooter = ({
   return (
     <>
       {hasActions && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, ease: easeOut, delay: voteDelay }}
-          className="flex items-center justify-center gap-4 pt-6 mt-6 border-t border-border"
-        >
-          {onFocusVote && <VoteControls value={focusVote ?? null} onVote={onFocusVote} label="Relevance" />}
-          {onGlobalVote && <VoteControls value={globalVote ?? null} onVote={onGlobalVote} label="Quality" />}
-          {onVote && <VoteControls value={vote ?? null} onVote={onVote} label={label} />}
-          {onBookmarkToggle && <BookmarkButton bookmarked={bookmarked ?? false} onToggle={onBookmarkToggle} />}
-          {articleUrl && <OriginalLinkButton url={articleUrl} />}
-        </motion.div>
+        <EditionFooterActions
+          vote={vote}
+          onVote={onVote}
+          label={label}
+          focusVote={focusVote}
+          onFocusVote={onFocusVote}
+          globalVote={globalVote}
+          onGlobalVote={onGlobalVote}
+          bookmarked={bookmarked}
+          onBookmarkToggle={onBookmarkToggle}
+          articleUrl={articleUrl}
+          voteDelay={voteDelay}
+        />
       )}
       <NextPrompt delay={nextDelay} />
     </>

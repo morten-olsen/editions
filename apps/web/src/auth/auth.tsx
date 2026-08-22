@@ -45,7 +45,11 @@ const AuthProvider = ({ children }: { children: ReactNode }): ReactNode => {
           setState({ status: 'unauthenticated' });
           return;
         }
-        setState({ status: 'authenticated', user: { ...data, accessExpiresAt: (data as User).accessExpiresAt ?? null }, token });
+        setState({
+          status: 'authenticated',
+          user: { ...data, accessExpiresAt: (data as User).accessExpiresAt ?? null },
+          token,
+        });
       })
       .catch(() => {
         localStorage.removeItem(TOKEN_KEY);
@@ -71,7 +75,11 @@ const AuthProvider = ({ children }: { children: ReactNode }): ReactNode => {
       throw new Error('Failed to fetch user');
     }
 
-    setState({ status: 'authenticated', user: { ...user, accessExpiresAt: (user as User).accessExpiresAt ?? null }, token: data.token });
+    setState({
+      status: 'authenticated',
+      user: { ...user, accessExpiresAt: (user as User).accessExpiresAt ?? null },
+      token: data.token,
+    });
   }, []);
 
   const register = useCallback(async (username: string, password: string): Promise<void> => {
@@ -92,7 +100,11 @@ const AuthProvider = ({ children }: { children: ReactNode }): ReactNode => {
       throw new Error('Failed to fetch user');
     }
 
-    setState({ status: 'authenticated', user: { ...user, accessExpiresAt: (user as User).accessExpiresAt ?? null }, token: data.token });
+    setState({
+      status: 'authenticated',
+      user: { ...user, accessExpiresAt: (user as User).accessExpiresAt ?? null },
+      token: data.token,
+    });
   }, []);
 
   const logout = useCallback((): void => {

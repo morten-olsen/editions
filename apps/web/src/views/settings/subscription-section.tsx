@@ -4,9 +4,118 @@ import { Button } from '../../components/button.tsx';
 import { Separator } from '../../components/separator.tsx';
 import { useUserSubscription, useCreateCheckout, useCreatePortal } from '../../hooks/billing/billing.hooks.ts';
 
+type SubscriptionData = NonNullable<ReturnType<typeof useUserSubscription>['data']>;
+type AccessInfo = SubscriptionData['access'];
+type SubscriptionInfo = NonNullable<SubscriptionData['subscription']>;
+type PricingInfo = NonNullable<SubscriptionData['pricing']>;
+type CheckoutInterval = 'monthly' | 'yearly';
+
 const formatDate = (iso: string): string => new Date(iso).toLocaleDateString(undefined, { dateStyle: 'medium' });
 
 const formatCents = (cents: number): string => `$${(cents / 100).toFixed(2)}`;
+
+/* ── Subcomponents ─────────────────────────────────────────────────── */
+
+const AccessStatusCard = ({ access }: { access: AccessInfo }): React.ReactElement => (
+  <div>
+    <h3 className="text-sm font-semibold text-ink mb-2">Access Status</h3>
+    <div className="rounded-lg bg-surface-raised border border-border p-4 space-y-2">
+      <div className="flex items-center gap-2">
+        <span
+          className={`inline-block h-2 w-2 rounded-full ${
+            access.state === 'active' || access.state === 'unlimited'
+              ? 'bg-positive'
+              : access.state === 'trial'
+                ? 'bg-warning'
+                : 'bg-critical'
+          }`}
+        />
+        <span className="text-sm font-medium text-ink capitalize">{access.state}</span>
+      </div>
+      {access.expiresAt && (
+        <p className="text-sm text-ink-secondary">
+          {access.state === 'expired' ? 'Expired on' : 'Expires'} {formatDate(access.expiresAt)}
+        </p>
+      )}
+      {access.daysRemaining !== null && access.state !== 'expired' && (
+        <p className="text-sm text-ink-tertiary">
+          {access.daysRemaining} day{access.daysRemaining === 1 ? '' : 's'} remaining
+        </p>
+      )}
+    </div>
+  </div>
+);
+
+type SubscriptionDetailsProps = {
+  subscription: SubscriptionInfo;
+  onManage: () => void;
+  managePending: boolean;
+};
+
+const SubscriptionDetails = ({
+  subscription,
+  onManage,
+  managePending,
+}: SubscriptionDetailsProps): React.ReactElement => (
+  <>
+    <Separator />
+    <div>
+      <h3 className="text-sm font-semibold text-ink mb-2">Current Subscription</h3>
+      <div className="rounded-lg bg-surface-raised border border-border p-4 space-y-2">
+        <p className="text-sm text-ink">
+          <span className="font-medium capitalize">{subscription.interval}</span> plan
+          {subscription.cancelAtPeriodEnd && (
+            <span className="ml-2 text-xs text-warning font-medium">Cancels at period end</span>
+          )}
+        </p>
+        <p className="text-sm text-ink-secondary">Status: {subscription.status}</p>
+        <p className="text-sm text-ink-secondary">Current period ends: {formatDate(subscription.currentPeriodEnd)}</p>
+      </div>
+      <div className="mt-3">
+        <Button size="sm" variant="secondary" onClick={onManage} disabled={managePending}>
+          {managePending ? 'Opening...' : 'Manage Subscription'}
+        </Button>
+        <p className="text-xs text-ink-tertiary mt-1">Update payment method, view invoices, or cancel via Stripe.</p>
+      </div>
+    </div>
+  </>
+);
+
+type SubscribeCtaProps = {
+  pricing: PricingInfo;
+  onCheckout: (interval: CheckoutInterval) => void;
+  checkoutPending: boolean;
+  checkoutError: string | null;
+};
+
+const SubscribeCta = ({
+  pricing,
+  onCheckout,
+  checkoutPending,
+  checkoutError,
+}: SubscribeCtaProps): React.ReactElement => (
+  <>
+    <Separator />
+    <div>
+      <h3 className="text-sm font-semibold text-ink mb-2">Subscribe</h3>
+      <div className="flex gap-3">
+        {pricing.monthlyPriceCents > 0 && (
+          <Button size="md" variant="primary" onClick={() => onCheckout('monthly')} disabled={checkoutPending}>
+            Monthly — {formatCents(pricing.monthlyPriceCents)}/mo
+          </Button>
+        )}
+        {pricing.yearlyPriceCents > 0 && (
+          <Button size="md" variant="primary" onClick={() => onCheckout('yearly')} disabled={checkoutPending}>
+            Yearly — {formatCents(pricing.yearlyPriceCents)}/yr
+          </Button>
+        )}
+      </div>
+      {checkoutError && <p className="text-sm text-critical mt-2">{checkoutError}</p>}
+    </div>
+  </>
+);
+
+/* ── Section ───────────────────────────────────────────────────────── */
 
 const SubscriptionSection = (): React.ReactNode => {
   const { data, isLoading } = useUserSubscription();
@@ -24,7 +133,7 @@ const SubscriptionSection = (): React.ReactNode => {
 
   const { access, subscription } = data;
 
-  const handleCheckout = async (interval: 'monthly' | 'yearly'): Promise<void> => {
+  const handleCheckout = async (interval: CheckoutInterval): Promise<void> => {
     setCheckoutError(null);
     try {
       const result = await checkout.mutateAsync({
@@ -51,84 +160,20 @@ const SubscriptionSection = (): React.ReactNode => {
 
   return (
     <div className="space-y-6">
-      {/* Current status */}
-      <div>
-        <h3 className="text-sm font-semibold text-ink mb-2">Access Status</h3>
-        <div className="rounded-lg bg-surface-raised border border-border p-4 space-y-2">
-          <div className="flex items-center gap-2">
-            <span
-              className={`inline-block h-2 w-2 rounded-full ${
-                access.state === 'active' || access.state === 'unlimited'
-                  ? 'bg-positive'
-                  : access.state === 'trial'
-                    ? 'bg-warning'
-                    : 'bg-critical'
-              }`}
-            />
-            <span className="text-sm font-medium text-ink capitalize">{access.state}</span>
-          </div>
-          {access.expiresAt && (
-            <p className="text-sm text-ink-secondary">
-              {access.state === 'expired' ? 'Expired on' : 'Expires'} {formatDate(access.expiresAt)}
-            </p>
-          )}
-          {access.daysRemaining !== null && access.state !== 'expired' && (
-            <p className="text-sm text-ink-tertiary">
-              {access.daysRemaining} day{access.daysRemaining === 1 ? '' : 's'} remaining
-            </p>
-          )}
-        </div>
-      </div>
+      <AccessStatusCard access={access} />
 
-      {/* Subscription details */}
       {subscription && (
-        <>
-          <Separator />
-          <div>
-            <h3 className="text-sm font-semibold text-ink mb-2">Current Subscription</h3>
-            <div className="rounded-lg bg-surface-raised border border-border p-4 space-y-2">
-              <p className="text-sm text-ink">
-                <span className="font-medium capitalize">{subscription.interval}</span> plan
-                {subscription.cancelAtPeriodEnd && (
-                  <span className="ml-2 text-xs text-warning font-medium">Cancels at period end</span>
-                )}
-              </p>
-              <p className="text-sm text-ink-secondary">Status: {subscription.status}</p>
-              <p className="text-sm text-ink-secondary">Current period ends: {formatDate(subscription.currentPeriodEnd)}</p>
-            </div>
-            <div className="mt-3">
-              <Button size="sm" variant="secondary" onClick={handleManage} disabled={portal.isPending}>
-                {portal.isPending ? 'Opening...' : 'Manage Subscription'}
-              </Button>
-              <p className="text-xs text-ink-tertiary mt-1">
-                Update payment method, view invoices, or cancel via Stripe.
-              </p>
-            </div>
-          </div>
-        </>
+        <SubscriptionDetails subscription={subscription} onManage={handleManage} managePending={portal.isPending} />
       )}
 
       {/* Subscribe CTA — shown when no active subscription */}
       {!subscription && access.state !== 'unlimited' && data.pricing && (
-        <>
-          <Separator />
-          <div>
-            <h3 className="text-sm font-semibold text-ink mb-2">Subscribe</h3>
-            <div className="flex gap-3">
-              {data.pricing.monthlyPriceCents > 0 && (
-                <Button size="md" variant="primary" onClick={() => handleCheckout('monthly')} disabled={checkout.isPending}>
-                  Monthly — {formatCents(data.pricing.monthlyPriceCents)}/mo
-                </Button>
-              )}
-              {data.pricing.yearlyPriceCents > 0 && (
-                <Button size="md" variant="primary" onClick={() => handleCheckout('yearly')} disabled={checkout.isPending}>
-                  Yearly — {formatCents(data.pricing.yearlyPriceCents)}/yr
-                </Button>
-              )}
-            </div>
-            {checkoutError && <p className="text-sm text-critical mt-2">{checkoutError}</p>}
-          </div>
-        </>
+        <SubscribeCta
+          pricing={data.pricing}
+          onCheckout={handleCheckout}
+          checkoutPending={checkout.isPending}
+          checkoutError={checkoutError}
+        />
       )}
     </div>
   );

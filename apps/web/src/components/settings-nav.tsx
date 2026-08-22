@@ -60,7 +60,9 @@ const SettingsSidebar = ({ tabs, activeTab, onTabChange }: SettingsNavProps): Re
             <EntityIcon icon={tabIcons[tab.key] ?? 'settings'} size={14} className="shrink-0" />
             <span className="truncate">{tab.label}</span>
             {tab.badge && (
-              <span className="ml-auto text-[10px] font-medium text-accent/60 uppercase tracking-wider">{tab.badge}</span>
+              <span className="ml-auto text-[10px] font-medium text-accent/60 uppercase tracking-wider">
+                {tab.badge}
+              </span>
             )}
           </button>
         ))}

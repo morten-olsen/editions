@@ -86,14 +86,13 @@ type MeasuredSegment = MeasuredText | MeasuredImage | MeasuredSpacing | Measured
 
 /* ── Font selection ───────────────────────────────────────────── */
 
-const fontForSegment = (
-  segment: TextSegment,
-  config: FontConfig,
-): { font: string; lineHeight: number } => {
+const fontForSegment = (segment: TextSegment, config: FontConfig): { font: string; lineHeight: number } => {
   if (segment.kind === 'heading') {
     return segment.headingLevel === 2 ? config.heading2 : config.heading3;
   }
-  if (segment.kind === 'blockquote') return config.blockquote;
+  if (segment.kind === 'blockquote') {
+    return config.blockquote;
+  }
 
   const spans = segment.inlineSpans;
   const first = spans[0];
@@ -146,12 +145,7 @@ type MeasureArgs = {
   fontConfig: FontConfig;
 };
 
-const measureSegments = ({
-  segments,
-  columnWidth,
-  viewportHeight,
-  fontConfig,
-}: MeasureArgs): MeasuredSegment[] =>
+const measureSegments = ({ segments, columnWidth, viewportHeight, fontConfig }: MeasureArgs): MeasuredSegment[] =>
   segments.map((segment): MeasuredSegment => {
     switch (segment.kind) {
       case 'paragraph':
@@ -197,7 +191,9 @@ const layoutLinesIteratively = (
 
   for (let i = 0; i < maxLines; i++) {
     const line = layoutNextLine(prepared, cursor, maxWidth);
-    if (line === null) return { lines, endCursor: null };
+    if (line === null) {
+      return { lines, endCursor: null };
+    }
     lines.push(line);
     cursor = line.end;
   }

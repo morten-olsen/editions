@@ -8,6 +8,7 @@ This file is for **gotchas** — things that aren't obvious and required effort 
 
 ## Docs
 
+- [CONTEXT.md](CONTEXT.md) — Domain glossary (ubiquitous language) — use these terms exactly when naming modules and concepts
 - [docs/vision.md](docs/vision.md) — Product vision, core concepts (sources, focuses, editions, feed), design principles
 - [docs/coding-standards.md](docs/coding-standards.md) — TypeScript conventions, Zod patterns, file organization, DI pattern, Tailwind v4, import extensions
 - [docs/database.md](docs/database.md) — Full schema reference, table descriptions, migration guide, design decisions
@@ -81,6 +82,10 @@ Full reference: [docs/coding-standards.md](docs/coding-standards.md)
 
 **Database:** SQLite via Kysely + better-sqlite3. Full schema reference: [docs/database.md](docs/database.md).
 
+**Ranking:** All article scoring goes through `ranking/ranking.ts` (`scoreAndRank`) — never hand-assemble score→sort pipelines, decode embedding BLOBs in callers (use `decodeEmbedding`), or re-implement the confidence rule (`effectiveConfidence` / `minConfidenceFilterSql` own `nli ?? similarity ?? 0` in TS and SQL).
+
+**Jobs:** Job types + payloads are a typed registry (`JobPayloads` in `jobs/jobs.ts`) — a typo'd `enqueue` type is a compile error. Adding a job type means updating the registry AND the web label maps (`jobs.hooks.ts` `JOB_TYPE_LABELS`, `focuses.utils.ts` `ANALYSIS_JOB_TYPES`). Analysis jobs are presets over `ReconcilerService.reconcile({ scopeFilter, reset, backfillExtractedAt })` — put reset logic there, not in handlers.
+
 **Database gotchas:**
 
 - Import `z` from `zod/v4` (not `zod`) — `fastify-type-provider-zod` v5 requires Zod v4 API
@@ -119,6 +124,10 @@ Full reference: [docs/coding-standards.md](docs/coding-standards.md)
 - Always `await t.stop()` in `afterEach` — this destroys the in-memory DB and cleans up the Fastify instance
 - `t.register()` returns `{ id, token, headers }` — use `headers` directly for authenticated requests
 - Test multiple users by calling `t.register("otheruser", "password456")` — each call creates a new user in the same test's DB
+- `t.db()` returns the in-memory Kysely instance for seeding rows directly; `t.services` exposes the DI container (e.g. `t.services.get(BillingService)`) for service-level assertions
+- Never seed an *extracted* article and then trigger a reconcile job in an API test — the embed step would spawn the real HF worker and download a ~33MB model. Direct DB seeding (no job enqueued) is safe
+- Unit tests of the analysis pipeline compose the REAL steps via `buildReconcileSteps` from `reconciler/reconciler.ts` with fake `EmbedFn`/`ClassifyFn` — never hand-copy the step list
+- The default test run is hermetic (no network). Live-network tests (discovery catalog URL checks) are gated behind `EDITIONS_LIVE_TESTS=1` — run via `task test:live`
 
 **Frontend gotchas:**
 

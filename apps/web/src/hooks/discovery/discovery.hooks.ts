@@ -175,12 +175,7 @@ const useAdoptEditionConfig = (): { adopt: (id: string) => void; isPending: bool
   return { adopt: mutation.mutate, isPending: mutation.isPending };
 };
 
-export type {
-  DiscoverySource,
-  DiscoveryFocus,
-  DiscoveryEditionConfig,
-  DiscoveryQuery,
-};
+export type { DiscoverySource, DiscoveryFocus, DiscoveryEditionConfig, DiscoveryQuery };
 export {
   useDiscoverySources,
   useDiscoveryFocuses,

@@ -2,10 +2,9 @@ import crypto from 'node:crypto';
 
 import { DatabaseService } from '../database/database.ts';
 import type { ArticleVoteValue } from '../database/database.types.ts';
+import type { UserScoringWeights, VoteContext, VotedArticle } from '../ranking/ranking.ts';
+import { MAX_VOTE_CONTEXT_SIZE, decodeEmbedding, parseUserScoringWeights } from '../ranking/ranking.ts';
 import type { Services } from '../services/services.ts';
-
-import type { UserScoringWeights, VoteContext, VotedArticle } from './votes.scoring.ts';
-import { MAX_VOTE_CONTEXT_SIZE, parseUserScoringWeights } from './votes.scoring.ts';
 
 // --- Errors ---
 
@@ -228,9 +227,8 @@ class VotesService {
       const value = row.value as ArticleVoteValue;
       votes.set(row.article_id, value);
 
-      if (row.embedding) {
-        const buffer = row.embedding as Buffer;
-        const embedding = new Float32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 4);
+      const embedding = decodeEmbedding(row.embedding);
+      if (embedding) {
         votedArticles.push({ embedding, value });
       }
     }
@@ -259,9 +257,8 @@ class VotesService {
       const value = row.value as ArticleVoteValue;
       votes.set(row.article_id, value);
 
-      if (row.embedding) {
-        const buffer = row.embedding as Buffer;
-        const embedding = new Float32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 4);
+      const embedding = decodeEmbedding(row.embedding);
+      if (embedding) {
         votedArticles.push({ embedding, value });
       }
     }
@@ -434,7 +431,3 @@ class VotesService {
 
 export type { Vote, UpsertVoteParams, ArticleVotePair, ArticleVotesMap, ListVotesOptions, VoteWithArticle, VotesPage };
 export { VotesService, VoteError, ArticleNotFoundForVoteError };
-
-// Re-export scoring utilities for consumers
-export type { VoteContext, ScoringCandidate, UserScoringWeights } from './votes.scoring.ts';
-export { rankArticles, mergeVoteContexts, emptyVoteContext, defaultUserScoringWeights } from './votes.scoring.ts';

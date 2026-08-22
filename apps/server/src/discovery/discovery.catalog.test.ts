@@ -2,7 +2,12 @@ import { describe, it, expect } from 'vitest';
 
 import { discoverySources } from './discovery.catalog.ts';
 
-describe('discovery catalog URLs', () => {
+// Live-network checks: HEAD-requests every catalog URL. Excluded from the
+// default run (flaky, fails offline) — opt in with EDITIONS_LIVE_TESTS=1,
+// e.g. `task test:live`.
+const liveTestsEnabled = process.env['EDITIONS_LIVE_TESTS'] === '1';
+
+describe.runIf(liveTestsEnabled)('discovery catalog URLs', () => {
   for (const source of discoverySources) {
     it(`${source.name} (${source.url}) is reachable`, async () => {
       const controller = new AbortController();

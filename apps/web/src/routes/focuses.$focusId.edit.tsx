@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 
 import { useAuthHeaders, queryKeys } from '../api/api.hooks.ts';
@@ -22,30 +22,29 @@ import type { EditFocusFormResult } from '../hooks/focuses/focuses.edit-route-ho
 import { useFocusPreview } from '../hooks/focuses/focuses.preview-hooks.ts';
 import type { PreviewArticle, PreviewConfig, PreviewTimeWindow } from '../hooks/focuses/focuses.preview-hooks.ts';
 
-/* ── Main page ───────────────────────────────────────────────────── */
+/* ── Update mutation ─────────────────────────────────────────────── */
 
-const EditFocusPage = (): React.ReactNode => {
-  const headers = useAuthHeaders();
-  const navigate = useNavigate();
+type UpdateFocusInput = Parameters<typeof applyFocusUpdates>[0];
+
+type UseUpdateFocusParams = {
+  focus: UpdateFocusInput['focus'] | undefined;
+  focusId: string;
+  form: EditFocusFormResult;
+  headers: UpdateFocusInput['headers'];
+  onError: (message: string) => void;
+};
+
+const useUpdateFocus = ({
+  focus,
+  focusId,
+  form,
+  headers,
+  onError,
+}: UseUpdateFocusParams): UseMutationResult<void, Error, void, unknown> => {
   const queryClient = useQueryClient();
-  const { focusId } = Route.useParams();
-  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  const [previewWindow, setPreviewWindow] = useState<PreviewTimeWindow>('all');
-  const { focus, loadingFocus, focusError, allSources, loadingSources } = useEditFocusData(focusId, headers);
-  const form = useEditFocusForm(focus);
-
-  const previewConfig: PreviewConfig | undefined = focus
-    ? {
-        minConfidence: form.minConfidence / 100,
-        minConsumptionTimeSeconds: form.minReadingTime ? Number(form.minReadingTime) * 60 : null,
-        maxConsumptionTimeSeconds: form.maxReadingTime ? Number(form.maxReadingTime) * 60 : null,
-        sources: form.selectedSources,
-      }
-    : undefined;
-  const preview = useFocusPreview(focusId, previewConfig, previewWindow);
-
-  const updateFocus = useMutation({
+  return useMutation({
     mutationFn: async (): Promise<void> => {
       if (!focus) {
         return;
@@ -70,9 +69,34 @@ const EditFocusPage = (): React.ReactNode => {
       await navigate({ to: '/focuses' });
     },
     onError: (err: Error): void => {
-      setError(err.message);
+      onError(err.message);
     },
   });
+};
+
+/* ── Main page ───────────────────────────────────────────────────── */
+
+const EditFocusPage = (): React.ReactNode => {
+  const headers = useAuthHeaders();
+  const navigate = useNavigate();
+  const { focusId } = Route.useParams();
+  const [error, setError] = useState<string | null>(null);
+
+  const [previewWindow, setPreviewWindow] = useState<PreviewTimeWindow>('all');
+  const { focus, loadingFocus, focusError, allSources, loadingSources } = useEditFocusData(focusId, headers);
+  const form = useEditFocusForm(focus);
+
+  const previewConfig: PreviewConfig | undefined = focus
+    ? {
+        minConfidence: form.minConfidence / 100,
+        minConsumptionTimeSeconds: form.minReadingTime ? Number(form.minReadingTime) * 60 : null,
+        maxConsumptionTimeSeconds: form.maxReadingTime ? Number(form.maxReadingTime) * 60 : null,
+        sources: form.selectedSources,
+      }
+    : undefined;
+  const preview = useFocusPreview(focusId, previewConfig, previewWindow);
+
+  const updateFocus = useUpdateFocus({ focus, focusId, form, headers, onError: setError });
 
   if (!headers) {
     return null;
@@ -124,6 +148,40 @@ const EditFocusPage = (): React.ReactNode => {
 
 /* ── Config panel (left side) ────────────────────────────────────── */
 
+const FocusFormFields = ({ form }: { form: EditFocusFormResult }): React.ReactElement => (
+  <div className="flex flex-col gap-5">
+    <Input
+      label="Name"
+      required
+      value={form.name}
+      onChange={(e) => form.setName(e.target.value)}
+      data-ai-id="edit-focus-name"
+      data-ai-role="input"
+      data-ai-label="Focus name"
+      data-ai-value={form.name}
+    />
+    <Textarea
+      label="Description"
+      description="Helps the classifier recognise which articles belong here — the more specific, the better."
+      rows={2}
+      value={form.description}
+      onChange={(e) => form.setDescription(e.target.value)}
+      data-ai-id="edit-focus-description"
+      data-ai-role="input"
+      data-ai-label="Focus description"
+      data-ai-value={form.description}
+    />
+    <IconPicker value={form.icon} onChange={form.setIcon} />
+    <ConfidenceSlider value={form.minConfidence} onChange={form.setMinConfidence} />
+    <ReadingTimeRange
+      min={form.minReadingTime}
+      max={form.maxReadingTime}
+      onMinChange={form.setMinReadingTime}
+      onMaxChange={form.setMaxReadingTime}
+    />
+  </div>
+);
+
 const FocusConfigPanel = ({
   form,
   allSources,
@@ -160,37 +218,7 @@ const FocusConfigPanel = ({
       data-ai-role="form"
       data-ai-label="Edit focus form"
     >
-      <div className="flex flex-col gap-5">
-        <Input
-          label="Name"
-          required
-          value={form.name}
-          onChange={(e) => form.setName(e.target.value)}
-          data-ai-id="edit-focus-name"
-          data-ai-role="input"
-          data-ai-label="Focus name"
-          data-ai-value={form.name}
-        />
-        <Textarea
-          label="Description"
-          description="Helps the classifier recognise which articles belong here — the more specific, the better."
-          rows={2}
-          value={form.description}
-          onChange={(e) => form.setDescription(e.target.value)}
-          data-ai-id="edit-focus-description"
-          data-ai-role="input"
-          data-ai-label="Focus description"
-          data-ai-value={form.description}
-        />
-        <IconPicker value={form.icon} onChange={form.setIcon} />
-        <ConfidenceSlider value={form.minConfidence} onChange={form.setMinConfidence} />
-        <ReadingTimeRange
-          min={form.minReadingTime}
-          max={form.maxReadingTime}
-          onMinChange={form.setMinReadingTime}
-          onMaxChange={form.setMaxReadingTime}
-        />
-      </div>
+      <FocusFormFields form={form} />
 
       <Separator soft />
 

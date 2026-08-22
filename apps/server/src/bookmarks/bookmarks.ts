@@ -3,7 +3,6 @@ import crypto from 'node:crypto';
 import { DatabaseService } from '../database/database.ts';
 import { JobService } from '../jobs/jobs.ts';
 import { SourcesService } from '../sources/sources.ts';
-import type { ExtractAndAnalysePayload } from '../jobs/jobs.handlers.ts';
 import type { Services } from '../services/services.ts';
 
 // --- Types ---
@@ -93,12 +92,9 @@ class BookmarksService {
 
       // Enqueue extraction and analysis for the bookmark's source
       const jobService = this.#services.get(JobService);
-      jobService.enqueue<ExtractAndAnalysePayload>(
+      jobService.enqueue(
         'extract_and_analyse',
-        {
-          sourceId: source.id,
-          userId,
-        },
+        { sourceId: source.id },
         { userId, affects: { sourceIds: [source.id] } },
       );
     }

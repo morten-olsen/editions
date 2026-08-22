@@ -1,6 +1,7 @@
 import { sql, type Kysely } from 'kysely';
 
 import type { DatabaseSchema } from '../database/database.types.ts';
+import { decodeEmbedding } from '../ranking/ranking.ts';
 
 import type { ReconcileStep } from './reconciler.runner.ts';
 import type { ScopeFilter } from './reconciler.utils.ts';
@@ -65,11 +66,10 @@ const batchUpsertSimilarity = async (
 
 // --- Helpers ---
 
-const buildSimilarityQuery = (
+const buildSimilarityScope = (
   db: Kysely<DatabaseSchema>,
   embeddingModel: string,
   scopeFilter: ScopeFilter | undefined,
-  batchSize: number,
 ) => {
   // Join articles to focuses through their shared user (via sources), scoring every
   // article against every focus for the same user. focus_sources controls display
@@ -82,22 +82,17 @@ const buildSimilarityQuery = (
       join.onRef('article_focuses.article_id', '=', 'articles.id').onRef('article_focuses.focus_id', '=', 'focuses.id'),
     )
     .leftJoin('article_embeddings', 'article_embeddings.article_id', 'articles.id')
-    .select([
-      'articles.id as article_id',
-      'focuses.id as focus_id',
-      'focuses.name',
-      'focuses.description',
-      'article_embeddings.embedding',
-    ])
     .where('articles.extracted_at', 'is not', null)
+    // Pairs without an article embedding can't be scored — excluding them here
+    // (rather than skipping in processBatch) keeps the fetch loop finite
+    .where('article_embeddings.embedding', 'is not', null)
     .where((eb) =>
       eb.or([
         eb('article_focuses.similarity', 'is', null),
         eb('article_focuses.similarity_model', 'is', null),
         eb('article_focuses.similarity_model', '!=', embeddingModel),
       ]),
-    )
-    .limit(batchSize);
+    );
 
   if (scopeFilter?.focusIds && scopeFilter.focusIds.length > 0) {
     q = q.where('focuses.id', 'in', scopeFilter.focusIds);
@@ -109,17 +104,12 @@ const buildSimilarityQuery = (
   return q;
 };
 
-const rowToSimilarityItem = (row: SimilarityRow): SimilarityItem => {
-  const embeddingBuf = row.embedding as Buffer | null;
-  return {
-    articleId: row.article_id,
-    focusId: row.focus_id,
-    focusLabel: row.description ? `${row.name}: ${row.description}` : row.name,
-    embedding: embeddingBuf
-      ? new Float32Array(embeddingBuf.buffer, embeddingBuf.byteOffset, embeddingBuf.byteLength / 4)
-      : null,
-  };
-};
+const rowToSimilarityItem = (row: SimilarityRow): SimilarityItem => ({
+  articleId: row.article_id,
+  focusId: row.focus_id,
+  focusLabel: row.description ? `${row.name}: ${row.description}` : row.name,
+  embedding: decodeEmbedding(row.embedding),
+});
 
 // --- Step factory ---
 
@@ -135,14 +125,24 @@ const createSimilarityStep = (params: {
 
   return {
     name: 'similarity',
+    countRemaining: async (): Promise<number> => {
+      const row = await buildSimilarityScope(db, embeddingModel, scopeFilter)
+        .select(db.fn.countAll().as('count'))
+        .executeTakeFirst();
+      return Number(row?.count ?? 0);
+    },
     fetchBatch: async function* (): AsyncGenerator<SimilarityItem[]> {
       while (true) {
-        const rows = (await buildSimilarityQuery(
-          db,
-          embeddingModel,
-          scopeFilter,
-          batchSize,
-        ).execute()) as SimilarityRow[];
+        const rows = (await buildSimilarityScope(db, embeddingModel, scopeFilter)
+          .select([
+            'articles.id as article_id',
+            'focuses.id as focus_id',
+            'focuses.name',
+            'focuses.description',
+            'article_embeddings.embedding',
+          ])
+          .limit(batchSize)
+          .execute()) as SimilarityRow[];
         if (rows.length === 0) {
           break;
         }

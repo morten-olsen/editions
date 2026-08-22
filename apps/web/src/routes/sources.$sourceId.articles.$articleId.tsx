@@ -12,6 +12,27 @@ import { MediaPlayer } from '../components/media-player.tsx';
 import { ArticleView } from '../components/article/article.presets.tsx';
 import { FeedFooter } from '../components/article/article.footers.tsx';
 
+/* ── Loading / error screens ─────────────────────────────────── */
+
+const ArticleLoadingScreen = (): React.ReactElement => (
+  <div className="flex min-h-dvh items-center justify-center bg-surface">
+    <div className="font-serif text-lg text-ink-tertiary">Loading...</div>
+  </div>
+);
+
+const ArticleErrorScreen = ({ error, onBack }: { error: unknown; onBack: () => void }): React.ReactElement => (
+  <div className="flex min-h-dvh items-center justify-center bg-surface">
+    <div className="text-center">
+      <div className="font-serif text-xl text-ink mb-2">
+        {error instanceof Error ? error.message : 'Article not found'}
+      </div>
+      <Button variant="ghost" size="sm" onClick={onBack}>
+        Go back
+      </Button>
+    </div>
+  </div>
+);
+
 /* ── Article page ────────────────────────────────────────────── */
 
 const ArticlePage = (): React.ReactNode => {
@@ -37,26 +58,11 @@ const ArticlePage = (): React.ReactNode => {
   useReadingProgress(articleId, isPodcast ? 0 : (detail.article?.progress ?? 0));
 
   if (detail.isLoading) {
-    return (
-      <div className="flex min-h-dvh items-center justify-center bg-surface">
-        <div className="font-serif text-lg text-ink-tertiary">Loading...</div>
-      </div>
-    );
+    return <ArticleLoadingScreen />;
   }
 
   if (detail.error || !detail.article) {
-    return (
-      <div className="flex min-h-dvh items-center justify-center bg-surface">
-        <div className="text-center">
-          <div className="font-serif text-xl text-ink mb-2">
-            {detail.error instanceof Error ? detail.error.message : 'Article not found'}
-          </div>
-          <Button variant="ghost" size="sm" onClick={() => router.history.back()}>
-            Go back
-          </Button>
-        </div>
-      </div>
-    );
+    return <ArticleErrorScreen error={detail.error} onBack={() => router.history.back()} />;
   }
 
   const { article } = detail;

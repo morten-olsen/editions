@@ -160,27 +160,27 @@ const FinalePage = (): React.ReactElement => (
 
 /* ── Interactive magazine ────────────────────────────────────────── */
 
+const toc = [
+  {
+    sectionName: 'Technology',
+    sectionPage: 2,
+    articles: [
+      { title: 'The quiet revolution in reader design', page: 3 },
+      { title: 'TypeScript 6.0 introduces pattern matching', page: 4 },
+    ],
+  },
+  {
+    sectionName: 'Science',
+    sectionPage: 5,
+    articles: [
+      { title: "JWST captures the universe's first galaxies", page: 6 },
+      { title: 'Building finite feeds (podcast)', page: 7 },
+    ],
+  },
+];
+
 const InteractiveMagazine = (): React.ReactElement => {
   const [page, setPage] = React.useState(0);
-
-  const toc = [
-    {
-      sectionName: 'Technology',
-      sectionPage: 2,
-      articles: [
-        { title: 'The quiet revolution in reader design', page: 3 },
-        { title: 'TypeScript 6.0 introduces pattern matching', page: 4 },
-      ],
-    },
-    {
-      sectionName: 'Science',
-      sectionPage: 5,
-      articles: [
-        { title: "JWST captures the universe's first galaxies", page: 6 },
-        { title: 'Building finite feeds (podcast)', page: 7 },
-      ],
-    },
-  ];
 
   return (
     <div className="magazine-showcase">

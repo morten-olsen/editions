@@ -14,6 +14,127 @@ type ImportResult = {
   scoringWeightsImported: boolean;
 };
 
+/* ── Private helpers ───────────────────────────────────────────────── */
+
+const downloadExport = async (token: string): Promise<void> => {
+  const res = await fetch('/api/data/export', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    throw new Error(`Export failed: ${res.statusText}`);
+  }
+  const data = await res.json();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `editions-export-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+const uploadImport = async (token: string, file: File): Promise<ImportResult> => {
+  const text = await file.text();
+  const data = JSON.parse(text) as unknown;
+  if (typeof data !== 'object' || data === null || !('version' in data)) {
+    throw new Error('Invalid export file format');
+  }
+
+  const res = await fetch('/api/data/import', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: text,
+  });
+
+  if (!res.ok) {
+    const body = (await res.json()) as { error?: string };
+    throw new Error(body.error ?? `Import failed: ${res.statusText}`);
+  }
+
+  return (await res.json()) as ImportResult;
+};
+
+/* ── Subcomponents ─────────────────────────────────────────────────── */
+
+const ExportPanel = ({ status, onExport }: { status: Status; onExport: () => void }): React.ReactElement => (
+  <div className="flex flex-col gap-3">
+    <div>
+      <h3 className="text-sm font-medium text-ink">Export</h3>
+      <p className="text-xs text-ink-tertiary mt-0.5">
+        Download all your data as a JSON file: sources, articles, embeddings, focuses, edition configs, editions, and
+        scoring weights. The export is portable — it can be imported into any Editions instance.
+      </p>
+    </div>
+    <div>
+      <Button variant="secondary" size="sm" disabled={status === 'loading'} onClick={onExport}>
+        {status === 'loading' ? 'Exporting...' : 'Download export'}
+      </Button>
+      {status === 'success' && <span className="ml-3 text-xs text-positive">Export downloaded</span>}
+    </div>
+  </div>
+);
+
+const ImportResultSummary = ({ result }: { result: ImportResult }): React.ReactElement => {
+  const isEmpty =
+    result.sources === 0 &&
+    result.articles === 0 &&
+    result.focuses === 0 &&
+    result.editionConfigs === 0 &&
+    result.editions === 0 &&
+    !result.scoringWeightsImported;
+
+  return (
+    <div className="rounded-lg border border-border bg-surface-sunken px-4 py-3 text-xs text-ink-secondary flex flex-col gap-1">
+      {result.sources > 0 && <span className="text-positive">{result.sources} sources imported</span>}
+      {result.articles > 0 && <span className="text-positive">{result.articles} articles imported</span>}
+      {result.focuses > 0 && <span className="text-positive">{result.focuses} focuses imported</span>}
+      {result.editionConfigs > 0 && (
+        <span className="text-positive">{result.editionConfigs} edition configs imported</span>
+      )}
+      {result.editions > 0 && <span className="text-positive">{result.editions} editions imported</span>}
+      {result.scoringWeightsImported && <span className="text-positive">Scoring weights imported</span>}
+      {isEmpty && <span className="text-ink-faint">Nothing to import</span>}
+    </div>
+  );
+};
+
+type ImportPanelProps = {
+  status: Status;
+  result: ImportResult | null;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+};
+
+const ImportPanel = ({ status, result, fileInputRef, onFileChange }: ImportPanelProps): React.ReactElement => (
+  <div className="flex flex-col gap-3">
+    <div>
+      <h3 className="text-sm font-medium text-ink">Import</h3>
+      <p className="text-xs text-ink-tertiary mt-0.5">
+        Import data from an Editions export file. This replaces all existing sources, focuses, edition configs, and
+        scoring weights with the contents of the file.
+      </p>
+    </div>
+    <div>
+      <input ref={fileInputRef} type="file" accept=".json" onChange={onFileChange} className="hidden" />
+      <Button
+        variant="secondary"
+        size="sm"
+        disabled={status === 'loading'}
+        onClick={() => fileInputRef.current?.click()}
+      >
+        {status === 'loading' ? 'Importing...' : 'Choose file to import'}
+      </Button>
+    </div>
+
+    {result && <ImportResultSummary result={result} />}
+  </div>
+);
+
+/* ── Section ───────────────────────────────────────────────────────── */
+
 const DataSection = ({ token }: { token: string }): React.ReactNode => {
   const [exportStatus, setExportStatus] = useState<Status>('idle');
   const [importStatus, setImportStatus] = useState<Status>('idle');
@@ -25,20 +146,7 @@ const DataSection = ({ token }: { token: string }): React.ReactNode => {
     setExportStatus('loading');
     setError(null);
     try {
-      const res = await fetch('/api/data/export', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        throw new Error(`Export failed: ${res.statusText}`);
-      }
-      const data = await res.json();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `editions-export-${new Date().toISOString().slice(0, 10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+      await downloadExport(token);
       setExportStatus('success');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Export failed');
@@ -51,28 +159,7 @@ const DataSection = ({ token }: { token: string }): React.ReactNode => {
     setImportResult(null);
     setError(null);
     try {
-      const text = await file.text();
-      const data = JSON.parse(text) as unknown;
-      if (typeof data !== 'object' || data === null || !('version' in data)) {
-        throw new Error('Invalid export file format');
-      }
-
-      const res = await fetch('/api/data/import', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: text,
-      });
-
-      if (!res.ok) {
-        const body = (await res.json()) as { error?: string };
-        throw new Error(body.error ?? `Import failed: ${res.statusText}`);
-      }
-
-      const result = (await res.json()) as ImportResult;
-      setImportResult(result);
+      setImportResult(await uploadImport(token, file));
       setImportStatus('success');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Import failed');
@@ -100,83 +187,21 @@ const DataSection = ({ token }: { token: string }): React.ReactNode => {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Export */}
-      <div className="flex flex-col gap-3">
-        <div>
-          <h3 className="text-sm font-medium text-ink">Export</h3>
-          <p className="text-xs text-ink-tertiary mt-0.5">
-            Download all your data as a JSON file: sources, articles, embeddings, focuses, edition configs, editions,
-            and scoring weights. The export is portable — it can be imported into any Editions instance.
-          </p>
-        </div>
-        <div>
-          <Button
-            variant="secondary"
-            size="sm"
-            disabled={exportStatus === 'loading'}
-            onClick={() => void handleExport()}
-          >
-            {exportStatus === 'loading' ? 'Exporting...' : 'Download export'}
-          </Button>
-          {exportStatus === 'success' && <span className="ml-3 text-xs text-positive">Export downloaded</span>}
-        </div>
-      </div>
+      <ExportPanel status={exportStatus} onExport={() => void handleExport()} />
 
       <Separator soft />
 
-      {/* Import */}
-      <div className="flex flex-col gap-3">
-        <div>
-          <h3 className="text-sm font-medium text-ink">Import</h3>
-          <p className="text-xs text-ink-tertiary mt-0.5">
-            Import data from an Editions export file. This replaces all existing sources, focuses, edition configs, and
-            scoring weights with the contents of the file.
-          </p>
-        </div>
-        <div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".json"
-            onChange={onFileChange}
-            className="hidden"
-          />
-          <Button
-            variant="secondary"
-            size="sm"
-            disabled={importStatus === 'loading'}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            {importStatus === 'loading' ? 'Importing...' : 'Choose file to import'}
-          </Button>
-        </div>
+      <ImportPanel
+        status={importStatus}
+        result={importResult}
+        fileInputRef={fileInputRef}
+        onFileChange={onFileChange}
+      />
 
-        {/* Import results */}
-        {importResult && (
-          <div className="rounded-lg border border-border bg-surface-sunken px-4 py-3 text-xs text-ink-secondary flex flex-col gap-1">
-            {importResult.sources > 0 && <span className="text-positive">{importResult.sources} sources imported</span>}
-            {importResult.articles > 0 && <span className="text-positive">{importResult.articles} articles imported</span>}
-            {importResult.focuses > 0 && <span className="text-positive">{importResult.focuses} focuses imported</span>}
-            {importResult.editionConfigs > 0 && (
-              <span className="text-positive">{importResult.editionConfigs} edition configs imported</span>
-            )}
-            {importResult.editions > 0 && (
-              <span className="text-positive">{importResult.editions} editions imported</span>
-            )}
-            {importResult.scoringWeightsImported && <span className="text-positive">Scoring weights imported</span>}
-            {importResult.sources === 0 &&
-              importResult.articles === 0 &&
-              importResult.focuses === 0 &&
-              importResult.editionConfigs === 0 &&
-              importResult.editions === 0 &&
-              !importResult.scoringWeightsImported && <span className="text-ink-faint">Nothing to import</span>}
-          </div>
-        )}
-      </div>
-
-      {/* Error */}
       {error && (
-        <div className="rounded-lg border border-critical/20 bg-critical/5 px-4 py-3 text-xs text-critical">{error}</div>
+        <div className="rounded-lg border border-critical/20 bg-critical/5 px-4 py-3 text-xs text-critical">
+          {error}
+        </div>
       )}
     </div>
   );

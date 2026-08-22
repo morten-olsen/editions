@@ -17,7 +17,14 @@
 /* ── Engine ───────────────────────────────────────────────────── */
 
 export type { ArticleInput, ArticleStyle, LayoutOptions, LayoutResult, Breakpoint } from './paged-article.engine.ts';
-export { layoutArticle, prepareArticle, buildPages, getBreakpoint, configForBreakpoint, clearPrepareCache } from './paged-article.engine.ts';
+export {
+  layoutArticle,
+  prepareArticle,
+  buildPages,
+  getBreakpoint,
+  configForBreakpoint,
+  clearPrepareCache,
+} from './paged-article.engine.ts';
 
 /* ── Layout functions ─────────────────────────────────────────── */
 
@@ -35,10 +42,19 @@ export { PageRenderer } from './paged-article.render.tsx';
 /* ── Core types (for custom layouts and composition) ──────────── */
 
 export type {
-  Region, TextRegion, ImageRegion, RuleRegion, SeparatorRegion,
+  Region,
+  TextRegion,
+  ImageRegion,
+  RuleRegion,
+  SeparatorRegion,
   Page,
-  ArticleContent, ArticleMeta,
-  BodyElement, TextElement, ImageElement, SpacingElement, HrElement,
+  ArticleContent,
+  ArticleMeta,
+  BodyElement,
+  TextElement,
+  ImageElement,
+  SpacingElement,
+  HrElement,
 } from './paged-article.layouts.ts';
 
 export type { Segment, TextSegment, InlineSpan } from './paged-article.segments.ts';

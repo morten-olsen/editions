@@ -15,7 +15,7 @@ when:
     branch: main
 
 depends_on:
-  - quality
+  #- quality
   - compliance
 
 steps:

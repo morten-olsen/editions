@@ -217,10 +217,7 @@ class HomeService {
     const latestIds = db
       .selectFrom('editions')
       .innerJoin('edition_configs', 'edition_configs.id', 'editions.edition_config_id')
-      .select(({ fn }) => [
-        'editions.edition_config_id',
-        fn.max('editions.published_at').as('max_published_at'),
-      ])
+      .select(({ fn }) => ['editions.edition_config_id', fn.max('editions.published_at').as('max_published_at')])
       .where('edition_configs.user_id', '=', userId)
       .where('editions.read_at', 'is', null)
       .groupBy('editions.edition_config_id');

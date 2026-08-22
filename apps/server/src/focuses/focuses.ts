@@ -2,7 +2,6 @@ import crypto from 'node:crypto';
 
 import { DatabaseService } from '../database/database.ts';
 import { JobService } from '../jobs/jobs.ts';
-import type { ReconcileFocusPayload } from '../jobs/jobs.handlers.ts';
 import type { Services } from '../services/services.ts';
 
 import { listFocusArticles } from './focuses.articles.ts';
@@ -77,7 +76,7 @@ class FocusesService {
   }
 
   #enqueueReconcileFocus = (focusId: string, userId?: string, forceReclassify?: boolean): void => {
-    this.#services.get(JobService).enqueue<ReconcileFocusPayload>(
+    this.#services.get(JobService).enqueue(
       'reconcile_focus',
       { focusId, forceReclassify },
       {

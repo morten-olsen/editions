@@ -5,6 +5,9 @@ import { ModeShell, defaultPathForMode, type Mode } from '../../components/mode-
 
 /* ── Placeholder content per mode ────────────────────────────────── */
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function -- intentional no-op for story callbacks
+const noop = (): void => {};
+
 const now = Date.now();
 
 const formatDate = (iso: string): string =>
@@ -24,7 +27,7 @@ type MagazineCover = {
   sections: string[];
 };
 
-const magazines: MagazineCover[] = [
+const magazines: [MagazineCover, MagazineCover, MagazineCover] = [
   {
     id: '1',
     title: 'Morning Brief',
@@ -64,12 +67,13 @@ const magazines: MagazineCover[] = [
 ];
 
 const MagazineCoverCard = ({ mag }: { mag: MagazineCover }): React.ReactElement => {
-  const hasImage = !!mag.imageUrl;
+  const { imageUrl } = mag;
+  const hasImage = !!imageUrl;
   return (
     <div className="group rounded-lg overflow-hidden relative isolate cursor-pointer">
-      {hasImage ? (
+      {imageUrl ? (
         <div className="absolute inset-0 -z-10">
-          <img src={mag.imageUrl!} alt="" className="w-full h-full object-cover" />
+          <img src={imageUrl} alt="" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-linear-to-b from-black/60 via-black/40 to-black/80" />
         </div>
       ) : (
@@ -150,10 +154,10 @@ const MagazinesContent = (): React.ReactElement => (
       <h1 className="font-serif text-3xl font-medium tracking-tight text-ink mb-2">Your reading list</h1>
       <p className="text-sm text-ink-tertiary">3 editions waiting.</p>
     </div>
-    <MagazineCoverCard mag={magazines[0]!} />
+    <MagazineCoverCard mag={magazines[0]} />
     <div className="mt-2">
-      <MagazineTeaser mag={magazines[1]!} />
-      <MagazineTeaser mag={magazines[2]!} />
+      <MagazineTeaser mag={magazines[1]} />
+      <MagazineTeaser mag={magazines[2]} />
       <div className="h-px bg-border" />
     </div>
   </div>
@@ -357,8 +361,8 @@ const InteractiveShell = ({ initialMode = 'magazines' }: { initialMode?: Mode })
       onModeChange={setMode}
       pathname={defaultPathForMode[mode]}
       username="alice"
-      onLogout={() => {}}
-      onSettingsClick={() => {}}
+      onLogout={noop}
+      onSettingsClick={noop}
     >
       {contentForMode[mode]}
     </ModeShell>

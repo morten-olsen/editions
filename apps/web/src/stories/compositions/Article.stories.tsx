@@ -332,34 +332,36 @@ const PodcastSummaryOnly: Story = {
   ),
 };
 
+const PodcastWithFooterDemo = (): React.ReactElement => {
+  const [vote, setVote] = useState<VoteValue>(null);
+  return (
+    <div className="bg-surface min-h-dvh py-16 px-4">
+      <Editorial
+        {...samplePodcast}
+        content={podcastShowNotes}
+        footer={
+          <FeedFooter
+            vote={vote}
+            onVote={setVote}
+            onDone={() => alert('Done clicked')}
+            articleUrl="https://example.com/podcast"
+          />
+        }
+      >
+        <div className="mt-8">
+          <MediaPlayer
+            mediaUrl="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+            mediaType="audio/mpeg"
+            delay={0.35}
+          />
+        </div>
+      </Editorial>
+    </div>
+  );
+};
+
 const PodcastWithFooter: Story = {
-  render: () => {
-    const [vote, setVote] = useState<VoteValue>(null);
-    return (
-      <div className="bg-surface min-h-dvh py-16 px-4">
-        <Editorial
-          {...samplePodcast}
-          content={podcastShowNotes}
-          footer={
-            <FeedFooter
-              vote={vote}
-              onVote={setVote}
-              onDone={() => alert('Done clicked')}
-              articleUrl="https://example.com/podcast"
-            />
-          }
-        >
-          <div className="mt-8">
-            <MediaPlayer
-              mediaUrl="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
-              mediaType="audio/mpeg"
-              delay={0.35}
-            />
-          </div>
-        </Editorial>
-      </div>
-    );
-  },
+  render: () => <PodcastWithFooterDemo />,
 };
 
 const PodcastCompactLayout: Story = {

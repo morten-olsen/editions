@@ -5,7 +5,6 @@ import { DatabaseService } from '../database/database.ts';
 import { EditionsService } from '../editions/editions.ts';
 import { JobService } from '../jobs/jobs.ts';
 import { destroySymbol } from '../services/services.ts';
-import type { RefreshSourcePayload } from '../jobs/jobs.handlers.ts';
 import type { Services } from '../services/services.ts';
 
 // --- Types ---
@@ -91,7 +90,7 @@ class SchedulerService {
     const dueSources = await query.execute();
 
     for (const source of dueSources) {
-      jobService.enqueue<RefreshSourcePayload>(
+      jobService.enqueue(
         'refresh_source',
         { sourceId: source.id, userId: source.user_id },
         { userId: source.user_id, affects: { sourceIds: [source.id] } },

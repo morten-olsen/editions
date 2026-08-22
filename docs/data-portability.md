@@ -194,16 +194,25 @@ The feature lives in **Settings → Data** with two actions:
 
 **Votes not included.** Votes reference articles by internal ID and don't carry meaningful information across instances beyond what embeddings and classifications already capture.
 
+## Access gating
+
+Export is deliberately **not** gated behind subscription access (`requireAccess`) — users can always take their data with them, even with expired access. Import **is** gated: it enqueues a re-analysis job per imported focus, which costs compute.
+
 ## Code layout
 
 ```
+apps/server/src/data-portability/
+├── data-portability.ts           # DataPortabilityService: export(userId) / import(userId, data)
+└── data-portability.schemas.ts   # Zod schemas for the export format and import result
+
 apps/server/src/api/
-├── data.routes.ts              # Export/import route handlers and business logic
-├── data.routes.schemas.ts      # Zod schemas for the export format and import result
-└── data.routes.test.ts         # API-level tests
+├── data.routes.ts                # Thin HTTP plumbing over DataPortabilityService
+└── data.routes.test.ts           # API-level tests
 
 apps/web/src/
-├── routes/settings.index.tsx   # Settings page (Data tab added)
+├── routes/settings.index.tsx     # Settings page (Data tab added)
 └── views/settings/
-    └── data-section.tsx        # Export/import UI component
+    └── data-section.tsx          # Export/import UI component
 ```
+
+The service owns the portable format end to end, including the `sources.config` column (type-specific settings JSON): it round-trips the raw column without interpreting it. `config` is intentionally absent from the sources API surface — nothing reads or writes it yet.

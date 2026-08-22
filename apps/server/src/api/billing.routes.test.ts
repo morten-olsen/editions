@@ -125,7 +125,7 @@ describe('admin billing endpoints', () => {
     });
 
     expect(res.statusCode).toBe(200);
-    const body = JSON.parse(res.body) as Array<{ username: string; state: string }>;
+    const body = JSON.parse(res.body) as { username: string; state: string }[];
     expect(body).toHaveLength(2);
     expect(body.map((u) => u.username).sort()).toEqual(['admin', 'user1']);
     // All users should be unlimited since payment is not configured
@@ -182,7 +182,11 @@ describe('POST /api/billing/checkout', () => {
       method: 'POST',
       url: '/api/billing/checkout',
       headers,
-      payload: { interval: 'monthly', successUrl: 'https://example.com/success', cancelUrl: 'https://example.com/cancel' },
+      payload: {
+        interval: 'monthly',
+        successUrl: 'https://example.com/success',
+        cancelUrl: 'https://example.com/cancel',
+      },
     });
 
     // 501 (Stripe not configured) or 400 (validation) — either way, it doesn't succeed

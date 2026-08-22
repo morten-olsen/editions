@@ -338,25 +338,6 @@ const useSourceDetail = ({ sourceId }: UseSourceDetailParams): UseSourceDetailRe
   };
 };
 
-// -- Exports --
-
-export type {
-  Source,
-  Article,
-  ArticlesPage,
-  SourceType,
-  Direction,
-  UseSourcesListResult,
-  CreateSourceForm,
-  UseCreateSourceResult,
-  UseSourceDetailParams,
-  UseSourceDetailResult,
-};
-
-export type { UseEditSourceParams, EditSourceForm, UseEditSourceResult } from './sources.edit-hooks.ts';
-
-export { useEditSource } from './sources.edit-hooks.ts';
-
 // -- useClassificationStats --
 
 type FocusStat = { focusId: string; focusName: string; articleCount: number; avgConfidence: number };
@@ -385,5 +366,21 @@ const useClassificationStats = (): { stats: Map<string, FocusStat[]>; isLoading:
   return { stats, isLoading };
 };
 
-export type { FocusStat };
+// -- Exports --
+
+export type {
+  Source,
+  Article,
+  ArticlesPage,
+  SourceType,
+  Direction,
+  UseSourcesListResult,
+  CreateSourceForm,
+  UseCreateSourceResult,
+  UseSourceDetailParams,
+  UseSourceDetailResult,
+  FocusStat,
+};
+export type { UseEditSourceParams, EditSourceForm, UseEditSourceResult } from './sources.edit-hooks.ts';
+export { useEditSource } from './sources.edit-hooks.ts';
 export { useSourcesList, useCreateSource, useSourceDetail, useClassificationStats, PAGE_SIZE };

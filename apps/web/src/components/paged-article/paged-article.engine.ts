@@ -76,8 +76,12 @@ const MOBILE_MAX = 640;
 const TABLET_MAX = 1024;
 
 const getBreakpoint = (width: number): Breakpoint => {
-  if (width < MOBILE_MAX) return 'mobile';
-  if (width < TABLET_MAX) return 'tablet';
+  if (width < MOBILE_MAX) {
+    return 'mobile';
+  }
+  if (width < TABLET_MAX) {
+    return 'tablet';
+  }
   return 'desktop';
 };
 
@@ -105,11 +109,7 @@ const configForBreakpoint = (bp: Breakpoint): BreakpointConfig => {
  * Parse markdown and measure all segments for a given page config.
  * Returns an ArticleContent ready to be consumed by layout functions.
  */
-const prepareArticle = (
-  input: ArticleInput,
-  pageConfig: PageConfig,
-  fontConfig: FontConfig,
-): ArticleContent => {
+const prepareArticle = (input: ArticleInput, pageConfig: PageConfig, fontConfig: FontConfig): ArticleContent => {
   const segments = parseSegments(input.content);
   const colW = colWidth(pageConfig);
 
@@ -176,23 +176,24 @@ const MAX_PAGES = 100;
  * the second for the second, etc. When the sequence runs out,
  * the last layout is repeated for all remaining pages.
  */
-const buildPages = (
-  content: ArticleContent,
-  config: PageConfig,
-  layouts: PageLayoutFn[],
-): Page[] => {
+const buildPages = (content: ArticleContent, config: PageConfig, layouts: PageLayoutFn[]): Page[] => {
   const pages: Page[] = [];
   let remaining = content;
   let idx = 0;
 
   while (remaining.meta || remaining.elements.length > 0) {
-    const layout = layouts[Math.min(idx, layouts.length - 1)]!;
+    const layout = layouts[Math.min(idx, layouts.length - 1)];
+    if (!layout) {
+      break;
+    }
     const result = layout(remaining, config);
     pages.push(result.page);
     remaining = result.remaining;
     idx++;
 
-    if (pages.length >= MAX_PAGES) break;
+    if (pages.length >= MAX_PAGES) {
+      break;
+    }
   }
 
   return pages;
@@ -222,13 +223,13 @@ const layoutArticle = (input: ArticleInput, options: LayoutOptions): LayoutResul
   };
 
   const content = prepareArticle(input, pageConfig, bpConfig.fontConfig);
-  const meta = content.meta!;
+  const { meta } = content;
+  if (!meta) {
+    throw new Error('prepareArticle always sets meta');
+  }
 
   // Layout sequence: opener first, then body pages
-  const layouts: PageLayoutFn[] = [
-    openerLayout(style),
-    bodyLayout,
-  ];
+  const layouts: PageLayoutFn[] = [openerLayout(style), bodyLayout];
 
   const pages = buildPages(content, pageConfig, layouts);
 

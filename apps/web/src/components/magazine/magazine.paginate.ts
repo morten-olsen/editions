@@ -13,16 +13,9 @@
  * - Footer is reserved on the last page
  */
 
-import {
-  layoutWithLines,
-} from '@chenglou/pretext';
+import { layoutWithLines } from '@chenglou/pretext';
 
-import type {
-  MeasuredSegment,
-  MeasuredTextSegment,
-  FontConfig,
-} from './magazine.measure.ts';
-
+import type { MeasuredSegment, MeasuredTextSegment, FontConfig } from './magazine.measure.ts';
 import { getPrepared } from './magazine.measure.ts';
 import { NAV_BAR_HEIGHT } from './magazine.paged-article.tsx';
 
@@ -96,17 +89,25 @@ type PaginateResult = {
 
 /* ── Opener height estimation ─────────────────────────────────── */
 
+type EstimateOpenerHeightArgs = {
+  opener: ArticleOpener;
+  contentWidth: number;
+  fontConfig: FontConfig;
+  viewportHeight: number;
+  style?: 'standard' | 'feature' | 'minimal';
+};
+
 /**
  * Estimate the height of the article opener (source badge + title + byline + optional image + summary).
  * This is an approximation — we use pretext to measure the title text, and fixed heights for other elements.
  */
-const estimateOpenerHeight = (
-  opener: ArticleOpener,
-  contentWidth: number,
-  fontConfig: FontConfig,
-  viewportHeight: number,
-  style: 'standard' | 'feature' | 'minimal' = 'standard',
-): number => {
+const estimateOpenerHeight = ({
+  opener,
+  contentWidth,
+  fontConfig,
+  viewportHeight,
+  style = 'standard',
+}: EstimateOpenerHeightArgs): number => {
   let height = 0;
 
   if (style === 'minimal') {
@@ -166,250 +167,257 @@ type ColumnCursor = {
   y: number;
 };
 
-/* ── Paginate ─────────────────────────────────────────────────── */
+/* ── Paginator state ──────────────────────────────────────────── */
 
-const paginateArticle = (args: PaginateArgs): PaginateResult => {
-  const {
-    opener,
-    measuredSegments,
-    viewport,
-    columns,
-    padding,
-    columnGap,
-    fontConfig,
-    footerHeight,
-  } = args;
+type PaginatorState = {
+  columns: 1 | 2;
+  pageContentHeight: number;
+  openerHeight: number;
+  pages: ArticlePage[];
+  currentPage: PageRegion[];
+  pageIndex: number;
+  cursor: ColumnCursor;
+};
 
-  const contentWidth = viewport.width - padding.horizontal * 2;
-  const columnWidth = columns === 2
-    ? (contentWidth - columnGap) / 2
-    : contentWidth;
+const remainingInColumn = (state: PaginatorState): number => state.pageContentHeight - state.cursor.y;
 
-  // Account for nav bar at the bottom of the viewport
-  const pageContentHeight = viewport.height - padding.top - padding.bottom - NAV_BAR_HEIGHT;
+const advanceColumn = (state: PaginatorState): boolean => {
+  if (state.cursor.column < state.columns - 1) {
+    state.cursor = { column: state.cursor.column + 1, y: 0 };
+    return true;
+  }
+  return false;
+};
 
-  // Calculate opener height for first page
-  const style = args.style ?? 'standard';
-  const openerHeight = estimateOpenerHeight(opener, contentWidth, fontConfig, viewport.height, style);
+const newPage = (state: PaginatorState): void => {
+  state.pages.push({
+    pageIndex: state.pageIndex,
+    regions: state.currentPage,
+    isFirstPage: state.pageIndex === 0,
+    isLastPage: false, // will be corrected at the end
+  });
+  state.pageIndex++;
+  state.currentPage = [];
+  state.cursor = { column: 0, y: 0 };
+};
 
-  const pages: ArticlePage[] = [];
-  let currentPage: PageRegion[] = [];
-  let pageIndex = 0;
+const nextColumn = (state: PaginatorState): void => {
+  if (!advanceColumn(state)) {
+    newPage(state);
+  }
+};
 
-  // On the first page, body content starts below the opener
-  let cursor: ColumnCursor = { column: 0, y: openerHeight };
+const placeRegion = (state: PaginatorState, region: PageRegion, height: number): void => {
+  state.currentPage.push(region);
+  state.cursor.y += height;
+};
 
-  const availableHeight = (isLastPage: boolean): number =>
-    pageContentHeight - (isLastPage ? footerHeight : 0);
+/* ── Segment placement ────────────────────────────────────────── */
 
-  const remainingInColumn = (isLastPage: boolean): number =>
-    availableHeight(isLastPage) - cursor.y;
+type PlaceOutcome = 'placed' | 'retry';
 
-  const advanceColumn = (): boolean => {
-    if (cursor.column < columns - 1) {
-      cursor = { column: cursor.column + 1, y: 0 };
-      return true;
-    }
-    return false;
-  };
+/** A heading needs itself + at least MIN_LINES of the next segment. */
+const headingOrphaned = (
+  state: PaginatorState,
+  measured: MeasuredSegment,
+  nextSeg: MeasuredSegment | undefined,
+  remaining: number,
+): boolean => {
+  const neededAfter =
+    nextSeg && 'lineCount' in nextSeg
+      ? Math.min(MIN_LINES, (nextSeg as MeasuredTextSegment).lineCount) *
+        (nextSeg as MeasuredTextSegment).fontEntry.lineHeight
+      : 0;
+  return measured.height + neededAfter > remaining && remaining < state.pageContentHeight * 0.8;
+};
 
-  const newPage = (): void => {
-    pages.push({
-      pageIndex,
-      regions: currentPage,
-      isFirstPage: pageIndex === 0,
-      isLastPage: false, // will be corrected at the end
-    });
-    pageIndex++;
-    currentPage = [];
-    cursor = { column: 0, y: 0 };
-  };
+/**
+ * How many lines fit in the remaining space, with widow/orphan control.
+ * Returns null when the segment should move to the next column instead.
+ */
+const splitLineCount = (totalLines: number, lineHeight: number, remaining: number): number | null => {
+  const linesAvailable = Math.floor(remaining / lineHeight);
 
-  const nextColumn = (): void => {
-    if (!advanceColumn()) {
-      newPage();
-    }
-  };
+  if (linesAvailable < MIN_LINES) {
+    // Not enough room for even MIN_LINES — move to next column
+    return null;
+  }
 
-  const placeRegion = (region: PageRegion, height: number): void => {
-    currentPage.push(region);
-    cursor.y += height;
-  };
+  // Check orphan on the remaining side
+  const linesRemaining = totalLines - linesAvailable;
+  let linesToPlace = linesAvailable;
 
-  // Process each segment
-  let segIdx = 0;
-  while (segIdx < measuredSegments.length) {
-    const measured = measuredSegments[segIdx]!;
-    const remaining = remainingInColumn(false);
-
-    switch (measured.segment.kind) {
-      case 'paragraph':
-      case 'heading':
-      case 'blockquote': {
-        const textMeasured = measured as MeasuredTextSegment;
-        const lineHeight = textMeasured.fontEntry.lineHeight;
-        const totalLines = textMeasured.lineCount;
-
-        // Check if heading would be orphaned at column bottom
-        if (measured.segment.kind === 'heading') {
-          // A heading needs itself + at least MIN_LINES of the next segment
-          const nextSeg = measuredSegments[segIdx + 1];
-          const neededAfter = nextSeg && 'lineCount' in nextSeg
-            ? Math.min(MIN_LINES, (nextSeg as MeasuredTextSegment).lineCount) * (nextSeg as MeasuredTextSegment).fontEntry.lineHeight
-            : 0;
-          if (measured.height + neededAfter > remaining && remaining < pageContentHeight * 0.8) {
-            nextColumn();
-            continue; // re-process this segment in the new column
-          }
-        }
-
-        // Does it fit entirely?
-        if (measured.height <= remainingInColumn(false)) {
-          placeRegion(
-            { measured, column: cursor.column, y: cursor.y },
-            measured.height,
-          );
-          segIdx++;
-          break;
-        }
-
-        // Split: how many lines fit?
-        const linesAvailable = Math.floor(remainingInColumn(false) / lineHeight);
-
-        if (linesAvailable < MIN_LINES) {
-          // Not enough room for even MIN_LINES — move to next column
-          nextColumn();
-          continue; // re-process
-        }
-
-        // Check orphan on the remaining side
-        const linesRemaining = totalLines - linesAvailable;
-        let linesToPlace = linesAvailable;
-
-        if (linesRemaining > 0 && linesRemaining < MIN_LINES) {
-          // Would leave orphan lines in next column — give them room
-          linesToPlace = totalLines - MIN_LINES;
-          if (linesToPlace < MIN_LINES) {
-            // Can't split well — move entire segment to next column
-            nextColumn();
-            continue;
-          }
-        }
-
-        // Place first part
-        placeRegion(
-          {
-            measured,
-            lineRange: { start: 0, end: linesToPlace },
-            column: cursor.column,
-            y: cursor.y,
-          },
-          linesToPlace * lineHeight,
-        );
-
-        // Continue with remaining lines in next column
-        nextColumn();
-
-        // Place remaining as continuation
-        const remainingLines = totalLines - linesToPlace;
-        if (remainingLines > 0) {
-          placeRegion(
-            {
-              measured,
-              lineRange: { start: linesToPlace, end: totalLines },
-              column: cursor.column,
-              y: cursor.y,
-            },
-            remainingLines * lineHeight,
-          );
-        }
-
-        segIdx++;
-        break;
-      }
-
-      case 'image': {
-        // Images don't split — if they don't fit, move to next column
-        if (measured.height > remaining && remaining < pageContentHeight * 0.9) {
-          nextColumn();
-          continue;
-        }
-        placeRegion(
-          { measured, column: cursor.column, y: cursor.y },
-          measured.height,
-        );
-        segIdx++;
-        break;
-      }
-
-      case 'spacing': {
-        // Spacing at column/page top is suppressed
-        if (cursor.y === 0 || (cursor.y === openerHeight && pageIndex === 0 && cursor.column === 0)) {
-          segIdx++;
-          break;
-        }
-        const height = measured.height;
-        if (height > remaining) {
-          // Don't add spacing that would overflow — just move on
-          segIdx++;
-          break;
-        }
-        placeRegion(
-          { measured, column: cursor.column, y: cursor.y },
-          height,
-        );
-        segIdx++;
-        break;
-      }
-
-      case 'hr': {
-        if (measured.height > remaining) {
-          nextColumn();
-          continue;
-        }
-        placeRegion(
-          { measured, column: cursor.column, y: cursor.y },
-          measured.height,
-        );
-        segIdx++;
-        break;
-      }
+  if (linesRemaining > 0 && linesRemaining < MIN_LINES) {
+    // Would leave orphan lines in next column — give them room
+    linesToPlace = totalLines - MIN_LINES;
+    if (linesToPlace < MIN_LINES) {
+      // Can't split well — move entire segment to next column
+      return null;
     }
   }
 
+  return linesToPlace;
+};
+
+const placeTextSegment = (
+  state: PaginatorState,
+  measured: MeasuredSegment,
+  nextSeg: MeasuredSegment | undefined,
+): PlaceOutcome => {
+  const remaining = remainingInColumn(state);
+  const textMeasured = measured as MeasuredTextSegment;
+  const lineHeight = textMeasured.fontEntry.lineHeight;
+  const totalLines = textMeasured.lineCount;
+
+  // Check if heading would be orphaned at column bottom
+  if (measured.segment.kind === 'heading' && headingOrphaned(state, measured, nextSeg, remaining)) {
+    nextColumn(state);
+    return 'retry'; // re-process this segment in the new column
+  }
+
+  // Does it fit entirely?
+  if (measured.height <= remainingInColumn(state)) {
+    placeRegion(state, { measured, column: state.cursor.column, y: state.cursor.y }, measured.height);
+    return 'placed';
+  }
+
+  // Split: how many lines fit?
+  const linesToPlace = splitLineCount(totalLines, lineHeight, remainingInColumn(state));
+  if (linesToPlace === null) {
+    nextColumn(state);
+    return 'retry'; // re-process
+  }
+
+  // Place first part
+  placeRegion(
+    state,
+    {
+      measured,
+      lineRange: { start: 0, end: linesToPlace },
+      column: state.cursor.column,
+      y: state.cursor.y,
+    },
+    linesToPlace * lineHeight,
+  );
+
+  // Continue with remaining lines in next column
+  nextColumn(state);
+
+  // Place remaining as continuation
+  const remainingLines = totalLines - linesToPlace;
+  if (remainingLines > 0) {
+    placeRegion(
+      state,
+      {
+        measured,
+        lineRange: { start: linesToPlace, end: totalLines },
+        column: state.cursor.column,
+        y: state.cursor.y,
+      },
+      remainingLines * lineHeight,
+    );
+  }
+
+  return 'placed';
+};
+
+const placeImageSegment = (state: PaginatorState, measured: MeasuredSegment): PlaceOutcome => {
+  const remaining = remainingInColumn(state);
+  // Images don't split — if they don't fit, move to next column
+  if (measured.height > remaining && remaining < state.pageContentHeight * 0.9) {
+    nextColumn(state);
+    return 'retry';
+  }
+  placeRegion(state, { measured, column: state.cursor.column, y: state.cursor.y }, measured.height);
+  return 'placed';
+};
+
+const placeSpacingSegment = (state: PaginatorState, measured: MeasuredSegment): PlaceOutcome => {
+  const { cursor, openerHeight, pageIndex } = state;
+  // Spacing at column/page top is suppressed
+  if (cursor.y === 0 || (cursor.y === openerHeight && pageIndex === 0 && cursor.column === 0)) {
+    return 'placed';
+  }
+  const height = measured.height;
+  if (height > remainingInColumn(state)) {
+    // Don't add spacing that would overflow — just move on
+    return 'placed';
+  }
+  placeRegion(state, { measured, column: cursor.column, y: cursor.y }, height);
+  return 'placed';
+};
+
+const placeHrSegment = (state: PaginatorState, measured: MeasuredSegment): PlaceOutcome => {
+  if (measured.height > remainingInColumn(state)) {
+    nextColumn(state);
+    return 'retry';
+  }
+  placeRegion(state, { measured, column: state.cursor.column, y: state.cursor.y }, measured.height);
+  return 'placed';
+};
+
+const placeSegment = (
+  state: PaginatorState,
+  measured: MeasuredSegment,
+  nextSeg: MeasuredSegment | undefined,
+): PlaceOutcome => {
+  switch (measured.segment.kind) {
+    case 'paragraph':
+    case 'heading':
+    case 'blockquote':
+      return placeTextSegment(state, measured, nextSeg);
+    case 'image':
+      return placeImageSegment(state, measured);
+    case 'spacing':
+      return placeSpacingSegment(state, measured);
+    case 'hr':
+      return placeHrSegment(state, measured);
+  }
+};
+
+/* ── Finalization ─────────────────────────────────────────────── */
+
+const finalizePages = (state: PaginatorState, footerHeight: number): void => {
+  const { pages, pageContentHeight } = state;
+
   // Push the final page
   pages.push({
-    pageIndex,
-    regions: currentPage,
-    isFirstPage: pageIndex === 0,
+    pageIndex: state.pageIndex,
+    regions: state.currentPage,
+    isFirstPage: state.pageIndex === 0,
     isLastPage: true,
   });
 
   // If the only page has no body content regions but has an opener, that's fine
   // If we ended up with an empty last page (all content fit on previous), merge
   if (pages.length > 1) {
-    const lastPage = pages.at(-1)!;
-    if (lastPage.regions.length === 0) {
+    const trailing = pages.at(-1);
+    if (trailing && trailing.regions.length === 0) {
       // Move isLastPage flag to the previous page
       pages.pop();
-      pages.at(-1)!.isLastPage = true;
+      const previous = pages.at(-1);
+      if (previous) {
+        previous.isLastPage = true;
+      }
     }
   }
 
   // Handle case where footer doesn't fit on the last page
-  const lastPage = pages.at(-1)!;
-  if (lastPage.isLastPage) {
+  const lastPage = pages.at(-1);
+  if (lastPage?.isLastPage) {
     const maxY = lastPage.regions.reduce((max, r) => {
       const h = r.measured.height;
-      const regionBottom = r.y + (r.lineRange
-        ? (r.lineRange.end - r.lineRange.start) * (r.measured as MeasuredTextSegment).fontEntry.lineHeight
-        : h);
+      const regionBottom =
+        r.y +
+        (r.lineRange
+          ? (r.lineRange.end - r.lineRange.start) * (r.measured as MeasuredTextSegment).fontEntry.lineHeight
+          : h);
       return Math.max(max, regionBottom);
     }, 0);
 
     if (maxY + footerHeight > pageContentHeight) {
       // Footer doesn't fit — add an empty page for it
-      pages.at(-1)!.isLastPage = false;
+      lastPage.isLastPage = false;
       pages.push({
         pageIndex: pages.length,
         regions: [],
@@ -418,9 +426,57 @@ const paginateArticle = (args: PaginateArgs): PaginateResult => {
       });
     }
   }
+};
+
+/* ── Paginate ─────────────────────────────────────────────────── */
+
+const paginateArticle = (args: PaginateArgs): PaginateResult => {
+  const { opener, measuredSegments, viewport, columns, padding, columnGap, fontConfig, footerHeight } = args;
+
+  const contentWidth = viewport.width - padding.horizontal * 2;
+  const columnWidth = columns === 2 ? (contentWidth - columnGap) / 2 : contentWidth;
+
+  // Account for nav bar at the bottom of the viewport
+  const pageContentHeight = viewport.height - padding.top - padding.bottom - NAV_BAR_HEIGHT;
+
+  // Calculate opener height for first page
+  const style = args.style ?? 'standard';
+  const openerHeight = estimateOpenerHeight({
+    opener,
+    contentWidth,
+    fontConfig,
+    viewportHeight: viewport.height,
+    style,
+  });
+
+  const state: PaginatorState = {
+    columns,
+    pageContentHeight,
+    openerHeight,
+    pages: [],
+    currentPage: [],
+    pageIndex: 0,
+    // On the first page, body content starts below the opener
+    cursor: { column: 0, y: openerHeight },
+  };
+
+  // Process each segment; 'retry' re-processes the segment in a fresh column
+  let segIdx = 0;
+  while (segIdx < measuredSegments.length) {
+    const measured = measuredSegments[segIdx];
+    if (!measured) {
+      break;
+    }
+    const outcome = placeSegment(state, measured, measuredSegments[segIdx + 1]);
+    if (outcome === 'placed') {
+      segIdx++;
+    }
+  }
+
+  finalizePages(state, footerHeight);
 
   return {
-    pages,
+    pages: state.pages,
     layout: {
       contentWidth,
       columnWidth,
@@ -443,11 +499,4 @@ const footerReservedHeight = 120;
 /* ── Exports ──────────────────────────────────────────────────── */
 
 export type { PageRegion, ArticlePage, ArticleOpener, PagePadding, PaginateArgs, PaginateResult };
-export {
-  paginateArticle,
-  estimateOpenerHeight,
-  desktopPadding,
-  mobilePadding,
-  desktopColumnGap,
-  footerReservedHeight,
-};
+export { paginateArticle, estimateOpenerHeight, desktopPadding, mobilePadding, desktopColumnGap, footerReservedHeight };

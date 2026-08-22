@@ -54,9 +54,12 @@ const normalizeUrl = (raw: string): string => {
 const stripLeadingHeroImage = (markdown: string, heroUrl: string): string => {
   const hero = normalizeUrl(heroUrl);
   // Match a leading image — either plain ![alt](src) or linked [![alt](src)](href)
-  return markdown.replace(/^\s*(?:\[!\[[^\]]*\]\(([^)]+)\)\]\([^)]+\)|!\[[^\]]*\]\(([^)]+)\))\s*/, (match, linkedSrc, plainSrc) => {
-    return normalizeUrl(linkedSrc ?? plainSrc) === hero ? '' : match;
-  });
+  return markdown.replace(
+    /^\s*(?:\[!\[[^\]]*\]\(([^)]+)\)\]\([^)]+\)|!\[[^\]]*\]\(([^)]+)\))\s*/,
+    (match, linkedSrc, plainSrc) => {
+      return normalizeUrl(linkedSrc ?? plainSrc) === hero ? '' : match;
+    },
+  );
 };
 
 const saveFallbackContent = async (db: Kysely<DatabaseSchema>, itemId: string, htmlContent: string): Promise<void> => {
@@ -134,6 +137,20 @@ const processExtractItem = async (db: Kysely<DatabaseSchema>, item: ExtractItem)
   }
 };
 
+const buildExtractScope = (db: Kysely<DatabaseSchema>, scopeFilter: ScopeFilter | undefined) => {
+  let q = db
+    .selectFrom('articles')
+    .innerJoin('sources', 'sources.id', 'articles.source_id')
+    .where('articles.extracted_at', 'is', null)
+    .where('articles.url', 'is not', null);
+
+  if (scopeFilter?.sourceIds && scopeFilter.sourceIds.length > 0) {
+    q = q.where('articles.source_id', 'in', scopeFilter.sourceIds);
+  }
+
+  return q;
+};
+
 // --- Step factory ---
 
 const createExtractStep = (params: {
@@ -145,22 +162,18 @@ const createExtractStep = (params: {
 
   return {
     name: 'extract',
+    countRemaining: async (): Promise<number> => {
+      const row = await buildExtractScope(db, scopeFilter).select(db.fn.countAll().as('count')).executeTakeFirst();
+      return Number(row?.count ?? 0);
+    },
     fetchBatch: async function* (): AsyncGenerator<ExtractItem[]> {
       let lastId = '';
       while (true) {
-        let q = db
-          .selectFrom('articles')
-          .innerJoin('sources', 'sources.id', 'articles.source_id')
+        const q = buildExtractScope(db, scopeFilter)
           .select(['articles.id', 'articles.url', 'articles.title', 'articles.content', 'sources.type as source_type'])
-          .where('articles.extracted_at', 'is', null)
-          .where('articles.url', 'is not', null)
           .where('articles.id', '>', lastId)
           .orderBy('articles.id')
           .limit(batchSize);
-
-        if (scopeFilter?.sourceIds && scopeFilter.sourceIds.length > 0) {
-          q = q.where('articles.source_id', 'in', scopeFilter.sourceIds);
-        }
 
         const rows = await q.execute();
         if (rows.length === 0) {

@@ -84,42 +84,64 @@ const deepMerge = (target: Record<string, unknown>, source: Record<string, unkno
   return result;
 };
 
-const envOverrides = (): Record<string, unknown> => {
-  const overrides: Record<string, unknown> = {};
-  const env = process.env;
-
+const serverEnvOverrides = (env: NodeJS.ProcessEnv): Record<string, unknown> => {
+  const server: Record<string, unknown> = {};
   const host = env['EDITIONS_HOST'] ?? env['HOST'];
   if (host) {
-    overrides['server'] = { ...((overrides['server'] as Record<string, unknown>) ?? {}), host };
+    server['host'] = host;
   }
   const portStr = env['EDITIONS_PORT'] ?? env['PORT'];
   if (portStr) {
     const port = Number(portStr);
     if (!Number.isNaN(port)) {
-      overrides['server'] = { ...((overrides['server'] as Record<string, unknown>) ?? {}), port };
+      server['port'] = port;
     }
+  }
+  return server;
+};
+
+const authEnvOverrides = (env: NodeJS.ProcessEnv): Record<string, unknown> => {
+  const auth: Record<string, unknown> = {};
+  if (env['EDITIONS_JWT_SECRET']) {
+    auth['jwtSecret'] = env['EDITIONS_JWT_SECRET'];
+  }
+  if (env['EDITIONS_ALLOW_SIGNUPS'] !== undefined) {
+    auth['allowSignups'] = env['EDITIONS_ALLOW_SIGNUPS'] !== 'false';
+  }
+  return auth;
+};
+
+const stripeEnvOverrides = (env: NodeJS.ProcessEnv): Record<string, unknown> => {
+  const stripe: Record<string, unknown> = {};
+  if (env['EDITIONS_STRIPE_SECRET_KEY']) {
+    stripe['secretKey'] = env['EDITIONS_STRIPE_SECRET_KEY'];
+  }
+  if (env['EDITIONS_STRIPE_WEBHOOK_SECRET']) {
+    stripe['webhookSecret'] = env['EDITIONS_STRIPE_WEBHOOK_SECRET'];
+  }
+  if (env['EDITIONS_STRIPE_PUBLISHABLE_KEY']) {
+    stripe['publishableKey'] = env['EDITIONS_STRIPE_PUBLISHABLE_KEY'];
+  }
+  return stripe;
+};
+
+const envOverrides = (): Record<string, unknown> => {
+  const overrides: Record<string, unknown> = {};
+  const env = process.env;
+
+  const server = serverEnvOverrides(env);
+  if (Object.keys(server).length > 0) {
+    overrides['server'] = server;
   }
   if (env['EDITIONS_DB']) {
     overrides['database'] = { filename: env['EDITIONS_DB'] };
   }
-  if (env['EDITIONS_JWT_SECRET']) {
-    overrides['auth'] = {
-      ...((overrides['auth'] as Record<string, unknown>) ?? {}),
-      jwtSecret: env['EDITIONS_JWT_SECRET'],
-    };
+  const auth = authEnvOverrides(env);
+  if (Object.keys(auth).length > 0) {
+    overrides['auth'] = auth;
   }
-  if (env['EDITIONS_ALLOW_SIGNUPS'] !== undefined) {
-    overrides['auth'] = {
-      ...((overrides['auth'] as Record<string, unknown>) ?? {}),
-      allowSignups: env['EDITIONS_ALLOW_SIGNUPS'] !== 'false',
-    };
-  }
-
-  if (env['EDITIONS_STRIPE_SECRET_KEY'] || env['EDITIONS_STRIPE_WEBHOOK_SECRET'] || env['EDITIONS_STRIPE_PUBLISHABLE_KEY']) {
-    const stripe: Record<string, unknown> = {};
-    if (env['EDITIONS_STRIPE_SECRET_KEY']) stripe['secretKey'] = env['EDITIONS_STRIPE_SECRET_KEY'];
-    if (env['EDITIONS_STRIPE_WEBHOOK_SECRET']) stripe['webhookSecret'] = env['EDITIONS_STRIPE_WEBHOOK_SECRET'];
-    if (env['EDITIONS_STRIPE_PUBLISHABLE_KEY']) stripe['publishableKey'] = env['EDITIONS_STRIPE_PUBLISHABLE_KEY'];
+  const stripe = stripeEnvOverrides(env);
+  if (Object.keys(stripe).length > 0) {
     overrides['stripe'] = stripe;
   }
 

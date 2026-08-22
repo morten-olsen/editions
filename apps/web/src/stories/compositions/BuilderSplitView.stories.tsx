@@ -20,6 +20,9 @@ import { Checkbox } from '../../components/checkbox.tsx';
 import { Separator } from '../../components/separator.tsx';
 import { AuthProvider } from '../../auth/auth.tsx';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function -- intentional no-op for story callbacks
+const noop = (): void => {};
+
 /* ── Router setup ────────────────────────────────────────────────── */
 
 const rootRoute = createRootRoute();
@@ -327,11 +330,11 @@ const InteractiveFocusBuilder = (): React.ReactElement => {
   return (
     <ModeShell
       activeMode="builder"
-      onModeChange={() => {}}
+      onModeChange={noop}
       pathname="/focuses/tech/edit"
       username="alice"
-      onLogout={() => {}}
-      onSettingsClick={() => {}}
+      onLogout={noop}
+      onSettingsClick={noop}
     >
       <BuilderNav activeTab="focuses" />
       <BuilderSplitView
@@ -354,11 +357,11 @@ const InteractiveFocusBuilder = (): React.ReactElement => {
 const InteractiveEditionBuilder = (): React.ReactElement => (
   <ModeShell
     activeMode="builder"
-    onModeChange={() => {}}
+    onModeChange={noop}
     pathname="/editions/morning/edit"
     username="alice"
-    onLogout={() => {}}
-    onSettingsClick={() => {}}
+    onLogout={noop}
+    onSettingsClick={noop}
   >
     <BuilderNav activeTab="editions" />
     <BuilderSplitView
@@ -374,7 +377,7 @@ const InteractiveEditionBuilder = (): React.ReactElement => (
             <div className="text-sm font-medium text-ink mb-2">Focuses</div>
             {['Technology', 'Science', 'Global News'].map((name) => (
               <div key={name} className="flex items-center gap-2 py-2">
-                <Checkbox label={name} checked onCheckedChange={() => {}} />
+                <Checkbox label={name} checked onCheckedChange={noop} />
               </div>
             ))}
           </div>

@@ -31,7 +31,9 @@ const useContainerSize = (ref: RefObject<HTMLElement | null>): ContainerSize => 
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
 
     let timer: ReturnType<typeof setTimeout> | undefined;
 
@@ -91,20 +93,28 @@ const useFontReady = (): boolean => {
         // Check all weights/styles — retry briefly if not all loaded
         for (let attempt = 0; attempt < 5; attempt++) {
           if (FONT_CHECKS.every((f) => document.fonts.check(f))) {
-            if (!cancelled) setReady(true);
+            if (!cancelled) {
+              setReady(true);
+            }
             return;
           }
           await new Promise((r) => setTimeout(r, 100));
         }
         // Give up after 500ms — use whatever's loaded
-        if (!cancelled) setReady(true);
+        if (!cancelled) {
+          setReady(true);
+        }
       } catch {
-        if (!cancelled) setReady(true);
+        if (!cancelled) {
+          setReady(true);
+        }
       }
     };
 
     void check();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return ready;
@@ -112,7 +122,7 @@ const useFontReady = (): boolean => {
 
 /* ── useDebouncedValue ────────────────────────────────────────── */
 
-const useDebouncedValue = <T,>(value: T, delayMs: number): T => {
+const useDebouncedValue = <T>(value: T, delayMs: number): T => {
   const [debounced, setDebounced] = useState(value);
   const firstRender = useRef(true);
 
@@ -130,9 +140,7 @@ const useDebouncedValue = <T,>(value: T, delayMs: number): T => {
 
 /* ── useStableCallback ────────────────────────────────────────── */
 
-const useStableCallback = <Args extends unknown[], R>(
-  callback: (...args: Args) => R,
-): ((...args: Args) => R) => {
+const useStableCallback = <Args extends unknown[], R>(callback: (...args: Args) => R): ((...args: Args) => R) => {
   const ref = useRef(callback);
   ref.current = callback;
   return useCallback((...args: Args) => ref.current(...args), []);

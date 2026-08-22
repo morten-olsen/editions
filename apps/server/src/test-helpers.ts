@@ -4,11 +4,18 @@ process.env['EDITIONS_DB'] = ':memory:';
 process.env['EDITIONS_JWT_SECRET'] ??= 'test-secret-do-not-use-in-production';
 
 import type { FastifyInstance, InjectOptions, LightMyRequestResponse } from 'fastify';
+import type { Kysely } from 'kysely';
 
 import { createApp } from './app.ts';
+import { DatabaseService } from './database/database.ts';
+import type { DatabaseSchema } from './database/database.types.ts';
+import type { Services } from './services/services.ts';
 
 type TestContext = {
   server: FastifyInstance;
+  services: Services;
+  /** Direct handle to the in-memory DB for seeding test data */
+  db: () => Promise<Kysely<DatabaseSchema>>;
   stop: () => Promise<void>;
   inject: (opts: InjectOptions) => Promise<LightMyRequestResponse>;
   /** Register a user and return auth headers */
@@ -45,7 +52,9 @@ const createTestApp = async (): Promise<TestContext> => {
     };
   };
 
-  return { server: app.server, stop: app.stop, inject, register };
+  const db = (): Promise<Kysely<DatabaseSchema>> => app.services.get(DatabaseService).getInstance();
+
+  return { server: app.server, services: app.services, db, stop: app.stop, inject, register };
 };
 
 export { createTestApp };

@@ -15,6 +15,32 @@ import {
 import { useBookmarkStatus } from '../hooks/bookmarks/bookmarks.hooks.ts';
 import { MagazineView } from '../views/editions/edition-magazine-view.tsx';
 
+/* ── Subcomponents ───────────────────────────────────────────────── */
+
+const LoadingScreen = (): React.ReactElement => (
+  <div className="flex min-h-dvh items-center justify-center bg-surface">
+    <div className="font-serif text-lg text-ink-tertiary">Loading...</div>
+  </div>
+);
+
+type ErrorScreenProps = {
+  error: unknown;
+  onExit: () => void;
+};
+
+const ErrorScreen = ({ error, onExit }: ErrorScreenProps): React.ReactElement => (
+  <div className="flex min-h-dvh items-center justify-center bg-surface">
+    <div className="text-center">
+      <div className="font-serif text-xl text-ink mb-2">
+        {error instanceof Error ? error.message : 'Edition not found'}
+      </div>
+      <Button variant="ghost" size="sm" onClick={onExit}>
+        Go back
+      </Button>
+    </div>
+  </div>
+);
+
 /* ── Page component ──────────────────────────────────────────────── */
 
 const EditionPage = (): React.ReactNode => {
@@ -71,26 +97,11 @@ const EditionPage = (): React.ReactNode => {
   }, [handleExit]);
 
   if (!headers || isLoading) {
-    return (
-      <div className="flex min-h-dvh items-center justify-center bg-surface">
-        <div className="font-serif text-lg text-ink-tertiary">Loading...</div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (error || !edition) {
-    return (
-      <div className="flex min-h-dvh items-center justify-center bg-surface">
-        <div className="text-center">
-          <div className="font-serif text-xl text-ink mb-2">
-            {error instanceof Error ? error.message : 'Edition not found'}
-          </div>
-          <Button variant="ghost" size="sm" onClick={handleExit}>
-            Go back
-          </Button>
-        </div>
-      </div>
-    );
+    return <ErrorScreen error={error} onExit={handleExit} />;
   }
 
   return (

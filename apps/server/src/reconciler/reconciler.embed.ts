@@ -15,6 +15,25 @@ type EmbedItem = {
   preparedText: string;
 };
 
+// --- Helpers ---
+
+const buildEmbedScope = (db: Kysely<DatabaseSchema>, embeddingModel: string, scopeFilter: ScopeFilter | undefined) => {
+  let q = db
+    .selectFrom('articles')
+    .innerJoin('sources', 'sources.id', 'articles.source_id')
+    .leftJoin('article_embeddings', 'article_embeddings.article_id', 'articles.id')
+    .where('articles.extracted_at', 'is not', null)
+    .where((eb) =>
+      eb.or([eb('article_embeddings.article_id', 'is', null), eb('article_embeddings.model', '!=', embeddingModel)]),
+    );
+
+  if (scopeFilter?.sourceIds && scopeFilter.sourceIds.length > 0) {
+    q = q.where('articles.source_id', 'in', scopeFilter.sourceIds);
+  }
+
+  return q;
+};
+
 // --- Step factory ---
 
 const createEmbedStep = (params: {
@@ -28,13 +47,16 @@ const createEmbedStep = (params: {
 
   return {
     name: 'embed',
+    countRemaining: async (): Promise<number> => {
+      const row = await buildEmbedScope(db, embeddingModel, scopeFilter)
+        .select(db.fn.countAll().as('count'))
+        .executeTakeFirst();
+      return Number(row?.count ?? 0);
+    },
     fetchBatch: async function* (): AsyncGenerator<EmbedItem[]> {
       let lastId = '';
       while (true) {
-        let q = db
-          .selectFrom('articles')
-          .innerJoin('sources', 'sources.id', 'articles.source_id')
-          .leftJoin('article_embeddings', 'article_embeddings.article_id', 'articles.id')
+        const q = buildEmbedScope(db, embeddingModel, scopeFilter)
           .select([
             'articles.id',
             'articles.title',
@@ -42,20 +64,9 @@ const createEmbedStep = (params: {
             'articles.summary',
             'sources.type as source_type',
           ])
-          .where('articles.extracted_at', 'is not', null)
-          .where((eb) =>
-            eb.or([
-              eb('article_embeddings.article_id', 'is', null),
-              eb('article_embeddings.model', '!=', embeddingModel),
-            ]),
-          )
           .where('articles.id', '>', lastId)
           .orderBy('articles.id')
           .limit(batchSize);
-
-        if (scopeFilter?.sourceIds && scopeFilter.sourceIds.length > 0) {
-          q = q.where('articles.source_id', 'in', scopeFilter.sourceIds);
-        }
 
         const rows = await q.execute();
         if (rows.length === 0) {

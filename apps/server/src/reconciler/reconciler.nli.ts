@@ -60,12 +60,7 @@ const batchUpsertNli = async (
 
 // --- Helpers ---
 
-const buildNliQuery = (
-  db: Kysely<DatabaseSchema>,
-  classifierModel: string,
-  scopeFilter: ScopeFilter | undefined,
-  batchSize: number,
-) => {
+const buildNliScope = (db: Kysely<DatabaseSchema>, classifierModel: string, scopeFilter: ScopeFilter | undefined) => {
   // Query articles × focuses that have similarity scores but need NLI
   // No focus_sources join — NLI runs for all article-focus pairs
   let q = db
@@ -73,16 +68,6 @@ const buildNliQuery = (
     .innerJoin('articles', 'articles.id', 'article_focuses.article_id')
     .innerJoin('focuses', 'focuses.id', 'article_focuses.focus_id')
     .innerJoin('sources', 'sources.id', 'articles.source_id')
-    .select([
-      'articles.id as article_id',
-      'articles.title',
-      'articles.content',
-      'articles.summary',
-      'sources.type as source_type',
-      'article_focuses.focus_id',
-      'focuses.name',
-      'focuses.description',
-    ])
     .where('articles.extracted_at', 'is not', null)
     .where('article_focuses.similarity', 'is not', null)
     .where((eb) =>
@@ -91,8 +76,7 @@ const buildNliQuery = (
         eb('article_focuses.nli_model', 'is', null),
         eb('article_focuses.nli_model', '!=', classifierModel),
       ]),
-    )
-    .limit(batchSize);
+    );
 
   if (scopeFilter?.focusIds && scopeFilter.focusIds.length > 0) {
     q = q.where('article_focuses.focus_id', 'in', scopeFilter.focusIds);
@@ -138,9 +122,27 @@ const createNliStep = (params: {
 
   return {
     name: 'nli',
+    countRemaining: async (): Promise<number> => {
+      const row = await buildNliScope(db, classifierModel, scopeFilter)
+        .select(db.fn.countAll().as('count'))
+        .executeTakeFirst();
+      return Number(row?.count ?? 0);
+    },
     fetchBatch: async function* (): AsyncGenerator<NliItem[]> {
       while (true) {
-        const rows = (await buildNliQuery(db, classifierModel, scopeFilter, batchSize).execute()) as NliRow[];
+        const rows = (await buildNliScope(db, classifierModel, scopeFilter)
+          .select([
+            'articles.id as article_id',
+            'articles.title',
+            'articles.content',
+            'articles.summary',
+            'sources.type as source_type',
+            'article_focuses.focus_id',
+            'focuses.name',
+            'focuses.description',
+          ])
+          .limit(batchSize)
+          .execute()) as NliRow[];
         if (rows.length === 0) {
           break;
         }

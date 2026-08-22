@@ -14,6 +14,9 @@ import { PageHeader } from '../../components/page-header.tsx';
 import { Button } from '../../components/button.tsx';
 import { AuthProvider } from '../../auth/auth.tsx';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function -- intentional no-op for story callbacks
+const noop = (): void => {};
+
 /* ── Router setup ────────────────────────────────────────────────── */
 
 const rootRoute = createRootRoute();
@@ -115,11 +118,11 @@ const RoutedBuilder = ({ initialPath = '/sources' }: { initialPath?: string }): 
           defaultComponent={() => (
             <ModeShell
               activeMode="builder"
-              onModeChange={() => {}}
+              onModeChange={noop}
               pathname={initialPath}
               username="alice"
-              onLogout={() => {}}
-              onSettingsClick={() => {}}
+              onLogout={noop}
+              onSettingsClick={noop}
             >
               <BuilderNav activeTab={initialPath.replace('/', '') as BuilderTab} />
               {initialPath === '/focuses' ? (

@@ -6,6 +6,32 @@ import { Input } from '../components/input.tsx';
 import { Textarea } from '../components/textarea.tsx';
 import { Button } from '../components/button.tsx';
 
+const FocusFormActions = ({ isPending }: { isPending: boolean }): React.ReactElement => (
+  <div className="flex items-center gap-3">
+    <Button
+      variant="primary"
+      type="submit"
+      disabled={isPending}
+      data-ai-id="focus-submit"
+      data-ai-role="button"
+      data-ai-label="Create topic"
+      data-ai-state={isPending ? 'loading' : 'idle'}
+    >
+      {isPending ? 'Creating…' : 'Create topic'}
+    </Button>
+    <Button
+      variant="ghost"
+      type="button"
+      onClick={() => void globalThis.history.back()}
+      data-ai-id="focus-cancel"
+      data-ai-role="button"
+      data-ai-label="Cancel"
+    >
+      Cancel
+    </Button>
+  </div>
+);
+
 const NewFocusPage = (): React.ReactNode => {
   const hook = useCreateFocus();
 
@@ -67,29 +93,7 @@ const NewFocusPage = (): React.ReactNode => {
           data-ai-value={hook.description}
         />
 
-        <div className="flex items-center gap-3">
-          <Button
-            variant="primary"
-            type="submit"
-            disabled={hook.isPending}
-            data-ai-id="focus-submit"
-            data-ai-role="button"
-            data-ai-label="Create topic"
-            data-ai-state={hook.isPending ? 'loading' : 'idle'}
-          >
-            {hook.isPending ? 'Creating…' : 'Create topic'}
-          </Button>
-          <Button
-            variant="ghost"
-            type="button"
-            onClick={() => void globalThis.history.back()}
-            data-ai-id="focus-cancel"
-            data-ai-role="button"
-            data-ai-label="Cancel"
-          >
-            Cancel
-          </Button>
-        </div>
+        <FocusFormActions isPending={hook.isPending} />
       </form>
     </div>
   );

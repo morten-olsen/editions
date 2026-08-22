@@ -168,11 +168,7 @@ const SourceStatusMessages = ({
         {reanalyseResult}
       </div>
     )}
-    {reExtractResult && (
-      <div className="text-sm text-ink-secondary mb-4">
-        {reExtractResult}
-      </div>
-    )}
+    {reExtractResult && <div className="text-sm text-ink-secondary mb-4">{reExtractResult}</div>}
   </>
 );
 

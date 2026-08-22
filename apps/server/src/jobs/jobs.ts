@@ -5,6 +5,21 @@ import type { Services } from '../services/services.ts';
 
 // --- Types ---
 
+// The job registry: every job type and its payload shape. Enqueue and
+// register are typed against this map, so a typo'd type or wrong payload
+// is a compile error — here, and in any file that enqueues.
+type JobPayloads = {
+  refresh_source: { sourceId: string; userId: string };
+  reconcile_focus: { focusId: string; forceReclassify?: boolean };
+  reanalyse_source: { sourceId: string };
+  reanalyse_all: Record<string, never>;
+  re_extract_all: Record<string, never>;
+  re_extract_source: { sourceId: string };
+  extract_and_analyse: { sourceId: string };
+};
+
+type JobType = keyof JobPayloads;
+
 type JobStatus = 'pending' | 'running' | 'completed' | 'failed';
 
 type JobAffects = {
@@ -20,7 +35,7 @@ type JobProgress = {
 
 type Job = {
   id: string;
-  type: string;
+  type: JobType;
   status: JobStatus;
   userId: string | null;
   affects: JobAffects;
@@ -65,11 +80,11 @@ class JobService {
     this.#concurrency = concurrency;
   }
 
-  register = <T>(type: string, handler: JobHandler<T>): void => {
+  register = <T extends JobType>(type: T, handler: JobHandler<JobPayloads[T]>): void => {
     this.#handlers.set(type, handler as JobHandler);
   };
 
-  enqueue = <T>(type: string, payload: T, options?: EnqueueOptions): Job => {
+  enqueue = <T extends JobType>(type: T, payload: JobPayloads[T], options?: EnqueueOptions): Job => {
     const job: Job = {
       id: crypto.randomUUID(),
       type,
@@ -195,5 +210,15 @@ class JobService {
   };
 }
 
-export type { Job, JobHandler, JobStatus, JobAffects, JobProgress, EnqueueOptions, ListJobsFilter };
+export type {
+  Job,
+  JobHandler,
+  JobType,
+  JobPayloads,
+  JobStatus,
+  JobAffects,
+  JobProgress,
+  EnqueueOptions,
+  ListJobsFilter,
+};
 export { JobService };

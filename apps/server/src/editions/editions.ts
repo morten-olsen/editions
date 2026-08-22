@@ -5,7 +5,7 @@ import { FocusesService } from '../focuses/focuses.ts';
 import { VotesService } from '../votes/votes.ts';
 import type { Services } from '../services/services.ts';
 
-import { loadExcludedArticleIds, loadFocusDetails, collectArticlesForFocuses } from './editions.generate.ts';
+import { generateEdition, loadGenerationInputs } from './editions.generate.ts';
 import type { GenerateResult } from './editions.generate.ts';
 import {
   mapFocusLinkRow,
@@ -327,37 +327,19 @@ class EditionsService {
 
   #collectForConfig = async (userId: string, configId: string, config: EditionConfig): Promise<GenerateResult> => {
     const db = await this.#services.get(DatabaseService).getInstance();
-    const sortedFocuses = [...config.focuses].sort((a, b) => a.position - b.position);
-    const needsExcludedSet = config.excludePriorEditions || config.focuses.some((f) => f.excludePriorEditions === true);
 
-    const focusesService = this.#services.get(FocusesService);
-    const votesService = this.#services.get(VotesService);
-
-    const [excludedArticleIds, focusDetails, voteData] = await Promise.all([
-      loadExcludedArticleIds(db, configId, needsExcludedSet),
-      loadFocusDetails(focusesService, userId, sortedFocuses),
-      Promise.all([
-        votesService.loadVoteContext(userId, null),
-        votesService.loadEditionVoteContext(userId, configId),
-        votesService.loadUserScoringWeights(userId),
-      ]),
-    ]);
-
-    const [globalVoteContext, editionVoteContext, userWeights] = voteData;
-
-    return collectArticlesForFocuses({
+    const inputs = await loadGenerationInputs({
       db,
+      focusesService: this.#services.get(FocusesService),
+      votesService: this.#services.get(VotesService),
       userId,
       configId,
       defaultLookbackHours: config.lookbackHours,
       defaultExcludePriorEditions: config.excludePriorEditions,
-      sortedFocuses,
-      focusDetails,
-      excludedArticleIds,
-      voteContext: { global: globalVoteContext, edition: editionVoteContext },
-      votesService,
-      editionWeights: userWeights.edition,
+      focuses: config.focuses,
     });
+
+    return generateEdition(inputs);
   };
 
   generate = async (userId: string, configId: string): Promise<EditionDetail> => {

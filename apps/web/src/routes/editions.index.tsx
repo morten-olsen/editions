@@ -53,19 +53,54 @@ const EditionsPage = (): React.ReactNode => {
   );
 };
 
+type EditionConfigCardProps = {
+  config: ConfigItem;
+  deletingId: string | null;
+  generatingId: string | null;
+  onDelete: (id: string, name: string) => void;
+  onGenerate: (id: string) => void;
+};
+
+const EditionConfigActions = ({
+  config,
+  deletingId,
+  generatingId,
+  onDelete,
+  onGenerate,
+}: EditionConfigCardProps): React.ReactElement => (
+  <div className="flex items-center gap-2 shrink-0">
+    <button
+      type="button"
+      onClick={() => onGenerate(config.id)}
+      disabled={generatingId === config.id}
+      className="text-xs text-accent hover:text-accent-hover transition-colors duration-fast cursor-pointer disabled:opacity-50"
+      data-ai-id={`edition-config-${config.id}-generate`}
+      data-ai-role="button"
+      data-ai-label={`Generate ${config.name}`}
+      data-ai-state={generatingId === config.id ? 'loading' : 'idle'}
+    >
+      {generatingId === config.id ? 'Generating...' : 'Generate'}
+    </button>
+    <button
+      type="button"
+      onClick={() => onDelete(config.id, config.name)}
+      className="text-xs text-ink-faint hover:text-critical transition-colors duration-fast cursor-pointer"
+      data-ai-id={`edition-config-${config.id}-delete`}
+      data-ai-role="button"
+      data-ai-label={`Delete ${config.name}`}
+    >
+      {deletingId === config.id ? 'Deleting...' : 'Delete'}
+    </button>
+  </div>
+);
+
 const EditionConfigCard = ({
   config,
   deletingId,
   generatingId,
   onDelete,
   onGenerate,
-}: {
-  config: ConfigItem;
-  deletingId: string | null;
-  generatingId: string | null;
-  onDelete: (id: string, name: string) => void;
-  onGenerate: (id: string) => void;
-}): React.ReactElement => (
+}: EditionConfigCardProps): React.ReactElement => (
   <div
     className="rounded-lg border border-border bg-surface-raised p-4 group"
     data-ai-id={`edition-config-${config.id}`}
@@ -93,30 +128,13 @@ const EditionConfigCard = ({
           )}
         </div>
       </div>
-      <div className="flex items-center gap-2 shrink-0">
-        <button
-          type="button"
-          onClick={() => onGenerate(config.id)}
-          disabled={generatingId === config.id}
-          className="text-xs text-accent hover:text-accent-hover transition-colors duration-fast cursor-pointer disabled:opacity-50"
-          data-ai-id={`edition-config-${config.id}-generate`}
-          data-ai-role="button"
-          data-ai-label={`Generate ${config.name}`}
-          data-ai-state={generatingId === config.id ? 'loading' : 'idle'}
-        >
-          {generatingId === config.id ? 'Generating...' : 'Generate'}
-        </button>
-        <button
-          type="button"
-          onClick={() => onDelete(config.id, config.name)}
-          className="text-xs text-ink-faint hover:text-critical transition-colors duration-fast cursor-pointer"
-          data-ai-id={`edition-config-${config.id}-delete`}
-          data-ai-role="button"
-          data-ai-label={`Delete ${config.name}`}
-        >
-          {deletingId === config.id ? 'Deleting...' : 'Delete'}
-        </button>
-      </div>
+      <EditionConfigActions
+        config={config}
+        deletingId={deletingId}
+        generatingId={generatingId}
+        onDelete={onDelete}
+        onGenerate={onGenerate}
+      />
     </div>
 
     {/* Config details */}

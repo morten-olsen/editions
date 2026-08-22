@@ -3,17 +3,22 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Worker } from 'node:worker_threads';
 
+import type { Kysely } from 'kysely';
+
 import { ConfigService } from '../config/config.ts';
 import { DatabaseService } from '../database/database.ts';
+import type { DatabaseSchema } from '../database/database.types.ts';
 import { destroySymbol } from '../services/services.ts';
 import type { Services } from '../services/services.ts';
 
 import { runReconcileSteps } from './reconciler.runner.ts';
-import type { ProgressCallback } from './reconciler.runner.ts';
+import type { ProgressCallback, ReconcileStep } from './reconciler.runner.ts';
 import { createExtractStep } from './reconciler.extract.ts';
 import { createEmbedStep } from './reconciler.embed.ts';
+import type { EmbedFn } from './reconciler.embed.ts';
 import { createSimilarityStep } from './reconciler.similarity.ts';
 import { createNliStep } from './reconciler.nli.ts';
+import type { ClassifyFn } from './reconciler.nli.ts';
 import { createMarkAnalysedStep } from './reconciler.mark-analysed.ts';
 import type { ScopeFilter } from './reconciler.utils.ts';
 import type { WorkerResponse } from './reconciler.worker.ts';
@@ -32,10 +37,117 @@ type PendingRequest = {
   reject: (reason: Error) => void;
 };
 
+// How much analysis state to clear before reconciling:
+// - 'scores'  — classifications (and analysed_at outside focus scope), keeping content
+// - 'content' — everything derived: classifications, embeddings, extracted content
+//   (podcast articles keep their content; their "extraction" is the feed itself)
+type ResetLevel = 'scores' | 'content';
+
 type ReconcileOptions = {
   scopeFilter?: ScopeFilter;
   skipExtract?: boolean;
+  reset?: ResetLevel;
+  // Mark content-bearing articles as extracted before resetting, so articles
+  // ingested before extraction tracking existed re-enter the pipeline
+  backfillExtractedAt?: boolean;
   onProgress?: ProgressCallback;
+};
+
+type ClassifierStrategy = 'similarity' | 'nli' | 'hybrid';
+
+type BuildReconcileStepsParams = {
+  db: Kysely<DatabaseSchema>;
+  embedFn: EmbedFn;
+  classifyFn: ClassifyFn;
+  classifier: ClassifierStrategy;
+  scopeFilter?: ScopeFilter;
+  skipExtract?: boolean;
+  embeddingModel?: string;
+  classifierModel?: string;
+};
+
+// --- Pipeline composition ---
+
+// The single definition of the pipeline's shape, including how the configured
+// classifier strategy maps onto steps. Tests compose the real pipeline through
+// this — never a copy.
+const buildReconcileSteps = (params: BuildReconcileStepsParams): ReconcileStep[] => {
+  const {
+    db,
+    embedFn,
+    classifyFn,
+    classifier,
+    scopeFilter,
+    skipExtract,
+    embeddingModel = DEFAULT_EMBEDDING_MODEL,
+    classifierModel = DEFAULT_CLASSIFIER_MODEL,
+  } = params;
+
+  const useNli = classifier === 'nli' || classifier === 'hybrid';
+
+  return [
+    ...(skipExtract ? [] : [createExtractStep({ db, scopeFilter })]),
+    createEmbedStep({ db, embedFn, embeddingModel, scopeFilter }),
+    createSimilarityStep({ db, embedFn, embeddingModel, scopeFilter }),
+    ...(useNli ? [createNliStep({ db, classifyFn, classifierModel, scopeFilter })] : []),
+    createMarkAnalysedStep({ db, scopeFilter }),
+  ];
+};
+
+// Clears derived analysis state within the scope so the pipeline redoes it.
+// This module owns the tables the steps write, so their reset lives here too.
+const applyAnalysisReset = async (
+  db: Kysely<DatabaseSchema>,
+  options: Pick<ReconcileOptions, 'scopeFilter' | 'reset' | 'backfillExtractedAt'>,
+): Promise<void> => {
+  const { scopeFilter, reset, backfillExtractedAt } = options;
+
+  if (backfillExtractedAt) {
+    let backfill = db
+      .updateTable('articles')
+      .set({ extracted_at: new Date().toISOString() })
+      .where('extracted_at', 'is', null)
+      .where((eb) => eb.or([eb('content', 'is not', null), eb('summary', 'is not', null)]));
+    if (scopeFilter?.sourceIds && scopeFilter.sourceIds.length > 0) {
+      backfill = backfill.where('source_id', 'in', scopeFilter.sourceIds);
+    }
+    await backfill.execute();
+  }
+
+  if (!reset) {
+    return;
+  }
+
+  // Focus scope: only that focus's classifications are stale
+  if (scopeFilter?.focusIds && scopeFilter.focusIds.length > 0) {
+    await db.deleteFrom('article_focuses').where('focus_id', 'in', scopeFilter.focusIds).execute();
+    return;
+  }
+
+  let query = db.selectFrom('articles').select('articles.id').where('articles.extracted_at', 'is not', null);
+  if (reset === 'content') {
+    query = query.innerJoin('sources', 'sources.id', 'articles.source_id').where('sources.type', '!=', 'podcast');
+  }
+  if (scopeFilter?.sourceIds && scopeFilter.sourceIds.length > 0) {
+    query = query.where('articles.source_id', 'in', scopeFilter.sourceIds);
+  }
+
+  const ids = (await query.execute()).map((row) => row.id);
+  if (ids.length === 0) {
+    return;
+  }
+
+  await db.deleteFrom('article_focuses').where('article_id', 'in', ids).execute();
+  if (reset === 'content') {
+    await db.deleteFrom('article_embeddings').where('article_id', 'in', ids).execute();
+    await db
+      .updateTable('articles')
+      .set({ content: null, extracted_at: null, analysed_at: null })
+      .where('id', 'in', ids)
+      .execute();
+  } else {
+    await db.updateTable('articles').set({ analysed_at: null }).where('id', 'in', ids).execute();
+  }
 };
 
 // --- Service ---
@@ -123,52 +235,24 @@ class ReconcilerService {
     return response.results;
   };
 
-  // --- Batch inference primitives ---
-
-  embedBatch = async (texts: string[]): Promise<Float32Array[]> => {
-    if (texts.length === 0) {
-      return [];
-    }
-    const response = await this.#request({ type: 'embed_batch', texts });
-    if (response.type !== 'embed_batch') {
-      throw new Error('Unexpected response type');
-    }
-    return response.embeddings;
-  };
-
-  classifyBatch = async (
-    items: { text: string; labels: string[] }[],
-  ): Promise<{ label: string; score: number }[][]> => {
-    if (items.length === 0) {
-      return [];
-    }
-    const response = await this.#request({ type: 'classify_batch', items });
-    if (response.type !== 'classify_batch') {
-      throw new Error('Unexpected response type');
-    }
-    return response.results;
-  };
-
   // --- Pipeline ---
 
-  reconcile = async (options?: ReconcileOptions): Promise<void> => {
+  reconcile = async (options: ReconcileOptions = {}): Promise<void> => {
     const db = await this.#services.get(DatabaseService).getInstance();
     const { config } = this.#services.get(ConfigService);
-    const classifier = config.analysis.classifier;
-    const useNli = classifier === 'nli' || classifier === 'hybrid';
-    const scopeFilter = options?.scopeFilter;
 
-    const steps = [
-      ...(options?.skipExtract ? [] : [createExtractStep({ db, scopeFilter })]),
-      createEmbedStep({ db, embedFn: this.embed, embeddingModel: DEFAULT_EMBEDDING_MODEL, scopeFilter }),
-      createSimilarityStep({ db, embedFn: this.embed, embeddingModel: DEFAULT_EMBEDDING_MODEL, scopeFilter }),
-      ...(useNli
-        ? [createNliStep({ db, classifyFn: this.classify, classifierModel: DEFAULT_CLASSIFIER_MODEL, scopeFilter })]
-        : []),
-      createMarkAnalysedStep({ db, scopeFilter }),
-    ];
+    await applyAnalysisReset(db, options);
 
-    await runReconcileSteps(steps, options?.onProgress);
+    const steps = buildReconcileSteps({
+      db,
+      embedFn: this.embed,
+      classifyFn: this.classify,
+      classifier: config.analysis.classifier,
+      scopeFilter: options.scopeFilter,
+      skipExtract: options.skipExtract,
+    });
+
+    await runReconcileSteps(steps, options.onProgress);
   };
 
   // --- Cleanup ---
@@ -186,5 +270,13 @@ class ReconcilerService {
   };
 }
 
-export type { ReconcileOptions };
-export { ReconcilerService, DEFAULT_EMBEDDING_MODEL, DEFAULT_CLASSIFIER_MODEL };
+export type { ReconcileOptions, ResetLevel, ClassifierStrategy, BuildReconcileStepsParams };
+export type { ProgressCallback, ReconcileProgress } from './reconciler.runner.ts';
+export type { ScopeFilter } from './reconciler.utils.ts';
+export {
+  ReconcilerService,
+  buildReconcileSteps,
+  applyAnalysisReset,
+  DEFAULT_EMBEDDING_MODEL,
+  DEFAULT_CLASSIFIER_MODEL,
+};

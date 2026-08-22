@@ -1,3 +1,7 @@
+/* eslint-disable max-lines -- This file is a curated data catalog: ~90% of it is the
+   discovery source/focus/edition-config arrays. Splitting the data across files would
+   hurt readability without reducing any real complexity. */
+
 // --- Discovery catalog types ---
 
 type DiscoverySource = {
@@ -341,7 +345,7 @@ const discoverySources: DiscoverySource[] = [
   },
   {
     id: 'neil-gaiman',
-    name: 'Neil Gaiman\'s Journal',
+    name: "Neil Gaiman's Journal",
     type: 'rss',
     url: 'https://journal.neilgaiman.com/feeds/posts/default?alt=rss',
     description: 'Stories, musings, and behind-the-scenes from the author',
@@ -484,7 +488,8 @@ const discoveryEditionConfigs: DiscoveryEditionConfig[] = [
   {
     id: 'tech-weekly',
     name: 'Tech Weekly',
-    description: 'A weekly roundup of the most important technology and programming stories. Best enjoyed with a weekend coffee.',
+    description:
+      'A weekly roundup of the most important technology and programming stories. Best enjoyed with a weekend coffee.',
     icon: 'calendar',
     coverImage: null,
     schedule: '0 9 * * 6',
@@ -497,7 +502,8 @@ const discoveryEditionConfigs: DiscoveryEditionConfig[] = [
   {
     id: 'world-observer',
     name: 'World Observer',
-    description: 'A daily window into global affairs and business, with just enough depth to stay informed without feeling overwhelmed.',
+    description:
+      'A daily window into global affairs and business, with just enough depth to stay informed without feeling overwhelmed.',
     icon: 'globe',
     coverImage: null,
     schedule: '0 8 * * *',
@@ -529,13 +535,7 @@ const focusById = new Map(discoveryFocuses.map((f) => [f.id, f]));
 const editionConfigById = new Map(discoveryEditionConfigs.map((e) => [e.id, e]));
 const allTags = [...new Set(discoverySources.flatMap((s) => s.tags))].sort();
 
-export type {
-  DiscoverySource,
-  DiscoveryFocus,
-  DiscoveryFocusSource,
-  DiscoveryEditionConfig,
-  DiscoveryEditionFocus,
-};
+export type { DiscoverySource, DiscoveryFocus, DiscoveryFocusSource, DiscoveryEditionConfig, DiscoveryEditionFocus };
 export {
   discoverySources,
   discoveryFocuses,

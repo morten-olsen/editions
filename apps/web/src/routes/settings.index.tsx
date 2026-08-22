@@ -33,6 +33,18 @@ const TAB_DESCRIPTIONS: Record<SettingsTabKey, string> = {
   access: 'Configure pricing, trials, and manage user access',
 };
 
+const SettingsContent = ({ activeTab, token }: { activeTab: SettingsTabKey; token: string }): React.ReactNode => (
+  <>
+    {activeTab === 'jobs' && <JobsSection token={token} />}
+    {activeTab === 'votes' && <VotesSection />}
+    {activeTab === 'scoring' && <ScoringSection token={token} />}
+    {activeTab === 'data' && <DataSection token={token} />}
+    {activeTab === 'assistant' && <AiSection />}
+    {activeTab === 'subscription' && <SubscriptionSection />}
+    {activeTab === 'access' && <AccessSection />}
+  </>
+);
+
 const SettingsPage = (): React.ReactNode => {
   const auth = useAuth();
   const search = useSearch({ from: '/settings/' });
@@ -76,13 +88,7 @@ const SettingsPage = (): React.ReactNode => {
 
         {description && <p className="text-sm text-ink-secondary mb-6">{description}</p>}
 
-        {activeTab === 'jobs' && <JobsSection token={auth.token} />}
-        {activeTab === 'votes' && <VotesSection />}
-        {activeTab === 'scoring' && <ScoringSection token={auth.token} />}
-        {activeTab === 'data' && <DataSection token={auth.token} />}
-        {activeTab === 'assistant' && <AiSection />}
-        {activeTab === 'subscription' && <SubscriptionSection />}
-        {activeTab === 'access' && <AccessSection />}
+        <SettingsContent activeTab={activeTab} token={auth.token} />
       </div>
     </>
   );

@@ -70,6 +70,69 @@ const MotionLink = motion.create(Link);
 
 type CardContentProps = Omit<ArticleCardProps, 'id' | 'url' | 'href'>;
 
+const CompactCardContent = ({
+  title,
+  sourceName,
+  publishedAt,
+  muted,
+}: Pick<CardContentProps, 'title' | 'sourceName' | 'publishedAt'> & { muted: boolean }): React.ReactElement => (
+  <div className="flex items-start gap-4">
+    <div className="flex-1 min-w-0">
+      <div className="flex items-center gap-1.5 font-mono text-xs tracking-wide text-ink-faint mb-1">
+        <span className={muted ? '' : 'text-accent'}>{sourceName}</span>
+        {publishedAt && (
+          <>
+            <span>·</span>
+            <span>{formatDate(publishedAt)}</span>
+          </>
+        )}
+      </div>
+      <div
+        className={`font-serif tracking-tight leading-snug ${muted ? 'text-sm text-ink-tertiary' : 'text-sm text-ink font-medium'}`}
+      >
+        {title}
+      </div>
+    </div>
+  </div>
+);
+
+const CardByline = ({
+  author,
+  publishedAt,
+  consumptionTimeSeconds,
+  sourceType,
+}: Pick<CardContentProps, 'author' | 'publishedAt' | 'consumptionTimeSeconds' | 'sourceType'>): React.ReactElement => (
+  <div className="flex items-center gap-2 text-xs text-ink-tertiary">
+    {author && <span>By {author}</span>}
+    {author && (publishedAt || consumptionTimeSeconds) && <span className="text-ink-faint">·</span>}
+    {publishedAt && <span>{formatDate(publishedAt)}</span>}
+    {consumptionTimeSeconds != null && (
+      <>
+        {publishedAt && <span className="text-ink-faint">·</span>}
+        <span>{formatTime(consumptionTimeSeconds, sourceType)}</span>
+      </>
+    )}
+  </div>
+);
+
+const CardActions = ({
+  vote,
+  onVote,
+  focusVote,
+  onFocusVote,
+  bookmarked,
+  onBookmarkToggle,
+}: Pick<
+  CardContentProps,
+  'vote' | 'onVote' | 'focusVote' | 'onFocusVote' | 'bookmarked' | 'onBookmarkToggle'
+>): React.ReactElement => (
+  <div className="flex items-center gap-4 mt-3">
+    {onFocusVote && <VoteControls value={focusVote ?? null} onVote={onFocusVote} label="Relevance" />}
+    {onVote && <VoteControls value={vote ?? null} onVote={onVote} label="Quality" />}
+    {onBookmarkToggle && <BookmarkButton bookmarked={bookmarked ?? false} onToggle={onBookmarkToggle} />}
+  </div>
+);
+
 const CardContent = ({
   title,
   sourceName,
@@ -93,26 +156,7 @@ const CardContent = ({
   const hasActions = onVote !== undefined || onFocusVote !== undefined || onBookmarkToggle !== undefined;
 
   if (compact || muted) {
-    return (
-      <div className="flex items-start gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 font-mono text-xs tracking-wide text-ink-faint mb-1">
-            <span className={muted ? '' : 'text-accent'}>{sourceName}</span>
-            {publishedAt && (
-              <>
-                <span>·</span>
-                <span>{formatDate(publishedAt)}</span>
-              </>
-            )}
-          </div>
-          <div
-            className={`font-serif tracking-tight leading-snug ${muted ? 'text-sm text-ink-tertiary' : 'text-sm text-ink font-medium'}`}
-          >
-            {title}
-          </div>
-        </div>
-      </div>
-    );
+    return <CompactCardContent title={title} sourceName={sourceName} publishedAt={publishedAt} muted={muted} />;
   }
 
   return (
@@ -144,25 +188,23 @@ const CardContent = ({
       {summary && <p className="font-serif text-sm leading-relaxed text-ink-secondary line-clamp-2 mb-3">{summary}</p>}
 
       {/* Byline + meta */}
-      <div className="flex items-center gap-2 text-xs text-ink-tertiary">
-        {author && <span>By {author}</span>}
-        {author && (publishedAt || consumptionTimeSeconds) && <span className="text-ink-faint">·</span>}
-        {publishedAt && <span>{formatDate(publishedAt)}</span>}
-        {consumptionTimeSeconds != null && (
-          <>
-            {publishedAt && <span className="text-ink-faint">·</span>}
-            <span>{formatTime(consumptionTimeSeconds, sourceType)}</span>
-          </>
-        )}
-      </div>
+      <CardByline
+        author={author}
+        publishedAt={publishedAt}
+        consumptionTimeSeconds={consumptionTimeSeconds}
+        sourceType={sourceType}
+      />
 
       {/* Actions */}
       {hasActions && !muted && (
-        <div className="flex items-center gap-4 mt-3">
-          {onFocusVote && <VoteControls value={focusVote ?? null} onVote={onFocusVote} label="Relevance" />}
-          {onVote && <VoteControls value={vote ?? null} onVote={onVote} label="Quality" />}
-          {onBookmarkToggle && <BookmarkButton bookmarked={bookmarked ?? false} onToggle={onBookmarkToggle} />}
-        </div>
+        <CardActions
+          vote={vote}
+          onVote={onVote}
+          focusVote={focusVote}
+          onFocusVote={onFocusVote}
+          bookmarked={bookmarked}
+          onBookmarkToggle={onBookmarkToggle}
+        />
       )}
     </>
   );

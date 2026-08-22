@@ -30,92 +30,112 @@ const errorResponseSchema = z.object({
   error: z.string(),
 });
 
+// --- Types ---
+
+type RouteArgs = {
+  fastify: Parameters<FastifyPluginAsyncZod>[0];
+  services: Services;
+  authenticate: ReturnType<typeof createAuthHook>;
+};
+
+// --- Route registration helpers ---
+
+const registerCredentialRoutes = ({ fastify, services }: RouteArgs): void => {
+  fastify.route({
+    method: 'POST',
+    url: '/auth/register',
+    schema: {
+      body: credentialsSchema,
+      response: {
+        201: authResponseSchema,
+        403: errorResponseSchema,
+        409: errorResponseSchema,
+      },
+    },
+    handler: async (req, reply) => {
+      const config = services.get(ConfigService).config;
+      if (!config.auth.allowSignups) {
+        return reply.code(403).send({ error: 'Signups are disabled' });
+      }
+      const auth = services.get(AuthService);
+      try {
+        const result = await auth.register(req.body.username, req.body.password);
+        // Apply trial if payment is enabled
+        await services.get(BillingService).applyTrial(result.id);
+        return reply.code(201).send(result);
+      } catch (err) {
+        if (err instanceof UsernameExistsError) {
+          return reply.code(409).send({ error: err.message });
+        }
+        throw err;
+      }
+    },
+  });
+
+  fastify.route({
+    method: 'POST',
+    url: '/auth/login',
+    schema: {
+      body: credentialsSchema,
+      response: {
+        200: authResponseSchema,
+        401: errorResponseSchema,
+      },
+    },
+    handler: async (req, reply) => {
+      const auth = services.get(AuthService);
+      try {
+        const result = await auth.login(req.body.username, req.body.password);
+        return reply.send(result);
+      } catch (err) {
+        if (err instanceof InvalidCredentialsError) {
+          return reply.code(401).send({ error: err.message });
+        }
+        throw err;
+      }
+    },
+  });
+};
+
+const registerMeRoute = ({ fastify, services, authenticate }: RouteArgs): void => {
+  fastify.route({
+    method: 'GET',
+    url: '/auth/me',
+    onRequest: authenticate,
+    schema: {
+      security: [{ bearerAuth: [] }],
+      response: {
+        200: userResponseSchema,
+        401: errorResponseSchema,
+      },
+    },
+    handler: async (req, _reply) => {
+      const db = await services.get(DatabaseService).getInstance();
+      const user = await db
+        .selectFrom('users')
+        .select('access_expires_at')
+        .where('id', '=', req.user.sub)
+        .executeTakeFirst();
+      return {
+        id: req.user.sub,
+        username: req.user.username,
+        role: req.user.role,
+        accessExpiresAt: user?.access_expires_at ?? null,
+      };
+    },
+  });
+};
+
+// --- Main plugin ---
+
 const createAuthRoutes =
   (services: Services): FastifyPluginAsyncZod =>
   async (fastify) => {
-    fastify.route({
-      method: 'POST',
-      url: '/auth/register',
-      schema: {
-        body: credentialsSchema,
-        response: {
-          201: authResponseSchema,
-          403: errorResponseSchema,
-          409: errorResponseSchema,
-        },
-      },
-      handler: async (req, reply) => {
-        const config = services.get(ConfigService).config;
-        if (!config.auth.allowSignups) {
-          return reply.code(403).send({ error: 'Signups are disabled' });
-        }
-        const auth = services.get(AuthService);
-        try {
-          const result = await auth.register(req.body.username, req.body.password);
-          // Apply trial if payment is enabled
-          await services.get(BillingService).applyTrial(result.id);
-          return reply.code(201).send(result);
-        } catch (err) {
-          if (err instanceof UsernameExistsError) {
-            return reply.code(409).send({ error: err.message });
-          }
-          throw err;
-        }
-      },
-    });
-
-    fastify.route({
-      method: 'POST',
-      url: '/auth/login',
-      schema: {
-        body: credentialsSchema,
-        response: {
-          200: authResponseSchema,
-          401: errorResponseSchema,
-        },
-      },
-      handler: async (req, reply) => {
-        const auth = services.get(AuthService);
-        try {
-          const result = await auth.login(req.body.username, req.body.password);
-          return reply.send(result);
-        } catch (err) {
-          if (err instanceof InvalidCredentialsError) {
-            return reply.code(401).send({ error: err.message });
-          }
-          throw err;
-        }
-      },
-    });
-
     const authenticate = createAuthHook(services);
+    const args = { fastify, services, authenticate };
 
-    fastify.route({
-      method: 'GET',
-      url: '/auth/me',
-      onRequest: authenticate,
-      schema: {
-        security: [{ bearerAuth: [] }],
-        response: {
-          200: userResponseSchema,
-          401: errorResponseSchema,
-        },
-      },
-      handler: async (req, _reply) => {
-        const db = await services.get(DatabaseService).getInstance();
-        const user = await db
-          .selectFrom('users')
-          .select('access_expires_at')
-          .where('id', '=', req.user.sub)
-          .executeTakeFirst();
-        return {
-          id: req.user.sub,
-          username: req.user.username,
-          role: req.user.role,
-          accessExpiresAt: user?.access_expires_at ?? null,
-        };
-      },
-    });
+    registerCredentialRoutes(args);
+    registerMeRoute(args);
   };
 
 export { createAuthRoutes };

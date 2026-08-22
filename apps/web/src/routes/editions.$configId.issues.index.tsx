@@ -45,10 +45,10 @@ const useConfigEditions = (
 // --- Components ---
 
 const ReadIndicator = ({ readAt }: { readAt: string | null }): React.ReactElement | null => {
-  if (!readAt) return null;
-  return (
-    <span className="font-mono text-xs tracking-wide text-accent">read</span>
-  );
+  if (!readAt) {
+    return null;
+  }
+  return <span className="font-mono text-xs tracking-wide text-accent">read</span>;
 };
 
 const formatFullDate = (iso: string): string =>
@@ -78,9 +78,7 @@ const IssueRow = ({
         className="min-w-0 flex-1"
       >
         <div className="flex items-baseline gap-3 mb-1">
-          <span className="font-mono text-xs tracking-wide text-ink-faint">
-            {formatFullDate(edition.publishedAt)}
-          </span>
+          <span className="font-mono text-xs tracking-wide text-ink-faint">{formatFullDate(edition.publishedAt)}</span>
           <ReadIndicator readAt={edition.readAt} />
         </div>
         <div className="font-serif text-lg font-medium tracking-tight text-ink hover:text-accent transition-colors duration-fast leading-snug">
@@ -118,9 +116,7 @@ const FilterToggle = ({
         type="button"
         onClick={() => onChange(opt)}
         className={`font-mono text-xs tracking-wide px-3 py-1 rounded transition-colors duration-fast capitalize ${
-          value === opt
-            ? 'bg-surface text-ink shadow-xs'
-            : 'text-ink-tertiary hover:text-ink'
+          value === opt ? 'bg-surface text-ink shadow-xs' : 'text-ink-tertiary hover:text-ink'
         }`}
       >
         {opt}
@@ -188,9 +184,7 @@ const AllIssuesPage = (): React.ReactNode => {
           ← Back
         </Link>
         <div className="flex items-baseline justify-between gap-4">
-          <h1 className="font-serif text-2xl font-medium tracking-tight text-ink">
-            {configName ?? 'Issues'}
-          </h1>
+          <h1 className="font-serif text-2xl font-medium tracking-tight text-ink">{configName ?? 'Issues'}</h1>
           <FilterToggle value={filter} onChange={setFilter} />
         </div>
       </div>

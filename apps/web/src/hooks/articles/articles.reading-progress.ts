@@ -5,6 +5,9 @@ import { client } from '../../api/api.ts';
 const STORAGE_PREFIX = 'editions:reading-progress:';
 const SAVE_INTERVAL_MS = 3000;
 
+// Intentional no-op: progress saves are best-effort, failures are silently ignored
+const noop = (): void => undefined;
+
 /**
  * Tracks scroll-based reading progress for text articles.
  * Persists to localStorage continuously and to the server every 3 seconds.
@@ -31,7 +34,7 @@ const useReadingProgress = (articleId: string, initialProgress: number): void =>
           params: { path: { articleId } },
           body: { progress: ratio },
         })
-        .catch(() => {});
+        .catch(noop);
     },
     [articleId],
   );

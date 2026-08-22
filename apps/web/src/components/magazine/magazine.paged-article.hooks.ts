@@ -17,6 +17,10 @@ type ViewportSize = {
 
 const RESIZE_DEBOUNCE_MS = 150;
 
+const areFontFamiliesLoaded = (familiesKey: string): boolean => {
+  return familiesKey.split(',').every((family) => document.fonts.check(`16px "${family}"`));
+};
+
 /**
  * Tracks the viewport size with a debounced ResizeObserver on documentElement.
  * Returns { width, height } that updates on resize.
@@ -74,22 +78,28 @@ const useFontReady = (families: string[] = ['Newsreader', 'JetBrains Mono']): bo
     const check = async (): Promise<void> => {
       try {
         await document.fonts.ready;
-        // Additionally check specific families are loaded
-        const checks = families.map((f) => document.fonts.check(`16px "${f}"`));
-        if (checks.every(Boolean)) {
-          if (!cancelled) setReady(true);
+        if (areFontFamiliesLoaded(familiesKey)) {
+          if (!cancelled) {
+            setReady(true);
+          }
           return;
         }
         // If not all loaded yet, wait a bit and retry
         await new Promise((r) => setTimeout(r, 100));
-        if (!cancelled) setReady(true);
+        if (!cancelled) {
+          setReady(true);
+        }
       } catch {
-        if (!cancelled) setReady(true);
+        if (!cancelled) {
+          setReady(true);
+        }
       }
     };
 
     void check();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [familiesKey]);
 
   return ready;
@@ -101,7 +111,7 @@ const useFontReady = (families: string[] = ['Newsreader', 'JetBrains Mono']): bo
  * Debounces a value by the specified delay.
  * Useful for preventing layout thrashing during rapid resize.
  */
-const useDebouncedValue = <T,>(value: T, delayMs: number): T => {
+const useDebouncedValue = <T>(value: T, delayMs: number): T => {
   const [debounced, setDebounced] = useState(value);
   const firstRender = useRef(true);
 
@@ -125,9 +135,7 @@ const useDebouncedValue = <T,>(value: T, delayMs: number): T => {
  * Returns a stable function reference that always calls the latest callback.
  * Avoids re-triggering effects/memos that depend on callbacks.
  */
-const useStableCallback = <Args extends unknown[], R>(
-  callback: (...args: Args) => R,
-): ((...args: Args) => R) => {
+const useStableCallback = <Args extends unknown[], R>(callback: (...args: Args) => R): ((...args: Args) => R) => {
   const ref = useRef(callback);
   ref.current = callback;
   return useCallback((...args: Args) => ref.current(...args), []);

@@ -298,7 +298,9 @@ const registerFocusArticleRoutes = ({ fastify, services, authenticate }: RouteAr
       }
     },
   });
+};
 
+const registerFocusSourcesRoute = ({ fastify, services, authenticate }: RouteArgs): void => {
   // Set sources for a focus (replace all)
   fastify.route({
     method: 'PUT',
@@ -396,6 +398,7 @@ const createFocusesRoutes =
     registerFocusReadRoutes(args);
     registerFocusWriteRoutes(args);
     registerFocusArticleRoutes(args);
+    registerFocusSourcesRoute(args);
     registerFocusVoteRoutes(args);
   };
 

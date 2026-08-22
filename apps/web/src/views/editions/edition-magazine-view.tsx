@@ -136,6 +136,102 @@ const buildSectionPages = (args: BuildSectionPagesArgs): React.ReactElement[] =>
   return pages;
 };
 
+/* Escape exits magazine */
+const useEscapeExit = (onExit: () => void): void => {
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onExit();
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [onExit]);
+};
+
+const useSectionPages = (args: BuildSectionPagesArgs): React.ReactElement[] => {
+  const {
+    sections,
+    votes,
+    globalVotes,
+    focusVotes,
+    bookmarkedIds,
+    onVote,
+    onGlobalVote,
+    onFocusVote,
+    onBookmarkToggle,
+    onSaveUrl,
+  } = args;
+  return useMemo(
+    () =>
+      buildSectionPages({
+        sections,
+        votes,
+        globalVotes,
+        focusVotes,
+        bookmarkedIds,
+        onVote,
+        onGlobalVote,
+        onFocusVote,
+        onBookmarkToggle,
+        onSaveUrl,
+      }),
+    [
+      sections,
+      votes,
+      globalVotes,
+      focusVotes,
+      bookmarkedIds,
+      onVote,
+      onGlobalVote,
+      onFocusVote,
+      onBookmarkToggle,
+      onSaveUrl,
+    ],
+  );
+};
+
+type BuildMagazinePagesArgs = {
+  edition: EditionDetail;
+  sections: FocusSection[];
+  tocSections: ReturnType<typeof buildTocData>['tocSections'];
+  sectionPages: React.ReactElement[];
+  onNavigate: (page: number) => void;
+  onMarkDone: () => void;
+};
+
+const buildMagazinePages = (args: BuildMagazinePagesArgs): React.ReactElement[] => {
+  const { edition, sections, tocSections, sectionPages, onNavigate, onMarkDone } = args;
+  const leadArticle = edition.articles[0] ?? { title: edition.title, sourceName: '' };
+  const highlightArticles = sections
+    .slice(1, 3)
+    .map((s) => s.articles[0])
+    .filter((a): a is EditionArticle => !!a);
+
+  return [
+    <MagazineCover
+      key="cover"
+      editionTitle={edition.title}
+      date={edition.publishedAt}
+      totalReadingMinutes={edition.totalReadingMinutes ?? 0}
+      articleCount={edition.articleCount}
+      focusCount={sections.length}
+      lead={leadArticle}
+      highlights={highlightArticles}
+    />,
+    <MagazineToc key="toc" editionTitle={edition.title} sections={tocSections} onNavigate={onNavigate} />,
+    ...sectionPages,
+    <MagazineFinale
+      key="finale"
+      articleCount={edition.articleCount}
+      totalReadingMinutes={edition.totalReadingMinutes ?? 0}
+      editionTitle={edition.title}
+      onMarkDone={onMarkDone}
+    />,
+  ];
+};
+
 /* ---- Component ---- */
 
 const MagazineView = ({
@@ -174,62 +270,29 @@ const MagazineView = ({
     [onMarkArticleViewed, setPage, savePage],
   );
 
-  /* Escape exits magazine */
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        onExit();
-      }
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [onExit]);
+  useEscapeExit(onExit);
 
-  const sectionPages = useMemo(
-    () =>
-      buildSectionPages({
-        sections,
-        votes,
-        globalVotes,
-        focusVotes,
-        bookmarkedIds,
-        onVote,
-        onGlobalVote,
-        onFocusVote,
-        onBookmarkToggle,
-        onSaveUrl,
-      }),
-    [sections, votes, globalVotes, focusVotes, bookmarkedIds, onVote, onGlobalVote, onFocusVote, onBookmarkToggle, onSaveUrl],
-  );
+  const sectionPages = useSectionPages({
+    sections,
+    votes,
+    globalVotes,
+    focusVotes,
+    bookmarkedIds,
+    onVote,
+    onGlobalVote,
+    onFocusVote,
+    onBookmarkToggle,
+    onSaveUrl,
+  });
 
-  const leadArticle = edition.articles[0] ?? { title: edition.title, sourceName: '' };
-  const highlightArticles = sections
-    .slice(1, 3)
-    .map((s) => s.articles[0])
-    .filter((a): a is EditionArticle => !!a);
-
-  const pages: React.ReactElement[] = [
-    <MagazineCover
-      key="cover"
-      editionTitle={edition.title}
-      date={edition.publishedAt}
-      totalReadingMinutes={edition.totalReadingMinutes ?? 0}
-      articleCount={edition.articleCount}
-      focusCount={sections.length}
-      lead={leadArticle}
-      highlights={highlightArticles}
-    />,
-    <MagazineToc key="toc" editionTitle={edition.title} sections={tocSections} onNavigate={handlePageChange} />,
-    ...sectionPages,
-    <MagazineFinale
-      key="finale"
-      articleCount={edition.articleCount}
-      totalReadingMinutes={edition.totalReadingMinutes ?? 0}
-      editionTitle={edition.title}
-      onMarkDone={onMarkDone}
-    />,
-  ];
+  const pages = buildMagazinePages({
+    edition,
+    sections,
+    tocSections,
+    sectionPages,
+    onNavigate: handlePageChange,
+    onMarkDone,
+  });
 
   return (
     <div className="fixed inset-0 z-50 bg-surface">

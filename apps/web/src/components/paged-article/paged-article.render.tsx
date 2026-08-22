@@ -8,7 +8,15 @@
 
 import * as React from 'react';
 
-import type { Page, Region, TextRegion, ImageRegion, RuleRegion, SeparatorRegion, PageConfig } from './paged-article.layouts.ts';
+import type {
+  Page,
+  Region,
+  TextRegion,
+  ImageRegion,
+  RuleRegion,
+  SeparatorRegion,
+  PageConfig,
+} from './paged-article.layouts.ts';
 import { contentWidth as cw } from './paged-article.layouts.ts';
 import type { InlineSpan } from './paged-article.segments.ts';
 
@@ -42,11 +50,14 @@ const PageRenderer = ({ page, config, footer, isLastPage }: PageRendererProps): 
       </div>
 
       {isLastPage && footer && (
-        <div className="absolute left-0 right-0" style={{
-          bottom: config.padding.bottom + config.navHeight,
-          paddingLeft: config.padding.horizontal,
-          paddingRight: config.padding.horizontal,
-        }}>
+        <div
+          className="absolute left-0 right-0"
+          style={{
+            bottom: config.padding.bottom + config.navHeight,
+            paddingLeft: config.padding.horizontal,
+            paddingRight: config.padding.horizontal,
+          }}
+        >
           <div style={{ width: contentWidth }}>{footer}</div>
         </div>
       )}
@@ -85,11 +96,16 @@ const TextRenderer = ({ region, style }: { region: TextRegion; style: React.CSSP
   let searchFrom = 0;
   for (let i = 0; i < startLine; i++) {
     const line = allLines[i];
-    if (line) searchFrom = findLineOffset(text, line.text, searchFrom) + line.text.length;
+    if (line) {
+      searchFrom = findLineOffset(text, line.text, searchFrom) + line.text.length;
+    }
   }
 
   return (
-    <div style={{ ...style, fontSize, lineHeight: `${lineHeight}px`, fontWeight, fontStyle, fontFamily }} className={roleClass(role)}>
+    <div
+      style={{ ...style, fontSize, lineHeight: `${lineHeight}px`, fontWeight, fontStyle, fontFamily }}
+      className={roleClass(role)}
+    >
       {visible.map((line, i) => {
         const lineIdx = startLine + i;
         const offset = findLineOffset(text, line.text, searchFrom);
@@ -109,21 +125,32 @@ const TextRenderer = ({ region, style }: { region: TextRegion; style: React.CSSP
 
 const roleClass = (role: TextRegion['role']): string => {
   switch (role) {
-    case 'title':      return 'tracking-tight text-ink';
-    case 'source':     return 'tracking-wide text-accent uppercase';
-    case 'summary':    return 'text-ink-secondary';
-    case 'byline':     return 'text-ink-tertiary';
-    case 'heading':    return 'tracking-tight text-ink';
-    case 'blockquote': return 'text-ink-secondary border-l-2 border-accent pl-4';
-    case 'dropcap':    return 'text-ink';
-    case 'body':       return 'text-ink-secondary';
+    case 'title':
+      return 'tracking-tight text-ink';
+    case 'source':
+      return 'tracking-wide text-accent uppercase';
+    case 'summary':
+      return 'text-ink-secondary';
+    case 'byline':
+      return 'text-ink-tertiary';
+    case 'heading':
+      return 'tracking-tight text-ink';
+    case 'blockquote':
+      return 'text-ink-secondary border-l-2 border-accent pl-4';
+    case 'dropcap':
+      return 'text-ink';
+    case 'body':
+      return 'text-ink-secondary';
   }
 };
 
 /* ── Image renderer ───────────────────────────────────────────── */
 
 const ImageRenderer = ({ region, style }: { region: ImageRegion; style: React.CSSProperties }): React.ReactElement => (
-  <div style={{ ...style, height: region.height }} className={`bg-surface-sunken overflow-hidden ${region.rounded ? 'rounded-lg' : ''}`}>
+  <div
+    style={{ ...style, height: region.height }}
+    className={`bg-surface-sunken overflow-hidden ${region.rounded ? 'rounded-lg' : ''}`}
+  >
     <img src={region.src} alt={region.alt} className="w-full h-full object-cover" />
   </div>
 );
@@ -136,7 +163,13 @@ const RuleRenderer = ({ region, style }: { region: RuleRegion; style: React.CSSP
 
 /* ── Separator renderer (column divider) ──────────────────────── */
 
-const SeparatorRenderer = ({ region, style }: { region: SeparatorRegion; style: React.CSSProperties }): React.ReactElement => (
+const SeparatorRenderer = ({
+  region,
+  style,
+}: {
+  region: SeparatorRegion;
+  style: React.CSSProperties;
+}): React.ReactElement => (
   <div
     style={{ ...style, width: 1, height: region.height }}
     className="bg-linear-to-b from-transparent via-border/40 to-transparent"
@@ -146,17 +179,14 @@ const SeparatorRenderer = ({ region, style }: { region: SeparatorRegion; style: 
 /* ── Inline span rendering ────────────────────────────────────── */
 
 const findLineOffset = (fullText: string, lineText: string, searchFrom: number): number => {
-  if (lineText.length === 0) return searchFrom;
+  if (lineText.length === 0) {
+    return searchFrom;
+  }
   const idx = fullText.indexOf(lineText, searchFrom);
   return idx >= 0 ? idx : searchFrom;
 };
 
-const renderSpans = (
-  spans: InlineSpan[],
-  lineText: string,
-  lineStart: number,
-  lineKey: string,
-): React.ReactNode => {
+const renderSpans = (spans: InlineSpan[], lineText: string, lineStart: number, lineKey: string): React.ReactNode => {
   const lineEnd = lineStart + lineText.length;
 
   const active = spans
@@ -168,55 +198,85 @@ const renderSpans = (
     }))
     .sort((a, b) => a.start - b.start);
 
-  if (active.length === 0) return lineText;
+  if (active.length === 0) {
+    return lineText;
+  }
 
   const out: React.ReactNode[] = [];
   let pos = 0;
 
   for (const span of active) {
-    if (span.start > pos) out.push(lineText.slice(pos, span.start));
+    if (span.start > pos) {
+      out.push(lineText.slice(pos, span.start));
+    }
     const t = lineText.slice(span.start, span.end);
     const key = `${lineKey}-${span.kind}-${span.start}`;
 
     switch (span.kind) {
       case 'bold':
-        out.push(<strong key={key} className="font-semibold text-ink">{t}</strong>);
+        out.push(
+          <strong key={key} className="font-semibold text-ink">
+            {t}
+          </strong>,
+        );
         break;
       case 'italic':
         out.push(<em key={key}>{t}</em>);
         break;
       case 'code':
-        out.push(<code key={key} className="font-mono text-[0.875em] bg-surface-sunken px-1 py-0.5 rounded">{t}</code>);
+        out.push(
+          <code key={key} className="font-mono text-[0.875em] bg-surface-sunken px-1 py-0.5 rounded">
+            {t}
+          </code>,
+        );
         break;
       case 'link':
-        out.push(<a key={key} href={span.href} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">{t}</a>);
+        out.push(
+          <a
+            key={key}
+            href={span.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent hover:underline"
+          >
+            {t}
+          </a>,
+        );
         break;
     }
     pos = span.end;
   }
 
-  if (pos < lineText.length) out.push(lineText.slice(pos));
+  if (pos < lineText.length) {
+    out.push(lineText.slice(pos));
+  }
   return <>{out}</>;
 };
 
 /* ── Font shorthand parsing ───────────────────────────────────── */
 
-const parseFontShorthand = (font: string): { fontSize: number; fontWeight?: number; fontStyle?: string; fontFamily?: string } => {
+const parseFontShorthand = (
+  font: string,
+): { fontSize: number; fontWeight?: number; fontStyle?: string; fontFamily?: string } => {
   let fontStyle: string | undefined;
   let fontWeight: number | undefined;
   let fontSize = 16;
   let fontFamily: string | undefined;
 
   const sizeMatch = font.match(/(\d+(?:\.\d+)?)px\s+(.*)/);
-  if (sizeMatch) {
-    fontSize = parseFloat(sizeMatch[1]!);
+  const sizeText = sizeMatch?.[1];
+  if (sizeMatch && sizeText !== undefined) {
+    fontSize = parseFloat(sizeText);
     fontFamily = sizeMatch[2];
   }
 
-  const prefix = sizeMatch ? font.slice(0, font.indexOf(sizeMatch[1]! + 'px')).trim() : '';
+  const prefix = sizeText !== undefined ? font.slice(0, font.indexOf(sizeText + 'px')).trim() : '';
   for (const part of prefix.split(/\s+/)) {
-    if (part === 'italic' || part === 'oblique') fontStyle = part;
-    else if (/^\d+$/.test(part)) fontWeight = Number(part);
+    if (part === 'italic' || part === 'oblique') {
+      fontStyle = part;
+    } else if (/^\d+$/.test(part)) {
+      fontWeight = Number(part);
+    }
   }
 
   return { fontSize, fontWeight, fontStyle, fontFamily };

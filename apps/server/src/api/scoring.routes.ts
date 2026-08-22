@@ -3,7 +3,8 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
 import { createAuthHook } from '../auth/auth.middleware.ts';
 import { DatabaseService } from '../database/database.ts';
-import { VotesService, defaultUserScoringWeights } from '../votes/votes.ts';
+import { defaultUserScoringWeights } from '../ranking/ranking.ts';
+import { VotesService } from '../votes/votes.ts';
 import type { Services } from '../services/services.ts';
 
 // --- Schemas ---

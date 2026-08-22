@@ -15,6 +15,14 @@ afterEach(async () => {
 
 // --- Helpers ---
 
+const expectDefined = <T>(value: T | undefined): T => {
+  expect(value).toBeDefined();
+  if (value === undefined) {
+    throw new Error('Expected value to be defined');
+  }
+  return value;
+};
+
 const authed = async (): Promise<{ authorization: string }> => {
   const { headers } = await t.register();
   return headers;
@@ -32,12 +40,17 @@ describe('GET /api/discovery/sources', () => {
     });
 
     expect(res.statusCode).toBe(200);
-    const body = JSON.parse(res.body) as { items: Record<string, unknown>[]; total: number; offset: number; limit: number };
+    const body = JSON.parse(res.body) as {
+      items: Record<string, unknown>[];
+      total: number;
+      offset: number;
+      limit: number;
+    };
     expect(body.items.length).toBeGreaterThan(0);
     expect(body.total).toBeGreaterThan(0);
     expect(body.offset).toBe(0);
 
-    const first = body.items[0]!;
+    const first = expectDefined(body.items[0]);
     expect(first).toHaveProperty('id');
     expect(first).toHaveProperty('name');
     expect(first).toHaveProperty('url');
@@ -68,7 +81,7 @@ describe('GET /api/discovery/focuses', () => {
     const body = JSON.parse(res.body) as { items: Record<string, unknown>[]; total: number };
     expect(body.items.length).toBeGreaterThan(0);
 
-    const first = body.items[0]!;
+    const first = expectDefined(body.items[0]);
     expect(first).toHaveProperty('sources');
     expect(first.adopted).toBe(false);
   });
@@ -87,7 +100,7 @@ describe('GET /api/discovery/edition-configs', () => {
     const body = JSON.parse(res.body) as { items: Record<string, unknown>[]; total: number };
     expect(body.items.length).toBeGreaterThan(0);
 
-    const first = body.items[0]!;
+    const first = expectDefined(body.items[0]);
     expect(first).toHaveProperty('focuses');
     expect(first.adopted).toBe(false);
   });
@@ -155,7 +168,10 @@ describe('discovery query params', () => {
       headers,
     });
 
-    const body = JSON.parse(res.body) as { items: { tags: string[]; description: string; name: string }[]; total: number };
+    const body = JSON.parse(res.body) as {
+      items: { tags: string[]; description: string; name: string }[];
+      total: number;
+    };
     for (const item of body.items) {
       expect(item.tags.includes('indie')).toBe(true);
       const text = `${item.name} ${item.description}`.toLowerCase();
@@ -265,7 +281,7 @@ describe('POST /api/discovery/focuses/:id/adopt', () => {
     const body = JSON.parse(res.body) as Record<string, unknown>;
     expect(body.focusId).toBeTruthy();
     expect(body.created).toBe(true);
-    expect((body.sourcesCreated as number)).toBeGreaterThan(0);
+    expect(body.sourcesCreated as number).toBeGreaterThan(0);
 
     // Verify the sources were actually created
     const sourcesRes = await t.inject({
@@ -319,7 +335,7 @@ describe('POST /api/discovery/focuses/:id/adopt', () => {
     // Should have created fewer sources since ars-technica already existed
     // Technology focus has 5 sources, so sourcesCreated should be 4 (not 5)
     expect(body.created).toBe(true);
-    expect((body.sourcesCreated as number)).toBe(4);
+    expect(body.sourcesCreated as number).toBe(4);
   });
 });
 
@@ -338,8 +354,8 @@ describe('POST /api/discovery/edition-configs/:id/adopt', () => {
     const body = JSON.parse(res.body) as Record<string, unknown>;
     expect(body.editionConfigId).toBeTruthy();
     expect(body.created).toBe(true);
-    expect((body.focusesCreated as number)).toBeGreaterThan(0);
-    expect((body.sourcesCreated as number)).toBeGreaterThan(0);
+    expect(body.focusesCreated as number).toBeGreaterThan(0);
+    expect(body.sourcesCreated as number).toBeGreaterThan(0);
 
     // Verify the edition config was created
     const configsRes = await t.inject({

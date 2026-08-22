@@ -18,7 +18,9 @@ The weights vary by feed type to match each context:
 | Focus | 0.4 | 0.4 | 0.2 | Balanced — confidence is meaningful, recency still significant |
 | Edition | 0.5 | 0.4 | 0.1 | Lookback window handles freshness; confidence drives selection |
 
-Weight presets are defined as `globalWeights`, `focusWeights`, `editionWeights` in `votes/votes.scoring.ts`. These are the defaults — users can customise all weights via **Settings > Scoring** (stored as JSON in `users.scoring_weights`).
+The scoring formula and everything around it live in the **ranking module** (`ranking/ranking.ts`): the single entry point is `scoreAndRank({ candidates, voteContext, weights, sourceWeights?, focusWeight? })`, which scores each candidate exactly once (including the source/focus weight multipliers) and returns `{ item, score }` pairs sorted highest-first. The module also owns the embedding wire format (`decodeEmbedding` — callers pass raw BLOBs) and both halves of the confidence rule (`effectiveConfidence` in TypeScript, `minConfidenceFilterSql` for SQL-side threshold filtering).
+
+Weight presets are exposed as `defaultUserScoringWeights` — users can customise all weights via **Settings > Scoring** (stored as JSON in `users.scoring_weights`).
 
 ### Confidence
 
@@ -29,7 +31,7 @@ A value from 0.0–1.0 representing how well an article matches a focus, produce
 If the user has directly voted on the article (±1), that value is used as-is. Otherwise, the signal is propagated from similar voted articles using **top-k similarity-weighted propagation**:
 
 1. Compute cosine similarity between the candidate and every voted article.
-2. Discard voted articles below a minimum similarity threshold (0.3).
+2. Discard voted articles below a minimum similarity threshold (0.4, `PROPAGATION_MIN_SIMILARITY`).
 3. Keep the top 15 most similar (`PROPAGATION_TOP_K`).
 4. Compute a similarity-weighted average:
 
@@ -37,9 +39,11 @@ If the user has directly voted on the article (±1), that value is used as-is. O
 voteSignal = sum(vote_i × sim_i) / sum(sim_i)
 ```
 
-This ensures only semantically relevant votes influence the score. A user with 200 votes gets the same signal strength as one with 5 — what matters is how similar the nearby votes are, not how many total votes exist.
+This ensures only semantically relevant votes influence the score — what matters is how similar the nearby votes are, not how many total votes exist.
 
-- Embeddings come from `all-MiniLM-L6-v2` and are L2-normalized, so dot product = cosine similarity.
+**Vote ramp:** with fewer than 5 votes in the context (`VOTE_RAMP_THRESHOLD`), β is scaled down proportionally (`β × voteCount/5`) and the slack shifts into α (`α + β × (1 − voteCount/5)`). This avoids over-weighting sparse vote signal: a user's first couple of votes nudge the ranking instead of dominating it, and the configured α/β balance only fully applies from 5 votes onward.
+
+- Embeddings come from the configured embedding model (default `bge-small-en-v1.5`) and are L2-normalized, so dot product = cosine similarity.
 - Up to 200 most recent votes are loaded per context (`MAX_VOTE_CONTEXT_SIZE`).
 - If no votes pass the similarity threshold (or no embedding exists), vote signal = 0.
 
@@ -77,7 +81,7 @@ Two sort modes:
 
 Filters: read status (unread/read/all), date range.
 
-Source: `api/feed.routes.ts`
+Source: `feed/feed.ts` (route plumbing in `api/feed.routes.ts`, scoring via `ranking/ranking.ts`)
 
 ## Focus feeds
 
@@ -87,7 +91,7 @@ Two sort modes:
 - **top** — scored with focus weights (α=0.4, β=0.4, γ=0.2), then multiplied by source weight:
 
 ```
-finalScore = computeScore(candidate, mergedContext, focusWeights) × sourceWeight
+finalScore = score(candidate, mergedContext, focusWeights) × sourceWeight
 ```
 
 Source weights come from `focus_sources.weight` (default 1). This lets users boost or suppress specific sources within a focus.
@@ -96,7 +100,7 @@ Filters: confidence threshold (`focus.minConfidence`), read status, date range, 
 
 All candidates are fetched, scored in memory, sorted, then paginated (SQL-level pagination isn't possible when scoring requires embeddings).
 
-Source: `focuses/focuses.ts`
+Source: `focuses/focuses.articles.ts` (scoring via `ranking/ranking.ts`)
 
 ## Editions
 
@@ -105,7 +109,7 @@ Editions are deterministic, rule-based magazine generations. The algorithm proce
 ### Per-focus scoring
 
 ```
-finalScore = computeScore(candidate, mergedContext, editionWeights) × sourceWeight × focusWeight
+finalScore = score(candidate, mergedContext, editionWeights) × sourceWeight × focusWeight
 ```
 
 - `sourceWeight` — from `focus_sources.weight`
@@ -145,7 +149,7 @@ The edition stops adding articles to a focus once its budget is consumed.
 
 Articles across all focuses are assembled into a single ordered edition. Each article records its focus assignment and position.
 
-Source: `editions/editions.ts`
+Source: `editions/editions.generate.ts` (scoring via `ranking/ranking.ts`)
 
 ## Summary
 
@@ -167,7 +171,7 @@ The API returns both the active weights and the defaults, plus an `isCustom` fla
 
 The settings UI (Settings > Scoring tab) presents sliders for each feed type's three weights with per-feed and global reset options. Changes take effect on the next feed load.
 
-Source: `api/scoring.routes.ts`, `votes/votes.scoring.ts` (`parseUserScoringWeights`), `votes/votes.ts` (`loadUserScoringWeights`, `saveUserScoringWeights`).
+Source: `api/scoring.routes.ts`, `ranking/ranking.ts` (`parseUserScoringWeights`, `defaultUserScoringWeights`), `votes/votes.ts` (`loadUserScoringWeights`, `saveUserScoringWeights`).
 
 ## Future enhancements
 

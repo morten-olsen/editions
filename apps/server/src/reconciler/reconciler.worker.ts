@@ -33,23 +33,11 @@ type ClassifyRequest = {
   labels: string[];
 };
 
-type EmbedBatchRequest = {
-  id: string;
-  type: 'embed_batch';
-  texts: string[];
-};
-
-type ClassifyBatchRequest = {
-  id: string;
-  type: 'classify_batch';
-  items: { text: string; labels: string[] }[];
-};
-
 type ShutdownRequest = {
   type: 'shutdown';
 };
 
-type WorkerRequest = EmbedRequest | ClassifyRequest | EmbedBatchRequest | ClassifyBatchRequest | ShutdownRequest;
+type WorkerRequest = EmbedRequest | ClassifyRequest | ShutdownRequest;
 
 type EmbedResponse = {
   id: string;
@@ -69,19 +57,7 @@ type ErrorResponse = {
   error: string;
 };
 
-type EmbedBatchResponse = {
-  id: string;
-  type: 'embed_batch';
-  embeddings: Float32Array[];
-};
-
-type ClassifyBatchResponse = {
-  id: string;
-  type: 'classify_batch';
-  results: { label: string; score: number }[][];
-};
-
-type WorkerResponse = EmbedResponse | ClassifyResponse | EmbedBatchResponse | ClassifyBatchResponse | ErrorResponse;
+type WorkerResponse = EmbedResponse | ClassifyResponse | ErrorResponse;
 
 // --- Lazy model loading ---
 
@@ -146,35 +122,6 @@ const handleClassify = async (msg: ClassifyRequest): Promise<void> => {
   port.postMessage(response);
 };
 
-const handleEmbedBatch = async (msg: EmbedBatchRequest): Promise<void> => {
-  const extractor = await getEmbeddingPipeline();
-  const embeddings: Float32Array[] = [];
-  const transferables: ArrayBuffer[] = [];
-  for (const text of msg.texts) {
-    const output = await extractor(text, { pooling: 'mean', normalize: true });
-    const embedding = output.data as Float32Array;
-    embeddings.push(embedding);
-    transferables.push(embedding.buffer as ArrayBuffer);
-  }
-  const response: EmbedBatchResponse = { id: msg.id, type: 'embed_batch', embeddings };
-  port.postMessage(response, transferables);
-};
-
-const handleClassifyBatch = async (msg: ClassifyBatchRequest): Promise<void> => {
-  const classifier = await getClassifierPipeline();
-  const results: { label: string; score: number }[][] = [];
-  for (const item of msg.items) {
-    if (item.labels.length === 0) {
-      results.push([]);
-      continue;
-    }
-    const result = await classifier(item.text, item.labels, { multi_label: true });
-    results.push(toClassifyResults(parseClassifyOutput(result)));
-  }
-  const response: ClassifyBatchResponse = { id: msg.id, type: 'classify_batch', results };
-  port.postMessage(response);
-};
-
 const handleMessage = async (msg: WorkerRequest): Promise<void> => {
   if (msg.type === 'shutdown') {
     embeddingPipeline = null;
@@ -188,12 +135,6 @@ const handleMessage = async (msg: WorkerRequest): Promise<void> => {
     }
     if (msg.type === 'classify') {
       return await handleClassify(msg);
-    }
-    if (msg.type === 'embed_batch') {
-      return await handleEmbedBatch(msg);
-    }
-    if (msg.type === 'classify_batch') {
-      return await handleClassifyBatch(msg);
     }
   } catch (err) {
     const response: ErrorResponse = {

@@ -1,229 +1,94 @@
 # Article Analysis Pipeline
 
-Article analysis is the compute-intensive second stage that runs after content extraction. It produces two outputs: **feature embeddings** (for search and clustering) and **focus classifications** (for routing articles into user-defined topic areas).
+Article analysis brings ingested articles to an analysed state. It produces two outputs: **feature embeddings** (used for vote propagation and ranking) and **focus classifications** (confidence scores routing articles into user-defined topic areas).
+
+The pipeline lives in the **reconciler module** (`apps/server/src/reconciler/`). Its public interface is small: `ReconcilerService.reconcile(options)` plus two module-level functions, `buildReconcileSteps` (the pipeline's composition — used by production and tests alike) and `applyAnalysisReset` (clearing derived state so the pipeline redoes it).
 
 ## Pipeline overview
 
+`reconcile()` runs a fixed sequence of steps, each draining a DB query to exhaustion before the next starts:
+
 ```
-fetch_source          extract_article          analyse_article
-  (fetch RSS)    →    (extract full text)   →   (embed + classify)
-  ~fast                ~network-bound            ~CPU-bound
+extract  →  embed  →  similarity  →  [nli]  →  mark_analysed
+network     CPU        CPU (fast)     CPU (slow)   bookkeeping
 ```
 
-Each stage is a task in the in-memory task queue. Stages chain: a successful extraction enqueues analysis; a successful fetch enqueues extraction. The pipeline is idempotent — reprocessing an already-analysed article is a no-op.
+- **extract** (`reconciler.extract.ts`) — fetches full article content via `@extractus/article-extractor` (with a per-site extractor registry in `extractors/` for future site-specific tweaks), converts to Markdown, computes reading time, sets `extracted_at`. Skipped when `skipExtract` is set (e.g. focus-only reconciles). Podcast articles are never extracted — their feed content is the "extraction".
+- **embed** (`reconciler.embed.ts`) — embeds prepared text (title + content, truncated — see `prepareText` in `reconciler.utils.ts`) for articles missing an embedding or embedded with a different model. Articles with no usable text are skipped.
+- **similarity** (`reconciler.similarity.ts`) — scores every (article × focus) pair for the same user by cosine similarity between the article embedding and the focus-label embedding (cached per run). `focus_sources` does **not** limit which pairs get scored — it controls display thresholds.
+- **nli** (`reconciler.nli.ts`) — zero-shot classification via BART-MNLI for pairs that have similarity but no current NLI score. Only runs when the configured classifier is `nli` or `hybrid`.
+- **mark_analysed** (`reconciler.mark-analysed.ts`) — stamps `analysed_at` on every extracted article in scope. Note: this includes articles the embed step skipped for having no text — intentional, so they aren't reprocessed forever. The runner's progress (`completed` vs `total`) is where skips become visible.
+
+Each step is a `ReconcileStep` — `{ name, fetchBatch, processBatch, countRemaining? }` (`reconciler.runner.ts`). The runner (`runReconcileSteps`) drains each step, reports progress with **real totals** (via `countRemaining`), and isolates failures: a failing step is recorded but later steps still run; the aggregate `ReconcileStepsError` is thrown at the end so the surrounding job still reports failure.
+
+## Classifier strategies
+
+Configured via `analysis.classifier` in `editions.json` (default `"similarity"`). The mapping from strategy to steps lives in `buildReconcileSteps`:
+
+| Strategy | Steps run | Tradeoff |
+|----------|-----------|----------|
+| `similarity` | embed + similarity | Sub-millisecond per pair; ~85–90% agreement with NLI for well-defined topics |
+| `nli` | embed + similarity + nli | Most accurate, ~0.5s per article per focus set |
+| `hybrid` | same as `nli` | Both signals stored; read side prefers NLI (`effectiveConfidence` in `ranking/ranking.ts`: `nli ?? similarity ?? 0`) |
+
+All scores are saved regardless of value; filtering happens at query time against per-focus (and per-source) `minConfidence` via `minConfidenceFilterSql` from the ranking module.
+
+## Resets — re-analysis and re-extraction
+
+Clearing derived state lives behind the reconciler's interface (`applyAnalysisReset`), driven by `ReconcileOptions`:
+
+- `reset: 'scores'` — delete classifications and null `analysed_at` (focus-scoped resets clear only that focus's rows), keeping content and embeddings.
+- `reset: 'content'` — additionally delete embeddings and null `content`/`extracted_at` so extraction redoes everything (podcast articles keep their content).
+- `backfillExtractedAt` — mark content-bearing articles as extracted first, so articles ingested before extraction tracking existed re-enter the pipeline.
+
+The job layer (`jobs/jobs.handlers.ts`) expresses every analysis job as a **preset** over these options — `reconcile_focus`, `reanalyse_source`, `reanalyse_all`, `re_extract_source`, `re_extract_all`, `extract_and_analyse` are one operation with different reset/scope parameters. Job types and payloads are a typed registry in `jobs/jobs.ts` (`JobPayloads`); a typo'd job type is a compile error. `refresh_source` is the exception: it first ingests the feed (`SourcesService.ingestFeed`) and then reconciles the source.
 
 ## Analysis state tracking
 
-Articles track their progress through the pipeline via nullable timestamp columns:
-
 | Column | Set when |
 |--------|----------|
-| `fetched_at` | Article row created from feed |
-| `extracted_at` | Full content extracted from source URL |
-| `analysed_at` | Embeddings computed and focus classification complete |
+| `created_at` | Article row created from feed |
+| `extracted_at` | Full content extracted (or at ingest, for podcasts) |
+| `analysed_at` | Pipeline completed for this article |
 
-`analysed_at` being null means the article still needs analysis. This lets us recover from crashes: on startup (or the next feed refresh), query for articles where `extracted_at IS NOT NULL AND analysed_at IS NULL` and re-enqueue them.
-
-### Why a single `analysed_at` rather than separate timestamps?
-
-Embedding and classification run together in the reconciliation step. While embeddings can be skipped independently (e.g. when only reclassifying for a new focus), a single column keeps the state machine simple: `null` means pending, non-null means done.
-
-## Feature extraction (embeddings)
-
-**Purpose:** Dense vector representations of article content, stored for future use in semantic search, article similarity/clustering, and feed ranking.
-
-**Model:** A small embedding model via `@huggingface/transformers` (transformers.js), running locally in Node.js. Default: `Xenova/bge-small-en-v1.5` (384-dim, ~33MB ONNX, fast on CPU). Chosen over `all-MiniLM-L6-v2` based on eval benchmarks — bge-small achieved the highest classification F1 (86.9%) and benefits most from vote propagation.
-
-**Storage:** Embeddings are stored in a dedicated `article_embeddings` table designed for compatibility with sqlite-vec. The table stores the raw float32 vector as a blob alongside the article ID. When sqlite-vec is added, a virtual table can be created that reads directly from this data — no migration or re-embedding needed.
-
-Storing embeddings separately from articles keeps the articles table lean (embeddings are ~1.5KB each and are never needed for normal article listing/reading) and aligns with how sqlite-vec expects to consume vector data.
-
-**Input:** The extracted article text (HTML stripped), truncated to the model's token limit (~256 tokens for MiniLM). Title is prepended to give the model topic signal.
-
-## Focus classification
-
-**Purpose:** Determine which of the user's focuses an article belongs to, with a confidence score.
-
-**How focuses work:** A focus is a user-defined topic area like "Technology", "Local News", or "Climate". Each focus has:
-- A **name** — the primary classification label
-- An optional **description** — additional context for the classifier (e.g. "News about Seattle and the Pacific Northwest")
-- **Source associations** with a mode:
-  - `always` — every article from that source is automatically assigned to this focus (confidence 1.0, method "always", no classifier needed)
-  - `match` — the configured classifier strategy determines relevance
-
-### Classifier strategies
-
-Classification is pluggable via the `ClassifierStrategy` interface. Three strategies are available, configured via `analysis.classifier` in `editions.json`:
-
-| Strategy | Config value | Method | Tradeoff |
-|----------|-------------|--------|----------|
-| **NLI** | `"nli"` | Zero-shot NLI via BART-MNLI | Most accurate, ~0.5s per article per focus set |
-| **Similarity** | `"similarity"` | Cosine similarity between article and focus embeddings | Sub-millisecond, ~85–90% agreement with NLI for well-defined topics |
-| **Hybrid** | `"hybrid"` | Both similarity and NLI run; scoring uses NLI when available, similarity as fallback | Both signals stored, best accuracy, ~0.5s per article per focus set |
-
-Each strategy returns `{ focusId, confidence, method }` — the `method` column in `article_focuses` tracks which classifier produced each assignment ("nli", "similarity", or "always").
-
-**Confidence scale caveat:** NLI and similarity scores have different distributions. Similarity scores tend to cluster in a narrower range than NLI. The `method` column enables future per-method calibration or scoring weight adjustments, but raw scores are stored as-is currently.
-
-**Output:** Results are written to the `article_focuses` junction table — one row per (article, focus) pair with a confidence score (0.0–1.0) and method. An article can match multiple focuses.
-
-**Threshold:** All classification scores are saved to `article_focuses` regardless of value. Filtering is done at query time via the per-focus `minConfidence` setting (adjustable in the focus editor's "How closely articles must match" slider).
+Recovery: on server start, articles with `extracted_at IS NOT NULL AND analysed_at IS NULL` trigger a `reanalyse_all` job (`app.ts`).
 
 ## Worker architecture
 
-ML inference (embedding and classification) runs in a dedicated `worker_threads` Worker (`analysis.worker.ts`) to avoid blocking the main server event loop. The worker:
+ML inference runs in a dedicated `worker_threads` worker (`reconciler.worker.ts`) so the main event loop never blocks. The worker loads models lazily on first request and caches them for the process lifetime; embeddings transfer back zero-copy. `ReconcilerService.embed`/`classify` are thin promise wrappers over the message protocol, and are exactly the shape the step factories inject (`EmbedFn`, `ClassifyFn`) — tests substitute fakes at that seam and compose the real pipeline via `buildReconcileSteps` (see `reconciler.test.ts`).
 
-- Loads models lazily on first request, caches them for the process lifetime
-- Accepts `embed` and `classify` messages via `postMessage`
-- Returns results (Float32Arrays transferred zero-copy for embeddings)
-- Is spawned on first analysis request by `AnalysisService` and kept alive
+**Models** (defaults in `reconciler.ts`): embedding `Xenova/bge-small-en-v1.5` (384-dim, ~33MB ONNX; chosen over `all-MiniLM-L6-v2` on eval F1), classifier `Xenova/bart-large-mnli`. Downloaded on first run to `~/.cache/huggingface` (override with `HF_HOME`). No data leaves the server at inference time.
 
-All DB reads/writes remain on the main thread — only the pure CPU-bound inference moves to the worker. The `AnalysisService.embed()` and `classify()` methods are thin async wrappers that send messages to the worker and return promises.
+## Data model
 
-## Model lifecycle
-
-Models are loaded lazily on first use inside the worker and cached in memory for the lifetime of the process. Loading a model takes a few seconds and ~100-300MB RAM depending on the model. For a small self-hosted server this is acceptable.
-
-Models are downloaded on first run to a local cache directory (`~/.cache/huggingface` by default via transformers.js). No data leaves the server at inference time.
-
-## Recovery and resilience
-
-- **Server restart mid-analysis:** On startup, query for articles needing analysis and re-enqueue them. This is cheap — the query is indexed and the task queue handles dedup.
-- **Failed analysis:** If a model fails on a specific article (OOM, malformed text), the task fails but doesn't block the pipeline. The article stays with `analysed_at = null` and can be retried.
-- **New focuses added:** When a user creates a new focus and associates sources, existing articles from those sources need reclassification. The reconciliation engine handles this efficiently — `reconcile()` with `focusIds` scope only classifies against the new focus, and `skipEmbedding: true` avoids recomputing embeddings.
-- **Focus updated/deleted:** Deleting a focus cascades to `article_focuses`. Updating a focus name/description should trigger reclassification of associated articles.
-- **Force re-analysis of a source:** `AnalysisService.reanalyseSource()` clears existing classifications and resets `analysed_at`, then enqueues `analyse_article` tasks. `reanalyseAll()` does the same across all sources.
-
-## Data model changes
-
-### articles table
-
-Add one column:
-
-| Column | Type | Notes |
-|--------|------|-------|
-| `analysed_at` | text | ISO 8601 timestamp, null until analysis completes |
-
-### New: article_embeddings table
-
-Separate table for vector storage, designed for sqlite-vec compatibility.
+### article_embeddings
 
 | Column | Type | Notes |
 |--------|------|-------|
 | `article_id` | text PK, FK → articles | One embedding per article, cascade delete |
-| `embedding` | blob | Float32 vector (e.g. 384 × 4 bytes = 1,536 bytes for MiniLM) |
-| `model` | text | Model identifier used to generate the embedding (e.g. `all-MiniLM-L6-v2`) |
-| `created_at` | text | ISO 8601 timestamp |
+| `embedding` | blob | Float32 vector (decode via `decodeEmbedding` in `ranking/ranking.ts` — the ranking module owns the wire format) |
+| `model` | text | Lets the embed step detect model changes and re-embed |
+| `created_at` | text | |
 
-The `model` column lets us detect when the configured model changes and re-embed articles as needed.
+Stored separately from articles for sqlite-vec compatibility and to keep the articles table lean.
 
-### Existing: article_focuses table
-
-Supports multiple focuses per article with split similarity/NLI scores and model tracking:
+### article_focuses
 
 | Column | Type | Notes |
 |--------|------|-------|
-| `article_id` | text FK → articles | |
-| `focus_id` | text FK → focuses | |
-| `similarity` | real | Cosine similarity score (0.0–1.0), null if not yet computed |
-| `similarity_model` | text | Embedding model that produced the similarity score |
-| `nli` | real | NLI classification score (0.0–1.0), null if not yet computed or strategy doesn't use NLI |
-| `nli_model` | text | Classifier model that produced the NLI score |
+| `article_id` / `focus_id` | text FKs | Unique pair, upserts on re-analysis |
+| `similarity` / `similarity_model` | real / text | Cosine similarity + producing model |
+| `nli` / `nli_model` | real / text | NLI score + producing model |
 | `assigned_at` | text | |
 
-Unique on `(article_id, focus_id)` — upserts on re-analysis. Model columns enable automatic rescoring when models change — the reconciler detects mismatches and recomputes scores with the current model.
+Model columns enable automatic rescoring when models change — the similarity/nli steps recompute on mismatch. This is also how imports from an instance with different models heal: the import enqueues a `reconcile_focus` per focus and mismatched scores get redone.
 
-### Schema type additions
+## Scoring and votes
 
-```typescript
-type ArticleEmbeddingsTable = {
-  article_id: string;
-  embedding: Buffer;
-  model: string;
-  created_at: Timestamp;
-};
-```
-
-## Task registration
-
-New task type: `analyse_article` with payload `{ articleId: string }`.
-
-Registered alongside `fetch_source` and `extract_article` in the source task handlers. Enqueued automatically when extraction completes successfully.
-
-## Article voting and scoring
-
-User votes are explicit relevance signals that complement the automated classification. The voting system uses the existing article embeddings to propagate taste preferences across similar content.
-
-### Vote types
-
-- **Global vote** (`focus_id IS NULL`) — "I like/dislike this content overall"
-- **Focus-scoped vote** (`focus_id` set) — "This does/doesn't belong in this focus"
-
-A user can have both a global and a focus-scoped vote on the same article — they are independent signals. For example, upvoting globally ("good article") while downvoting in a focus ("but not relevant to this topic").
-
-### Scoring formula
-
-Articles are ranked using a combined score:
-
-```
-score = α × confidence + β × vote_signal + γ × recency_decay
-```
-
-Where:
-- **α = 0.5** — NLI classifier confidence (the existing signal)
-- **β = 0.4** — vote-derived signal (direct vote or similarity propagation)
-- **γ = 0.1** — recency decay (half-life of 3 days)
-
-### Vote signal computation
-
-1. **Direct vote** — if the user voted on this exact article, the vote value (+1 or -1) is used directly as the vote signal. This takes precedence over propagation to avoid double-counting.
-
-2. **Similarity propagation** — if no direct vote exists, the signal is computed from cosine similarity to all voted articles:
-
-   ```
-   vote_signal = Σ(vote_value × cosine_sim(candidate, voted)) / N
-   ```
-
-   This uses the article embeddings already stored in `article_embeddings`. An upvoted article pulls semantically similar articles up; a downvoted article pushes similar ones down.
-
-3. **No votes** — vote signal is 0, falling back to confidence + recency only.
-
-### Integration points
-
-The scoring system is used in two places:
-
-- **`FocusesService.listArticles()`** — focus feed. Loads all articles for the focus, scores them, sorts by combined score, then paginates. Both focus-scoped and global vote contexts are loaded and merged (focus-scoped wins on conflict).
-
-- **`EditionsService.generate()`** — edition generation. Candidates per focus are scored and ranked before the round-robin source-diversification step. Global vote context is loaded once; focus-scoped context per focus.
-
-### Performance notes
-
-- Vote context is capped at the 200 most recent votes per scope to bound memory and query cost.
-- Cosine similarity is a simple dot product (MiniLM embeddings are L2-normalized).
-- Articles without embeddings still get scored via confidence + recency; the vote propagation term is 0.
-
-### API routes
-
-| Method | URL | Description |
-|--------|-----|-------------|
-| GET | `/api/articles/:articleId/vote` | Get global vote (200 with vote, 204 if none) |
-| PUT | `/api/articles/:articleId/vote` | Upsert global vote `{ value: 1 \| -1 }` |
-| DELETE | `/api/articles/:articleId/vote` | Remove global vote |
-| PUT | `/api/focuses/:id/articles/:articleId/vote` | Upsert focus-scoped vote |
-| DELETE | `/api/focuses/:id/articles/:articleId/vote` | Remove focus-scoped vote |
-| GET | `/api/votes` | List all user votes with article info (paginated, filterable by `scope` and `value`) |
-| DELETE | `/api/votes/:voteId` | Remove a vote by ID |
-
-Focus feed article responses include both `vote` (focus-scoped) and `globalVote` (global quality) fields, allowing the UI to show both dimensions independently. The article reading page loads and displays the global vote via the GET endpoint.
-
-### Vote management
-
-The `/votes` page provides a chronological view of all votes cast. Users can filter by scope (quality/relevance) and direction (up/down), and remove individual votes. Removing a vote immediately updates the ranking on subsequent page loads.
+Ranking — how confidence, votes, and recency combine into article ordering — is owned by the **ranking module** and documented in [feed-algorithms.md](feed-algorithms.md). In short: `scoreAndRank` combines `effectiveConfidence` (from this pipeline's outputs), top-k similarity-weighted vote propagation (through the embeddings this pipeline produces), and recency decay.
 
 ## Future considerations
 
-- **Batch processing:** Transformers.js supports batched inference. Once the pipeline is stable, batch multiple articles per model invocation to improve throughput.
-- **Model selection config:** Let users choose embedding/classification models via `editions.json` config.
-- **sqlite-vec integration:** Create a sqlite-vec virtual table backed by `article_embeddings` for ANN (approximate nearest neighbor) search. The blob format is already float32-compatible.
-- **Incremental reclassification:** Rather than re-analysing all articles when a focus changes, only reclassify articles from the affected sources.
-- **Per-focus confidence thresholds:** Let users tune the minimum confidence for each focus rather than relying on a single global default.
+- **Batch inference:** transformers.js supports batching. If added, it belongs inside the steps' `processBatch` (where batches already exist) — a previous public batch protocol on the worker went unused and was removed.
+- **sqlite-vec integration:** a virtual table backed by `article_embeddings` for ANN search; the blob format is already float32-compatible.
+- **Model selection config:** expose embedding/classifier model choice via `editions.json`.

@@ -8,7 +8,7 @@ import { EntityIcon } from './entity-icon.tsx';
 
 const activeSectionForPath = (pathname: string): string => {
   const match = /^\/focuses\/([^/]+)$/.exec(pathname);
-  return match ? match[1]! : 'all';
+  return match?.[1] ?? 'all';
 };
 
 /* ── Link styles ─────────────────────────────────────────────────── */

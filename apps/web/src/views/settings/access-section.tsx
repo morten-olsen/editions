@@ -13,6 +13,33 @@ import type { AdminUser } from '../../hooks/billing/billing.hooks.ts';
 
 // --- Pricing config form ---
 
+type PriceInputProps = {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  /** When set, shows a formatted dollar hint below the input (e.g. "/mo"). */
+  hintSuffix?: string;
+};
+
+const PriceInput = ({ label, value, onChange, hintSuffix }: PriceInputProps): React.ReactElement => (
+  <label className="block">
+    <span className="text-xs text-ink-secondary">{label}</span>
+    <input
+      type="number"
+      min="0"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="mt-1 block w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent"
+    />
+    {hintSuffix && Number(value) > 0 && (
+      <span className="text-xs text-ink-tertiary mt-0.5">
+        ${(Number(value) / 100).toFixed(2)}
+        {hintSuffix}
+      </span>
+    )}
+  </label>
+);
+
 const PricingForm = (): React.ReactNode => {
   const { data: settings, isLoading } = useAdminBillingSettings();
   const update = useUpdateBillingSettings();
@@ -66,42 +93,19 @@ const PricingForm = (): React.ReactNode => {
       )}
       <h3 className="text-sm font-semibold text-ink">Pricing</h3>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <label className="block">
-          <span className="text-xs text-ink-secondary">Trial days</span>
-          <input
-            type="number"
-            min="0"
-            value={currentTrialDays}
-            onChange={(e) => setTrialDays(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent"
-          />
-        </label>
-        <label className="block">
-          <span className="text-xs text-ink-secondary">Monthly price (cents)</span>
-          <input
-            type="number"
-            min="0"
-            value={currentMonthlyCents}
-            onChange={(e) => setMonthlyCents(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent"
-          />
-          {Number(currentMonthlyCents) > 0 && (
-            <span className="text-xs text-ink-tertiary mt-0.5">${(Number(currentMonthlyCents) / 100).toFixed(2)}/mo</span>
-          )}
-        </label>
-        <label className="block">
-          <span className="text-xs text-ink-secondary">Yearly price (cents)</span>
-          <input
-            type="number"
-            min="0"
-            value={currentYearlyCents}
-            onChange={(e) => setYearlyCents(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-accent"
-          />
-          {Number(currentYearlyCents) > 0 && (
-            <span className="text-xs text-ink-tertiary mt-0.5">${(Number(currentYearlyCents) / 100).toFixed(2)}/yr</span>
-          )}
-        </label>
+        <PriceInput label="Trial days" value={currentTrialDays} onChange={setTrialDays} />
+        <PriceInput
+          label="Monthly price (cents)"
+          value={currentMonthlyCents}
+          onChange={setMonthlyCents}
+          hintSuffix="/mo"
+        />
+        <PriceInput
+          label="Yearly price (cents)"
+          value={currentYearlyCents}
+          onChange={setYearlyCents}
+          hintSuffix="/yr"
+        />
       </div>
       <div className="flex items-center gap-3">
         <Button size="sm" variant="primary" onClick={handleSave} disabled={update.isPending}>

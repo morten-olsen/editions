@@ -15,6 +15,14 @@ afterEach(async () => {
 
 // --- Helpers ---
 
+const expectDefined = <T>(value: T | undefined): T => {
+  expect(value).toBeDefined();
+  if (value === undefined) {
+    throw new Error('Expected value to be defined');
+  }
+  return value;
+};
+
 const authed = async (): Promise<{ id: string; token: string; headers: { authorization: string } }> => {
   return t.register();
 };
@@ -102,15 +110,16 @@ describe('GET /api/data/export', () => {
     await createSource(headers, 'My Feed', 'https://example.com/rss');
 
     const data = await exportData(headers);
-    const sources = data.sources as Array<Record<string, unknown>>;
+    const sources = data.sources as Record<string, unknown>[];
 
     expect(sources).toHaveLength(1);
-    expect(sources[0]!.name).toBe('My Feed');
-    expect(sources[0]!.url).toBe('https://example.com/rss');
-    expect(sources[0]!.type).toBe('rss');
+    const source = expectDefined(sources[0]);
+    expect(source.name).toBe('My Feed');
+    expect(source.url).toBe('https://example.com/rss');
+    expect(source.type).toBe('rss');
     // Should not contain any IDs
-    expect(sources[0]!).not.toHaveProperty('id');
-    expect(sources[0]!).not.toHaveProperty('userId');
+    expect(source).not.toHaveProperty('id');
+    expect(source).not.toHaveProperty('userId');
   });
 
   it('exports focuses with source URLs instead of IDs', async () => {
@@ -119,17 +128,19 @@ describe('GET /api/data/export', () => {
     await createFocus(headers, 'Tech', [source.id as string]);
 
     const data = await exportData(headers);
-    const focuses = data.focuses as Array<Record<string, unknown>>;
+    const focuses = data.focuses as Record<string, unknown>[];
 
     expect(focuses).toHaveLength(1);
-    expect(focuses[0]!.name).toBe('Tech');
-    expect(focuses[0]!).not.toHaveProperty('id');
-    expect(focuses[0]!).not.toHaveProperty('userId');
+    const focus = expectDefined(focuses[0]);
+    expect(focus.name).toBe('Tech');
+    expect(focus).not.toHaveProperty('id');
+    expect(focus).not.toHaveProperty('userId');
 
-    const focusSources = focuses[0]!.sources as Array<Record<string, unknown>>;
+    const focusSources = focus.sources as Record<string, unknown>[];
     expect(focusSources).toHaveLength(1);
-    expect(focusSources[0]!.url).toBe('https://example.com/feed');
-    expect(focusSources[0]!).not.toHaveProperty('sourceId');
+    const focusSource = expectDefined(focusSources[0]);
+    expect(focusSource.url).toBe('https://example.com/feed');
+    expect(focusSource).not.toHaveProperty('sourceId');
   });
 
   it('does not contain user-specific IDs in sources', async () => {
@@ -140,7 +151,7 @@ describe('GET /api/data/export', () => {
     expect(data).not.toHaveProperty('userId');
     expect(data).not.toHaveProperty('id');
 
-    const sources = data.sources as Array<Record<string, unknown>>;
+    const sources = data.sources as Record<string, unknown>[];
     for (const src of sources) {
       expect(src).not.toHaveProperty('id');
       expect(src).not.toHaveProperty('userId');
@@ -179,7 +190,7 @@ describe('POST /api/data/import', () => {
 
     // Verify the source exists
     const listRes = await t.inject({ method: 'GET', url: '/api/sources', headers });
-    const sources = JSON.parse(listRes.body) as Array<Record<string, unknown>>;
+    const sources = JSON.parse(listRes.body) as Record<string, unknown>[];
     const imported = sources.find((s) => s.name === 'Imported Feed');
     expect(imported).toBeDefined();
   });
@@ -194,21 +205,19 @@ describe('POST /api/data/import', () => {
       url: '/api/data/import',
       headers,
       payload: emptyPayload({
-        sources: [
-          { type: 'rss', name: 'New Feed', url: 'https://new.com/feed', config: {}, direction: 'newest' },
-        ],
+        sources: [{ type: 'rss', name: 'New Feed', url: 'https://new.com/feed', config: {}, direction: 'newest' }],
       }),
     });
 
     // Old data should be gone
     const sourcesRes = await t.inject({ method: 'GET', url: '/api/sources', headers });
-    const sources = JSON.parse(sourcesRes.body) as Array<Record<string, unknown>>;
+    const sources = JSON.parse(sourcesRes.body) as Record<string, unknown>[];
     const nonBookmarks = sources.filter((s) => s.type !== 'bookmarks');
     expect(nonBookmarks).toHaveLength(1);
-    expect(nonBookmarks[0]!.name).toBe('New Feed');
+    expect(expectDefined(nonBookmarks[0]).name).toBe('New Feed');
 
     const focusesRes = await t.inject({ method: 'GET', url: '/api/focuses', headers });
-    const focuses = JSON.parse(focusesRes.body) as Array<Record<string, unknown>>;
+    const focuses = JSON.parse(focusesRes.body) as Record<string, unknown>[];
     expect(focuses).toHaveLength(0);
   });
 
@@ -220,9 +229,7 @@ describe('POST /api/data/import', () => {
       url: '/api/data/import',
       headers,
       payload: emptyPayload({
-        sources: [
-          { type: 'rss', name: 'Feed', url: 'https://example.com/feed', config: {}, direction: 'newest' },
-        ],
+        sources: [{ type: 'rss', name: 'Feed', url: 'https://example.com/feed', config: {}, direction: 'newest' }],
         articles: [
           {
             sourceUrl: 'https://example.com/feed',
@@ -262,9 +269,7 @@ describe('POST /api/data/import', () => {
       url: '/api/data/import',
       headers,
       payload: emptyPayload({
-        sources: [
-          { type: 'rss', name: 'Feed', url: 'https://example.com/feed', config: {}, direction: 'newest' },
-        ],
+        sources: [{ type: 'rss', name: 'Feed', url: 'https://example.com/feed', config: {}, direction: 'newest' }],
         focuses: [
           {
             name: 'Imported Focus',
@@ -284,10 +289,9 @@ describe('POST /api/data/import', () => {
 
     // Verify the focus was created with the source link
     const focusRes = await t.inject({ method: 'GET', url: '/api/focuses', headers });
-    const focuses = JSON.parse(focusRes.body) as Array<Record<string, unknown>>;
-    const imported = focuses.find((f) => f.name === 'Imported Focus');
-    expect(imported).toBeDefined();
-    expect((imported!.sources as unknown[]).length).toBe(1);
+    const focuses = JSON.parse(focusRes.body) as Record<string, unknown>[];
+    const imported = expectDefined(focuses.find((f) => f.name === 'Imported Focus'));
+    expect((imported.sources as unknown[]).length).toBe(1);
   });
 
   it('imports scoring weights', async () => {
@@ -335,11 +339,11 @@ describe('POST /api/data/import', () => {
 
     // Verify Bob has the data
     const sourcesRes = await t.inject({ method: 'GET', url: '/api/sources', headers: userB.headers });
-    const sources = JSON.parse(sourcesRes.body) as Array<Record<string, unknown>>;
+    const sources = JSON.parse(sourcesRes.body) as Record<string, unknown>[];
     expect(sources.some((s) => s.name === 'Alice Feed')).toBe(true);
 
     const focusesRes = await t.inject({ method: 'GET', url: '/api/focuses', headers: userB.headers });
-    const focuses = JSON.parse(focusesRes.body) as Array<Record<string, unknown>>;
+    const focuses = JSON.parse(focusesRes.body) as Record<string, unknown>[];
     expect(focuses.some((f) => f.name === 'Alice Focus')).toBe(true);
   });
 
@@ -358,7 +362,7 @@ describe('POST /api/data/import', () => {
 
     // Verify user A's data is unchanged
     const sourcesA = await t.inject({ method: 'GET', url: '/api/sources', headers: userA.headers });
-    const sourcesABody = JSON.parse(sourcesA.body) as Array<Record<string, unknown>>;
+    const sourcesABody = JSON.parse(sourcesA.body) as Record<string, unknown>[];
     expect(sourcesABody.filter((s) => s.type !== 'bookmarks')).toHaveLength(1);
   });
 

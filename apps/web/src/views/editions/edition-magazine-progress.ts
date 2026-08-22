@@ -5,6 +5,9 @@ import { useAuthHeaders } from '../../api/api.hooks.ts';
 const STORAGE_PREFIX = 'editions:magazine-page:';
 const SAVE_DEBOUNCE_MS = 1500;
 
+// Intentional no-op: progress saves are best-effort, failures are silently ignored
+const noop = (): void => undefined;
+
 type UseMagazineProgressResult = {
   page: number;
   setPage: (page: number) => void;
@@ -53,7 +56,7 @@ const useMagazineProgress = (editionId: string): UseMagazineProgressResult => {
           method: 'PATCH',
           headers: { ...headers, 'Content-Type': 'application/json' },
           body: JSON.stringify({ currentPosition: p }),
-        }).catch(() => {});
+        }).catch(noop);
       }, SAVE_DEBOUNCE_MS);
     },
     [editionId, storageKey, headers],

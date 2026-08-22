@@ -27,6 +27,37 @@ type UseOpmlResult = {
   clearImportResult: () => void;
 };
 
+// -- Private helpers --
+
+const downloadOpmlBlob = (blob: Blob): void => {
+  const blobUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = blobUrl;
+  link.download = 'editions-sources.opml';
+  link.click();
+  URL.revokeObjectURL(blobUrl);
+};
+
+const createOpmlFileInput = (onText: (text: string) => void): HTMLInputElement => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.opml,.xml';
+  input.style.display = 'none';
+  input.addEventListener('change', () => {
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (): void => {
+      onText(reader.result as string);
+      input.remove();
+    };
+    reader.readAsText(file);
+  });
+  return input;
+};
+
 // -- Hook --
 
 const useOpml = (): UseOpmlResult => {
@@ -47,14 +78,7 @@ const useOpml = (): UseOpmlResult => {
         }
         return res.blob();
       })
-      .then((blob) => {
-        const blobUrl = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = 'editions-sources.opml';
-        link.click();
-        URL.revokeObjectURL(blobUrl);
-      })
+      .then(downloadOpmlBlob)
       .catch(() => {
         setImportError('Failed to export feeds. Please try again.');
       });
@@ -89,22 +113,8 @@ const useOpml = (): UseOpmlResult => {
     if (fileInputRef.current) {
       fileInputRef.current.remove();
     }
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.opml,.xml';
-    input.style.display = 'none';
-    input.addEventListener('change', () => {
-      const file = input.files?.[0];
-      if (!file) {
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (): void => {
-        const text = reader.result as string;
-        importMutation.mutate(text);
-        input.remove();
-      };
-      reader.readAsText(file);
+    const input = createOpmlFileInput((text) => {
+      importMutation.mutate(text);
     });
     document.body.appendChild(input);
     fileInputRef.current = input;

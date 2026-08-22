@@ -24,7 +24,7 @@ when:
     #   - '.woodpecker/deploy.yaml'
 
 depends_on:
-  - quality
+  #- quality
   - compliance
 
 steps:

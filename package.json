@@ -14,7 +14,7 @@
     "dev:web": "pnpm --filter @editions/web dev",
     "build": "pnpm --filter @editions/server build",
     "check": "pnpm --filter @editions/server check && pnpm --filter @editions/web check",
-    "test": "vitest run"
+    "test": "pnpm --filter @editions/server test"
   },
   "devDependencies": {
     "portless": "^0.5.2",

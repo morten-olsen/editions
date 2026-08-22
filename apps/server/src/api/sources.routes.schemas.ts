@@ -6,7 +6,6 @@ const sourceSchema = z.object({
   type: z.string(),
   name: z.string(),
   url: z.string(),
-  config: z.record(z.string(), z.unknown()),
   direction: z.string(),
   lastFetchedAt: z.string().nullable(),
   fetchError: z.string().nullable(),

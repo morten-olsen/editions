@@ -40,25 +40,56 @@ const useShowToast = (): ShowToast => {
 
 const Spinner = (): React.ReactElement => (
   <svg className="w-4 h-4 animate-spin text-ink-tertiary" viewBox="0 0 16 16" fill="none">
-    <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="8" strokeLinecap="round" />
+    <circle
+      cx="8"
+      cy="8"
+      r="6"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeDasharray="28"
+      strokeDashoffset="8"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
 const CheckIcon = (): React.ReactElement => (
-  <svg className="w-4 h-4 text-positive" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    className="w-4 h-4 text-positive"
+    viewBox="0 0 16 16"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M3.5 8.5 6.5 11.5 12.5 4.5" />
   </svg>
 );
 
 const ErrorIcon = (): React.ReactElement => (
-  <svg className="w-4 h-4 text-critical" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+  <svg
+    className="w-4 h-4 text-critical"
+    viewBox="0 0 16 16"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+  >
     <circle cx="8" cy="8" r="6" />
     <path d="M8 5v3.5M8 10.5v.5" />
   </svg>
 );
 
 const DismissIcon = (): React.ReactElement => (
-  <svg className="w-3.5 h-3.5" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+  <svg
+    className="w-3.5 h-3.5"
+    viewBox="0 0 14 14"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+  >
     <path d="M3 3l8 8M11 3l-8 8" />
   </svg>
 );
@@ -94,9 +125,7 @@ const ToastItem = ({ toast, onDismiss }: ToastItemProps): React.ReactElement => 
       </div>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium text-ink leading-snug">{toast.title}</div>
-        {description && (
-          <div className="text-xs text-ink-secondary mt-0.5 leading-relaxed">{description}</div>
-        )}
+        {description && <div className="text-xs text-ink-secondary mt-0.5 leading-relaxed">{description}</div>}
       </div>
       <button
         type="button"
@@ -115,6 +144,11 @@ const ToastItem = ({ toast, onDismiss }: ToastItemProps): React.ReactElement => 
 const DEFAULT_TIMEOUT = 4000;
 let nextId = 0;
 
+const patchToast =
+  (id: string, patch: Partial<ToastEntry>) =>
+  (prev: ToastEntry[]): ToastEntry[] =>
+    prev.map((t) => (t.id === id ? { ...t, ...patch } : t));
+
 const ToastProvider = ({ children }: { children: React.ReactNode }): React.ReactElement => {
   const [toasts, setToasts] = React.useState<ToastEntry[]>([]);
   const timers = React.useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
@@ -128,51 +162,48 @@ const ToastProvider = ({ children }: { children: React.ReactNode }): React.React
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const startAutoDismiss = React.useCallback((id: string, timeout: number): void => {
-    if (timeout <= 0) {
-      return;
-    }
-    const timer = setTimeout(() => {
-      timers.current.delete(id);
-      dismiss(id);
-    }, timeout);
-    timers.current.set(id, timer);
-  }, [dismiss]);
+  const startAutoDismiss = React.useCallback(
+    (id: string, timeout: number): void => {
+      if (timeout <= 0) {
+        return;
+      }
+      const timer = setTimeout(() => {
+        timers.current.delete(id);
+        dismiss(id);
+      }, timeout);
+      timers.current.set(id, timer);
+    },
+    [dismiss],
+  );
 
   const showToast = React.useCallback(
     (options: ToastOptions): void => {
       const id = String(++nextId);
       const timeout = options.timeout ?? DEFAULT_TIMEOUT;
-      const hasAction = !!options.action;
+      const action = options.action;
 
       const entry: ToastEntry = {
         id,
         title: options.title,
         description: options.description,
-        status: hasAction ? 'pending' : 'success',
+        status: action ? 'pending' : 'success',
       };
 
       setToasts((prev) => [...prev, entry]);
 
-      if (!hasAction) {
+      if (!action) {
         startAutoDismiss(id, timeout);
         return;
       }
 
-      options.action!().then(
+      action().then(
         () => {
-          setToasts((prev) =>
-            prev.map((t) => (t.id === id ? { ...t, status: 'success' as const } : t)),
-          );
+          setToasts(patchToast(id, { status: 'success' }));
           startAutoDismiss(id, timeout);
         },
         (err: unknown) => {
           const errorMessage = err instanceof Error ? err.message : 'Something went wrong';
-          setToasts((prev) =>
-            prev.map((t) =>
-              t.id === id ? { ...t, status: 'error' as const, errorMessage } : t,
-            ),
-          );
+          setToasts(patchToast(id, { status: 'error', errorMessage }));
           startAutoDismiss(id, timeout);
         },
       );

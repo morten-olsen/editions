@@ -25,10 +25,7 @@ const Content = ({
   </BasePopover.Portal>
 );
 
-const Item = ({
-  className = '',
-  ...props
-}: React.ComponentProps<'button'>): React.ReactElement => (
+const Item = ({ className = '', ...props }: React.ComponentProps<'button'>): React.ReactElement => (
   <button
     type="button"
     className={`flex w-full items-center gap-2 px-3 py-2 text-sm text-ink outline-none select-none cursor-default hover:bg-surface-sunken hover:text-ink transition-colors duration-fast ${className}`}

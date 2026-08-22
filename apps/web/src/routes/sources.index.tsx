@@ -78,6 +78,68 @@ const ImportResultBanner = ({
   );
 };
 
+type SourcesActionsProps = {
+  onExport: () => void;
+  onImport: () => void;
+  importPending: boolean;
+  onReExtract: () => void;
+  reExtractPending: boolean;
+  onReanalyse: () => void;
+  reanalysePending: boolean;
+};
+
+const SourcesActions = ({
+  onExport,
+  onImport,
+  importPending,
+  onReExtract,
+  reExtractPending,
+  onReanalyse,
+  reanalysePending,
+}: SourcesActionsProps): React.ReactElement => (
+  <div className="flex items-center gap-2">
+    <Menu.Root>
+      <Menu.Trigger
+        render={
+          <Button variant="ghost" size="sm" aria-label="Import and export">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M8 3v7M5 7.5 8 10l3-2.5" />
+              <path d="M3 12.5h10" />
+            </svg>
+          </Button>
+        }
+      />
+      <Menu.Content>
+        <Menu.Label>OPML</Menu.Label>
+        <Menu.Item onClick={onExport}>Export feeds</Menu.Item>
+        <Menu.Item onClick={onImport} disabled={importPending}>
+          {importPending ? 'Importing...' : 'Import feeds'}
+        </Menu.Item>
+      </Menu.Content>
+    </Menu.Root>
+    <Button variant="secondary" size="sm" disabled={reExtractPending} onClick={onReExtract}>
+      {reExtractPending ? 'Re-extracting...' : 'Re-extract all'}
+    </Button>
+    <Button variant="secondary" size="sm" disabled={reanalysePending} onClick={onReanalyse}>
+      {reanalysePending ? 'Reanalysing...' : 'Reanalyse all'}
+    </Button>
+    <Link to="/sources/new" data-ai-id="add-source-btn" data-ai-role="button" data-ai-label="Add source">
+      <Button variant="primary" size="sm">
+        Add source
+      </Button>
+    </Link>
+  </div>
+);
+
 const SourcesPage = (): React.ReactNode => {
   const { sources, loading, reanalyseMutation, reExtractMutation } = useSourcesList();
   const { stats } = useClassificationStats();
@@ -89,57 +151,15 @@ const SourcesPage = (): React.ReactNode => {
         title="Sources"
         subtitle={loading ? 'Loading...' : `${sources.length} feeds configured`}
         actions={
-          <div className="flex items-center gap-2">
-            <Menu.Root>
-              <Menu.Trigger
-                render={
-                  <Button variant="ghost" size="sm" aria-label="Import and export">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M8 3v7M5 7.5 8 10l3-2.5" />
-                      <path d="M3 12.5h10" />
-                    </svg>
-                  </Button>
-                }
-              />
-              <Menu.Content>
-                <Menu.Label>OPML</Menu.Label>
-                <Menu.Item onClick={exportOpml}>Export feeds</Menu.Item>
-                <Menu.Item onClick={pickAndImport} disabled={importMutation.isPending}>
-                  {importMutation.isPending ? 'Importing...' : 'Import feeds'}
-                </Menu.Item>
-              </Menu.Content>
-            </Menu.Root>
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={reExtractMutation.isPending}
-              onClick={() => reExtractMutation.mutate()}
-            >
-              {reExtractMutation.isPending ? 'Re-extracting...' : 'Re-extract all'}
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={reanalyseMutation.isPending}
-              onClick={() => reanalyseMutation.mutate()}
-            >
-              {reanalyseMutation.isPending ? 'Reanalysing...' : 'Reanalyse all'}
-            </Button>
-            <Link to="/sources/new" data-ai-id="add-source-btn" data-ai-role="button" data-ai-label="Add source">
-              <Button variant="primary" size="sm">
-                Add source
-              </Button>
-            </Link>
-          </div>
+          <SourcesActions
+            onExport={exportOpml}
+            onImport={pickAndImport}
+            importPending={importMutation.isPending}
+            onReExtract={() => reExtractMutation.mutate()}
+            reExtractPending={reExtractMutation.isPending}
+            onReanalyse={() => reanalyseMutation.mutate()}
+            reanalysePending={reanalyseMutation.isPending}
+          />
         }
       />
 

@@ -1,6 +1,9 @@
 import crypto from 'node:crypto';
 
 import { XMLParser } from 'fast-xml-parser';
+import type { Kysely } from 'kysely';
+
+import type { DatabaseSchema } from '../database/database.types.ts';
 
 // --- Types ---
 
@@ -249,5 +252,91 @@ const getNestedValue = (obj: Record<string, unknown>, ...keys: string[]): unknow
   return current;
 };
 
-export type { FeedItem };
-export { parseRssFeed };
+// --- Ingest ---
+
+type IngestSource = {
+  id: string;
+  url: string;
+  type: string;
+};
+
+// Same shape as the reconciler's EmbedFn/ClassifyFn seams: a function-typed
+// dependency — global fetch in production, a fake in tests
+type FetchFn = (url: string) => Promise<Response>;
+
+// Fetch a source's feed and upsert its items as articles.
+// Records fetch errors on the source row; rethrows so callers see failure.
+const fetchAndStoreFeed = async ({
+  db,
+  source,
+  fetchFn = fetch,
+}: {
+  db: Kysely<DatabaseSchema>;
+  source: IngestSource;
+  fetchFn?: FetchFn;
+}): Promise<void> => {
+  let items: FeedItem[];
+  try {
+    const response = await fetchFn(source.url);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    const xml = await response.text();
+    items = parseRssFeed(xml);
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    await db
+      .updateTable('sources')
+      .set({ fetch_error: errorMsg, updated_at: new Date().toISOString() })
+      .where('id', '=', source.id)
+      .execute();
+    throw err;
+  }
+
+  const now = new Date().toISOString();
+  await db
+    .updateTable('sources')
+    .set({ fetch_error: null, last_fetched_at: now, updated_at: now })
+    .where('id', '=', source.id)
+    .execute();
+
+  const isPodcast = source.type === 'podcast';
+
+  for (const item of items) {
+    const id = crypto.randomUUID();
+
+    let content = item.content;
+    if (isPodcast && item.imageUrl && content) {
+      // Feed readers often inject the episode artwork as a leading <img>;
+      // strip it so the artwork isn't duplicated above the show notes
+      const escapedUrl = item.imageUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const stripped = content.replace(new RegExp(`<img[^>]*src=["']${escapedUrl}["'][^>]*/?>`, 'gi'), '').trim();
+      content = stripped || null;
+    }
+
+    await db
+      .insertInto('articles')
+      .values({
+        id,
+        source_id: source.id,
+        external_id: item.externalId,
+        url: item.url,
+        title: item.title,
+        author: item.author,
+        summary: item.summary,
+        content,
+        image_url: item.imageUrl,
+        published_at: item.publishedAt,
+        media_url: item.mediaUrl,
+        media_type: item.mediaType,
+        consumption_time_seconds: item.consumptionTimeSeconds,
+        // Podcast "content" is the feed's show notes — there is nothing to extract
+        ...(isPodcast ? { extracted_at: new Date().toISOString() } : {}),
+      })
+      .onConflict((oc) => oc.columns(['source_id', 'external_id']).doNothing())
+      .execute();
+  }
+};
+
+export type { FeedItem, FetchFn };
+export { parseRssFeed, fetchAndStoreFeed };

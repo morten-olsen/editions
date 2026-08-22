@@ -151,6 +151,13 @@ tasks:
     cmds:
       - pnpm test
 
+  test:live:
+    desc: Run tests that hit the live network (discovery catalog URL checks)
+    env:
+      EDITIONS_LIVE_TESTS: "1"
+    cmds:
+      - pnpm --filter @editions/server exec vitest run src/discovery/discovery.catalog.test.ts
+
   test:smoke:
     desc: Start server, hit health endpoint, verify, shut down
     dir: "{{.SERVER_DIR}}"

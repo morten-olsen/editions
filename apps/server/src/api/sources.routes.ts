@@ -3,19 +3,12 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
 import { createAccessHook } from '../auth/access.middleware.ts';
 import { createAuthHook } from '../auth/auth.middleware.ts';
-import { DatabaseService } from '../database/database.ts';
-import type {
-  RefreshSourcePayload,
-  ReanalyseSourcePayload,
-  ReanalyseAllPayload,
-  ReExtractAllPayload,
-  ReExtractSourcePayload,
-} from '../jobs/jobs.handlers.ts';
 import { JobService } from '../jobs/jobs.ts';
 import type { Services } from '../services/services.ts';
 import { SourceNotFoundError, SourcesService } from '../sources/sources.ts';
 import { buildOpml, parseOpml } from '../sources/sources.opml.ts';
 
+import { registerReanalyseRoutes } from './sources.routes.reanalyse.ts';
 import {
   sourceSchema,
   createSourceSchema,
@@ -290,159 +283,13 @@ const registerFetchRoute = ({ fastify, services, authenticate, requireAccess }: 
       }
 
       const jobService = services.get(JobService);
-      const job = jobService.enqueue<RefreshSourcePayload>(
+      const job = jobService.enqueue(
         'refresh_source',
         { sourceId: req.params.id, userId: req.user.sub },
         { userId: req.user.sub, affects: { sourceIds: [req.params.id] } },
       );
 
       return reply.code(202).send({ jobId: job.id, status: job.status });
-    },
-  });
-};
-
-const registerReanalyseRoutes = ({ fastify, services, authenticate, requireAccess }: RouteArgs): void => {
-  // Reanalyse all articles in a source
-  fastify.route({
-    method: 'POST',
-    url: '/sources/:id/reanalyse',
-    onRequest: [authenticate, requireAccess],
-    schema: {
-      security: [{ bearerAuth: [] }],
-      params: idParamSchema,
-      response: { 202: z.object({ enqueued: z.number() }), 404: errorResponseSchema },
-    },
-    handler: async (req, reply) => {
-      const sourcesService = services.get(SourcesService);
-      try {
-        await sourcesService.get(req.user.sub, req.params.id);
-      } catch (err) {
-        if (err instanceof SourceNotFoundError) {
-          return reply.code(404).send({ error: err.message });
-        }
-        throw err;
-      }
-
-      const db = await services.get(DatabaseService).getInstance();
-      const result = await db
-        .selectFrom('articles')
-        .select(db.fn.countAll().as('count'))
-        .where('source_id', '=', req.params.id)
-        .where('extracted_at', 'is not', null)
-        .executeTakeFirstOrThrow();
-
-      const count = Number(result.count);
-      if (count > 0) {
-        services
-          .get(JobService)
-          .enqueue<ReanalyseSourcePayload>(
-            'reanalyse_source',
-            { sourceId: req.params.id },
-            { userId: req.user.sub, affects: { sourceIds: [req.params.id] } },
-          );
-      }
-
-      return reply.code(202).send({ enqueued: count });
-    },
-  });
-
-  // Re-extract all articles in a source (clear content + re-fetch from source URLs)
-  fastify.route({
-    method: 'POST',
-    url: '/sources/:id/re-extract',
-    onRequest: [authenticate, requireAccess],
-    schema: {
-      security: [{ bearerAuth: [] }],
-      params: idParamSchema,
-      response: { 202: z.object({ enqueued: z.number() }), 404: errorResponseSchema },
-    },
-    handler: async (req, reply) => {
-      const sourcesService = services.get(SourcesService);
-      try {
-        await sourcesService.get(req.user.sub, req.params.id);
-      } catch (err) {
-        if (err instanceof SourceNotFoundError) {
-          return reply.code(404).send({ error: err.message });
-        }
-        throw err;
-      }
-
-      const db = await services.get(DatabaseService).getInstance();
-      const result = await db
-        .selectFrom('articles')
-        .innerJoin('sources', 'sources.id', 'articles.source_id')
-        .select(db.fn.countAll().as('count'))
-        .where('articles.source_id', '=', req.params.id)
-        .where('sources.type', '!=', 'podcast')
-        .where('articles.extracted_at', 'is not', null)
-        .executeTakeFirstOrThrow();
-
-      const count = Number(result.count);
-      if (count > 0) {
-        services
-          .get(JobService)
-          .enqueue<ReExtractSourcePayload>(
-            're_extract_source',
-            { sourceId: req.params.id },
-            { userId: req.user.sub, affects: { sourceIds: [req.params.id] } },
-          );
-      }
-
-      return reply.code(202).send({ enqueued: count });
-    },
-  });
-
-  // Reanalyse all articles across all sources
-  fastify.route({
-    method: 'POST',
-    url: '/sources/reanalyse-all',
-    onRequest: [authenticate, requireAccess],
-    schema: {
-      security: [{ bearerAuth: [] }],
-      response: { 202: z.object({ enqueued: z.number() }) },
-    },
-    handler: async (req, reply) => {
-      const db = await services.get(DatabaseService).getInstance();
-      const result = await db
-        .selectFrom('articles')
-        .select(db.fn.countAll().as('count'))
-        .where('extracted_at', 'is not', null)
-        .executeTakeFirstOrThrow();
-
-      const count = Number(result.count);
-      if (count > 0) {
-        services.get(JobService).enqueue<ReanalyseAllPayload>('reanalyse_all', {}, { userId: req.user.sub });
-      }
-
-      return reply.code(202).send({ enqueued: count });
-    },
-  });
-
-  // Re-extract all articles (clear content + re-fetch from source URLs)
-  fastify.route({
-    method: 'POST',
-    url: '/sources/re-extract-all',
-    onRequest: [authenticate, requireAccess],
-    schema: {
-      security: [{ bearerAuth: [] }],
-      response: { 202: z.object({ enqueued: z.number() }) },
-    },
-    handler: async (req, reply) => {
-      const db = await services.get(DatabaseService).getInstance();
-      const result = await db
-        .selectFrom('articles')
-        .innerJoin('sources', 'sources.id', 'articles.source_id')
-        .select(db.fn.countAll().as('count'))
-        .where('sources.type', '!=', 'podcast')
-        .where('articles.extracted_at', 'is not', null)
-        .executeTakeFirstOrThrow();
-
-      const count = Number(result.count);
-      if (count > 0) {
-        services.get(JobService).enqueue<ReExtractAllPayload>('re_extract_all', {}, { userId: req.user.sub });
-      }
-
-      return reply.code(202).send({ enqueued: count });
     },
   });
 };

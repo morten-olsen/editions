@@ -1,21 +1,13 @@
-import type { Kysely } from 'kysely';
 import { sql } from 'kysely';
+import type { Kysely } from 'kysely';
 
 import type { DatabaseSchema, EditionBudgetType } from '../database/database.types.ts';
 import type { FocusesService } from '../focuses/focuses.ts';
-import type { VoteContext, ScoringCandidate, UserScoringWeights, VotesService } from '../votes/votes.ts';
-import { mergeVoteContexts } from '../votes/votes.ts';
-import { computeScore } from '../votes/votes.scoring.ts';
+import { mergeVoteContexts, minConfidenceFilterSql, scoreAndRank } from '../ranking/ranking.ts';
+import type { ScoringWeights, VoteContext } from '../ranking/ranking.ts';
+import type { VotesService } from '../votes/votes.ts';
 
 // --- Types ---
-
-type FocusDetail = {
-  minConfidence: number;
-  minConsumptionTimeSeconds: number | null;
-  maxConsumptionTimeSeconds: number | null;
-  sourceWeights: Map<string, number>;
-  sourceMinConfidence: Map<string, number>;
-};
 
 type FocusConfig = {
   focusId: string;
@@ -27,21 +19,43 @@ type FocusConfig = {
   weight: number;
 };
 
-type GenerateContext = {
-  db: Kysely<DatabaseSchema>;
-  userId: string;
-  configId: string;
-  defaultLookbackHours: number;
-  defaultExcludePriorEditions: boolean;
-  sortedFocuses: FocusConfig[];
-  focusDetails: Map<string, FocusDetail>;
+type FocusDetail = {
+  minConfidence: number;
+  minConsumptionTimeSeconds: number | null;
+  maxConsumptionTimeSeconds: number | null;
+  sourceWeights: Map<string, number>;
+  sourceMinConfidence: Map<string, number>;
+};
+
+type CandidateRow = {
+  id: string;
+  source_id: string;
+  published_at: string | null;
+  consumption_time_seconds: number | null;
+  similarity: number | null;
+  nli: number | null;
+  embedding: unknown;
+};
+
+// Everything the (pure) generation algorithm needs for one focus,
+// fully loaded and resolved — no service or DB handles.
+type FocusGenerationInput = {
+  focusId: string;
+  budgetType: EditionBudgetType;
+  budgetValue: number;
+  weight: number;
+  excludePriorEditions: boolean;
+  sourceWeights: Map<string, number>;
+  candidates: CandidateRow[];
+  voteContext: VoteContext;
+};
+
+type GenerateInputs = {
+  focuses: FocusGenerationInput[];
   excludedArticleIds: Set<string>;
-  voteContext: {
-    global: VoteContext;
-    edition: VoteContext;
-  };
-  votesService: VotesService;
-  editionWeights: UserScoringWeights['edition'];
+  editionWeights: ScoringWeights;
+  rng?: () => number;
+  now?: number;
 };
 
 type CollectedArticle = {
@@ -55,7 +69,18 @@ type GenerateResult = {
   totalReadingSeconds: number;
 };
 
-// --- Helpers ---
+type LoadGenerationInputsParams = {
+  db: Kysely<DatabaseSchema>;
+  focusesService: FocusesService;
+  votesService: VotesService;
+  userId: string;
+  configId: string;
+  defaultLookbackHours: number;
+  defaultExcludePriorEditions: boolean;
+  focuses: FocusConfig[];
+};
+
+// --- Loading (all I/O lives here) ---
 
 const loadExcludedArticleIds = async (
   db: Kysely<DatabaseSchema>,
@@ -151,25 +176,12 @@ const queryCandidates = async ({
     query = query.where(sql`0`, '=', sql`1`);
   }
 
-  const hasSourceOverrides = focusInfo.sourceMinConfidence.size > 0;
-  if (focusInfo.minConfidence > 0 || hasSourceOverrides) {
-    if (hasSourceOverrides) {
-      // Build threshold from in-memory config (same as focuses.articles.ts)
-      const cases = [...focusInfo.sourceMinConfidence.entries()].map(
-        ([sourceId, minConf]) => sql`WHEN articles.source_id = ${sourceId} THEN ${minConf}`,
-      );
-      const thresholdExpr =
-        cases.length > 0
-          ? sql`CASE ${sql.join(cases, sql` `)} ELSE ${focusInfo.minConfidence} END`
-          : sql`${focusInfo.minConfidence}`;
-      query = query.where(sql`COALESCE(article_focuses.nli, article_focuses.similarity)`, '>=', thresholdExpr);
-    } else {
-      query = query.where(
-        sql`COALESCE(article_focuses.nli, article_focuses.similarity)`,
-        '>=',
-        focusInfo.minConfidence,
-      );
-    }
+  const confidenceFilter = minConfidenceFilterSql({
+    minConfidence: focusInfo.minConfidence,
+    perSource: focusInfo.sourceMinConfidence,
+  });
+  if (confidenceFilter) {
+    query = query.where(confidenceFilter);
   }
 
   if (focusInfo.minConsumptionTimeSeconds !== null) {
@@ -183,59 +195,82 @@ const queryCandidates = async ({
   return query.execute();
 };
 
-type CandidateRow = {
-  id: string;
-  source_id: string;
-  published_at: string | null;
-  consumption_time_seconds: number | null;
-  similarity: number | null;
-  nli: number | null;
-  embedding: unknown;
-};
+const loadGenerationInputs = async (params: LoadGenerationInputsParams): Promise<GenerateInputs> => {
+  const {
+    db,
+    focusesService,
+    votesService,
+    userId,
+    configId,
+    defaultLookbackHours,
+    defaultExcludePriorEditions,
+    focuses,
+  } = params;
 
-const scoreCandidates = ({
-  candidates,
-  voteContext,
-  editionWeights,
-  sourceWeights,
-  focusWeight,
-}: {
-  candidates: CandidateRow[];
-  voteContext: VoteContext;
-  editionWeights: UserScoringWeights['edition'];
-  sourceWeights: Map<string, number>;
-  focusWeight: number;
-}): ScoredCandidate[] => {
-  const mapped = candidates.map((c) => {
-    const embeddingBuf = c.embedding as Buffer | null;
-    return {
-      ...c,
-      articleId: c.id,
-      similarity: c.similarity,
-      nli: c.nli,
-      publishedAt: c.published_at,
-      embedding: embeddingBuf
-        ? new Float32Array(embeddingBuf.buffer, embeddingBuf.byteOffset, embeddingBuf.byteLength / 4)
-        : null,
-    };
-  });
+  const sortedFocuses = [...focuses]
+    .sort((a, b) => a.position - b.position)
+    .map((fc) => ({
+      ...fc,
+      excludePriorEditions: fc.excludePriorEditions ?? defaultExcludePriorEditions,
+    }));
+  const needsExcludedSet = sortedFocuses.some((fc) => fc.excludePriorEditions);
 
-  const scored = mapped.map((c) => ({
-    item: c,
-    score: computeScore(c, voteContext, editionWeights) * (sourceWeights.get(c.source_id) ?? 1) * focusWeight,
-  }));
-  scored.sort((a, b) => b.score - a.score);
-  return scored.map((s) => s.item);
-};
+  const [excludedArticleIds, focusDetails, globalContext, editionContext, userWeights] = await Promise.all([
+    loadExcludedArticleIds(db, configId, needsExcludedSet),
+    loadFocusDetails(focusesService, userId, sortedFocuses),
+    votesService.loadVoteContext(userId, null),
+    votesService.loadEditionVoteContext(userId, configId),
+    votesService.loadUserScoringWeights(userId),
+  ]);
 
-type ScoredCandidate = ScoringCandidate &
-  CandidateRow & {
-    articleId: string;
-    publishedAt: string | null;
-    embedding: Float32Array | null;
+  const focusInputs = await Promise.all(
+    sortedFocuses.map(async (fc): Promise<FocusGenerationInput | null> => {
+      const detail = focusDetails.get(fc.focusId);
+      if (!detail) {
+        return null;
+      }
+
+      const lookbackHours = fc.lookbackHours ?? defaultLookbackHours;
+      const cutoff = new Date(Date.now() - lookbackHours * 60 * 60 * 1000).toISOString();
+
+      const [candidates, focusContext] = await Promise.all([
+        queryCandidates({ db, userId, focusId: fc.focusId, cutoff, focusInfo: detail }),
+        votesService.loadVoteContext(userId, fc.focusId),
+      ]);
+
+      return {
+        focusId: fc.focusId,
+        budgetType: fc.budgetType,
+        budgetValue: fc.budgetValue,
+        weight: fc.weight,
+        excludePriorEditions: fc.excludePriorEditions,
+        sourceWeights: detail.sourceWeights,
+        candidates,
+        voteContext: mergeVoteContexts(mergeVoteContexts(globalContext, focusContext), editionContext),
+      };
+    }),
+  );
+
+  return {
+    focuses: focusInputs.filter((f): f is FocusGenerationInput => f !== null),
+    excludedArticleIds,
+    editionWeights: userWeights.edition,
   };
+};
 
-const pickWeightedSource = (activeSources: Set<string>, sourceWeights: Map<string, number>): string => {
+// --- Generation (pure) ---
+
+type ScoredCandidate = CandidateRow & {
+  articleId: string;
+  sourceId: string;
+  publishedAt: string | null;
+};
+
+const pickWeightedSource = (
+  activeSources: Set<string>,
+  sourceWeights: Map<string, number>,
+  rng: () => number,
+): string => {
   let totalWeight = 0;
   const pool: { sourceId: string; weight: number }[] = [];
   for (const sourceId of activeSources) {
@@ -244,7 +279,7 @@ const pickWeightedSource = (activeSources: Set<string>, sourceWeights: Map<strin
     totalWeight += w;
   }
 
-  let roll = Math.random() * totalWeight;
+  let roll = rng() * totalWeight;
   let picked = (pool[0] as (typeof pool)[number]).sourceId;
   for (const entry of pool) {
     roll -= entry.weight;
@@ -256,11 +291,15 @@ const pickWeightedSource = (activeSources: Set<string>, sourceWeights: Map<strin
   return picked;
 };
 
-const selectArticlesByBudget = (
-  eligible: ScoredCandidate[],
-  sourceWeights: Map<string, number>,
-  focusConfig: FocusConfig,
-): { selected: { id: string; consumptionTimeSeconds: number | null }[]; budgetUsed: number } => {
+const selectArticlesByBudget = (params: {
+  eligible: ScoredCandidate[];
+  sourceWeights: Map<string, number>;
+  budgetType: EditionBudgetType;
+  budgetValue: number;
+  rng: () => number;
+}): { selected: { id: string; consumptionTimeSeconds: number | null }[]; budgetUsed: number } => {
+  const { eligible, sourceWeights, budgetType, budgetValue, rng } = params;
+
   // Group by source for weighted round-robin
   const bySource = new Map<string, ScoredCandidate[]>();
   for (const article of eligible) {
@@ -279,8 +318,8 @@ const selectArticlesByBudget = (
   const selected: { id: string; consumptionTimeSeconds: number | null }[] = [];
   let budgetUsed = 0;
 
-  while (activeSources.size > 0 && budgetUsed < focusConfig.budgetValue) {
-    const picked = pickWeightedSource(activeSources, sourceWeights);
+  while (activeSources.size > 0 && budgetUsed < budgetValue) {
+    const picked = pickWeightedSource(activeSources, sourceWeights, rng);
 
     // Take the next best article from the picked source
     const idx = sourceIndex.get(picked) ?? 0;
@@ -295,7 +334,7 @@ const selectArticlesByBudget = (
     sourceIndex.set(picked, idx + 1);
     selected.push({ id: article.id, consumptionTimeSeconds: article.consumption_time_seconds });
 
-    if (focusConfig.budgetType === 'count') {
+    if (budgetType === 'count') {
       budgetUsed++;
     } else {
       budgetUsed += Math.ceil((article.consumption_time_seconds ?? 0) / 60);
@@ -310,57 +349,49 @@ const selectArticlesByBudget = (
   return { selected, budgetUsed };
 };
 
-const collectArticlesForFocuses = async (ctx: GenerateContext): Promise<GenerateResult> => {
+const generateEdition = (inputs: GenerateInputs): GenerateResult => {
+  const { focuses, excludedArticleIds, editionWeights, rng = Math.random, now } = inputs;
+
   const claimedArticleIds = new Set<string>();
   const articles: CollectedArticle[] = [];
   let globalPosition = 0;
   let totalReadingSeconds = 0;
 
-  for (const focusConfig of ctx.sortedFocuses) {
-    const focusInfo = ctx.focusDetails.get(focusConfig.focusId);
-    if (!focusInfo) {
-      continue;
-    }
+  for (const focus of focuses) {
+    const candidates = focus.candidates.map((c) => ({
+      ...c,
+      articleId: c.id,
+      sourceId: c.source_id,
+      publishedAt: c.published_at,
+    }));
 
-    const lookbackHours = focusConfig.lookbackHours ?? ctx.defaultLookbackHours;
-    const cutoff = new Date(Date.now() - lookbackHours * 60 * 60 * 1000).toISOString();
-
-    const candidates = await queryCandidates({
-      db: ctx.db,
-      userId: ctx.userId,
-      focusId: focusConfig.focusId,
-      cutoff,
-      focusInfo,
-    });
-
-    // Load focus-scoped vote context and merge with global + edition
-    const focusVoteContext = await ctx.votesService.loadVoteContext(ctx.userId, focusConfig.focusId);
-    const voteContext = mergeVoteContexts(
-      mergeVoteContexts(ctx.voteContext.global, focusVoteContext),
-      ctx.voteContext.edition,
-    );
-
-    const scoredCandidates = scoreCandidates({
+    const scored = scoreAndRank({
       candidates,
-      voteContext,
-      editionWeights: ctx.editionWeights,
-      sourceWeights: focusInfo.sourceWeights,
-      focusWeight: focusConfig.weight,
-    });
+      voteContext: focus.voteContext,
+      weights: editionWeights,
+      sourceWeights: focus.sourceWeights,
+      focusWeight: focus.weight,
+      now,
+    }).map((s) => s.item);
 
     // Filter out already claimed articles and, if applicable, articles from prior editions
-    const effectiveExclude = focusConfig.excludePriorEditions ?? ctx.defaultExcludePriorEditions;
-    const eligible = scoredCandidates.filter(
-      (c) => !claimedArticleIds.has(c.id) && (!effectiveExclude || !ctx.excludedArticleIds.has(c.id)),
+    const eligible = scored.filter(
+      (c) => !claimedArticleIds.has(c.id) && (!focus.excludePriorEditions || !excludedArticleIds.has(c.id)),
     );
 
-    const { selected } = selectArticlesByBudget(eligible, focusInfo.sourceWeights, focusConfig);
+    const { selected } = selectArticlesByBudget({
+      eligible,
+      sourceWeights: focus.sourceWeights,
+      budgetType: focus.budgetType,
+      budgetValue: focus.budgetValue,
+      rng,
+    });
 
     for (const article of selected) {
       claimedArticleIds.add(article.id);
       articles.push({
         articleId: article.id,
-        focusId: focusConfig.focusId,
+        focusId: focus.focusId,
         position: globalPosition++,
       });
       totalReadingSeconds += article.consumptionTimeSeconds ?? 0;
@@ -370,5 +401,5 @@ const collectArticlesForFocuses = async (ctx: GenerateContext): Promise<Generate
   return { articles, totalReadingSeconds };
 };
 
-export type { FocusConfig, FocusDetail, GenerateContext, CollectedArticle, GenerateResult };
-export { loadExcludedArticleIds, loadFocusDetails, collectArticlesForFocuses };
+export type { FocusConfig, FocusGenerationInput, GenerateInputs, CandidateRow, CollectedArticle, GenerateResult };
+export { loadGenerationInputs, generateEdition };

@@ -3,7 +3,6 @@ import * as React from 'react';
 import { Button } from '../../components/button.tsx';
 import { EntityIcon } from '../../components/entity-icon.tsx';
 import { SCHEDULE_PRESETS } from '../../hooks/editions/editions.utils.ts';
-
 import type { DiscoveryEditionConfig } from '../../hooks/discovery/discovery.hooks.ts';
 
 type DiscoveryEditionCardProps = {
@@ -30,9 +29,7 @@ const DiscoveryEditionCard = ({
     data-ai-role="section"
     data-ai-label={config.name}
   >
-    {config.coverImage && (
-      <img src={config.coverImage} alt="" className="w-full h-36 object-cover" />
-    )}
+    {config.coverImage && <img src={config.coverImage} alt="" className="w-full h-36 object-cover" />}
 
     <div className="p-5">
       <div className="flex items-start gap-3">
@@ -74,12 +71,7 @@ const DiscoveryEditionCard = ({
             Added to your editions
           </span>
         ) : (
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => onAdopt(config.id)}
-            disabled={adopting}
-          >
+          <Button variant="primary" size="sm" onClick={() => onAdopt(config.id)} disabled={adopting}>
             Add to my editions
           </Button>
         )}

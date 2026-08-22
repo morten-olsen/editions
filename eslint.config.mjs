@@ -132,6 +132,14 @@ export default tseslint.config(
     },
   },
   {
+    // Storybook stories: decorators receive React components as parameters
+    // (conventionally `Story`), which must be PascalCase to render as JSX
+    files: ['**/*.stories.tsx'],
+    rules: {
+      '@typescript-eslint/naming-convention': 'off',
+    },
+  },
+  {
     // React-specific rules for frontend
     files: ['apps/web/**/*.{ts,tsx}'],
     plugins: {
@@ -151,6 +159,14 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['**/node_modules/', '**/dist/', '**/.claude/', '**/.arc/', '**/storybook-static/', '**/.tanstack/'],
+    ignores: [
+      '**/node_modules/',
+      '**/dist/',
+      '**/.claude/',
+      '**/.arc/',
+      '**/storybook-static/',
+      '**/.tanstack/',
+      '**/.astro/',
+    ],
   },
 );

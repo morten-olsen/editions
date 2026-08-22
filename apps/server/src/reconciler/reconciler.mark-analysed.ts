@@ -7,6 +7,19 @@ import type { ScopeFilter } from './reconciler.utils.ts';
 
 // --- Step factory ---
 
+const buildMarkAnalysedScope = (db: Kysely<DatabaseSchema>, scopeFilter: ScopeFilter | undefined) => {
+  let q = db
+    .selectFrom('articles')
+    .where('articles.extracted_at', 'is not', null)
+    .where('articles.analysed_at', 'is', null);
+
+  if (scopeFilter?.sourceIds && scopeFilter.sourceIds.length > 0) {
+    q = q.where('articles.source_id', 'in', scopeFilter.sourceIds);
+  }
+
+  return q;
+};
+
 const createMarkAnalysedStep = (params: {
   db: Kysely<DatabaseSchema>;
   scopeFilter?: ScopeFilter;
@@ -16,18 +29,13 @@ const createMarkAnalysedStep = (params: {
 
   return {
     name: 'mark_analysed',
+    countRemaining: async (): Promise<number> => {
+      const row = await buildMarkAnalysedScope(db, scopeFilter).select(db.fn.countAll().as('count')).executeTakeFirst();
+      return Number(row?.count ?? 0);
+    },
     fetchBatch: async function* (): AsyncGenerator<{ id: string }[]> {
       while (true) {
-        let q = db
-          .selectFrom('articles')
-          .select('articles.id')
-          .where('articles.extracted_at', 'is not', null)
-          .where('articles.analysed_at', 'is', null)
-          .limit(batchSize);
-
-        if (scopeFilter?.sourceIds && scopeFilter.sourceIds.length > 0) {
-          q = q.where('articles.source_id', 'in', scopeFilter.sourceIds);
-        }
+        const q = buildMarkAnalysedScope(db, scopeFilter).select('articles.id').limit(batchSize);
 
         const rows = await q.execute();
         if (rows.length === 0) {

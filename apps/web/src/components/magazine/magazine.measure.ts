@@ -73,23 +73,20 @@ type MeasuredHrSegment = {
   height: number;
 };
 
-type MeasuredSegment =
-  | MeasuredTextSegment
-  | MeasuredImageSegment
-  | MeasuredSpacingSegment
-  | MeasuredHrSegment;
+type MeasuredSegment = MeasuredTextSegment | MeasuredImageSegment | MeasuredSpacingSegment | MeasuredHrSegment;
 
 /* ── Font selection ───────────────────────────────────────────── */
 
-const fontForSegment = (
-  segment: TextSegment,
-  config: FontConfig,
-): { font: string; lineHeight: number } => {
+const fontForSegment = (segment: TextSegment, config: FontConfig): { font: string; lineHeight: number } => {
   if (segment.kind === 'heading') {
-    if (segment.headingLevel === 2) return config.heading2;
+    if (segment.headingLevel === 2) {
+      return config.heading2;
+    }
     return config.heading3;
   }
-  if (segment.kind === 'blockquote') return config.blockquote;
+  if (segment.kind === 'blockquote') {
+    return config.blockquote;
+  }
 
   // Check if the entire segment is a code block
   const spans = segment.inlineSpans;
@@ -155,12 +152,7 @@ type MeasureArgs = {
  * Measure all segments for a given column width.
  * Returns measured segments with heights and line data for text segments.
  */
-const measureSegments = ({
-  segments,
-  columnWidth,
-  viewportHeight,
-  fontConfig,
-}: MeasureArgs): MeasuredSegment[] =>
+const measureSegments = ({ segments, columnWidth, viewportHeight, fontConfig }: MeasureArgs): MeasuredSegment[] =>
   segments.map((segment): MeasuredSegment => {
     switch (segment.kind) {
       case 'paragraph':
@@ -205,10 +197,7 @@ const measureSegments = ({
  * Re-measure a text segment at a specific width, returning individual lines.
  * Used by the paginator when splitting a text segment across columns/pages.
  */
-const relayoutTextSegment = (
-  measured: MeasuredTextSegment,
-  maxWidth: number,
-): LayoutLine[] => {
+const relayoutTextSegment = (measured: MeasuredTextSegment, maxWidth: number): LayoutLine[] => {
   const result = layoutWithLines(measured.prepared, maxWidth, measured.fontEntry.lineHeight);
   return result.lines;
 };
@@ -228,7 +217,9 @@ const layoutLinesIteratively = (
 
   for (let i = 0; i < maxLines; i++) {
     const line = layoutNextLine(prepared, cursor, maxWidth);
-    if (line === null) return { lines, endCursor: null };
+    if (line === null) {
+      return { lines, endCursor: null };
+    }
     lines.push(line);
     cursor = line.end;
   }
@@ -240,7 +231,14 @@ const layoutLinesIteratively = (
 
 /* ── Exports ──────────────────────────────────────────────────── */
 
-export type { FontConfig, MeasuredSegment, MeasuredTextSegment, MeasuredImageSegment, MeasuredSpacingSegment, MeasuredHrSegment };
+export type {
+  FontConfig,
+  MeasuredSegment,
+  MeasuredTextSegment,
+  MeasuredImageSegment,
+  MeasuredSpacingSegment,
+  MeasuredHrSegment,
+};
 export {
   desktopFontConfig,
   mobileFontConfig,

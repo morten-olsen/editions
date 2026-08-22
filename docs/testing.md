@@ -2,16 +2,16 @@
 
 ## Overview
 
-Tests run via [Vitest](https://vitest.dev/) with workspace support for the monorepo. The primary testing approach is **API-level integration tests** using Fastify's `inject()` — each test spins up a full app instance against an in-memory SQLite database, exercises real HTTP routes, and tears down cleanly.
+Tests run via [Vitest](https://vitest.dev/). The root test command delegates to the server workspace, rather than scanning the monorepo from the root. The primary testing approach is **API-level integration tests** using Fastify's `inject()` — each test spins up a full app instance against an in-memory SQLite database, exercises real HTTP routes, and tears down cleanly.
 
 ## Running Tests
 
 ```bash
-# All tests (from repo root, via workspace)
+# All current tests (from repo root; delegates to the server workspace)
 pnpm test
 
-# Server tests only (from apps/server)
-cd apps/server && npx vitest run
+# Server tests only
+pnpm --filter @editions/server test
 
 # Watch mode
 npx vitest
@@ -22,17 +22,9 @@ npx vitest run src/api/auth.routes.test.ts
 
 `task test` also works from the repo root.
 
-## Workspace Setup
+## Project Setup
 
-Vitest workspace config at root discovers per-app configs:
-
-```
-vitest.workspace.ts          → ["apps/server", "apps/web"]
-apps/server/vitest.config.ts → server project config
-apps/web/vitest.config.ts    → web project config (when added)
-```
-
-Each project has its own `vitest.config.ts` with project-specific settings (`name`, `env`, etc.).
+`apps/server/vitest.config.ts` owns the server test environment and worker limit. Frontend test support is planned; add it as an explicit workspace command when tests are introduced, rather than relying on root-level test discovery.
 
 ## Server Test Architecture
 
@@ -143,8 +135,10 @@ Granular unit tests for service classes can be added later if needed. The DI con
 
 Each `createTestApp()` creates a fresh in-memory SQLite database (`:memory:`). Migrations run automatically on first access. The database is destroyed in `afterEach` via `t.stop()`.
 
-**Gotcha:** Vitest workspace mode does not reliably apply per-project `env` config from `vitest.config.ts`. The test helper sets `process.env` directly to guarantee `:memory:` database and a fixed JWT secret are used regardless of how tests are invoked.
+The server project runs with one worker. Kubernetes pods can report host CPU availability rather than their effective capacity, and each worker loads Fastify and the native `better-sqlite3` binding.
+
+**Gotcha:** The test helper sets `process.env` directly to guarantee `:memory:` database and a fixed JWT secret regardless of how tests are invoked.
 
 ## Frontend Tests (planned)
 
-Web app tests will use Vitest + React Testing Library. Config will live in `apps/web/vitest.config.ts` and be discovered automatically by the workspace.
+Web app tests will use Vitest + React Testing Library. Add their command to the root test script when they are introduced.

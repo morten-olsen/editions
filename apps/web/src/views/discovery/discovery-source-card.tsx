@@ -2,7 +2,6 @@ import * as React from 'react';
 
 import { Button } from '../../components/button.tsx';
 import { EntityIcon } from '../../components/entity-icon.tsx';
-
 import type { DiscoverySource } from '../../hooks/discovery/discovery.hooks.ts';
 
 type DiscoverySourceCardProps = {
@@ -27,11 +26,7 @@ const DiscoverySourceCard = ({ source, onAdopt, adopting }: DiscoverySourceCardP
     data-ai-label={source.name}
   >
     {source.coverImage ? (
-      <img
-        src={source.coverImage}
-        alt=""
-        className="w-10 h-10 rounded-md object-cover shrink-0"
-      />
+      <img src={source.coverImage} alt="" className="w-10 h-10 rounded-md object-cover shrink-0" />
     ) : (
       <div className="w-10 h-10 rounded-md bg-surface-sunken flex items-center justify-center shrink-0">
         <EntityIcon icon="rss" size={16} className="text-ink-tertiary" />
@@ -44,10 +39,7 @@ const DiscoverySourceCard = ({ source, onAdopt, adopting }: DiscoverySourceCardP
       <div className="text-sm text-ink-secondary mt-1 line-clamp-2 leading-relaxed">{source.description}</div>
       <div className="flex flex-wrap gap-1.5 mt-2">
         {source.tags.map((tag) => (
-          <span
-            key={tag}
-            className="px-2 py-0.5 text-xs rounded-full bg-surface-sunken text-ink-tertiary"
-          >
+          <span key={tag} className="px-2 py-0.5 text-xs rounded-full bg-surface-sunken text-ink-tertiary">
             {tag}
           </span>
         ))}
@@ -61,12 +53,7 @@ const DiscoverySourceCard = ({ source, onAdopt, adopting }: DiscoverySourceCardP
           Added
         </span>
       ) : (
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => onAdopt(source.id)}
-          disabled={adopting}
-        >
+        <Button variant="secondary" size="sm" onClick={() => onAdopt(source.id)} disabled={adopting}>
           Add
         </Button>
       )}

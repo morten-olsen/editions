@@ -30,18 +30,22 @@ const exportArticleSchema = z.object({
   readAt: z.nullable(z.string()),
   progress: z.number(),
   /** Base64-encoded embedding, if available */
-  embedding: z.nullable(z.object({
-    data: z.string(),
-    model: z.string(),
-  })),
+  embedding: z.nullable(
+    z.object({
+      data: z.string(),
+      model: z.string(),
+    }),
+  ),
   /** Focus classification results */
-  focuses: z.array(z.object({
-    focusName: z.string(),
-    similarity: z.nullable(z.number()),
-    similarityModel: z.nullable(z.string()),
-    nli: z.nullable(z.number()),
-    nliModel: z.nullable(z.string()),
-  })),
+  focuses: z.array(
+    z.object({
+      focusName: z.string(),
+      similarity: z.nullable(z.number()),
+      similarityModel: z.nullable(z.string()),
+      nli: z.nullable(z.number()),
+      nliModel: z.nullable(z.string()),
+    }),
+  ),
 });
 
 const exportFocusSchema = z.object({
@@ -95,12 +99,14 @@ const exportEditionSchema = z.object({
   currentPosition: z.number(),
   readAt: z.nullable(z.string()),
   publishedAt: z.string(),
-  articles: z.array(z.object({
-    sourceUrl: z.string(),
-    externalId: z.string(),
-    focusName: z.string(),
-    position: z.number(),
-  })),
+  articles: z.array(
+    z.object({
+      sourceUrl: z.string(),
+      externalId: z.string(),
+      focusName: z.string(),
+      position: z.number(),
+    }),
+  ),
 });
 
 const exportScoringWeightsSchema = z.nullable(z.record(z.string(), z.unknown()));

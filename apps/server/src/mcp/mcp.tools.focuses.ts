@@ -4,7 +4,7 @@ import { FocusesService } from '../focuses/focuses.ts';
 import type { Focus, FocusSource } from '../focuses/focuses.ts';
 
 import { LIMITS, clamp, truncate } from './mcp.budget.ts';
-import { defineTool, readinessFor, waitForReadiness, waitSecondsSchema } from './mcp.tools.ts';
+import { defineTool, readinessAdvice, readinessFor, waitForReadiness, waitSecondsSchema } from './mcp.tools.ts';
 import type { McpTool } from './mcp.tools.ts';
 
 // --- Shared schema fragments ---
@@ -113,10 +113,7 @@ const saveFocus = defineTool({
       focus: toFocusSummary(focus),
       created,
       readiness,
-      nextStep:
-        readiness.state === 'ready'
-          ? 'Call preview_focus to check the match quality and tune minConfidence.'
-          : 'Classification is still running. Call wait_until_ready, then preview_focus.',
+      nextStep: readinessAdvice(readiness, 'Call preview_focus to check the match quality and tune minConfidence.'),
     };
   },
 });

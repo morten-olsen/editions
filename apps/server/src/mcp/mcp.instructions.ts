@@ -37,10 +37,17 @@ subscribes to. You are helping the user build and tune that setup.
 Analysis is asynchronous. Adding a source starts a pipeline of fetch, extract, embed and classify
 that can take minutes, and on a cold instance the first run downloads a model.
 
-Every tool that returns analysed data includes a \`readiness\` block. While \`state\` is
-\`"analysing"\`, match counts and previews are **provisional and will grow**. Do not conclude that a
-focus is too strict, or that an edition is too thin, until readiness is \`"ready"\` — the most common
-way to get this wrong is to tune a threshold down against a corpus that was still loading.
+Every tool that returns analysed data includes a \`readiness\` block with one of three states:
+
+- \`"ready"\` — trust the numbers.
+- \`"analysing"\` — work is in flight, so match counts and previews are **provisional and will
+  grow**. Do not conclude that a focus is too strict, or an edition too thin, until it is ready. The
+  most common way to get this wrong is tuning a threshold down against a corpus that was still
+  loading.
+- \`"stalled"\` — some articles are unanalysed but nothing is running, so waiting will not help.
+  Extraction fails permanently on some URLs. Carry on; \`refresh_sources\` retries them if you care.
+
+Never loop \`wait_until_ready\` against a stalled scope — it returns immediately and nothing changes.
 
 ## Cheap versus expensive changes
 

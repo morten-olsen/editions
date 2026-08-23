@@ -23,10 +23,27 @@ type FeedItem = {
 
 // --- RSS parsing ---
 
+/**
+ * `maxTotalExpansions` counts every entity replacement in a document, including
+ * 1:1 ones like `&amp;` and `&#8217;`. Its default of 1000 is far below what a
+ * legitimate full-text feed contains — a couple of dozen articles of escaped
+ * HTML blows past it easily — and exceeding it throws, so the entire feed fails
+ * to parse rather than degrading.
+ *
+ * Raising it is safe because it is not the limit protecting against entity
+ * expansion attacks. fast-xml-parser refuses to expand an entity that
+ * references another entity (a nested `<!ENTITY b "&a;&a;">` is left literal),
+ * so the exponential billion-laughs blowup is structurally impossible here.
+ * What remains is flat, linear expansion, still bounded by the untouched
+ * `maxEntitySize`, `maxEntityCount` and `maxExpandedLength` defaults.
+ */
+const MAX_ENTITY_EXPANSIONS = 1_000_000;
+
 const parser = new XMLParser({
   ignoreAttributes: false,
   attributeNamePrefix: '@_',
   htmlEntities: true,
+  processEntities: { enabled: true, maxTotalExpansions: MAX_ENTITY_EXPANSIONS },
 });
 
 const parseRssFeed = (xml: string): FeedItem[] => {
@@ -258,11 +275,50 @@ type IngestSource = {
   id: string;
   url: string;
   type: string;
+  /** `'oldest'` reads a backlog forwards; anything else reads newest-first. */
+  direction?: string;
 };
 
 // Same shape as the reconciler's EmbedFn/ClassifyFn seams: a function-typed
 // dependency — global fetch in production, a fake in tests
 type FetchFn = (url: string) => Promise<Response>;
+
+/**
+ * How many items a single fetch will ingest.
+ *
+ * Some feeds serve their entire archive — thousands of items — and every one
+ * ingested is extracted, embedded and classified against every focus. That is
+ * a lot of compute for articles far too old to reach an edition, whose lookback
+ * is measured in hours or days. Capping ingest is much cheaper than analysing
+ * and then never using them.
+ */
+const DEFAULT_MAX_ITEMS_PER_FETCH = 200;
+
+/**
+ * The slice of a feed worth ingesting: the newest `maxItems`, or the oldest
+ * when the source is being read as a backlog.
+ *
+ * Feed order is conventionally newest-first but not guaranteed, so this sorts
+ * on `publishedAt` where it exists. Undated items keep their feed order and go
+ * last — an undated item is more likely to be a malformed straggler than the
+ * most important thing in the feed.
+ */
+const selectItemsToIngest = (items: FeedItem[], maxItems: number, direction?: string): FeedItem[] => {
+  if (items.length <= maxItems) {
+    return items;
+  }
+
+  const dated = items.filter((i) => i.publishedAt !== null);
+  const undated = items.filter((i) => i.publishedAt === null);
+
+  const oldestFirst = direction === 'oldest';
+  dated.sort((a, b) => {
+    const diff = Date.parse(a.publishedAt as string) - Date.parse(b.publishedAt as string);
+    return oldestFirst ? diff : -diff;
+  });
+
+  return [...dated, ...undated].slice(0, maxItems);
+};
 
 // Fetch a source's feed and upsert its items as articles.
 // Records fetch errors on the source row; rethrows so callers see failure.
@@ -270,10 +326,12 @@ const fetchAndStoreFeed = async ({
   db,
   source,
   fetchFn = fetch,
+  maxItems = DEFAULT_MAX_ITEMS_PER_FETCH,
 }: {
   db: Kysely<DatabaseSchema>;
   source: IngestSource;
   fetchFn?: FetchFn;
+  maxItems?: number;
 }): Promise<void> => {
   let items: FeedItem[];
   try {
@@ -302,7 +360,7 @@ const fetchAndStoreFeed = async ({
 
   const isPodcast = source.type === 'podcast';
 
-  for (const item of items) {
+  for (const item of selectItemsToIngest(items, maxItems, source.direction)) {
     const id = crypto.randomUUID();
 
     let content = item.content;
@@ -338,5 +396,5 @@ const fetchAndStoreFeed = async ({
   }
 };
 
-export type { FeedItem, FetchFn };
-export { parseRssFeed, fetchAndStoreFeed };
+export type { FeedItem, FetchFn, IngestSource };
+export { parseRssFeed, fetchAndStoreFeed, selectItemsToIngest, DEFAULT_MAX_ITEMS_PER_FETCH };

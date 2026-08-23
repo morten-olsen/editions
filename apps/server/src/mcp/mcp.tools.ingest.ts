@@ -8,7 +8,7 @@ import { SourcesService } from '../sources/sources.ts';
 
 import { LIMITS } from './mcp.budget.ts';
 import { normalizeUrl } from './mcp.feeds.ts';
-import { defineTool, waitForReadiness, waitSecondsSchema } from './mcp.tools.ts';
+import { defineTool, readinessAdvice, waitForReadiness, waitSecondsSchema } from './mcp.tools.ts';
 import type { McpTool } from './mcp.tools.ts';
 
 /**
@@ -167,10 +167,10 @@ const addSources = defineTool({
     return {
       sources: results,
       readiness,
-      nextStep:
-        readiness.state === 'ready'
-          ? 'Sources are analysed. Use profile_source to see what each publishes, then save_focus.'
-          : 'Analysis is still running. Call wait_until_ready before trusting any preview.',
+      nextStep: readinessAdvice(
+        readiness,
+        'Sources are analysed. Use profile_source to see what each publishes, then save_focus.',
+      ),
     };
   },
 });

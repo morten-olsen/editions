@@ -83,6 +83,21 @@ Three layered mechanisms, so an agent cannot act on unready data by accident.
 }
 ```
 
+`state` has three values, and the third is load-bearing:
+
+| State | Meaning | Right response |
+|---|---|---|
+| `ready` | Everything analysed, nothing running | Trust the numbers |
+| `analysing` | Work in flight (`activeJobs > 0`) | Wait |
+| `stalled` | Unanalysed articles, nothing running | Proceed; waiting cannot help |
+
+`stalled` exists because extraction fails permanently for some URLs — dead links, paywalls, scraper
+blocks. The job completes and those articles stay unanalysed forever. Collapsing that into
+`analysing` meant every wait ran to its full budget and an agent looping on `wait_until_ready` never
+progressed; a live run hung on three unreachable Hacker News links. `waitUntilReady` now returns
+immediately on `stalled`, and `readinessAdvice` in `mcp.tools.ts` gives every tool the same wording
+so the agent is consistently told not to retry.
+
 `readiness/readiness.ts` combines two signals because neither alone suffices:
 
 - **DB truth** — articles from the user's sources with `analysed_at IS NULL`, plus (for a focus

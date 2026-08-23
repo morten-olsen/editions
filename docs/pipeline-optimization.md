@@ -39,7 +39,36 @@ Embeddings are content-dependent, not focus-dependent. The embed step (`reconcil
 
 The default classifier is embedding similarity, not NLI: cosine similarity (a dot product — embeddings are L2-normalized) between the stored article embedding and the focus-label embedding, which is embedded once per run and cached (`reconciler.similarity.ts`). Reclassification becomes I/O-bound instead of compute-bound — sub-millisecond per pair.
 
-**Quality tradeoff:** for well-defined topics ("Climate Change", "Local Seattle News"), similarity achieves ~85–90% agreement with NLI; for vague focuses ("Interesting") agreement drops to ~60–70%, mostly on borderline articles near the threshold.
+**Quality:** measured against human labels by `apps/eval` (3 feed corpora, 15 focuses, 20–30 labelled
+articles each; metrics taken at each focus's own optimal threshold), similarity is **not** a
+degradation of NLI — the two are within noise of each other, and `bge-small-en-v1.5` similarity is
+the best or near-best config on every corpus:
+
+| Corpus | similarity (MiniLM-L6) | NLI (MiniLM-L6) | Cost multiple |
+|---|---|---|---|
+| ars-technica | 0.803 F1 | 0.834 F1 | 61× |
+| nyt-world | **0.931** F1 | 0.920 F1 | 51× |
+| theverge | **0.790** F1 | 0.783 F1 | 108× |
+
+NLI wins once, marginally, and loses twice, for 50–108× the time. `bge-small` similarity reaches
+0.864 on ars-technica, beating every NLI run there. Treat NLI as an experiment, not a quality
+upgrade, and re-run the eval before changing the default.
+
+**What actually drives quality is focus specificity, not the classifier or the threshold.** Averaged
+across all six embedding models, precision at each focus's own optimal threshold splits cleanly by
+how concrete the focus is:
+
+| Precision | Focuses |
+|---|---|
+| 0.89–1.00 | Electric Vehicles, Russia & Ukraine, Middle East Conflict, Latin America, Cybersecurity & Privacy |
+| 0.53–0.70 | Gaming & Entertainment, Big Tech & Business, Policy & Regulation, Gadgets & Hardware, Science & Space |
+
+Narrow focuses naming concrete things separate cleanly; broad category-style focuses cap out around
+0.6 precision at *any* threshold, because embedding similarity measures topical relatedness rather
+than membership and every article in a tech feed is somewhat "big tech business".
+
+Caveat: the corpora are small (20–30 articles per feed), so treat the ordering of close results as
+indicative rather than settled.
 
 ### Hybrid mode
 

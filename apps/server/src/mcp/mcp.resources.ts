@@ -45,11 +45,31 @@ Poor: "space, NASA, rockets, astronomy" — a bare keyword list embeds nothing l
 
 Poor: "Find me articles about space" — instructions to a model, not a description of a subject.
 
+## Narrow focuses beat threshold tuning
+
+The single biggest determinant of match quality is how **concrete** a focus is — bigger than the
+threshold, and bigger than the model. Measured against human labels, focuses naming specific things
+reach 0.89–1.00 precision; broad category-style focuses cap out around 0.53–0.70 at *any* threshold.
+
+| Works well | Struggles |
+|---|---|
+| Electric Vehicles, Russia & Ukraine, Cybersecurity & Privacy | Big Tech & Business, Policy & Regulation, Gaming & Entertainment |
+
+The reason is that matching is similarity, not membership: every article in a technology feed is
+somewhat "big tech business", so a broad focus has no clean boundary to find. If \`preview_focus\`
+shows \`topMatches\` that are only loosely related and no threshold fixes it, **split the focus into
+narrower ones** rather than continuing to tune. Two focuses at 0.9 precision beat one at 0.6.
+
 ## Thresholds
 
-\`minConfidence\` is the bar an article must clear. Similarity scores cluster fairly tightly, so
-small changes matter: 0.3 is permissive, 0.5 is strict, and above 0.6 usually matches almost
-nothing.
+\`minConfidence\` is the bar an article must clear. Similarity scores cluster tightly, so small
+changes matter and the usable band is narrow: with the default model the best per-focus thresholds
+measured across three corpora ran from 0.37 to 0.57, averaging about 0.48. Treat ~0.45 as a starting
+point rather than a meaning — it is a position in a narrow band, not "45% confident". Above roughly
+0.6 almost nothing matches.
+
+Because the optimum varies by ±0.1 between focuses, tune each one separately against
+\`preview_focus\` instead of reusing a number that worked elsewhere.
 
 Do not guess. Call \`preview_focus\` and read the \`confidenceHistogram\` to see where articles
 actually fall, then read the \`nearMisses\` — the highest-confidence articles sitting just below your

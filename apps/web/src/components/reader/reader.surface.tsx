@@ -46,12 +46,21 @@ type PagedSurfaceProps = {
   coverAlone?: boolean;
   footer?: (args: PageFooterArgs) => React.ReactNode;
   onExit?: () => void;
+  /**
+   * Turn pages with the keyboard. On a full-screen reader that is the point;
+   * embedded in a longer page it would steal the arrow keys from the document,
+   * so a demo or a preview should opt out.
+   */
+  keyboard?: boolean;
   className?: string;
 };
 
 /* ── Constants ────────────────────────────────────────────────── */
 
 const EASE_OUT = [0, 0, 0.15, 1] as const;
+
+/** Handlers that do nothing, for a surface that shouldn't own the keyboard. */
+const NO_TURNS = { next: (): void => undefined, previous: (): void => undefined };
 
 /** Long enough to read as a turn, short enough not to be waited on. */
 const TURN_DURATION = 0.34;
@@ -95,6 +104,7 @@ const PagedSurface = ({
   coverAlone = false,
   footer,
   onExit,
+  keyboard = true,
   className = '',
 }: PagedSurfaceProps): React.ReactElement => {
   const total = sheets.length;
@@ -119,7 +129,7 @@ const PagedSurface = ({
     [index, turn, total, turnTo, onExit],
   );
 
-  useKeyboardTurns(handlers);
+  useKeyboardTurns(keyboard ? handlers : NO_TURNS);
   useTouchTurns(containerRef, handlers);
   useClickTurns(containerRef, handlers);
 

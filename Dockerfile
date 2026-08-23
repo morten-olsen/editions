@@ -13,9 +13,14 @@ RUN apt-get update && \
 WORKDIR /build
 
 # Install all dependencies (layer-cached separately from source)
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# The root tsconfig is extended by workspace packages, and Vite reads it while
+# transforming their sources.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json ./
 COPY apps/web/package.json apps/web/
 COPY apps/server/package.json apps/server/
+# apps/web links this as workspace:*, so the manifest has to be here for the
+# lockfile to resolve.
+COPY packages/layout-engine/package.json packages/layout-engine/
 
 RUN pnpm install --frozen-lockfile
 
@@ -25,6 +30,8 @@ RUN pnpm install --frozen-lockfile
 FROM deps AS frontend-build
 
 COPY apps/web/ apps/web/
+# The layout engine is consumed as source — its package exports point at .ts.
+COPY packages/layout-engine/ packages/layout-engine/
 
 RUN pnpm --filter @editions/web build
 

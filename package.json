@@ -13,7 +13,7 @@
     "dev": "pnpm --filter @editions/server dev",
     "dev:web": "pnpm --filter @editions/web dev",
     "build": "pnpm --filter @editions/server build",
-    "check": "pnpm --filter @editions/layout-engine check && pnpm --filter @editions/server check && pnpm --filter @editions/web check",
+    "check": "pnpm --filter @editions/layout-engine check && pnpm --filter @editions/server check && pnpm --filter @editions/web check && pnpm --filter @editions/website check",
     "test": "pnpm --filter @editions/server test",
     "test:engine": "pnpm --filter @editions/layout-engine test"
   },

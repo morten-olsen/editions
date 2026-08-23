@@ -1,11 +1,25 @@
 /**
- * An interactive magazine demo using the real MagazineLayout component.
- * Visitors can navigate through a mini edition to experience the reading flow.
+ * An interactive magazine demo built on the real reader. Articles are typeset
+ * into pages exactly as they are in the app, so a visitor turning pages here
+ * is experiencing the product rather than a mock-up of it.
+ *
+ * The demo does not take the keyboard — arrow keys belong to the page it is
+ * embedded in.
  */
 import * as React from 'react';
 
-import { MagazineLayout, MagazinePage } from '../../../web/src/components/magazine/magazine.layout.tsx';
-import { MagazineArticle } from '../../../web/src/components/magazine/magazine.article.tsx';
+import { MagazinePage } from '../../../web/src/components/magazine/magazine.layout.tsx';
+import {
+  articleContent,
+  bodyLayout,
+  formatFor,
+  openerLayout,
+  PagedSurface,
+  useArticlePagination,
+  useElementSize,
+  useFontsReady,
+} from '../../../web/src/components/reader/reader.ts';
+import type { ArticleInput, Sheet } from '../../../web/src/components/reader/reader.ts';
 
 /* ── Mock pages ──────────────────────────────────────────────────── */
 
@@ -158,97 +172,123 @@ const FinalePage = (): React.ReactElement => (
   </MagazinePage>
 );
 
-/* ── Interactive magazine ────────────────────────────────────────── */
+/* ── Demo articles ───────────────────────────────────────────────── */
 
-const toc = [
+const ARTICLES: (ArticleInput & { id: string })[] = [
   {
-    sectionName: 'Technology',
-    sectionPage: 2,
-    articles: [
-      { title: 'The quiet revolution in reader design', page: 3 },
-      { title: 'TypeScript 6.0 introduces pattern matching', page: 4 },
-    ],
+    id: 'reader-design',
+    title: 'The quiet revolution in reader design',
+    sourceName: 'Ars Technica',
+    author: 'Sarah Chen',
+    publishedAt: '2026-03-11',
+    consumptionTimeSeconds: 480,
+    imageUrl: 'https://picsum.photos/seed/reader-mag/1200/750',
+    summary:
+      "How a new generation of reading apps is rethinking the relationship between content, interface and the reader's attention.",
+    content: `For the better part of a decade the dominant paradigm in digital reading has been the infinite scroll. A growing number of designers are questioning whether the stream ever served the reader at all.
+
+The thesis is simple: reading should end. A newspaper has a back page. A magazine has a final spread. Even a book, however long, eventually runs out of pages. Digital reading abandoned that constraint somewhere around 2012, and we have been paying for it since.
+
+## Finite by design
+
+A new wave of tools is pushing back. Curated collections that respect the reader's time: you open them, you read, and at some point the app tells you that you are done.
+
+> Without infinite scroll, every article competes for a limited number of slots. Curation becomes the product, not the firehose.
+
+The design implications are considerable. The interface can finally be built for reading rather than for engagement, retention or time on screen.`,
   },
   {
-    sectionName: 'Science',
-    sectionPage: 5,
-    articles: [
-      { title: "JWST captures the universe's first galaxies", page: 6 },
-      { title: 'Building finite feeds (podcast)', page: 7 },
-    ],
+    id: 'pattern-matching',
+    title: 'TypeScript 6.0 introduces pattern matching',
+    sourceName: 'Hacker News',
+    author: 'Anders Hejlsberg',
+    publishedAt: '2026-03-10',
+    consumptionTimeSeconds: 180,
+    imageUrl: 'https://picsum.photos/seed/typescript-mag/1200/675',
+    summary: 'The long-awaited pattern matching RFC lands, bringing exhaustive checks to a new level.',
+    content: `Pattern matching has been the most requested TypeScript feature for half a decade. With version 6.0 it is finally real, and the implementation goes further than most expected.
+
+The new \`match\` expression supports literal patterns, type narrowing, array destructuring and guard clauses. Combined with discriminated unions it makes exhaustive state handling nearly effortless, and early feedback suggests it removes whole categories of switch-statement bugs.`,
+  },
+  {
+    id: 'jwst',
+    title: "JWST captures the universe's first galaxies",
+    sourceName: 'Nature',
+    author: 'Dr Priya Natarajan',
+    publishedAt: '2026-03-09',
+    consumptionTimeSeconds: 360,
+    imageUrl: 'https://picsum.photos/seed/jwst-mag/1200/750',
+    summary:
+      'New observations reveal the earliest galaxies ever seen, forming just 300 million years after the Big Bang.',
+    content: `The images show structures that challenge existing models of galaxy formation. Several of the newly discovered galaxies appear far more massive and more organised than theory predicts for objects so young.
+
+"We expected to see small, irregular blobs," said Dr Priya Natarajan. "Instead we are seeing disk-like structures with clear spiral arms. Our models will need significant revision."
+
+The findings bear directly on dark matter research: the early formation of large galaxies places new constraints on the timeline of cosmic structure assembly.`,
   },
 ];
 
+/* ── Interactive magazine ────────────────────────────────────────── */
+
+const LAYOUTS = [openerLayout, bodyLayout];
+
+const TYPESET = ARTICLES.map((article) => ({ id: article.id, content: articleContent(article) }));
+
+const SECTIONS = [
+  { name: 'Technology', count: 2, minutes: 11, articles: ['reader-design', 'pattern-matching'] },
+  { name: 'Science', count: 1, minutes: 6, articles: ['jwst'] },
+];
+
 const InteractiveMagazine = (): React.ReactElement => {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const size = useElementSize(containerRef);
+  const fontsReady = useFontsReady();
+  const format = React.useMemo(() => formatFor(size), [size]);
+
+  const typeset = useArticlePagination({
+    articles: TYPESET,
+    layouts: LAYOUTS,
+    page: format.page,
+    enabled: fontsReady,
+  });
+
   const [page, setPage] = React.useState(0);
+
+  const sheets = React.useMemo<Sheet[]>(() => {
+    const built: Sheet[] = [
+      { key: 'cover', node: <CoverPage onStart={() => setPage(1)} /> },
+      { key: 'toc', node: <TocPage /> },
+    ];
+
+    SECTIONS.forEach((section, index) => {
+      built.push({
+        key: `section-${section.name}`,
+        node: <SectionPage name={section.name} index={index + 1} count={section.count} minutes={section.minutes} />,
+      });
+
+      for (const id of section.articles) {
+        (typeset.get(id) ?? []).forEach((result, position) => {
+          built.push({ key: `${id}-${position}`, element: result.el });
+        });
+      }
+    });
+
+    built.push({ key: 'finale', node: <FinalePage /> });
+    return built;
+  }, [typeset]);
 
   return (
     <div className="magazine-showcase">
-      <MagazineLayout page={page} onPageChange={setPage} toc={toc}>
-        <CoverPage onStart={() => setPage(1)} />
-        <TocPage />
-        <SectionPage name="Technology" index={1} count={2} minutes={11} />
-        {/* Hero layout — position 0 */}
-        <MagazineArticle
-          title="The quiet revolution in reader design"
-          sourceName="Ars Technica"
-          author="Sarah Chen"
-          publishedAt="2026-03-11"
-          consumptionTimeSeconds={480}
-          imageUrl="https://picsum.photos/seed/reader-mag/800/600"
-          positionInSection={0}
-          summary="How a new generation of reading apps is rethinking the relationship between content, interface, and the reader's attention span. The old paradigm of infinite scroll is giving way to something more intentional."
-          content={`For the better part of a decade, the dominant paradigm in digital reading has been the infinite scroll. But a growing number of designers are questioning whether the stream ever served the reader at all.
-
-The thesis is simple: reading should end. A newspaper has a back page. A magazine has a final spread. Even a book, no matter how long, eventually runs out of pages. Digital reading abandoned this constraint somewhere around 2012, and we've been paying for it ever since.
-
-A new wave of tools is pushing back. Apps like Editions, Readwise Reader, and Matter are experimenting with finite feeds — curated collections that respect the reader's time. You open them, you read, and at some point the app tells you: you're done. Go do something else.
-
-The design implications are profound. Without infinite scroll, every article competes for a limited number of slots. Curation becomes the product, not the firehose. And the interface can finally be designed for reading — not for engagement, retention, or time-on-screen.`}
-        />
-        {/* Editorial layout — position 1 */}
-        <MagazineArticle
-          title="TypeScript 6.0 introduces pattern matching"
-          sourceName="Hacker News"
-          author="Anders Hejlsberg"
-          publishedAt="2026-03-10"
-          consumptionTimeSeconds={180}
-          imageUrl="https://picsum.photos/seed/typescript-mag/800/450"
-          positionInSection={1}
-          summary="The long-awaited pattern matching RFC lands in TypeScript, bringing exhaustive checks and destructuring to a new level."
-          content={`Pattern matching has been the most requested TypeScript feature for half a decade. With version 6.0, it's finally real — and the implementation goes further than most expected.
-
-The new match expression supports literal patterns, type narrowing, array destructuring, and guard clauses. Combined with TypeScript's existing discriminated unions, it makes exhaustive state handling nearly effortless. Early feedback from beta testers suggests it eliminates entire categories of switch-statement bugs.`}
-        />
-        <SectionPage name="Science" index={2} count={2} minutes={51} />
-        {/* Compact layout — position 2 */}
-        <MagazineArticle
-          title="JWST captures the universe's first galaxies"
-          sourceName="Nature"
-          author="Dr. Priya Natarajan"
-          publishedAt="2026-03-09"
-          consumptionTimeSeconds={360}
-          imageUrl="https://picsum.photos/seed/jwst-mag/800/800"
-          positionInSection={2}
-          summary="New observations from the James Webb Space Telescope have revealed the earliest galaxies ever seen, forming just 300 million years after the Big Bang."
-          content={`The images, released Thursday in a special Nature supplement, show structures that challenge existing models of galaxy formation. Several of the newly discovered galaxies appear far more massive and structured than theory predicts for objects just 300 million years after the Big Bang.
-
-"We expected to see small, irregular blobs," said Dr. Priya Natarajan of Yale. "Instead we're seeing disk-like structures with clear spiral arms. Our models will need significant revision."
-
-The findings have immediate implications for dark matter research, as the early formation of large galaxies places new constraints on the timeline of cosmic structure assembly.`}
-        />
-        {/* Podcast layout */}
-        <MagazineArticle
-          title="Building finite feeds: architecture for calm software"
-          sourceName="Software Unscripted"
-          publishedAt="2026-03-08"
-          consumptionTimeSeconds={2700}
-          imageUrl="https://picsum.photos/seed/podcast-cover/800/800"
-          sourceType="podcast"
-          summary="A conversation about designing software that respects the reader's time and attention. Why the infinite scroll failed, and what the alternative looks like."
-        />
-        <FinalePage />
-      </MagazineLayout>
+      <PagedSurface
+        containerRef={containerRef}
+        format={format}
+        sheets={sheets}
+        index={Math.min(page, Math.max(sheets.length - 1, 0))}
+        onTurn={setPage}
+        coverAlone
+        keyboard={false}
+        className="rounded-xl border border-border"
+      />
     </div>
   );
 };

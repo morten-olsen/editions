@@ -87,6 +87,9 @@ tasks:
       - pnpm --filter @editions/layout-engine check
       - pnpm --filter @editions/server check
       - pnpm --filter @editions/web check
+      # The marketing site imports app components by path, so it breaks when
+      # they move. Checking it here is what catches that before CI does.
+      - pnpm --filter @editions/website check
 
   lint:
     desc: Run all linting (type checking for now)

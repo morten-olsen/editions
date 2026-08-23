@@ -187,9 +187,6 @@ what lets `inspect_feed` be `read`-scope with no side effects.
 
 - The SDK peers on `zod@^3.25 || ^4`, and `registerTool` accepts a `zod/v4` raw shape directly —
   verified to produce correct draft-07 JSON Schema with descriptions, defaults and constraints.
-- Do not use `z.globalRegistry.add` on MCP or REST route schemas. `registerSwagger` in `app.ts` has
-  no `createJsonSchemaTransformObject`, so a registered id emits a `$ref` to a component that is
-  never written and `openapi-typescript` fails to resolve it.
 - The `/api/mcp` route is `schema: { hide: true }` — the body is JSON-RPC, which the OpenAPI
   generator cannot describe usefully, and the web client never calls it.
 - Tool errors are returned as `isError: true` with a readable message rather than as protocol

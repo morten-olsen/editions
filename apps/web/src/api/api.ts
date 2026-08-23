@@ -1,8 +1,18 @@
 import createClient from 'openapi-fetch';
 
-import type { paths } from './api.types.ts';
+import type { components, paths } from './api.types.ts';
 
 // --- Utility types for extracting API shapes ---
+
+/**
+ * A named schema from the OpenAPI document — i.e. one the server registered with
+ * `z.globalRegistry.add(schema, { id })`. Prefer this over re-declaring a shape
+ * by hand, so a server-side field change surfaces as a compile error here.
+ *
+ * Only registered schemas appear; unregistered route schemas are inlined into
+ * their path and must be reached through `ApiResponse` / `ApiBody`.
+ */
+type ApiSchema<N extends keyof components['schemas']> = components['schemas'][N];
 
 type ApiResponse<P extends keyof paths, M extends keyof paths[P]> = paths[P][M] extends {
   responses: { 200: { content: { 'application/json': infer R } } };
@@ -37,5 +47,5 @@ const client = createClient<paths>();
  */
 const bearer = (token: string): Record<string, string> => ({ Authorization: `Bearer ${token}` });
 
-export type { paths, ApiResponse, ApiBody, Page };
+export type { components, paths, ApiSchema, ApiResponse, ApiBody, Page };
 export { client, bearer };

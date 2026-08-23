@@ -34,6 +34,7 @@ const tabIcons: Record<string, string> = {
   votes: 'thumbs-up',
   scoring: 'sliders-horizontal',
   data: 'database',
+  integrations: 'plug',
   assistant: 'bot',
   subscription: 'credit-card',
   access: 'shield',

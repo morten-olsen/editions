@@ -15,6 +15,7 @@
     "@fastify/static": "^9.0.0",
     "@fastify/swagger": "^9.0.0",
     "@huggingface/transformers": "catalog:",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "@scalar/fastify-api-reference": "^1.48.0",
     "better-sqlite3": "catalog:",
     "croner": "^10.0.1",

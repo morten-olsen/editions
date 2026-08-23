@@ -21,6 +21,7 @@ This file is for **gotchas** — things that aren't obvious and required effort 
 - [docs/ai-assistant.md](docs/ai-assistant.md) — AI assistant: annotation system, tools, agent loop, tutorials, chat UI
 - [docs/data-portability.md](docs/data-portability.md) — Data export/import: format, API, import behavior, reconciliation
 - [docs/payments.md](docs/payments.md) — Stripe payments: access gating, subscriptions, pricing, webhooks, admin/user UI
+- [docs/mcp.md](docs/mcp.md) — MCP server: tool surface, readiness contract, context budgeting, API keys, transport
 
 ## Coding Standards
 
@@ -44,7 +45,7 @@ Full reference: [docs/coding-standards.md](docs/coding-standards.md)
 - `z.record()` requires two args: `z.record(z.string(), z.unknown())`
 - `.default()` must come before `.transform()` in chains
 - Schema naming: `fooSchema` (camelCase) / `Foo` (PascalCase inferred type)
-- OpenAPI registration via `z.globalRegistry.add(schema, { id: "Name" })` at the schema's definition site (there is no central `api.schemas.ts` — route schemas live in `{module}.routes.schemas.ts`)
+- Route schemas live in `{module}.routes.schemas.ts` — there is no central `api.schemas.ts`. Do **not** call `z.globalRegistry.add(schema, { id })`: `registerSwagger` in `app.ts` has no `createJsonSchemaTransformObject`, so a registered id emits a `$ref` to a `components.schemas` entry that is never written, and `task generate:api` then fails to resolve it. Keep route schemas inline.
 - JSON Schema conversion: `z.toJSONSchema(schema, { target: "draft-07" })`
 
 **Tailwind CSS v4:**
@@ -86,6 +87,10 @@ Full reference: [docs/coding-standards.md](docs/coding-standards.md)
 
 **Ranking:** All article scoring goes through `ranking/ranking.ts` (`scoreAndRank`) — never hand-assemble score→sort pipelines, decode embedding BLOBs in callers (use `decodeEmbedding`), or re-implement the confidence rule (`effectiveConfidence` / `minConfidenceFilterSql` own `nli ?? similarity ?? 0` in TS and SQL).
 
+**MCP:** Agents connect over HTTP at `POST /api/mcp` with an API key. Tools are plain records in `mcp/mcp.tools.ts`, not SDK objects — the SDK is an adapter in `mcp/mcp.ts`, so tests call `toolRegistry.call` directly with no HTTP. Tools are adapters, never a domain layer: behaviour belongs in domain modules. Two hard rules — every tool returning analysed data must include a `readiness` block (see below), and no tool except `get_article` may return `articles.content`. Both are enforced by tests. See [docs/mcp.md](docs/mcp.md).
+
+**Readiness:** `readiness/readiness.ts` owns "has analysis settled?". It combines DB counts *and* the in-memory job queue — a source mid-fetch has zero articles and so looks trivially ready to SQL alone. Never re-derive readiness from `analysed_at` in a caller.
+
 **Jobs:** Job types + payloads are a typed registry (`JobPayloads` in `jobs/jobs.ts`) — a typo'd `enqueue` type is a compile error. Adding a job type means updating the registry AND the web label maps (`jobs.hooks.ts` `JOB_TYPE_LABELS`, `focuses.utils.ts` `ANALYSIS_JOB_TYPES`). Analysis jobs are presets over `ReconcilerService.reconcile({ scopeFilter, reset, backfillExtractedAt })` — put reset logic there, not in handlers.
 
 **Database gotchas:**
@@ -117,6 +122,9 @@ Full reference: [docs/coding-standards.md](docs/coding-standards.md)
 - `users.role` is `"admin"` or `"user"` — first user auto-promoted, stored in JWT
 - Fastify request augmentation (`declare module "fastify"`) must use `interface` not `type` (TypeScript constraint for module augmentation) — this is the one exception to the `type` over `interface` rule
 - Protected routes: add `onRequest: createAuthHook(services)` to the route config
+- API keys (for MCP) are a separate credential from JWTs — `createApiKeyHook(services, { minScope })`. Hashed with sha256 not scrypt (the secret is 256 random bits, so there is nothing to stretch against, and MCP authenticates on every call)
+- API key format is `ek_<hex>_<base64url>`; the prefix is hex deliberately, because base64url contains the `_` separator — parse by splitting on the first two separators only, never on all of them
+- `/api/api-keys` is JWT-only, so an API key cannot mint another key or widen its own scope
 
 **Testing gotchas:**
 

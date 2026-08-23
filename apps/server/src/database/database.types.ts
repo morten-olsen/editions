@@ -168,6 +168,22 @@ type BookmarksTable = {
   created_at: Timestamp;
 };
 
+// Scopes are cumulative: read ⊂ write ⊂ admin. See `api-keys/api-keys.ts`.
+type ApiKeyScope = 'read' | 'write' | 'admin';
+
+type ApiKeysTable = {
+  id: string;
+  user_id: string;
+  name: string;
+  key_prefix: string;
+  key_hash: string;
+  scope: ApiKeyScope;
+  last_used_at: string | null;
+  expires_at: string | null;
+  revoked_at: string | null;
+  created_at: Timestamp;
+};
+
 type SubscriptionStatus = 'active' | 'past_due' | 'cancelled' | 'unpaid';
 type SubscriptionInterval = 'monthly' | 'yearly';
 
@@ -210,6 +226,7 @@ type DatabaseSchema = {
   bookmarks: BookmarksTable;
   subscriptions: SubscriptionsTable;
   settings: SettingsTable;
+  api_keys: ApiKeysTable;
 };
 
 export type {
@@ -237,4 +254,6 @@ export type {
   SubscriptionInterval,
   SubscriptionsTable,
   SettingsTable,
+  ApiKeyScope,
+  ApiKeysTable,
 };

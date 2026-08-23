@@ -40,27 +40,10 @@ import type {
   EditionDetail,
   EditionSummary,
   EditionArticle,
+  EditionPreview,
+  EditionPreviewSection,
+  EditionPreviewArticle,
 } from './editions.queries.ts';
-
-// --- Preview types ---
-
-type EditionPreviewArticle = {
-  id: string;
-  title: string;
-  sourceName: string;
-  consumptionTimeSeconds: number | null;
-};
-
-type EditionPreviewSection = {
-  focusName: string;
-  articles: EditionPreviewArticle[];
-};
-
-type EditionPreview = {
-  sections: EditionPreviewSection[];
-  totalArticles: number;
-  totalReadingMinutes: number;
-};
 
 // --- Errors ---
 
@@ -440,7 +423,7 @@ class EditionsService {
     for (const ea of editionArticles) {
       let section = sectionMap.get(ea.focusId);
       if (!section) {
-        section = { focusName: focusNameMap.get(ea.focusId) ?? ea.focusId, articles: [] };
+        section = { focusId: ea.focusId, focusName: focusNameMap.get(ea.focusId) ?? ea.focusId, articles: [] };
         sectionMap.set(ea.focusId, section);
         sectionOrder.push(section);
       }

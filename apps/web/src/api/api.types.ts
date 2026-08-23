@@ -41,6 +41,148 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/api-keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            keyPrefix: string;
+                            /**
+                             * @description read < write < admin; scopes are cumulative.
+                             * @enum {string}
+                             */
+                            scope: "read" | "write" | "admin";
+                            lastUsedAt: string | (null);
+                            expiresAt: string | (null);
+                            revokedAt: string | (null);
+                            createdAt: string;
+                        }[];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        /**
+                         * @description read < write < admin; scopes are cumulative.
+                         * @default write
+                         * @enum {string}
+                         */
+                        scope?: "read" | "write" | "admin";
+                        /** @default null */
+                        expiresAt?: string | (null);
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            keyPrefix: string;
+                            /**
+                             * @description read < write < admin; scopes are cumulative.
+                             * @enum {string}
+                             */
+                            scope: "read" | "write" | "admin";
+                            lastUsedAt: string | (null);
+                            expiresAt: string | (null);
+                            revokedAt: string | (null);
+                            createdAt: string;
+                            /** @description The full secret. Shown once here and never retrievable again. */
+                            key: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/api-keys/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/articles/{articleId}/vote": {
         parameters: {
             query?: never;

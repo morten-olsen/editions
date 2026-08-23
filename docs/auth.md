@@ -133,6 +133,44 @@ If no JWT secret is set, an ephemeral random secret is generated at startup with
 
 Setting `allowSignups` to `false` disables the `POST /api/auth/register` endpoint (returns 403) and hides the signup button on the login page.
 
+## API keys
+
+A second credential type, for machine clients — today only the [MCP server](./mcp.md). Users mint
+keys in **Settings → Integrations**.
+
+| Aspect | Detail |
+|---|---|
+| Format | `ek_<12 hex chars>_<43 base64url chars>` |
+| Hashing | sha256 of the secret, compared with `crypto.timingSafeEqual` |
+| Scopes | `read` ⊂ `write` ⊂ `admin` — cumulative |
+| Lifetime | Optional `expiresAt`; revocable at any time |
+| Header | `Authorization: Bearer ek_...` |
+
+**Why sha256 rather than the `scrypt` used for passwords.** Key stretching makes guessing a
+low-entropy human-chosen secret expensive. An API key secret is 256 bits from `crypto.randomBytes`,
+so there is nothing to guess. Meanwhile every MCP tool call authenticates, and scrypt at N=16384
+would add ~100ms to each one.
+
+**Why the prefix is hex.** base64url's alphabet includes `_`, which is also the field separator — a
+base64url prefix would make the prefix/secret boundary ambiguous. Hex keeps the second separator the
+last structural one in the key, so the secret can safely contain `_` (it does, about half the time).
+`parseKey` splits on the first two separators only.
+
+The secret is returned exactly once, from `POST /api/api-keys`. Only its hash is stored, so it
+cannot be recovered or re-shown. `last_used_at` is updated at most once per minute per key, since it
+is a diagnostic rather than an audit log.
+
+Key management endpoints are **JWT-authenticated, never key-authenticated**, so a key cannot mint
+another key or widen its own scope:
+
+- `GET /api/api-keys` — list (never includes secrets)
+- `POST /api/api-keys` — mint; returns the secret once
+- `DELETE /api/api-keys/:id` — revoke (idempotent)
+
+Apply to a route with `onRequest: createApiKeyHook(services, { minScope: 'write' })`, which populates
+`req.apiKey` with `{ id, userId, scope }`. A 401 carries a `WWW-Authenticate` header so clients can
+distinguish a missing credential from a rejected one; an insufficient scope is a 403.
+
 ## Future plans
 
 - **OAuth / external identity providers** — a separate `identities` table will link external logins (e.g. GitHub, Google) to user accounts. `users.password_hash` is nullable to support OAuth-only users.
@@ -148,8 +186,13 @@ apps/server/src/auth/
 ├── auth.ts              # AuthService, password hashing, JWT, error classes
 └── auth.middleware.ts   # createAuthHook, FastifyRequest augmentation
 
+apps/server/src/api-keys/
+├── api-keys.ts             # ApiKeysService, key format, hashing, scope ordering
+└── api-keys.middleware.ts  # createApiKeyHook, FastifyRequest augmentation
+
 apps/server/src/api/
-└── auth.routes.ts       # POST /api/auth/register, POST /api/auth/login, GET /api/auth/me
+├── auth.routes.ts       # POST /api/auth/register, POST /api/auth/login, GET /api/auth/me
+└── api-keys.routes.ts   # GET/POST /api/api-keys, DELETE /api/api-keys/:id
 ```
 
 **Frontend:**

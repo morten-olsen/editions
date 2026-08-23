@@ -63,20 +63,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            id: string;
-                            name: string;
-                            keyPrefix: string;
-                            /**
-                             * @description read < write < admin; scopes are cumulative.
-                             * @enum {string}
-                             */
-                            scope: "read" | "write" | "admin";
-                            lastUsedAt: string | (null);
-                            expiresAt: string | (null);
-                            revokedAt: string | (null);
-                            createdAt: string;
-                        }[];
+                        "application/json": components["schemas"]["ApiKey"][];
                     };
                 };
             };
@@ -111,22 +98,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            id: string;
-                            name: string;
-                            keyPrefix: string;
-                            /**
-                             * @description read < write < admin; scopes are cumulative.
-                             * @enum {string}
-                             */
-                            scope: "read" | "write" | "admin";
-                            lastUsedAt: string | (null);
-                            expiresAt: string | (null);
-                            revokedAt: string | (null);
-                            createdAt: string;
-                            /** @description The full secret. Shown once here and never retrievable again. */
-                            key: string;
-                        };
+                        "application/json": components["schemas"]["CreatedApiKey"];
                     };
                 };
             };
@@ -5089,7 +5061,68 @@ export interface paths {
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: never;
+    schemas: {
+        ApiKeyInput: {
+            id: string;
+            name: string;
+            keyPrefix: string;
+            /**
+             * @description read < write < admin; scopes are cumulative.
+             * @enum {string}
+             */
+            scope: "read" | "write" | "admin";
+            lastUsedAt: string | (null);
+            expiresAt: string | (null);
+            revokedAt: string | (null);
+            createdAt: string;
+        };
+        CreatedApiKeyInput: {
+            id: string;
+            name: string;
+            keyPrefix: string;
+            /**
+             * @description read < write < admin; scopes are cumulative.
+             * @enum {string}
+             */
+            scope: "read" | "write" | "admin";
+            lastUsedAt: string | (null);
+            expiresAt: string | (null);
+            revokedAt: string | (null);
+            createdAt: string;
+            /** @description The full secret. Shown once here and never retrievable again. */
+            key: string;
+        };
+        ApiKey: {
+            id: string;
+            name: string;
+            keyPrefix: string;
+            /**
+             * @description read < write < admin; scopes are cumulative.
+             * @enum {string}
+             */
+            scope: "read" | "write" | "admin";
+            lastUsedAt: string | (null);
+            expiresAt: string | (null);
+            revokedAt: string | (null);
+            createdAt: string;
+        };
+        CreatedApiKey: {
+            id: string;
+            name: string;
+            keyPrefix: string;
+            /**
+             * @description read < write < admin; scopes are cumulative.
+             * @enum {string}
+             */
+            scope: "read" | "write" | "admin";
+            lastUsedAt: string | (null);
+            expiresAt: string | (null);
+            revokedAt: string | (null);
+            createdAt: string;
+            /** @description The full secret. Shown once here and never retrievable again. */
+            key: string;
+        };
+    };
     responses: never;
     parameters: never;
     requestBodies: never;

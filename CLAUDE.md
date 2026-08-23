@@ -45,7 +45,10 @@ Full reference: [docs/coding-standards.md](docs/coding-standards.md)
 - `z.record()` requires two args: `z.record(z.string(), z.unknown())`
 - `.default()` must come before `.transform()` in chains
 - Schema naming: `fooSchema` (camelCase) / `Foo` (PascalCase inferred type)
-- Route schemas live in `{module}.routes.schemas.ts` — there is no central `api.schemas.ts`. Do **not** call `z.globalRegistry.add(schema, { id })`: `registerSwagger` in `app.ts` has no `createJsonSchemaTransformObject`, so a registered id emits a `$ref` to a `components.schemas` entry that is never written, and `task generate:api` then fails to resolve it. Keep route schemas inline.
+- Route schemas live in `{module}.routes.schemas.ts` — there is no central `api.schemas.ts`
+- OpenAPI registration via `z.globalRegistry.add(schema, { id: "Name" })` at the schema's definition site. This emits `components.schemas` entries (via `transformObject` in `app.ts`), so the web client can use the named type through `ApiSchema<'Name'>` from `api/api.ts` instead of re-declaring the shape. Register schemas that the frontend models; leave one-off route shapes inline
+- A registered schema emits **two** components: `Name` (response/output) and `NameInput` (request body). Zod input and output types diverge wherever `.default()` or `.transform()` is used. Registering an id that collides with another's `Input` name throws at doc-generation time
+- `src/api/openapi.test.ts` asserts every emitted `$ref` resolves — without that guard a dangling ref only surfaces as a `task generate:api` failure later
 - JSON Schema conversion: `z.toJSONSchema(schema, { target: "draft-07" })`
 
 **Tailwind CSS v4:**

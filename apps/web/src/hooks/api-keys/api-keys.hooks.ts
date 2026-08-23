@@ -3,29 +3,19 @@ import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query';
 
 import { queryKeys, useAuthHeaders } from '../../api/api.hooks.ts';
 import { client } from '../../api/api.ts';
+import type { ApiBody, ApiSchema } from '../../api/api.ts';
 
 // --- Types ---
 
-type ApiKeyScope = 'read' | 'write' | 'admin';
-
-type ApiKey = {
-  id: string;
-  name: string;
-  keyPrefix: string;
-  scope: ApiKeyScope;
-  lastUsedAt: string | null;
-  expiresAt: string | null;
-  revokedAt: string | null;
-  createdAt: string;
-};
+/** Derived from the OpenAPI document, so a server-side rename fails to compile here. */
+type ApiKey = ApiSchema<'ApiKey'>;
 
 /** Only ever returned from a create — the secret is not stored in plaintext. */
-type CreatedApiKey = ApiKey & { key: string };
+type CreatedApiKey = ApiSchema<'CreatedApiKey'>;
 
-type CreateApiKeyInput = {
-  name: string;
-  scope: ApiKeyScope;
-};
+type ApiKeyScope = ApiKey['scope'];
+
+type CreateApiKeyInput = ApiBody<'/api/api-keys', 'post'>;
 
 // --- Helpers ---
 

@@ -9,6 +9,7 @@ import fastifySwagger from '@fastify/swagger';
 import scalarReference from '@scalar/fastify-api-reference';
 import {
   jsonSchemaTransform,
+  jsonSchemaTransformObject,
   serializerCompiler,
   validatorCompiler,
   hasZodFastifySchemaValidationErrors,
@@ -91,6 +92,15 @@ const registerSwagger = async (fastify: Parameters<typeof registerRoutes>[0]): P
       },
     },
     transform: jsonSchemaTransform,
+    // Writes `components.schemas` for every schema registered via
+    // `z.globalRegistry.add(schema, { id })`. Without it, `transform` still
+    // emits `$ref`s for registered schemas but nothing defines them, and
+    // `task generate:api` fails on the dangling references.
+    //
+    // A schema used in a request body is emitted as `<Id>Input` and in a
+    // response as `<Id>`, because Zod input and output types diverge wherever
+    // a `.default()` or `.transform()` is involved.
+    transformObject: jsonSchemaTransformObject,
   });
 
   await fastify.register(scalarReference, {

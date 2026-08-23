@@ -9,10 +9,6 @@ import type { Services } from '../services/services.ts';
 
 const apiKeyScopeSchema = z.enum(['read', 'write', 'admin']).describe('read < write < admin; scopes are cumulative.');
 
-// Deliberately not registered via `z.globalRegistry.add` — the Swagger setup in
-// `app.ts` has no `createJsonSchemaTransformObject`, so a registered id emits a
-// `$ref` to a component that is never written, and `openapi-typescript` fails to
-// resolve it. Inline schemas are what every other route file here uses.
 const apiKeySchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -23,10 +19,12 @@ const apiKeySchema = z.object({
   revokedAt: z.string().nullable(),
   createdAt: z.string(),
 });
+z.globalRegistry.add(apiKeySchema, { id: 'ApiKey' });
 
 const createdApiKeySchema = apiKeySchema.extend({
   key: z.string().describe('The full secret. Shown once here and never retrievable again.'),
 });
+z.globalRegistry.add(createdApiKeySchema, { id: 'CreatedApiKey' });
 
 const createApiKeySchema = z.object({
   name: z.string().min(1).max(100),

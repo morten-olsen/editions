@@ -387,6 +387,27 @@ z.globalRegistry.add(taskSchema, { id: "Task" });
 z.globalRegistry.add(messageSchema, { id: "Message" });
 ```
 
+This works because `registerSwagger` in `app.ts` passes **both** `transform: jsonSchemaTransform` and `transformObject: jsonSchemaTransformObject`. The first makes routes emit `$ref`s for registered schemas; the second writes the `components.schemas` those refs point at. With only the first, every ref dangles and `task generate:api` fails outright — `src/api/openapi.test.ts` guards against that regression.
+
+Each registered schema produces **two** components, because Zod input and output types diverge wherever `.default()` or `.transform()` is involved:
+
+| Used in | Component |
+|---|---|
+| A response | `Task` |
+| A request body | `TaskInput` |
+
+Registering an id that collides with another schema's generated `Input` name throws when the document is built.
+
+On the frontend, reach a registered schema through `ApiSchema<'Task'>` from `api/api.ts` rather than re-declaring the shape by hand — a server-side field change then becomes a compile error instead of a runtime surprise:
+
+```typescript
+import type { ApiSchema } from "../../api/api.ts";
+
+type Task = ApiSchema<"Task">;
+```
+
+Register the schemas the frontend models. One-off route shapes (a `{ ok: boolean }` response) stay inline and are reached via `ApiResponse` / `ApiBody`.
+
 **JSON Schema conversion** — use the native `z.toJSONSchema()`:
 
 ```typescript

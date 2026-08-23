@@ -33,3 +33,7 @@ The between-editions surface: all unread articles ranked so highlights surface f
 ## Analysis pipeline (reconciler)
 
 The background pipeline that brings articles to an analysed state: extract → embed → similarity → (optional NLI) → mark analysed. Runs via jobs; embedding/classification models run locally in a worker.
+
+## Readiness
+
+Whether the analysis pipeline has settled for a given scope, so counts and previews can be trusted. Owned by `readiness/readiness.ts` — the single place that decides what "settled" means, combining unanalysed-article counts, per-focus classification coverage, and in-flight jobs. Surfaced to agents on every MCP response that carries analysed data.

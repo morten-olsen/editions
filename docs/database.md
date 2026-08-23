@@ -12,6 +12,7 @@ users
   │                    ├──── article_votes (user_id, focus_id)
   │                    └──── bookmarks (user_id)
   ├── focuses ──── focus_sources ──── sources
+  ├── api_keys
   └── edition_configs
         ├── edition_config_focuses
         ├── edition_config_source_budgets
@@ -257,13 +258,35 @@ Articles included in a specific edition, grouped by focus section and ordered by
 
 Unique on `(edition_id, article_id)`.
 
+### api_keys
+
+Credentials for machine clients — today the [MCP server](./mcp.md). See [auth.md](./auth.md) for the
+key format and why the hash is sha256 rather than scrypt.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | text PK | UUID |
+| user_id | text FK → users | Cascade delete |
+| name | text | User-supplied label |
+| key_prefix | text unique | Public half (12 hex chars); locates the row without revealing the secret |
+| key_hash | text | sha256 of the secret half |
+| scope | text | `read` \| `write` \| `admin`, cumulative |
+| last_used_at | text nullable | Throttled to one write per minute per key |
+| expires_at | text nullable | null = no expiry |
+| revoked_at | text nullable | null = active |
+| created_at | text | |
+
+Indexed on `user_id`.
+
 ## Migrations
 
 Migrations live in `apps/server/src/database/migrations/` and run automatically on startup via Kysely's `FileMigrationProvider`.
 
 **Naming convention:** `NNN-description.ts` (e.g. `001-initial-schema.ts`). Kysely sorts alphabetically.
 
-**Pre-release policy:** While pre-release, modify the existing `001-initial-schema.ts` migration directly instead of creating new migration files. Delete and recreate the database to apply changes (`rm editions.db`). New migration files only after the first release.
+**Policy:** Add a new numbered migration file for each schema change; do not edit an applied one. (An earlier pre-release policy of editing `001-initial-schema.ts` in place was abandoned once real databases existed — the numbered files from `002` onward are the actual practice.)
+
+Because SQLite has no `IF NOT EXISTS` for `ALTER TABLE ADD COLUMN`, additive column migrations guard with a `PRAGMA table_info` check — see the `addColumnIfNotExists` helper in `018-payments.ts` and `019-discovery.ts`. Kysely's `createIndex` has no `ifNotExists`, so indexes are created with raw `CREATE INDEX IF NOT EXISTS`.
 
 **Writing a migration:**
 

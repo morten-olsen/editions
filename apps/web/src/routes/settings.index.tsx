@@ -10,16 +10,18 @@ import { VotesSection } from '../views/settings/votes-section.tsx';
 import { ScoringSection } from '../views/settings/scoring-section.tsx';
 import { AiSection } from '../views/settings/ai-section.tsx';
 import { DataSection } from '../views/settings/data-section.tsx';
+import { IntegrationsSection } from '../views/settings/integrations-section.tsx';
 import { SubscriptionSection } from '../views/settings/subscription-section.tsx';
 import { AccessSection } from '../views/settings/access-section.tsx';
 
-type SettingsTabKey = 'jobs' | 'votes' | 'scoring' | 'data' | 'assistant' | 'subscription' | 'access';
+type SettingsTabKey = 'jobs' | 'votes' | 'scoring' | 'data' | 'integrations' | 'assistant' | 'subscription' | 'access';
 
 const ALWAYS_TABS: SettingsTab[] = [
   { key: 'jobs', label: 'Jobs' },
   { key: 'votes', label: 'Votes' },
   { key: 'scoring', label: 'Scoring' },
   { key: 'data', label: 'Data' },
+  { key: 'integrations', label: 'Integrations' },
   { key: 'assistant', label: 'Assistant', badge: 'alpha' },
 ];
 
@@ -28,6 +30,7 @@ const TAB_DESCRIPTIONS: Record<SettingsTabKey, string> = {
   votes: '',
   scoring: 'Customise how articles are ranked in each feed',
   data: 'Export or import your data for portability between instances',
+  integrations: 'Connect an AI agent to Editions over MCP with an API key',
   assistant: 'Configure an AI assistant to help you set up Editions',
   subscription: 'Manage your subscription and billing',
   access: 'Configure pricing, trials, and manage user access',
@@ -39,6 +42,7 @@ const SettingsContent = ({ activeTab, token }: { activeTab: SettingsTabKey; toke
     {activeTab === 'votes' && <VotesSection />}
     {activeTab === 'scoring' && <ScoringSection token={token} />}
     {activeTab === 'data' && <DataSection token={token} />}
+    {activeTab === 'integrations' && <IntegrationsSection />}
     {activeTab === 'assistant' && <AiSection />}
     {activeTab === 'subscription' && <SubscriptionSection />}
     {activeTab === 'access' && <AccessSection />}

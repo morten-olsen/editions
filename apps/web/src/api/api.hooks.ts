@@ -41,6 +41,9 @@ const queryKeys = {
     editionConfigs: ['discovery', 'edition-configs'] as const,
     tags: ['discovery', 'tags'] as const,
   },
+  apiKeys: {
+    all: ['api-keys'] as const,
+  },
   billing: {
     access: ['billing', 'access'] as const,
     subscription: ['billing', 'subscription'] as const,

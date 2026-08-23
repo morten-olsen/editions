@@ -103,6 +103,32 @@ type EditionSummary = Edition & {
   configName: string;
 };
 
+// --- Preview types ---
+
+/**
+ * What generation *would* produce, without writing an issue. Deliberately
+ * thinner than `EditionArticle` — a preview is for judging shape and budget
+ * fill, so it carries no body content.
+ */
+type EditionPreviewArticle = {
+  id: string;
+  title: string;
+  sourceName: string;
+  consumptionTimeSeconds: number | null;
+};
+
+type EditionPreviewSection = {
+  focusId: string;
+  focusName: string;
+  articles: EditionPreviewArticle[];
+};
+
+type EditionPreview = {
+  sections: EditionPreviewSection[];
+  totalArticles: number;
+  totalReadingMinutes: number;
+};
+
 // --- Row mappers ---
 
 const mapFocusLinkRow = (link: {
@@ -286,6 +312,9 @@ export type {
   EditionDetail,
   EditionSummary,
   EditionArticle,
+  EditionPreview,
+  EditionPreviewSection,
+  EditionPreviewArticle,
 };
 export {
   mapFocusLinkRow,

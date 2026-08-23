@@ -6,6 +6,8 @@ import type { Services } from '../services/services.ts';
 
 import { listFocusArticles } from './focuses.articles.ts';
 import type { FocusArticle, FocusArticlesPage, ListArticlesOptions } from './focuses.articles.ts';
+import { buildFocusTuning } from './focuses.tuning.ts';
+import type { ConfidenceBucket, FocusTuning, SourceBreakdown, TuningArticle } from './focuses.tuning.ts';
 
 // --- Errors ---
 
@@ -31,6 +33,14 @@ type CreateFocusParams = {
   description?: string;
   icon?: string | null;
   originId?: string | null;
+  minConfidence?: number;
+  minConsumptionTimeSeconds?: number | null;
+  maxConsumptionTimeSeconds?: number | null;
+  sources?: FocusSource[];
+};
+
+/** Overrides applied on top of a saved focus, for previewing an unsaved change. */
+type FocusOverrides = {
   minConfidence?: number;
   minConsumptionTimeSeconds?: number | null;
   maxConsumptionTimeSeconds?: number | null;
@@ -295,16 +305,43 @@ class FocusesService {
   previewArticles = async (
     userId: string,
     focusId: string,
-    overrides: {
-      minConfidence?: number;
-      minConsumptionTimeSeconds?: number | null;
-      maxConsumptionTimeSeconds?: number | null;
-      sources?: FocusSource[];
-    },
+    overrides: FocusOverrides,
     opts: ListArticlesOptions = {},
   ): Promise<FocusArticlesPage> => {
+    const focus = await this.#withOverrides(userId, focusId, overrides);
+    return listFocusArticles({ services: this.#services, focus, userId, focusId, opts });
+  };
+
+  /**
+   * Match counts, confidence distribution, top matches and near-misses for a
+   * focus — with optional unsaved overrides, so a threshold or source-selection
+   * change can be evaluated before it is committed.
+   */
+  tuning = async (
+    userId: string,
+    focusId: string,
+    overrides: FocusOverrides = {},
+    opts: { sampleSize?: number; from?: string; to?: string } = {},
+  ): Promise<FocusTuning> => {
+    const focus = await this.#withOverrides(userId, focusId, overrides);
+    const db = await this.#services.get(DatabaseService).getInstance();
+
+    return buildFocusTuning({
+      db,
+      userId,
+      focus,
+      sampleSize: opts.sampleSize ?? 10,
+      from: opts.from,
+      to: opts.to,
+    });
+  };
+
+  // Overlays unsaved overrides on the stored focus. `undefined` means "keep the
+  // saved value"; an explicit `null` clears a nullable bound, so the reading-time
+  // fields can't use `??`.
+  #withOverrides = async (userId: string, focusId: string, overrides: FocusOverrides): Promise<Focus> => {
     const saved = await this.get(userId, focusId);
-    const focus: Focus = {
+    return {
       ...saved,
       minConfidence: overrides.minConfidence ?? saved.minConfidence,
       minConsumptionTimeSeconds:
@@ -317,15 +354,19 @@ class FocusesService {
           : saved.maxConsumptionTimeSeconds,
       sources: overrides.sources ?? saved.sources,
     };
-    return listFocusArticles({ services: this.#services, focus, userId, focusId, opts });
   };
 }
 
 export type {
   Focus,
   FocusSource,
+  FocusOverrides,
   FocusArticle,
   FocusArticlesPage,
+  FocusTuning,
+  TuningArticle,
+  ConfidenceBucket,
+  SourceBreakdown,
   CreateFocusParams,
   UpdateFocusParams,
   ListArticlesOptions,

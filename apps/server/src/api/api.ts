@@ -3,6 +3,7 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
 import type { Services } from '../services/services.ts';
 
+import { createApiKeysRoutes } from './api-keys.routes.ts';
 import { createArticlesRoutes } from './articles.routes.ts';
 import { createAuthRoutes } from './auth.routes.ts';
 import { createBillingRoutes } from './billing.routes.ts';
@@ -16,6 +17,7 @@ import { createFeedRoutes } from './feed.routes.ts';
 import { createFocusesRoutes } from './focuses.routes.ts';
 import { createSourcesRoutes } from './sources.routes.ts';
 import { createJobsRoutes } from './jobs.routes.ts';
+import { createMcpRoutes } from './mcp.routes.ts';
 import { createScoringRoutes } from './scoring.routes.ts';
 import { createVotesRoutes } from './votes.routes.ts';
 
@@ -40,6 +42,7 @@ const registerRoutes = async (fastify: Parameters<FastifyPluginAsyncZod>[0], ser
   await fastify.register(
     async (api) => {
       await api.register(healthRoute);
+      await api.register(createApiKeysRoutes(services));
       await api.register(createArticlesRoutes(services));
       await api.register(createAuthRoutes(services));
       await api.register(createConfigRoutes(services));
@@ -53,6 +56,7 @@ const registerRoutes = async (fastify: Parameters<FastifyPluginAsyncZod>[0], ser
       await api.register(createHomeRoutes(services));
       await api.register(createFeedRoutes(services));
       await api.register(createJobsRoutes(services));
+      await api.register(createMcpRoutes(services));
       await api.register(createScoringRoutes(services));
       await api.register(createVotesRoutes(services));
     },

@@ -16,7 +16,7 @@ A user-defined topic area ("technology", "local news"). Articles are classified 
 
 ## Vote
 
-An up/down signal (±1) a user attaches to an article, scoped globally, to a focus, or to an edition. Votes propagate to unvoted articles through embedding similarity — the narrower scope wins on conflict.
+An up/down signal (±1) a user attaches to an article, scoped globally, to a focus, or to an edition. Votes propagate to unvoted articles through embedding similarity — the narrower scope wins on conflict. A vote affects **ranking**, not focus membership: it changes the order articles are picked in (and so what fits an edition budget), never whether an article matches a focus. Only votes on the user's own articles are accepted, since propagation pulls the voted article's embedding into that user's context.
 
 ## Ranking
 

@@ -11,6 +11,7 @@ import { editionTools } from './mcp.tools.editions.ts';
 import { focusTools } from './mcp.tools.focuses.ts';
 import { ingestTools } from './mcp.tools.ingest.ts';
 import { sourceTools } from './mcp.tools.sources.ts';
+import { voteTools } from './mcp.tools.votes.ts';
 import { workspaceTools } from './mcp.tools.workspace.ts';
 
 // --- Constants ---
@@ -22,7 +23,14 @@ const SERVER_VERSION = '0.0.1';
  * The complete tool surface, in the order an agent would naturally work through
  * it: orient, then sources, then focuses, then editions.
  */
-const allTools: McpTool[] = [...workspaceTools, ...sourceTools, ...ingestTools, ...focusTools, ...editionTools];
+const allTools: McpTool[] = [
+  ...workspaceTools,
+  ...sourceTools,
+  ...ingestTools,
+  ...focusTools,
+  ...voteTools,
+  ...editionTools,
+];
 
 const toolRegistry: ToolRegistry = createToolRegistry(allTools);
 

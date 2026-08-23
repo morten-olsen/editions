@@ -1,7 +1,8 @@
 import { z } from 'zod/v4';
 
 import { FocusesService } from '../focuses/focuses.ts';
-import type { Focus, FocusSource } from '../focuses/focuses.ts';
+import type { Focus, FocusSource, TuningArticle } from '../focuses/focuses.ts';
+import { VotesService } from '../votes/votes.ts';
 
 import { LIMITS, clamp, truncate } from './mcp.budget.ts';
 import { defineTool, readinessAdvice, readinessFor, waitForReadiness, waitSecondsSchema } from './mcp.tools.ts';
@@ -134,6 +135,9 @@ const previewFocus = defineTool({
     '',
     'Overrides here are not saved, so trying a threshold costs nothing. Check the readiness block:',
     'while state is "analysing" these numbers are provisional and will change.',
+    '',
+    'Every listed article carries its current vote (focus-scoped and global), so this is also the',
+    'surface to curate from: read the matches, then pass the article ids to vote_articles.',
   ].join(' '),
   scope: 'read',
   readOnly: true,
@@ -158,6 +162,29 @@ const previewFocus = defineTool({
       to,
     });
 
+    // One batch lookup covering both sample lists, so the agent can see what it
+    // has already voted on without a second tool call — this is the surface it
+    // curates from.
+    const listed = [...tuning.topMatches, ...tuning.nearMisses];
+    const votes = await ctx.services.get(VotesService).getVotesByArticleIds(
+      ctx.userId,
+      listed.map((a) => a.id),
+      focusId,
+    );
+
+    const withVotes = (article: TuningArticle): Record<string, unknown> => {
+      const pair = votes.get(article.id);
+      return {
+        ...article,
+        title: truncate(article.title, LIMITS.titleChars),
+        confidence: Number(article.confidence.toFixed(3)),
+        vote: pair?.focus ?? null,
+        globalVote: pair?.global ?? null,
+      };
+    };
+
+    const votedCount = listed.filter((a) => votes.get(a.id)?.focus != null).length;
+
     return {
       focus: { id: saved.id, name: saved.name, description: truncate(saved.description, LIMITS.summaryChars) },
       applied: {
@@ -172,16 +199,11 @@ const previewFocus = defineTool({
       excludedByReadingTime: tuning.excludedByReadingTime,
       confidenceHistogram: tuning.confidenceHistogram,
       sourceBreakdown: tuning.sourceBreakdown,
-      topMatches: tuning.topMatches.map((a) => ({
-        ...a,
-        title: truncate(a.title, LIMITS.titleChars),
-        confidence: Number(a.confidence.toFixed(3)),
-      })),
-      nearMisses: tuning.nearMisses.map((a) => ({
-        ...a,
-        title: truncate(a.title, LIMITS.titleChars),
-        confidence: Number(a.confidence.toFixed(3)),
-      })),
+      topMatches: tuning.topMatches.map(withVotes),
+      nearMisses: tuning.nearMisses.map(withVotes),
+      // How much of what is shown has been curated already, so the agent knows
+      // whether voting here would add anything.
+      votedInSample: votedCount,
       readiness: await readinessFor(ctx, { focusIds: [focusId] }),
     };
   },

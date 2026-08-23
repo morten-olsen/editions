@@ -819,6 +819,220 @@ describe('write tools', () => {
   });
 });
 
+// --- Voting ---
+
+describe('vote_articles', () => {
+  const seedVotable = async (): Promise<{ focusId: string; articleIds: string[] }> => {
+    const db = await t.db();
+    const sourceId = await seedSource(db, 'Example', 'https://example.com/feed.xml');
+    const focusId = await seedFocus(db, { name: 'Tech', minConfidence: 0.3, sourceIds: [sourceId] });
+    const articleIds = await seedArticles(db, {
+      sourceId,
+      focusId,
+      articles: [
+        { title: 'First', confidence: 0.8 },
+        { title: 'Second', confidence: 0.7 },
+        { title: 'Third', confidence: 0.6 },
+      ],
+    });
+    return { focusId, articleIds };
+  };
+
+  it('records a batch of focus-scoped votes', async () => {
+    const { focusId, articleIds } = await seedVotable();
+
+    const result = (await call(
+      'vote_articles',
+      {
+        focusId,
+        votes: [
+          { articleId: articleIds[0], value: 'up' },
+          { articleId: articleIds[1], value: 'up' },
+          { articleId: articleIds[2], value: 'down' },
+        ],
+      },
+      'write',
+    )) as unknown as { summary: { recorded: number }; results: { action: string }[] };
+
+    expect(result.summary.recorded).toBe(3);
+    expect(result.results.map((r) => r.action)).toEqual(['voted', 'voted', 'voted']);
+
+    const db = await t.db();
+    const rows = await db
+      .selectFrom('article_votes')
+      .select(['value'])
+      .where('focus_id', '=', focusId)
+      .where('user_id', '=', userId)
+      .execute();
+    expect(rows.map((r) => r.value).sort()).toEqual([-1, 1, 1]);
+  });
+
+  /**
+   * The user may have voted deliberately; an agent curating "initial" votes
+   * must not silently reverse that.
+   */
+  it('leaves existing votes alone unless told otherwise', async () => {
+    const { focusId, articleIds } = await seedVotable();
+    const target = articleIds[0] as string;
+
+    await call('vote_articles', { focusId, votes: [{ articleId: target, value: 'up' }] }, 'write');
+
+    const skipped = (await call(
+      'vote_articles',
+      { focusId, votes: [{ articleId: target, value: 'down' }] },
+      'write',
+    )) as unknown as { results: { action: string; value: number | null }[]; summary: { skippedExisting: number } };
+
+    expect(skipped.results[0]?.action).toBe('skipped_existing');
+    expect(skipped.results[0]?.value).toBe(1);
+    expect(skipped.summary.skippedExisting).toBe(1);
+
+    const replaced = (await call(
+      'vote_articles',
+      { focusId, votes: [{ articleId: target, value: 'down' }], overwriteExisting: true },
+      'write',
+    )) as unknown as { results: { action: string; value: number | null }[] };
+
+    expect(replaced.results[0]?.action).toBe('replaced');
+    expect(replaced.results[0]?.value).toBe(-1);
+  });
+
+  it('reports an unchanged vote without rewriting it', async () => {
+    const { focusId, articleIds } = await seedVotable();
+    const target = articleIds[0] as string;
+
+    await call('vote_articles', { focusId, votes: [{ articleId: target, value: 'up' }] }, 'write');
+    const again = (await call(
+      'vote_articles',
+      { focusId, votes: [{ articleId: target, value: 'up' }] },
+      'write',
+    )) as unknown as { results: { action: string }[]; summary: { alreadySet: number } };
+
+    expect(again.results[0]?.action).toBe('already_set');
+    expect(again.summary.alreadySet).toBe(1);
+  });
+
+  it('clears a vote, and reports clearing an absent one', async () => {
+    const { focusId, articleIds } = await seedVotable();
+    const [voted, unvoted] = articleIds as [string, string];
+
+    await call('vote_articles', { focusId, votes: [{ articleId: voted, value: 'up' }] }, 'write');
+    const result = (await call(
+      'vote_articles',
+      {
+        focusId,
+        votes: [
+          { articleId: voted, value: 'clear' },
+          { articleId: unvoted, value: 'clear' },
+        ],
+      },
+      'write',
+    )) as unknown as { results: { action: string }[] };
+
+    expect(result.results.map((r) => r.action)).toEqual(['cleared', 'nothing_to_clear']);
+
+    const db = await t.db();
+    const remaining = await db.selectFrom('article_votes').select('id').where('user_id', '=', userId).execute();
+    expect(remaining).toHaveLength(0);
+  });
+
+  it('keeps focus-scoped and global votes separate', async () => {
+    const { focusId, articleIds } = await seedVotable();
+    const target = articleIds[0] as string;
+
+    await call('vote_articles', { focusId, votes: [{ articleId: target, value: 'up' }] }, 'write');
+    // No focusId — a global vote on the same article must be its own row, not a
+    // conflict with the focus-scoped one.
+    const global = (await call(
+      'vote_articles',
+      { votes: [{ articleId: target, value: 'down' }] },
+      'write',
+    )) as unknown as { results: { action: string }[]; scope: unknown };
+
+    expect(global.results[0]?.action).toBe('voted');
+    expect(global.scope).toBe('global');
+
+    const preview = (await call('preview_focus', { focusId })) as unknown as {
+      topMatches: { id: string; vote: number | null; globalVote: number | null }[];
+      votedInSample: number;
+    };
+    const row = preview.topMatches.find((a) => a.id === target);
+    expect(row?.vote).toBe(1);
+    expect(row?.globalVote).toBe(-1);
+    expect(preview.votedInSample).toBe(1);
+  });
+
+  it('refuses to vote on another user’s article', async () => {
+    const { focusId } = await seedVotable();
+    const other = await t.register('other', 'password456');
+
+    const db = await t.db();
+    await db
+      .insertInto('sources')
+      .values({
+        id: 'their-source',
+        user_id: other.id,
+        type: 'rss',
+        name: 'Theirs',
+        url: 'https://theirs.example/feed.xml',
+        config: '{}',
+        direction: 'newest',
+      })
+      .execute();
+    await db
+      .insertInto('articles')
+      .values({ id: 'their-article', source_id: 'their-source', external_id: 'x', title: 'Theirs' })
+      .execute();
+
+    const result = (await call(
+      'vote_articles',
+      { focusId, votes: [{ articleId: 'their-article', value: 'up' }] },
+      'write',
+    )) as unknown as { results: { action: string }[]; summary: { notFound: number } };
+
+    // A vote pulls the article's embedding into this user's propagation context,
+    // so an unowned article must be refused rather than silently accepted.
+    expect(result.results[0]?.action).toBe('not_found');
+    expect(result.summary.notFound).toBe(1);
+  });
+
+  it('requires write scope and rejects an unowned focus', async () => {
+    const { focusId, articleIds } = await seedVotable();
+
+    await expect(
+      toolRegistry.call({
+        name: 'vote_articles',
+        args: { focusId, votes: [{ articleId: articleIds[0], value: 'up' }] },
+        ctx: ctxFor('read'),
+      }),
+    ).rejects.toThrow(/requires an API key with "write" scope/);
+
+    await expect(
+      call('vote_articles', { focusId: 'not-mine', votes: [{ articleId: articleIds[0], value: 'up' }] }, 'write'),
+    ).rejects.toThrow(/not found/i);
+  });
+
+  it('surfaces per-focus vote counts in the workspace', async () => {
+    const { focusId, articleIds } = await seedVotable();
+    await call(
+      'vote_articles',
+      {
+        focusId,
+        votes: [
+          { articleId: articleIds[0], value: 'up' },
+          { articleId: articleIds[1], value: 'down' },
+        ],
+      },
+      'write',
+    );
+
+    const workspace = (await call('get_workspace')) as unknown as {
+      focuses: { id: string; votes: { up: number; down: number } }[];
+    };
+    expect(workspace.focuses.find((f) => f.id === focusId)?.votes).toEqual({ up: 1, down: 1 });
+  });
+});
+
 // --- Isolation ---
 
 describe('user isolation', () => {

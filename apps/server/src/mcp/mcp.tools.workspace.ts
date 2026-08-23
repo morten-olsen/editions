@@ -54,6 +54,34 @@ const countScoredByFocus = async (db: Db, userId: string): Promise<Map<string, n
   return new Map(rows.map((r) => [r.focus_id, Number(r.scored)]));
 };
 
+/**
+ * Focus-scoped vote counts. Vote signal ramps in with volume, so the count is
+ * what tells a caller whether a focus has been curated or is running purely on
+ * topic similarity.
+ */
+const countVotesByFocus = async (db: Db, userId: string): Promise<Map<string, { up: number; down: number }>> => {
+  const rows = await db
+    .selectFrom('article_votes')
+    .select(['focus_id', 'value', db.fn.countAll().as('count')])
+    .where('user_id', '=', userId)
+    .where('focus_id', 'is not', null)
+    .groupBy(['focus_id', 'value'])
+    .execute();
+
+  const byFocus = new Map<string, { up: number; down: number }>();
+  for (const row of rows) {
+    const focusId = row.focus_id as string;
+    const entry = byFocus.get(focusId) ?? { up: 0, down: 0 };
+    if (row.value === 1) {
+      entry.up = Number(row.count);
+    } else {
+      entry.down = Number(row.count);
+    }
+    byFocus.set(focusId, entry);
+  }
+  return byFocus;
+};
+
 type IssueSummary = { id: string; title: string; articleCount: number; readingMinutes: number | null; at: string };
 
 /**
@@ -114,9 +142,10 @@ const getWorkspace = defineTool({
       ctx.services.get(VotesService).loadUserScoringWeights(ctx.userId),
     ]);
 
-    const [countsBySource, scoredByFocus, issuesByConfig] = await Promise.all([
+    const [countsBySource, scoredByFocus, votesByFocus, issuesByConfig] = await Promise.all([
       countArticlesBySource(db, ctx.userId),
       countScoredByFocus(db, ctx.userId),
+      countVotesByFocus(db, ctx.userId),
       recentIssuesByConfig(
         db,
         configs.map((c) => c.id),
@@ -152,6 +181,7 @@ const getWorkspace = defineTool({
         // Articles scored against this focus at all — call preview_focus for the
         // count that actually clears the threshold.
         scoredArticles: scoredByFocus.get(focus.id) ?? 0,
+        votes: votesByFocus.get(focus.id) ?? { up: 0, down: 0 },
       })),
       editionConfigs: configs.map((config) => ({
         id: config.id,

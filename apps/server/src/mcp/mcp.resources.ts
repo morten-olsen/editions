@@ -85,6 +85,34 @@ A focus only draws from sources linked to it. Linking a source does not rescore 
 article is already scored against every focus — so adding and removing links is instant. Weights
 multiply a source's articles during ranking, letting a preferred source surface first without
 excluding the others.
+
+## Curating with votes
+
+\`vote_articles\` records up/down votes, scoped to a focus. Be precise about what this changes:
+
+- It **does** change ranking. Score is a blend of confidence, vote signal and recency, and the vote
+  term's weight ramps up as votes accumulate. Since an edition fills each section from the top of
+  that ordering until the budget runs out, votes decide which of the matching articles actually
+  reach the reader.
+- It does **not** change membership. Voting up an article below the threshold will not bring it into
+  the focus. Only \`minConfidence\`, the source links and the reading-time bounds do that.
+
+So votes are the tool for "the right articles match, but the wrong ones surface first". If the wrong
+articles are matching at all, fix the description or the threshold instead — voting cannot rescue a
+focus whose boundary is wrong.
+
+Vote signal also propagates: an unvoted article inherits a weighted signal from the most similar
+voted articles. That is why a modest number of well-chosen votes goes a long way, and why voting
+scattered borderline articles is worse than voting clear examples. Aim for 10–20 decisive votes per
+focus, spread across the kinds of story you care about, rather than many marginal ones.
+
+\`preview_focus\` returns the current \`vote\` and \`globalVote\` on every article it lists, plus
+\`votedInSample\`, so you can see what is already curated before adding more. Existing votes are not
+overwritten unless you ask — the user's own votes outrank yours.
+
+One thing to expect: \`preview_focus\` lists articles by **confidence**, so its ordering does not
+change when you vote. To see a vote take effect, call \`preview_edition\` — sections are filled from
+the ranked order, which is where the vote signal applies.
 `.trim(),
   },
   {

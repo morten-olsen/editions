@@ -84,8 +84,18 @@ class VotesService {
   upsert = async (params: UpsertVoteParams): Promise<Vote> => {
     const db = await this.#services.get(DatabaseService).getInstance();
 
-    // Verify article exists
-    const article = await db.selectFrom('articles').select('id').where('id', '=', params.articleId).executeTakeFirst();
+    // Verify the article exists *and belongs to this user*. Scoping matters:
+    // a vote pulls the voted article's embedding into the user's propagation
+    // context, so accepting an arbitrary id would let one user's article
+    // influence another user's ranking. Every legitimate vote targets an
+    // article from the voter's own sources.
+    const article = await db
+      .selectFrom('articles')
+      .innerJoin('sources', 'sources.id', 'articles.source_id')
+      .select('articles.id')
+      .where('articles.id', '=', params.articleId)
+      .where('sources.user_id', '=', params.userId)
+      .executeTakeFirst();
 
     if (!article) {
       throw new ArticleNotFoundForVoteError(params.articleId);

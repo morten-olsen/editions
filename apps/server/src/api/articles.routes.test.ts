@@ -14,6 +14,53 @@ afterEach(async () => {
 });
 
 describe('global article votes', () => {
+  /**
+   * A vote pulls the voted article's embedding into the voter's propagation
+   * context, so accepting an arbitrary article id would let one user's content
+   * influence another user's ranking. The article must belong to the voter.
+   */
+  it('refuses a vote on an article the user does not own', async () => {
+    const owner = await t.register('owner', 'password123');
+    const other = await t.register('other', 'password456');
+
+    const db = await t.db();
+    await db
+      .insertInto('sources')
+      .values({
+        id: 'owner-source',
+        user_id: owner.id,
+        type: 'rss',
+        name: 'Owner feed',
+        url: 'https://owner.example/feed.xml',
+        config: '{}',
+        direction: 'newest',
+      })
+      .execute();
+    await db
+      .insertInto('articles')
+      .values({ id: 'owner-article', source_id: 'owner-source', external_id: 'a1', title: 'Owned' })
+      .execute();
+
+    const theirs = await t.inject({
+      method: 'PUT',
+      url: '/api/articles/owner-article/vote',
+      headers: other.headers,
+      payload: { value: 1 },
+    });
+    expect(theirs.statusCode).toBe(404);
+
+    const mine = await t.inject({
+      method: 'PUT',
+      url: '/api/articles/owner-article/vote',
+      headers: owner.headers,
+      payload: { value: 1 },
+    });
+    expect(mine.statusCode).toBe(200);
+
+    const rows = await db.selectFrom('article_votes').select('user_id').execute();
+    expect(rows.map((r) => r.user_id)).toEqual([owner.id]);
+  });
+
   it('returns 404 for non-existent article', async () => {
     const user = await t.register();
 

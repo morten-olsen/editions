@@ -50,6 +50,7 @@ read-only key is not merely refused on write tools, it never gets told they exis
 | `adopt_from_catalog` | write | Cascading adopt (edition → focuses → sources) plus wait |
 | `refresh_sources` | write | Re-fetch and re-analyse |
 | `save_focus` | write | Create-or-update plus the reconcile-enqueue rules plus wait |
+| `vote_articles` | write | Batch up/down/clear votes, focus-scoped or global; skips existing votes by default |
 | `save_edition_config` | write | Create-or-update with focuses, budgets, schedule |
 | `generate_edition` | write | Publish a real issue |
 | `delete_entity` | admin | Irreversible deletion; requires `confirm: true` |
@@ -57,6 +58,27 @@ read-only key is not merely refused on write tools, it never gets told they exis
 `preview_focus` is the highest-leverage tool: it is what lets an agent tune a focus to a good state
 without reading a single article body. The near-miss list answers "what would I gain by lowering
 this threshold?" directly.
+
+### Curation via votes
+
+`vote_articles` exists so an agent can curate a focus, which is also how reference data accumulates
+for a future vote-driven classifier. Three deliberate choices:
+
+- **Batch.** Curating is inherently bulk — up to 50 votes per call, because one call per vote would
+  be a dozen round trips for a single pass.
+- **Existing votes are skipped by default.** The user may have voted deliberately, and their
+  judgement outranks the agent's. `overwriteExisting` is opt-in.
+- **The description is explicit that votes do not change membership.** They change ranking, which
+  decides what fits inside an edition budget. An agent told otherwise would vote up a near-miss and
+  expect it to appear in the focus, which will not happen.
+
+`preview_focus` returns `vote` and `globalVote` on every article it lists plus `votedInSample`, and
+`get_workspace` reports per-focus `{ up, down }` counts — so the agent can see what is curated
+without an extra tool call, and never has to guess.
+
+Voting requires the article to belong to the voting user. That check lives in `VotesService.upsert`,
+so REST and MCP share it: a vote pulls the voted article's embedding into the voter's propagation
+context, and accepting an arbitrary id would let one user's content influence another's ranking.
 
 `preview_edition` and `generate_edition` stay separate rather than becoming
 `preview_edition({ commit: true })` — a boolean that switches a tool between "no side effects" and

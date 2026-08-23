@@ -54,6 +54,12 @@ const LIMITS = {
   workspaceIssues: 3,
   /** Sources created in one `add_sources` call. */
   addSources: 20,
+  /**
+   * Votes cast in one `vote_articles` call. Generous because curating a focus
+   * is inherently a bulk act — one call per vote would be a dozen round trips
+   * for a single curation pass.
+   */
+  voteBatch: 50,
 } as const;
 
 // --- Helpers ---

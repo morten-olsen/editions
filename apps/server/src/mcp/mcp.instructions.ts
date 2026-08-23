@@ -28,9 +28,12 @@ subscribes to. You are helping the user build and tune that setup.
    entries come with tuned thresholds.
 4. \`wait_until_ready\` — if the previous step returned \`state: "analysing"\`.
 5. \`save_focus\` then \`preview_focus\` — create the topic, then tune it in a loop.
-6. \`save_edition_config\` then \`preview_edition\` — compose the issue, then check every section
+6. \`vote_articles\` — optional, but valuable: curate 10–20 votes per focus from what
+   \`preview_focus\` shows you. Votes reorder the matching articles, which decides what fits inside
+   an edition budget. They do **not** change which articles match.
+7. \`save_edition_config\` then \`preview_edition\` — compose the issue, then check every section
    fills its budget.
-7. \`generate_edition\` — publish, once the preview looks right.
+8. \`generate_edition\` — publish, once the preview looks right.
 
 ## Readiness — read this before trusting any number
 

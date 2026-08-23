@@ -27,7 +27,7 @@ import { Meta } from "@storybook/addon-docs/blocks";
         {[
           { label: "Compound parts", desc: "Article.*", bg: "var(--color-accent)", color: "white" },
           { label: "Style presets", desc: "Editorial, Hero, Compact", bg: "var(--color-accent-subtle)", color: "var(--color-ink)" },
-          { label: "Footer variants", desc: "FeedFooter, FocusFooter, EditionFooter", bg: "var(--color-surface-sunken)", color: "var(--color-ink-secondary)" },
+          { label: "Footer variants", desc: "FeedFooter, FocusFooter", bg: "var(--color-surface-sunken)", color: "var(--color-ink-secondary)" },
         ].map((item, i) => (
           <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.7rem", padding: "0.4rem 0.6rem", borderRadius: "0.25rem", background: item.bg, color: item.color }}>
             <span style={{ fontWeight: 500 }}>{item.label}</span>
@@ -181,11 +181,11 @@ import { ArticleView } from 'components/article/article.presets.tsx';
   </div>
   <div style={{ display: "flex", gap: "2rem", alignItems: "flex-start" }}>
     <div style={{ width: "8rem", flexShrink: 0, textAlign: "center" }}>
-      <div style={{ fontSize: "0.75rem", fontFamily: "var(--font-mono)", color: "var(--color-accent)", marginBottom: "0.25rem" }}>EditionFooter</div>
-      <div style={{ fontSize: "0.65rem", color: "var(--color-ink-faint)" }}>Magazine context</div>
+      <div style={{ fontSize: "0.75rem", fontFamily: "var(--font-mono)", color: "var(--color-accent)", marginBottom: "0.25rem" }}>Magazine</div>
+      <div style={{ fontSize: "0.65rem", color: "var(--color-ink-faint)" }}>Paged reader</div>
     </div>
     <div style={{ fontSize: "0.833rem", color: "var(--color-ink-secondary)", lineHeight: 1.625 }}>
-      Edition-scoped vote (temporary, doesn't affect global scoring) and a "Continue to next article" prompt that uses the magazine navigation context. The vote label reads "Edition" instead of "Quality".
+      The paged reader doesn't use these footers. It renders vote controls directly into the band each page reserves at its foot, so they appear on the last page of an article rather than after a scroll. See <strong>Compositions → Magazine</strong>.
     </div>
   </div>
 </div>
@@ -265,7 +265,7 @@ import { FeedFooter } from 'components/article/article.footers.tsx';
   <div>components/article/</div>
   <div style={{ paddingLeft: "1.5rem" }}><span style={{ color: "var(--color-accent)" }}>article.tsx</span> <span style={{ color: "var(--color-ink-faint)" }}>— Compound parts (Root, Source, Title, ...)</span></div>
   <div style={{ paddingLeft: "1.5rem" }}><span style={{ color: "var(--color-accent)" }}>article.presets.tsx</span> <span style={{ color: "var(--color-ink-faint)" }}>— Style layouts (Editorial, Hero, Compact, ArticleView)</span></div>
-  <div style={{ paddingLeft: "1.5rem" }}><span style={{ color: "var(--color-accent)" }}>article.footers.tsx</span> <span style={{ color: "var(--color-ink-faint)" }}>— Footer variants (FeedFooter, FocusFooter, EditionFooter)</span></div>
+  <div style={{ paddingLeft: "1.5rem" }}><span style={{ color: "var(--color-accent)" }}>article.footers.tsx</span> <span style={{ color: "var(--color-ink-faint)" }}>— Footer variants (FeedFooter, FocusFooter)</span></div>
 </div>
 
 </div>

@@ -18,6 +18,8 @@ This file is for **gotchas** — things that aren't obvious and required effort 
 - [docs/pipeline-optimization.md](docs/pipeline-optimization.md) — Pipeline optimization strategies: skip re-embedding, embedding similarity, hybrid classification, batching
 - [docs/feed-algorithms.md](docs/feed-algorithms.md) — Feed ranking algorithms: scoring formula, vote scoping, edition generation, source distribution
 - [docs/design-system.md](docs/design-system.md) — Design tokens, color palette, typography, spacing, motion, Storybook reference
+- [docs/reader.md](docs/reader.md) — Paged reading surface: formats, style vocabulary, turning, marking read
+- [docs/layout-engine.md](docs/layout-engine.md) — Typesetting engine: content model, columns, inline markup, cursor mapping
 - [docs/ai-assistant.md](docs/ai-assistant.md) — AI assistant: annotation system, tools, agent loop, tutorials, chat UI
 - [docs/data-portability.md](docs/data-portability.md) — Data export/import: format, API, import behavior, reconciliation
 - [docs/payments.md](docs/payments.md) — Stripe payments: access gating, subscriptions, pricing, webhooks, admin/user UI
@@ -70,7 +72,7 @@ Full reference: [docs/coding-standards.md](docs/coding-standards.md)
 
 ## Architecture
 
-**Monorepo:** pnpm workspace — `apps/server` (Fastify backend), `apps/web` (Vite + React frontend). Tooling managed via `mise.toml` (Node 24, pnpm 10, task).
+**Monorepo:** pnpm workspace — `apps/server` (Fastify backend), `apps/web` (Vite + React frontend), `packages/layout-engine` (typesetter). Tooling managed via `mise.toml` (Node 24, pnpm 10, task).
 
 **Task runner:** [Taskfile](https://taskfile.dev) via `task <name>` — `dev` (runs server + web), `dev:server`, `dev:web`, `start`, `check`, `install`, `clean`, `reset-db`, `lint`, `test:smoke`. Run `task --list` for descriptions.
 
@@ -147,6 +149,16 @@ Full reference: [docs/coding-standards.md](docs/coding-standards.md)
 - Never seed an *extracted* article and then trigger a reconcile job in an API test — the embed step would spawn the real HF worker and download a ~33MB model. Direct DB seeding (no job enqueued) is safe
 - Unit tests of the analysis pipeline compose the REAL steps via `buildReconcileSteps` from `reconciler/reconciler.ts` with fake `EmbedFn`/`ClassifyFn` — never hand-copy the step list
 - The default test run is hermetic (no network). Live-network tests (discovery catalog URL checks) are gated behind `EDITIONS_LIVE_TESTS=1` — run via `task test:live`
+
+**Reader / layout engine gotchas:**
+
+- Reading is **paged, not scrolled** — `components/reader/reader.ts` typesets articles into pages that fit the container exactly. Full reference: [docs/reader.md](docs/reader.md), [docs/layout-engine.md](docs/layout-engine.md)
+- The engine measures text by reading **computed styles off a live element**, so pass it the same Tailwind classes React would use (`applyRole`). Never hard-code font sizes for measurement — the two would drift and the mismatch only shows up as text overflowing a column
+- Type scales to the **page**, not the viewport. Tailwind's `md:`/`lg:` prefixes are wrong inside the reader: on a two-page spread a page is half the window wide. Use `typeScale({ width, height })`
+- `whiteSpace: 'pre-wrap'` in the engine is load-bearing. Pretext's default collapses newlines into spaces, which both destroys paragraph breaks *and* desynchronises `prepared.segments` from the source string — silently drifting every inline-markup offset
+- Pretext's `LayoutCursor.graphemeIndex` is **relative to its segment**, not the whole text. Convert via `layout-engine.cursor.ts`; never slice `text` with a raw cursor. Treating it as a global offset happens to work for ASCII in the first segment, which is what makes it easy to ship
+- Engine tests need a real browser (canvas + computed styles). `task test:engine`, after `pnpm exec playwright install chromium`. They are **not** in `task test`, which runs in CI without browsers
+- Adding a page style means a new `LayoutFn` in `reader.layouts.ts`, not CSS. The renderer paints regions where the layout function puts them — there is no flow, no margins, no `position: static`
 
 **Frontend gotchas:**
 

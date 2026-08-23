@@ -76,16 +76,15 @@ Global article stream across all sources.
 
 ### Magazine View
 
-Full-screen, print-inspired edition reader.
+Full-screen, print-inspired edition reader. Articles are typeset into pages that fit the screen; the only interaction is turning them.
 
 - Cover page with edition title and metadata
 - Table of contents with focus sections
-- Sequential article flow with sidebar navigation
-- Next/previous article navigation
-- Media player for podcasts/videos inline
-- Progress tracking per edition
-- Resume reading from last position
-- Mobile-responsive layout
+- Articles paginated across as many pages as they need — no scrolling
+- Two-page spread on desktop, single page on tablet, hand-sized page on mobile
+- Turn by arrow keys, edge click, or swipe
+- Vote and bookmark controls at the end of each article
+- Progress tracking per edition, resumed from the last page read
 
 ### Design Principles
 

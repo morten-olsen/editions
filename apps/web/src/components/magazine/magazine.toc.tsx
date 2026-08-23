@@ -10,6 +10,9 @@ type TocArticle = {
   sourceName: string;
   consumptionTimeSeconds?: number | null;
   sourceType?: string | null;
+  /** Page this article opens on. Articles run to as many pages as they need,
+   *  so this can't be derived from the section's start. */
+  page: number;
 };
 
 type TocSection = {
@@ -28,6 +31,9 @@ type MagazineTocProps = {
 /* ── Helpers ──────────────────────────────────────────────────────── */
 
 const easeOut = [0, 0, 0.15, 1] as const;
+
+/** Page indices are 0-based; folios are what the reader sees. */
+const folio = (index: number): string => String(index + 1).padStart(2, '0');
 
 const formatMin = (seconds: number): string => {
   const m = Math.round(seconds / 60);
@@ -60,20 +66,21 @@ const MagazineToc = ({ editionTitle, sections, onNavigate }: MagazineTocProps): 
             transition={{ duration: 0.4, ease: easeOut, delay: 0.1 + sIdx * 0.08 }}
           >
             {/* Section heading row */}
-            <div className="flex items-baseline gap-4 mb-4 border-b border-border pb-3">
+            <button
+              onClick={() => onNavigate?.(section.startPage)}
+              className="flex w-full items-baseline gap-4 mb-4 border-b border-border pb-3 text-left"
+            >
               <span className="text-2xl font-mono text-accent leading-none">{String(sIdx + 1).padStart(2, '0')}</span>
               <h3 className="font-serif text-xl tracking-tight text-ink">{section.focusName}</h3>
-              <span className="ml-auto text-xs font-mono text-ink-faint">
-                p. {String(section.startPage).padStart(2, '0')}
-              </span>
-            </div>
+              <span className="ml-auto text-xs font-mono text-ink-faint">p. {folio(section.startPage)}</span>
+            </button>
 
             {/* Article list */}
             <div className="grid gap-2 pl-10 md:pl-12">
               {section.articles.map((article, aIdx) => (
                 <button
                   key={aIdx}
-                  onClick={() => onNavigate?.(section.startPage + aIdx + 1)}
+                  onClick={() => onNavigate?.(article.page)}
                   className="group flex items-baseline gap-3 text-left transition-colors duration-fast hover:text-accent"
                 >
                   <span className="font-serif text-sm leading-snug text-ink group-hover:text-accent transition-colors duration-fast">

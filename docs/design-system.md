@@ -118,41 +118,48 @@ All primitives accept `duration` (token name) and `delay` props. Use them instea
 
 The default edition rendering — a vertical scroll through focus-grouped article cards within a `ReadingShell`. Sections are numbered, articles use `ArticleCard` with dividers. Feels like a newspaper column: linear, scannable, compact.
 
-### Magazine View (`components/magazine/`)
+### Magazine View (`components/reader/`, `components/magazine/`)
 
-An alternative paginated reading experience inspired by editorial magazines like Wired. Instead of scrolling, the reader navigates full-viewport pages using keyboard arrows or the page indicator.
+A paginated reading experience. Instead of scrolling, the reader turns pages that fit the screen exactly. Full reference: [reader.md](reader.md).
 
 #### Structure
 
-An edition becomes a sequence of pages:
+An edition becomes a sequence of pages. Designed pages are React; article pages are typeset by the layout engine. Both are pages of the same size and turn the same way.
 
-1. **Cover** (`MagazineCover`) — bold typographic cover with lead story headline at display scale, secondary highlights, and edition metadata. Top bar shows edition branding and date.
-2. **Table of Contents** (`MagazineToc`) — numbered sections with dotted-leader article lists. Clicking an article navigates to its page.
-3. **Section Divider** (`MagazineSection`) — full-page section break with oversized section number (decorative, at `8rem`+), focus name, and article count.
-4. **Article Spreads** (`MagazineArticle`) — three layout variants that rotate by position to create visual rhythm:
-   - **Hero** (position 0) — two-column grid with image and text side-by-side
-   - **Editorial** (position 1) — centered, single-column with full-width image
-   - **Compact** (position 2) — asymmetric sidebar layout with square image or accent border
-5. **Finale** (`MagazineFinale`) — completion page with article count and reading time summary.
+1. **Cover** (`MagazineCover`) — bold typographic cover with the lead story at display scale, secondary highlights, and edition metadata.
+2. **Contents** (`MagazineToc`) — sections with dotted-leader article lists. Clicking an entry turns to its page.
+3. **Section divider** (`MagazineSection`) — full-page break with an oversized section number, focus name and article count.
+4. **Article pages** — typeset by `openerLayout` and `bodyLayout`. The opener carries source, title, summary, byline and hero; continuation pages carry prose and a folio. Long articles run to as many pages as they need.
+5. **Last page** (`MagazineFinale`) — completion summary.
 
 #### Design principles
 
-- **Page-based, not scroll-based** — each spread occupies the viewport. The reader sees one thing at a time.
-- **Layout variety** — article spreads alternate layouts so the magazine feels curated, not templated. A real magazine editor would never lay out every page identically.
-- **Typography at scale** — cover headlines use `text-5xl` to `text-[5rem]`. Section numbers are decorative at `text-[8rem]+`. The type scale has room to breathe at full-page sizes.
-- **Entrance choreography** — each page animates in sequentially: source badge → title → summary → meta. Delays are staggered 0.1–0.4s using `ease-out-soft`.
-- **Mono for wayfinding** — source names, dates, page numbers, and section indices use `font-mono tracking-wide` in accent or tertiary ink. This creates a consistent navigational voice distinct from the reading voice (serif).
+- **Page-based, not scroll-based** — a page is a whole thought. The reader sees one thing at a time and turns when done.
+- **Typeset, not flowed** — body text is measured and broken to fit the page, with real columns, justified prose and figures placed in reading order. No CSS flow is involved in an article page.
+- **Typography at scale** — the type scale follows the *page*, not the viewport, so a spread page and a phone page differ in scale but not proportion.
+- **Mono for wayfinding** — source names, dates, folios and section indices use `font-mono tracking-wide`. A navigational voice distinct from the reading voice (serif).
+- **Restraint in motion** — a turn is a short crossfade. Anything more calls attention to the mechanism rather than the page.
+
+#### Formats
+
+| Format | When | Pages shown |
+| --- | --- | --- |
+| Spread | ≥ 1180px and landscape | 2, turned together, cover alone first |
+| Page | > 620px | 1 |
+| Compact | ≤ 620px | 1, single column |
 
 #### Navigation
 
-`MagazineLayout` wraps all pages and manages:
-- **Keyboard** — Left/Up for previous, Right/Down for next
-- **Page indicator** — fixed bottom bar with prev/next buttons and `01 / 14` counter in mono
-- **Page transitions** — crossfade with directional slide (40px), 400ms with `ease-gentle`
+`PagedSurface` owns turning:
+- **Keyboard** — arrows, space, page keys, `j`/`k`/`h`/`l`, Home/End, Escape to leave
+- **Pointer** — click within 28% of either edge
+- **Touch** — swipe, or tap either edge; the middle does nothing
+
+Every page reserves a footer band for the folio, and for the vote controls on an article's last page.
 
 #### When to use
 
-The magazine view suits readers who want a slower, more intentional experience — "settling into a favourite chair." The newspaper view suits quick scanning and triage. Both views share the same edition data; the difference is purely presentational.
+The magazine view suits readers who want a slower, more intentional experience — "settling into a favourite chair." The newspaper view suits quick scanning and triage. Both share the same edition data; the difference is presentational.
 
 ## Fonts
 

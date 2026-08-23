@@ -84,6 +84,7 @@ tasks:
   check:
     desc: Run TypeScript type checking
     cmds:
+      - pnpm --filter @editions/layout-engine check
       - pnpm --filter @editions/server check
       - pnpm --filter @editions/web check
 
@@ -150,6 +151,11 @@ tasks:
     desc: Run all tests
     cmds:
       - pnpm test
+
+  test:engine:
+    desc: Run layout-engine tests (real browser — needs `pnpm exec playwright install chromium`)
+    cmds:
+      - pnpm --filter @editions/layout-engine test
 
   test:live:
     desc: Run tests that hit the live network (discovery catalog URL checks)

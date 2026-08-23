@@ -107,6 +107,42 @@ const waitSecondsSchema = z
   .default(30)
   .describe('Seconds to wait for analysis to settle before returning. Returns early once ready.');
 
+/**
+ * An optional entity id — the "omit to create, pass to update" contract, and
+ * the scope selector on `vote_articles`.
+ *
+ * Declared `nullish` rather than `optional` because a model filling a JSON
+ * schema expresses "no value" as an explicit `null` about as often as it omits
+ * the key, and rejecting one of those is a pointless failure.
+ */
+const optionalIdSchema = (description: string): z.ZodType<string | null | undefined> =>
+  z.string().nullish().describe(description);
+
+/**
+ * Values a model uses to mean "nothing", which cannot identify a real record.
+ * Compared lowercase after trimming.
+ */
+const BLANK_ID_VALUES = new Set(['', 'null', 'undefined', 'none', 'nil', 'n/a', 'na']);
+
+/**
+ * Resolves an optional id to "provided" or "not provided".
+ *
+ * A model told to omit a field very often sends `""` or the literal string
+ * `"null"` instead. None of those can name an existing record, so the only
+ * reading that can possibly succeed is "not provided" — treating them as an
+ * update guarantees a not-found error. An agent hit exactly that: it sent
+ * `focusId: ""` meaning "create", and got `Focus not found: `.
+ *
+ * Also trims, so a stray-whitespace id still resolves.
+ */
+const resolveOptionalId = (raw: string | null | undefined): string | undefined => {
+  if (raw === null || raw === undefined) {
+    return undefined;
+  }
+  const trimmed = raw.trim();
+  return BLANK_ID_VALUES.has(trimmed.toLowerCase()) ? undefined : trimmed;
+};
+
 /** Resolves readiness for a scope — attached to every response carrying analysed data. */
 const readinessFor = async (ctx: ToolContext, scope: ReadinessScope = {}): Promise<Readiness> =>
   ctx.services.get(ReadinessService).get({ userId: ctx.userId, scope });
@@ -185,6 +221,8 @@ export {
   createToolRegistry,
   readinessFor,
   readinessAdvice,
+  optionalIdSchema,
+  resolveOptionalId,
   waitForReadiness,
   waitSecondsSchema,
   McpToolError,

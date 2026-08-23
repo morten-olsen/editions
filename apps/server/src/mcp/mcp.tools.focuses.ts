@@ -1,11 +1,19 @@
 import { z } from 'zod/v4';
 
-import { FocusesService } from '../focuses/focuses.ts';
+import { FocusNotFoundError, FocusesService } from '../focuses/focuses.ts';
 import type { Focus, FocusSource, TuningArticle } from '../focuses/focuses.ts';
 import { VotesService } from '../votes/votes.ts';
 
 import { LIMITS, clamp, truncate } from './mcp.budget.ts';
-import { defineTool, readinessAdvice, readinessFor, waitForReadiness, waitSecondsSchema } from './mcp.tools.ts';
+import {
+  defineTool,
+  optionalIdSchema,
+  readinessAdvice,
+  readinessFor,
+  resolveOptionalId,
+  waitForReadiness,
+  waitSecondsSchema,
+} from './mcp.tools.ts';
 import type { McpTool } from './mcp.tools.ts';
 
 // --- Shared schema fragments ---
@@ -65,7 +73,9 @@ const saveFocus = defineTool({
   scope: 'write',
   readOnly: false,
   inputSchema: {
-    focusId: z.string().optional().describe('Omit to create, pass to update.'),
+    focusId: optionalIdSchema(
+      'The focus to update. Omit it (or pass null) to CREATE a new focus — do not pass an empty string.',
+    ),
     name: z.string().min(1).optional(),
     description: z.string().optional().describe('Natural-language description of the topic. See COST note.'),
     icon: z.string().nullable().optional(),
@@ -80,14 +90,15 @@ const saveFocus = defineTool({
   },
   handler: async (args, ctx) => {
     const focuses = ctx.services.get(FocusesService);
-    const { focusId, sources, waitSeconds, ...fields } = args;
+    const { focusId: rawFocusId, sources, waitSeconds, ...fields } = args;
+    const focusId = resolveOptionalId(rawFocusId);
 
     let focus: Focus;
     let created: boolean;
 
     if (focusId === undefined) {
       if (fields.name === undefined) {
-        throw new Error('name is required when creating a focus');
+        throw new Error('name is required when creating a focus (omit focusId to create)');
       }
       focus = await focuses.create({
         userId: ctx.userId,
@@ -101,7 +112,15 @@ const saveFocus = defineTool({
       });
       created = true;
     } else {
-      focus = await focuses.update(ctx.userId, focusId, fields);
+      try {
+        focus = await focuses.update(ctx.userId, focusId, fields);
+      } catch (err) {
+        if (err instanceof FocusNotFoundError) {
+          // Make a wrong id self-correcting rather than a dead end.
+          throw new Error(`${err.message}. To create a new focus instead, call save_focus with no focusId.`);
+        }
+        throw err;
+      }
       if (sources !== undefined) {
         focus = await focuses.setSources(ctx.userId, focusId, sources as FocusSource[]);
       }

@@ -228,3 +228,10 @@ what lets `inspect_feed` be `read`-scope with no side effects.
   generator cannot describe usefully, and the web client never calls it.
 - Tool errors are returned as `isError: true` with a readable message rather than as protocol
   errors, so the agent can read what went wrong and correct itself.
+- **Never branch on `=== undefined` for an optional id.** A model filling an optional string field
+  routinely sends `""`, `null` or the literal `"null"` instead of omitting the key. `save_focus`
+  originally branched on `focusId === undefined`, so `focusId: ""` was read as an update and creation
+  became impossible — an agent reported exactly that. Optional ids use `optionalIdSchema` (declared
+  `nullish`, so an explicit `null` is accepted) and are resolved through `resolveOptionalId`, which
+  treats blank and placeholder values as absent. Not-found errors on those tools also say how to
+  create instead, so a genuinely wrong id is self-correcting rather than a dead end.

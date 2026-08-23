@@ -819,6 +819,112 @@ describe('write tools', () => {
   });
 });
 
+// --- Create-vs-update id handling ---
+
+/**
+ * An agent reported that creating was impossible: "it requires a focus/edition
+ * ID even when the ID is omitted, resulting in Focus not found". The cause was
+ * `focusId: ""` — a model filling an optional string field routinely sends an
+ * empty string or the literal "null" instead of omitting the key, and the
+ * handler branched on `=== undefined`, so a blank id was read as an update.
+ */
+describe('optional ids on create-or-update tools', () => {
+  const BLANK_FORMS: [label: string, value: unknown][] = [
+    ['omitted', undefined],
+    ['empty string', ''],
+    ['whitespace', '   '],
+    ['json null', null],
+    ['literal "null"', 'null'],
+    ['literal "undefined"', 'undefined'],
+    ['literal "none"', 'none'],
+    ['literal "N/A"', 'N/A'],
+  ];
+
+  for (const [label, value] of BLANK_FORMS) {
+    it(`save_focus creates when focusId is ${label}`, async () => {
+      stubJobs();
+      const args: Record<string, unknown> = {
+        name: `Space ${label}`,
+        description: 'Rockets, orbital missions and planetary science.',
+        waitSeconds: 0,
+      };
+      if (value !== undefined) {
+        args.focusId = value;
+      }
+
+      const result = (await call('save_focus', args, 'write')) as unknown as {
+        created: boolean;
+        focus: { id: string };
+      };
+
+      expect(result.created).toBe(true);
+      expect(result.focus.id).toBeTruthy();
+    });
+
+    it(`save_edition_config creates when editionConfigId is ${label}`, async () => {
+      const args: Record<string, unknown> = { name: `Daily ${label}`, schedule: '0 7 * * *', lookbackHours: 24 };
+      if (value !== undefined) {
+        args.editionConfigId = value;
+      }
+
+      const result = (await call('save_edition_config', args, 'write')) as unknown as {
+        created: boolean;
+        editionConfig: { id: string };
+      };
+
+      expect(result.created).toBe(true);
+      expect(result.editionConfig.id).toBeTruthy();
+    });
+  }
+
+  it('still updates when a real id is given, and trims stray whitespace', async () => {
+    stubJobs();
+    const created = (await call(
+      'save_focus',
+      { name: 'Space', description: 'Rockets and telescopes.', waitSeconds: 0 },
+      'write',
+    )) as unknown as { focus: { id: string } };
+
+    const updated = (await call(
+      'save_focus',
+      { focusId: `  ${created.focus.id}  `, minConfidence: 0.6, waitSeconds: 0 },
+      'write',
+    )) as unknown as { created: boolean; focus: { id: string; minConfidence: number } };
+
+    expect(updated.created).toBe(false);
+    expect(updated.focus.id).toBe(created.focus.id);
+    expect(updated.focus.minConfidence).toBe(0.6);
+  });
+
+  it('tells the agent how to create when a genuinely wrong id is passed', async () => {
+    stubJobs();
+    await expect(call('save_focus', { focusId: 'no-such-focus', name: 'X', waitSeconds: 0 }, 'write')).rejects.toThrow(
+      /call save_focus with no focusId/,
+    );
+    await expect(
+      call('save_edition_config', { editionConfigId: 'no-such-config', name: 'X' }, 'write'),
+    ).rejects.toThrow(/call save_edition_config with no editionConfigId/);
+  });
+
+  it('treats a blank focusId on vote_articles as a global vote', async () => {
+    const db = await t.db();
+    const sourceId = await seedSource(db, 'Example', 'https://example.com/feed.xml');
+    const [articleId] = await seedArticles(db, { sourceId, articles: [{ title: 'A story' }] });
+
+    const result = (await call(
+      'vote_articles',
+      { focusId: '', votes: [{ articleId, value: 'up' }] },
+      'write',
+    )) as unknown as { scope: unknown; results: { action: string }[] };
+
+    expect(result.scope).toBe('global');
+    expect(result.results[0]?.action).toBe('voted');
+
+    const rows = await db.selectFrom('article_votes').select('focus_id').where('user_id', '=', userId).execute();
+    expect(rows).toEqual([{ focus_id: null }]);
+  });
+});
+
 // --- Voting ---
 
 describe('vote_articles', () => {

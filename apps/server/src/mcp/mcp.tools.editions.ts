@@ -1,11 +1,11 @@
 import { z } from 'zod/v4';
 
-import { EditionsService } from '../editions/editions.ts';
+import { EditionConfigNotFoundError, EditionsService } from '../editions/editions.ts';
 import type { EditionConfig, EditionConfigFocus, EditionPreview } from '../editions/editions.ts';
 import { FocusesService } from '../focuses/focuses.ts';
 
 import { LIMITS, capList, clamp, truncate } from './mcp.budget.ts';
-import { defineTool, readinessFor } from './mcp.tools.ts';
+import { defineTool, optionalIdSchema, readinessFor, resolveOptionalId } from './mcp.tools.ts';
 import type { McpTool, ToolContext } from './mcp.tools.ts';
 
 // --- Shared schema fragments ---
@@ -141,7 +141,9 @@ const saveEditionConfig = defineTool({
   scope: 'write',
   readOnly: false,
   inputSchema: {
-    editionConfigId: z.string().optional().describe('Omit to create, pass to update.'),
+    editionConfigId: optionalIdSchema(
+      'The edition config to update. Omit it (or pass null) to CREATE a new one — do not pass an empty string.',
+    ),
     name: z.string().min(1).optional(),
     icon: z.string().nullable().optional(),
     schedule: z.string().optional().describe('Cron expression, e.g. "0 7 * * *" for 07:00 daily.'),
@@ -155,11 +157,14 @@ const saveEditionConfig = defineTool({
   },
   handler: async (args, ctx) => {
     const editions = ctx.services.get(EditionsService);
-    const { editionConfigId, focuses, ...fields } = args;
+    const { editionConfigId: rawConfigId, focuses, ...fields } = args;
+    const editionConfigId = resolveOptionalId(rawConfigId);
 
     if (editionConfigId === undefined) {
       if (fields.name === undefined || fields.schedule === undefined) {
-        throw new Error('name and schedule are required when creating an edition config');
+        throw new Error(
+          'name and schedule are required when creating an edition config (omit editionConfigId to create)',
+        );
       }
       const config = await editions.createConfig({
         userId: ctx.userId,
@@ -174,11 +179,21 @@ const saveEditionConfig = defineTool({
       return { editionConfig: toConfigSummary(config), created: true };
     }
 
-    const config = await editions.updateConfig(ctx.userId, editionConfigId, {
-      ...fields,
-      focuses: focuses as EditionConfigFocus[] | undefined,
-    });
-    return { editionConfig: toConfigSummary(config), created: false };
+    try {
+      const config = await editions.updateConfig(ctx.userId, editionConfigId, {
+        ...fields,
+        focuses: focuses as EditionConfigFocus[] | undefined,
+      });
+      return { editionConfig: toConfigSummary(config), created: false };
+    } catch (err) {
+      if (err instanceof EditionConfigNotFoundError) {
+        // Make a wrong id self-correcting rather than a dead end.
+        throw new Error(
+          `${err.message}. To create a new edition config instead, call save_edition_config with no editionConfigId.`,
+        );
+      }
+      throw err;
+    }
   },
 });
 

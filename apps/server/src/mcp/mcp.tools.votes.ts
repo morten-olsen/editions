@@ -4,7 +4,7 @@ import { FocusesService } from '../focuses/focuses.ts';
 import { ArticleNotFoundForVoteError, VotesService } from '../votes/votes.ts';
 
 import { LIMITS } from './mcp.budget.ts';
-import { defineTool } from './mcp.tools.ts';
+import { defineTool, optionalIdSchema, resolveOptionalId } from './mcp.tools.ts';
 import type { McpTool } from './mcp.tools.ts';
 
 // --- Types ---
@@ -51,10 +51,9 @@ const voteArticles = defineTool({
   scope: 'write',
   readOnly: false,
   inputSchema: {
-    focusId: z
-      .string()
-      .optional()
-      .describe('Scope the votes to this focus. Omit for a global vote that affects every feed.'),
+    focusId: optionalIdSchema(
+      'Scope the votes to this focus. Omit it (or pass null) for a global vote affecting every feed.',
+    ),
     votes: z
       .array(
         z.object({
@@ -74,7 +73,8 @@ const voteArticles = defineTool({
   },
   handler: async ({ focusId, votes, overwriteExisting }, ctx) => {
     const votesService = ctx.services.get(VotesService);
-    const scopeFocusId = focusId ?? null;
+    // A blank id means "no focus scope", i.e. global — it can never name a focus.
+    const scopeFocusId = resolveOptionalId(focusId) ?? null;
 
     // Ownership check on the focus before writing anything against it.
     if (scopeFocusId !== null) {

@@ -23,6 +23,17 @@ Sources are where articles come from. Each source has a type and configuration s
 5. If there's an error, it appears as `source-error`
 6. After creating, you'll land on the source detail page
 
+## Sources list page (/sources)
+
+- `sources-search` — filters by name or URL. The search runs server-side, so it
+  covers every source, not just the page on screen.
+- `sources-list` — the source cards for the current page
+- `sources-prev-page` / `sources-next-page` — pagination (20 per page)
+- `add-source-btn` — add a new source
+
+The page header shows the total number of sources, which can exceed what's
+listed — check the pager before telling the user how many they have.
+
 ## Source detail page
 
 The source detail page shows the source's articles and has these actions:

@@ -224,8 +224,25 @@ A generated instance of an edition config — an immutable snapshot (the "magazi
 | total_reading_minutes | integer | Actual reading time of selected articles |
 | article_count | integer | |
 | current_position | integer | Last article position the user reached, for resume. Default 0 |
+| read_at | text | Null = unread. A user-toggleable flag — see read-state semantics below |
 | published_at | text | |
 | created_at | text | |
+
+**Read-state semantics (deliberately asymmetric).** `articles.read_at` is
+monotonic: once an article is read it stays read, and the timestamp is never
+overwritten. `editions.read_at` is a flag the user can toggle both ways.
+
+- Marking an issue read sets `read_at` on its articles **where it is null**, so an
+  article read weeks ago through another surface keeps its original timestamp.
+- Marking an issue unread clears only `editions.read_at`. Its articles stay read.
+
+The reason is that an article can belong to several issues (focuses opt out of
+`exclude_prior_editions`). Clearing article read state from one issue would
+silently un-read articles the user already read in another. The edition reader
+displays read state from `editions.read_at` alone, so nothing is lost.
+
+Owned by `editions/editions.issues.ts` — both the single-issue toggle and the
+bulk sweep go through the same helper, so the rule exists in one place.
 
 ### edition_articles
 

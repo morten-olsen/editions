@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { useAuthHeaders } from '../../api/api.hooks.ts';
+import { client } from '../../api/api.ts';
 
 /* ── Types ───────────────────────────────────────────────────────── */
 
@@ -61,18 +62,17 @@ const useEditionPreview = (configId: string, config?: EditionPreviewConfig): Use
           }
         : {};
 
-      const res = await fetch(`/api/editions/configs/${configId}/preview`, {
-        method: 'POST',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+      const { data, error: err } = await client.POST('/api/editions/configs/{configId}/preview', {
+        params: { path: { configId } },
+        body,
+        headers,
       });
 
-      if (!res.ok) {
-        const errorBody = await res.json().catch(() => ({}));
-        throw new Error((errorBody as { error?: string }).error ?? `Preview failed (${res.status})`);
+      if (err || !data) {
+        throw new Error((err as { error?: string } | undefined)?.error ?? 'Preview failed');
       }
 
-      return (await res.json()) as EditionPreviewPage;
+      return data as EditionPreviewPage;
     },
     enabled: !!headers && !!configId,
     staleTime: 10_000,

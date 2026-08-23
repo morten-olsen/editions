@@ -2,6 +2,8 @@ import crypto from 'node:crypto';
 
 import { DatabaseService } from '../database/database.ts';
 import type { ArticleVoteValue } from '../database/database.types.ts';
+import { toPage } from '../pagination/pagination.ts';
+import type { Page, PageOptions } from '../pagination/pagination.ts';
 import type { UserScoringWeights, VoteContext, VotedArticle } from '../ranking/ranking.ts';
 import { MAX_VOTE_CONTEXT_SIZE, decodeEmbedding, parseUserScoringWeights } from '../ranking/ranking.ts';
 import type { Services } from '../services/services.ts';
@@ -50,9 +52,7 @@ type ArticleVotePair = {
 
 type ArticleVotesMap = Map<string, ArticleVotePair>;
 
-type ListVotesOptions = {
-  offset?: number;
-  limit?: number;
+type ListVotesOptions = PageOptions & {
   scope?: 'global' | 'focus' | 'edition';
   value?: ArticleVoteValue;
 };
@@ -70,12 +70,7 @@ type VoteWithArticle = {
   focusName: string | null;
 };
 
-type VotesPage = {
-  votes: VoteWithArticle[];
-  total: number;
-  offset: number;
-  limit: number;
-};
+type VotesPage = Page<VoteWithArticle>;
 
 // --- Service ---
 
@@ -315,8 +310,8 @@ class VotesService {
       .limit(limit)
       .execute();
 
-    return {
-      votes: rows.map((row) => ({
+    return toPage({
+      items: rows.map((row) => ({
         id: row.id,
         articleId: row.article_id,
         focusId: row.focus_id,
@@ -328,10 +323,10 @@ class VotesService {
         sourceName: row.source_name,
         focusName: (row.focus_name as string | null) ?? null,
       })),
-      total: Number(countResult.count),
+      total: countResult.count,
       offset,
       limit,
-    };
+    });
   };
 
   removeById = async (userId: string, voteId: string): Promise<boolean> => {

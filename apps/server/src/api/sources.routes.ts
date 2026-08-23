@@ -4,6 +4,7 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { createAccessHook } from '../auth/access.middleware.ts';
 import { createAuthHook } from '../auth/auth.middleware.ts';
 import { JobService } from '../jobs/jobs.ts';
+import { paginationQuerySchema } from '../pagination/pagination.ts';
 import type { Services } from '../services/services.ts';
 import { SourceNotFoundError, SourcesService } from '../sources/sources.ts';
 import { buildOpml, parseOpml } from '../sources/sources.opml.ts';
@@ -16,9 +17,10 @@ import {
   errorResponseSchema,
   idParamSchema,
   articlesPageSchema,
+  sourcesPageSchema,
+  listSourcesQuerySchema,
   articleDetailSchema,
   articleIdParamSchema,
-  paginationQuerySchema,
   jobResponseSchema,
   opmlImportResultSchema,
 } from './sources.routes.schemas.ts';
@@ -42,11 +44,17 @@ const registerSourceReadRoutes = ({ fastify, services, authenticate }: RouteArgs
     onRequest: authenticate,
     schema: {
       security: [{ bearerAuth: [] }],
-      response: { 200: z.array(sourceSchema) },
+      querystring: listSourcesQuerySchema,
+      response: { 200: sourcesPageSchema },
     },
     handler: async (req, _reply) => {
       const sources = services.get(SourcesService);
-      return sources.list(req.user.sub);
+      return sources.list(req.user.sub, {
+        offset: req.query.offset,
+        limit: req.query.limit ?? null,
+        q: req.query.q,
+        includeBookmarks: req.query.includeBookmarks !== 'false',
+      });
     },
   });
 
@@ -302,13 +310,17 @@ const registerOpmlRoutes = ({ fastify, services, authenticate, requireAccess }: 
     onRequest: authenticate,
     schema: {
       security: [{ bearerAuth: [] }],
+      // Returns the OPML document as a JSON string field rather than an XML body:
+      // the endpoint is Bearer-authenticated, so the URL can't be handed to
+      // another feed reader regardless, and staying JSON keeps it in the generated
+      // API types instead of forcing an untyped fetch on the client. The client
+      // turns this into the downloaded .opml file.
+      response: { 200: z.object({ opml: z.string() }) },
     },
-    handler: async (req, reply) => {
+    handler: async (req, _reply) => {
       const sources = services.get(SourcesService);
-      const allSources = await sources.list(req.user.sub);
-      const exportable = allSources.filter((s) => s.type !== 'bookmarks');
-      const opml = buildOpml(exportable);
-      return reply.type('application/xml').send(opml);
+      const exportable = await sources.list(req.user.sub, { includeBookmarks: false });
+      return { opml: buildOpml(exportable.items) };
     },
   });
 
@@ -330,7 +342,7 @@ const registerOpmlRoutes = ({ fastify, services, authenticate, requireAccess }: 
 
       const sourcesService = services.get(SourcesService);
       const existing = await sourcesService.list(req.user.sub);
-      const existingUrls = new Set(existing.map((s) => normalizeUrl(s.url)));
+      const existingUrls = new Set(existing.items.map((s) => normalizeUrl(s.url)));
 
       const results: { name: string; url: string; status: 'added' | 'skipped' }[] = [];
       let added = 0;

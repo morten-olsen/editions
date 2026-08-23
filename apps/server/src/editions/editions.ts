@@ -8,6 +8,21 @@ import type { Services } from '../services/services.ts';
 import { generateEdition, loadGenerationInputs } from './editions.generate.ts';
 import type { GenerateResult } from './editions.generate.ts';
 import {
+  DEFAULT_ISSUES_PAGE_SIZE,
+  countMatchingIssues,
+  deleteIssueById,
+  listIssues,
+  runIssueSweep,
+  setIssueReadStatusById,
+} from './editions.issues.ts';
+import type {
+  IssueSweepAction,
+  IssueSweepFilter,
+  IssueSweepResult,
+  IssuesPage,
+  ListIssuesOptions,
+} from './editions.issues.ts';
+import {
   mapFocusLinkRow,
   mapEditionArticleRow,
   mapEditionRow,
@@ -226,42 +241,30 @@ class EditionsService {
 
   // --- Generated Editions ---
 
-  listEditions = async (
-    userId: string,
-    configId: string,
-    { read }: { read?: boolean } = {},
-  ): Promise<EditionSummary[]> => {
+  listEditions = async (userId: string, configId: string, opts: ListIssuesOptions = {}): Promise<IssuesPage> => {
     const db = await this.#services.get(DatabaseService).getInstance();
     await this.getConfig(userId, configId);
 
-    let query = db
-      .selectFrom('editions')
-      .innerJoin('edition_configs', 'edition_configs.id', 'editions.edition_config_id')
-      .select([
-        'editions.id',
-        'editions.edition_config_id',
-        'editions.title',
-        'editions.total_reading_minutes',
-        'editions.article_count',
-        'editions.current_position',
-        'editions.read_at',
-        'editions.published_at',
-        'editions.created_at',
-        'edition_configs.name as config_name',
-      ])
-      .where('editions.edition_config_id', '=', configId)
-      .where('edition_configs.user_id', '=', userId)
-      .orderBy('editions.published_at', 'desc');
+    return listIssues(db, { userId, configId }, opts);
+  };
 
-    if (read === true) {
-      query = query.where('editions.read_at', 'is not', null);
-    } else if (read === false) {
-      query = query.where('editions.read_at', 'is', null);
-    }
+  /** How many issues a sweep would touch — same selection the sweep runs. */
+  countIssueSweep = async (userId: string, configId: string, filter: IssueSweepFilter): Promise<IssueSweepResult> => {
+    const db = await this.#services.get(DatabaseService).getInstance();
+    await this.getConfig(userId, configId);
 
-    const rows = await query.execute();
+    return countMatchingIssues(db, { userId, configId }, filter);
+  };
 
-    return rows.map((row) => ({ ...mapEditionRow(row), configName: row.config_name }));
+  runIssueSweep = async (
+    userId: string,
+    configId: string,
+    { filter, action }: { filter: IssueSweepFilter; action: IssueSweepAction },
+  ): Promise<IssueSweepResult> => {
+    const db = await this.#services.get(DatabaseService).getInstance();
+    await this.getConfig(userId, configId);
+
+    return runIssueSweep(db, { userId, configId }, { filter, action });
   };
 
   getEdition = async (userId: string, editionId: string): Promise<EditionDetail> => {
@@ -296,20 +299,15 @@ class EditionsService {
   deleteEdition = async (userId: string, editionId: string): Promise<void> => {
     const db = await this.#services.get(DatabaseService).getInstance();
     await this.getEdition(userId, editionId);
-    await db.deleteFrom('editions').where('id', '=', editionId).execute();
+
+    await deleteIssueById(db, editionId);
   };
 
   setEditionReadStatus = async (userId: string, editionId: string, read: boolean): Promise<Edition> => {
     const db = await this.#services.get(DatabaseService).getInstance();
     const edition = await this.getEdition(userId, editionId);
-    const readAt = read ? new Date().toISOString() : null;
 
-    await db.updateTable('editions').set({ read_at: readAt }).where('id', '=', editionId).execute();
-
-    const articleIds = edition.articles.map((a) => a.id);
-    if (articleIds.length > 0) {
-      await db.updateTable('articles').set({ read_at: readAt }).where('id', 'in', articleIds).execute();
-    }
+    const readAt = await setIssueReadStatusById(db, editionId, read);
 
     return { ...edition, readAt };
   };
@@ -468,6 +466,11 @@ class EditionsService {
 }
 
 export type {
+  IssueSweepAction,
+  IssueSweepFilter,
+  IssueSweepResult,
+  IssuesPage,
+  ListIssuesOptions,
   EditionConfig,
   EditionConfigFocus,
   CreateEditionConfigParams,
@@ -480,4 +483,4 @@ export type {
   EditionPreviewSection,
   EditionPreviewArticle,
 };
-export { EditionsService, EditionError, EditionConfigNotFoundError, EditionNotFoundError };
+export { DEFAULT_ISSUES_PAGE_SIZE, EditionsService, EditionError, EditionConfigNotFoundError, EditionNotFoundError };

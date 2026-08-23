@@ -37,6 +37,34 @@ Shows the config and its generated issues:
 - `edition-issues` — list of generated issues
 - Each issue has `edition-issue-{id}-link` to open it
 
+## All issues page (/editions/{configId}/issues)
+
+The full, paginated list of a magazine's issues:
+
+- `issues-filter-unread` / `issues-filter-all` — read-status filter
+- `issues-prev-page` / `issues-next-page` — pagination (20 per page)
+- Each row: `edition-issue-{id}-link` to open, `edition-issue-{id}-delete` to delete that one issue
+
+### Cleaning up in bulk
+
+`issues-sweep-open` opens the clean-up dialog (`issues-sweep-dialog`), which acts
+on **every issue matching a filter**, not just the current page:
+
+- `issues-sweep-scope` — read / unread / all issues
+- `issues-sweep-age` — any age, or older than 7 / 30 / 90 days
+- `issues-sweep-keep` — how many of the newest issues to always protect
+- `issues-sweep-action` — delete, mark read, or mark unread
+- `issues-sweep-preview` — live count of how many issues the current filter matches
+- `issues-sweep-confirm` — run it; `issues-sweep-cancel` to back out
+- `issues-sweep-result` — how many issues were affected
+
+The keep-newest value is a guard, not a filter: it protects the N most recent
+issues even when they match. Deleting is irreversible, so read
+`issues-sweep-preview` back to the user before confirming.
+
+Marking issues read also marks their unread articles read. Marking issues unread
+only un-reads the *issues* — articles stay read (see docs/database.md).
+
 ## Editions list page
 
 - `edition-new` — link to create a new edition

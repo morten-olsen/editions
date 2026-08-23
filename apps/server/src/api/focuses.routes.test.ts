@@ -403,7 +403,7 @@ describe('focus preview', () => {
 
     expect(res.statusCode).toBe(200);
     const body = JSON.parse(res.body);
-    expect(body.articles).toEqual([]);
+    expect(body.items).toEqual([]);
     expect(body.total).toBe(0);
   });
 

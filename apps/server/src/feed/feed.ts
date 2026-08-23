@@ -2,6 +2,8 @@ import type { Kysely } from 'kysely';
 
 import { DatabaseService } from '../database/database.ts';
 import type { DatabaseSchema } from '../database/database.types.ts';
+import { toPage } from '../pagination/pagination.ts';
+import type { Page, PageOptions } from '../pagination/pagination.ts';
 import { scoreAndRank } from '../ranking/ranking.ts';
 import type { RankingCandidate } from '../ranking/ranking.ts';
 import { VotesService } from '../votes/votes.ts';
@@ -12,9 +14,7 @@ import type { Services } from '../services/services.ts';
 type FeedSort = 'top' | 'recent';
 type FeedStatus = 'unread' | 'read' | 'all';
 
-type ListFeedOptions = {
-  offset?: number;
-  limit?: number;
+type ListFeedOptions = PageOptions & {
   sort?: FeedSort;
   status?: FeedStatus;
   from?: string;
@@ -42,12 +42,7 @@ type FeedArticle = {
   sourceName: string;
 };
 
-type FeedPage = {
-  articles: FeedArticle[];
-  total: number;
-  offset: number;
-  limit: number;
-};
+type FeedPage = Page<FeedArticle>;
 
 type FeedCandidate = RankingCandidate & {
   sourceId: string;
@@ -214,8 +209,8 @@ const listRecent = async (ctx: ListContext): Promise<FeedPage> => {
   const articleIds = rows.map((r: { id: string }) => r.id);
   const votesMap = await votesService.getVotesByArticleIds(ctx.userId, articleIds, null);
 
-  return {
-    articles: rows.map((row: unknown) => {
+  return toPage({
+    items: rows.map((row: unknown) => {
       const r = row as { id: string };
       const votes = votesMap.get(r.id);
       return mapRowToArticle(row, votes?.global ?? null, 0);
@@ -223,7 +218,7 @@ const listRecent = async (ctx: ListContext): Promise<FeedPage> => {
     total: ctx.total,
     offset: ctx.offset,
     limit: ctx.limit,
-  };
+  });
 };
 
 const listTop = async (ctx: ListContext): Promise<FeedPage> => {
@@ -246,15 +241,15 @@ const listTop = async (ctx: ListContext): Promise<FeedPage> => {
   const articleIds = page.map((r) => r.item.articleId);
   const votesMap = await votesService.getVotesByArticleIds(ctx.userId, articleIds, null);
 
-  return {
-    articles: page.map(({ item, score }) => {
+  return toPage({
+    items: page.map(({ item, score }) => {
       const votes = votesMap.get(item.articleId);
       return mapCandidateToArticle(item, votes?.global ?? null, score);
     }),
     total: ctx.total,
     offset: ctx.offset,
     limit: ctx.limit,
-  };
+  });
 };
 
 // --- Public entry point ---

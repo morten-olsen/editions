@@ -3,6 +3,7 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
 import { createAuthHook } from '../auth/auth.middleware.ts';
 import { BookmarksService } from '../bookmarks/bookmarks.ts';
+import { pagedSchema, paginationQuerySchema } from '../pagination/pagination.ts';
 import type { Services } from '../services/services.ts';
 
 // --- Schemas ---
@@ -30,17 +31,7 @@ const bookmarkWithArticleSchema = z.object({
   sourceType: z.string(),
 });
 
-const bookmarksPageSchema = z.object({
-  bookmarks: z.array(bookmarkWithArticleSchema),
-  total: z.number(),
-  offset: z.number(),
-  limit: z.number(),
-});
-
-const listBookmarksQuerySchema = z.object({
-  offset: z.coerce.number().int().min(0).default(0),
-  limit: z.coerce.number().int().min(1).max(100).default(50),
-});
+const bookmarksPageSchema = pagedSchema(bookmarkWithArticleSchema);
 
 const articleIdParamsSchema = z.object({
   articleId: z.string(),
@@ -60,7 +51,7 @@ const registerListAndCheckRoutes = (
     onRequest: authenticate,
     schema: {
       security: [{ bearerAuth: [] }],
-      querystring: listBookmarksQuerySchema,
+      querystring: paginationQuerySchema,
       response: { 200: bookmarksPageSchema },
     },
     handler: async (req) => {

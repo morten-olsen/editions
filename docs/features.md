@@ -235,10 +235,10 @@ All routes under `/api`. Interactive docs at `/api/docs` (Scalar).
 |--------|-----------|------|
 | Auth | register, login, me | Public (register/login), Protected (me) |
 | Config | public config (allowSignups) | Public |
-| Sources | CRUD, articles, fetch, reanalyse, tasks | Protected |
+| Sources | CRUD (paged, searchable), articles, fetch, reanalyse, tasks | Protected |
 | Articles | vote, reading progress | Protected |
 | Focuses | CRUD, articles, source associations, votes | Protected |
-| Editions | config CRUD, generate, edition CRUD, progress, votes | Protected |
+| Editions | config CRUD, generate, issue list (paged), issue sweep (preview + bulk delete/read), edition CRUD, progress, votes | Protected |
 | Feed | paginated article listing | Protected |
 | Bookmarks | list, save, check, toggle | Protected |
 | Votes | list, delete | Protected |

@@ -10,6 +10,7 @@ import {
   useAdminCancelSubscription,
 } from '../../hooks/billing/billing.hooks.ts';
 import type { AdminUser } from '../../hooks/billing/billing.hooks.ts';
+import { Pager } from '../../components/pager.tsx';
 
 // --- Pricing config form ---
 
@@ -206,15 +207,15 @@ const UserRow = ({ user }: { user: AdminUser }): React.ReactNode => {
 };
 
 const UsersTable = (): React.ReactNode => {
-  const { data: users, isLoading } = useAdminUsers();
+  const { users, total, isLoading, pagination } = useAdminUsers();
 
-  if (isLoading || !users) {
+  if (isLoading) {
     return <p className="text-sm text-ink-tertiary">Loading users...</p>;
   }
 
   return (
     <div>
-      <h3 className="text-sm font-semibold text-ink mb-2">User Access</h3>
+      <h3 className="text-sm font-semibold text-ink mb-2">User Access ({total})</h3>
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
@@ -232,6 +233,7 @@ const UsersTable = (): React.ReactNode => {
           </tbody>
         </table>
       </div>
+      <Pager pagination={pagination} idPrefix="admin-users" />
     </div>
   );
 };

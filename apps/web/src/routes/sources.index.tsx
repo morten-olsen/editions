@@ -7,6 +7,7 @@ import { SourceCard } from '../components/source-card.tsx';
 import { EmptyState } from '../components/empty-state.tsx';
 import { Button } from '../components/button.tsx';
 import { Menu } from '../components/menu.tsx';
+import { Pager } from '../components/pager.tsx';
 import { Collapse } from '../components/animate.tsx';
 
 const ImportResultBanner = ({
@@ -140,8 +141,23 @@ const SourcesActions = ({
   </div>
 );
 
+const SourceSearch = ({ search, onSearch }: { search: string; onSearch: (value: string) => void }): React.ReactNode => (
+  <input
+    type="search"
+    placeholder="Search sources by name or URL..."
+    value={search}
+    onChange={(e) => onSearch(e.target.value)}
+    className="w-full h-10 rounded-md border border-border bg-surface-raised px-3.5 mb-4 text-sm text-ink placeholder:text-ink-faint outline-none transition-colors duration-fast ease-gentle focus:border-accent focus:ring-2 focus:ring-accent/20"
+    data-ai-id="sources-search"
+    data-ai-role="input"
+    data-ai-label="Search sources"
+    data-ai-value={search}
+  />
+);
+
 const SourcesPage = (): React.ReactNode => {
-  const { sources, loading, reanalyseMutation, reExtractMutation } = useSourcesList();
+  const { sources, total, loading, search, setSearch, pagination, reanalyseMutation, reExtractMutation } =
+    useSourcesList();
   const { stats } = useClassificationStats();
   const { exportOpml, pickAndImport, importMutation, importResult, importError, clearImportResult } = useOpml();
 
@@ -149,7 +165,7 @@ const SourcesPage = (): React.ReactNode => {
     <div className="max-w-prose mx-auto px-4 py-6 md:px-8 md:py-8">
       <PageHeader
         title="Sources"
-        subtitle={loading ? 'Loading...' : `${sources.length} feeds configured`}
+        subtitle={loading ? 'Loading...' : `${total} feed${total === 1 ? '' : 's'} configured`}
         actions={
           <SourcesActions
             onExport={exportOpml}
@@ -165,7 +181,11 @@ const SourcesPage = (): React.ReactNode => {
 
       <ImportResultBanner result={importResult} error={importError} onDismiss={clearImportResult} />
 
-      {!loading && sources.length === 0 ? (
+      {(total > 0 || search) && <SourceSearch search={search} onSearch={setSearch} />}
+
+      {!loading && sources.length === 0 && search ? (
+        <EmptyState title="No matches" description={`No source matches "${search}".`} />
+      ) : !loading && sources.length === 0 ? (
         <EmptyState
           title="No sources yet"
           description="Add your first RSS feed or import an OPML file to start building your reading experience."
@@ -196,6 +216,8 @@ const SourcesPage = (): React.ReactNode => {
           ))}
         </div>
       )}
+
+      <Pager pagination={pagination} idPrefix="sources" />
     </div>
   );
 };

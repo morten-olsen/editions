@@ -289,7 +289,7 @@ describe('POST /api/discovery/focuses/:id/adopt', () => {
       url: '/api/sources',
       headers,
     });
-    const sources = JSON.parse(sourcesRes.body) as unknown[];
+    const sources = (JSON.parse(sourcesRes.body) as { items: unknown[] }).items;
     expect(sources.length).toBeGreaterThan(0);
   });
 

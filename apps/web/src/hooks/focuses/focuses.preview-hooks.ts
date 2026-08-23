@@ -1,14 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { useAuthHeaders } from '../../api/api.hooks.ts';
+import { client } from '../../api/api.ts';
+import type { Page } from '../../api/api.ts';
+import { windowToRange } from '../utilities/time-window.ts';
+import type { TimeWindow } from '../utilities/time-window.ts';
 
 import type { SourceSelection } from './focuses.types.ts';
 
 /* ── Types ───────────────────────────────────────────────────────── */
 
 const PREVIEW_PAGE_SIZE = 20;
-
-type PreviewTimeWindow = 'today' | 'week' | 'all';
 
 type PreviewArticle = {
   id: string;
@@ -27,10 +29,7 @@ type PreviewConfig = {
   sources: SourceSelection[];
 };
 
-type PreviewPage = {
-  articles: PreviewArticle[];
-  total: number;
-};
+type PreviewPage = Page<PreviewArticle>;
 
 type UseFocusPreviewResult = {
   articles: PreviewArticle[];
@@ -39,28 +38,17 @@ type UseFocusPreviewResult = {
   error: Error | null;
 };
 
-/* ── Time window → date range ────────────────────────────────────── */
-
-const windowToRange = (window: PreviewTimeWindow): { from?: string; to?: string } => {
-  if (window === 'all') {
-    return {};
-  }
-  const now = new Date();
-  if (window === 'today') {
-    const start = new Date(now);
-    start.setHours(0, 0, 0, 0);
-    return { from: start.toISOString() };
-  }
-  const start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  return { from: start.toISOString() };
-};
-
 /* ── Hook ────────────────────────────────────────────────────────── */
 
+/**
+ * The preview defaults to the whole archive rather than `DEFAULT_TIME_WINDOW`:
+ * it exists to show what a focus configuration would catch overall, which a
+ * one-day slice can't answer.
+ */
 const useFocusPreview = (
   focusId: string,
   config?: PreviewConfig,
-  timeWindow: PreviewTimeWindow = 'all',
+  timeWindow: TimeWindow = 'all',
 ): UseFocusPreviewResult => {
   const headers = useAuthHeaders();
 
@@ -76,39 +64,32 @@ const useFocusPreview = (
           }
         : {};
 
-      const range = windowToRange(timeWindow);
-      const params = new URLSearchParams({ limit: String(PREVIEW_PAGE_SIZE), sort: 'top' });
-      if (range.from) {
-        params.set('from', range.from);
-      }
-      if (range.to) {
-        params.set('to', range.to);
-      }
-
-      const res = await fetch(`/api/focuses/${focusId}/preview?${params.toString()}`, {
-        method: 'POST',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+      const { data, error: err } = await client.POST('/api/focuses/{id}/preview', {
+        params: {
+          path: { id: focusId },
+          query: { limit: PREVIEW_PAGE_SIZE, sort: 'top', ...windowToRange(timeWindow) },
+        },
+        body,
+        headers,
       });
 
-      if (!res.ok) {
-        const errorBody = await res.json().catch(() => ({}));
-        throw new Error((errorBody as { error?: string }).error ?? `Preview failed (${res.status})`);
+      if (err || !data) {
+        throw new Error((err as { error?: string } | undefined)?.error ?? 'Preview failed');
       }
 
-      return (await res.json()) as PreviewPage;
+      return data as PreviewPage;
     },
     enabled: !!headers && !!focusId,
     staleTime: 10_000,
   });
 
   return {
-    articles: data?.articles ?? [],
+    articles: data?.items ?? [],
     total: data?.total ?? 0,
     isLoading,
     error: error as Error | null,
   };
 };
 
-export type { PreviewArticle, PreviewConfig, PreviewTimeWindow, UseFocusPreviewResult };
+export type { PreviewArticle, PreviewConfig, UseFocusPreviewResult };
 export { useFocusPreview };

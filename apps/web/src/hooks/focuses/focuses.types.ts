@@ -1,3 +1,6 @@
+import type { Page } from '../../api/api.ts';
+import type { TimeWindow } from '../utilities/time-window.ts';
+
 type VoteValue = 1 | -1 | null;
 
 type SourceSelection = {
@@ -61,20 +64,9 @@ type FocusArticle = {
   sourceType: string;
 };
 
-type FocusArticlesPage = {
-  articles: FocusArticle[];
-  total: number;
-  offset: number;
-  limit: number;
-};
-
-type ArticlesWithBookmarks = {
-  page: FocusArticlesPage;
-  bookmarkedIds: Set<string>;
-};
+type FocusArticlesPage = Page<FocusArticle>;
 
 type SortMode = 'top' | 'recent';
-type TimeWindow = 'today' | 'week' | 'all';
 type ReadStatus = 'all' | 'unread' | 'read';
 
 type JobEntry = {
@@ -95,7 +87,6 @@ export type {
   FocusEditable,
   FocusArticle,
   FocusArticlesPage,
-  ArticlesWithBookmarks,
   SortMode,
   TimeWindow,
   ReadStatus,

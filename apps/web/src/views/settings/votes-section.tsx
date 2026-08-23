@@ -2,12 +2,13 @@ import { Link } from '@tanstack/react-router';
 
 import { useVotes, formatDate } from '../../hooks/votes/votes.hooks.ts';
 import type { VoteWithArticle, ScopeFilter, ValueFilter } from '../../hooks/votes/votes.hooks.ts';
-import { Button } from '../../components/button.tsx';
 import { EmptyState } from '../../components/empty-state.tsx';
+import { Pager } from '../../components/pager.tsx';
 import { Separator } from '../../components/separator.tsx';
+import type { PagerControls } from '../../hooks/utilities/use-paged-query.ts';
 
 const VotesSection = (): React.ReactNode => {
-  const { votesPage, loading, pagination, scopeFilter, valueFilter, changeFilter, removeVote } = useVotes();
+  const { votes, total, loading, pagination, scopeFilter, valueFilter, changeFilter, removeVote } = useVotes();
 
   return (
     <>
@@ -17,10 +18,10 @@ const VotesSection = (): React.ReactNode => {
 
       {loading ? (
         <div className="text-sm text-ink-tertiary py-12 text-center">Loading...</div>
-      ) : !votesPage || votesPage.votes.length === 0 ? (
+      ) : votes.length === 0 ? (
         <VotesEmptyState scopeFilter={scopeFilter} valueFilter={valueFilter} />
       ) : (
-        <VotesList votesPage={votesPage} pagination={pagination} onRemove={removeVote} />
+        <VotesList votes={votes} total={total} pagination={pagination} onRemove={removeVote} />
       )}
     </>
   );
@@ -84,56 +85,32 @@ const VotesEmptyState = ({
 
 /* ---- Votes list ---- */
 
-type VotesListPagination = {
-  currentPage: number;
-  totalPages: number;
-  hasPrev: boolean;
-  hasNext: boolean;
-  goPrev: () => void;
-  goNext: () => void;
-};
-
-type VotesPageData = {
-  votes: VoteWithArticle[];
-  total: number;
-};
-
 const VotesList = ({
-  votesPage,
+  votes,
+  total,
   pagination,
   onRemove,
 }: {
-  votesPage: VotesPageData;
-  pagination: VotesListPagination;
-  onRemove: (vote: VoteWithArticle) => Promise<void>;
+  votes: VoteWithArticle[];
+  total: number;
+  pagination: PagerControls;
+  onRemove: (vote: VoteWithArticle) => void;
 }): React.ReactNode => (
   <>
     <div className="flex flex-col">
-      {votesPage.votes.map((vote, idx) => (
+      {votes.map((vote, idx) => (
         <div key={vote.id}>
           {idx > 0 && <Separator soft />}
-          <VoteRow vote={vote} onRemove={() => void onRemove(vote)} />
+          <VoteRow vote={vote} onRemove={() => onRemove(vote)} />
         </div>
       ))}
     </div>
 
     <div className="text-xs text-ink-tertiary mt-4">
-      {votesPage.total} vote{votesPage.total === 1 ? '' : 's'}
+      {total} vote{total === 1 ? '' : 's'}
     </div>
 
-    {pagination.totalPages > 1 && (
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
-        <Button variant="ghost" size="sm" disabled={!pagination.hasPrev} onClick={pagination.goPrev}>
-          Previous
-        </Button>
-        <span className="text-xs text-ink-tertiary">
-          Page {pagination.currentPage} of {pagination.totalPages}
-        </span>
-        <Button variant="ghost" size="sm" disabled={!pagination.hasNext} onClick={pagination.goNext}>
-          Next
-        </Button>
-      </div>
-    )}
+    <Pager pagination={pagination} idPrefix="votes" />
   </>
 );
 

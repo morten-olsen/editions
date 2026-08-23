@@ -71,6 +71,8 @@ const chatCompletion = async (
 ): Promise<ChatCompletionResult> => {
   const url = `${config.endpoint.replace(/\/$/, '')}/chat/completions`;
 
+  // Raw fetch on purpose: this talks to the user's configured OpenAI-compatible
+  // provider, not the Editions API, so there is no generated client for it.
   const response = await fetch(url, {
     method: 'POST',
     headers: {

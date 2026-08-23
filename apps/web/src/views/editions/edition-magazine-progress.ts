@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 
 import { useAuthHeaders } from '../../api/api.hooks.ts';
+import { client } from '../../api/api.ts';
 
 const STORAGE_PREFIX = 'editions:magazine-page:';
 const SAVE_DEBOUNCE_MS = 1500;
@@ -52,11 +53,13 @@ const useMagazineProgress = (editionId: string): UseMagazineProgressResult => {
         if (!headers) {
           return;
         }
-        void fetch(`/api/editions/${editionId}/progress`, {
-          method: 'PATCH',
-          headers: { ...headers, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ currentPosition: p }),
-        }).catch(noop);
+        void client
+          .PATCH('/api/editions/{editionId}/progress', {
+            params: { path: { editionId } },
+            body: { currentPosition: p },
+            headers,
+          })
+          .catch(noop);
       }, SAVE_DEBOUNCE_MS);
     },
     [editionId, storageKey, headers],

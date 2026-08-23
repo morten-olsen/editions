@@ -351,9 +351,10 @@ describe('edition listing and viewing', () => {
     });
 
     expect(res.statusCode).toBe(200);
-    const editions = JSON.parse(res.body);
-    expect(editions).toHaveLength(1);
-    expect(editions[0].configName).toBe('Morning Briefing');
+    const page = JSON.parse(res.body);
+    expect(page.items).toHaveLength(1);
+    expect(page.total).toBe(1);
+    expect(page.items[0].configName).toBe('Morning Briefing');
   });
 
   it('deletes a generated edition', async () => {
@@ -515,6 +516,6 @@ describe('edition preview', () => {
       headers,
     });
     expect(listRes.statusCode).toBe(200);
-    expect(JSON.parse(listRes.body)).toEqual([]);
+    expect(JSON.parse(listRes.body).items).toEqual([]);
   });
 });

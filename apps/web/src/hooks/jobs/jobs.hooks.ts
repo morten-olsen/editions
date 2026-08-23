@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { bearer, client } from '../../api/api.ts';
+
 type JobAffects = {
   sourceIds: string[];
   focusIds: string[];
@@ -122,24 +124,18 @@ const useJobs = (token: string, filter?: UseJobsFilter): UseJobsResult => {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const loadJobs = useCallback(async (): Promise<void> => {
-    const query: Record<string, string> = {};
-    if (filter?.active !== undefined) {
-      query.active = String(filter.active);
-    }
-    if (filter?.sourceId) {
-      query.sourceId = filter.sourceId;
-    }
-    if (filter?.focusId) {
-      query.focusId = filter.focusId;
-    }
-
-    const qs = new URLSearchParams(query).toString();
-    const res = await fetch(`/api/jobs${qs ? `?${qs}` : ''}`, {
-      headers: { Authorization: `Bearer ${token}` },
+    const { data } = await client.GET('/api/jobs', {
+      params: {
+        query: {
+          ...(filter?.active !== undefined ? { active: filter.active } : {}),
+          ...(filter?.sourceId ? { sourceId: filter.sourceId } : {}),
+          ...(filter?.focusId ? { focusId: filter.focusId } : {}),
+        },
+      },
+      headers: bearer(token),
     });
-    if (res.ok) {
-      const body = (await res.json()) as { jobs: JobItem[] };
-      setJobs(body.jobs);
+    if (data) {
+      setJobs(data.jobs);
     }
     setLoading(false);
   }, [token, filter?.active, filter?.sourceId, filter?.focusId]);

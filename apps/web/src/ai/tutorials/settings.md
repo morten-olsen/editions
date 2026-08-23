@@ -6,9 +6,15 @@ The settings page at /settings has four tabs, switched via `settings-tabs`:
 
 Shows running and recent background tasks (source fetching, article analysis). Tasks are grouped by type with expandable details for failures. No interactive elements — this is a read-only status view.
 
+## Access tab (admin only)
+
+Pricing configuration plus the user access table, paginated via
+`admin-users-prev-page` / `admin-users-next-page`. The heading shows the total
+user count, which can exceed the rows on screen.
+
 ## Votes tab (`settings-tab-votes`)
 
-Shows your vote history with filtering by scope (All/Quality/Relevance) and direction (All/Upvotes/Downvotes). Each vote can be removed individually. Useful for reviewing what you've voted on.
+Shows your vote history with filtering by scope (All/Quality/Relevance) and direction (All/Upvotes/Downvotes). Each vote can be removed individually. Useful for reviewing what you've voted on. Paginated via `votes-prev-page` / `votes-next-page`.
 
 ## Scoring tab (`settings-tab-scoring`)
 

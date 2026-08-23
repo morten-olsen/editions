@@ -125,11 +125,12 @@ describe('admin billing endpoints', () => {
     });
 
     expect(res.statusCode).toBe(200);
-    const body = JSON.parse(res.body) as { username: string; state: string }[];
-    expect(body).toHaveLength(2);
-    expect(body.map((u) => u.username).sort()).toEqual(['admin', 'user1']);
+    const body = JSON.parse(res.body) as { items: { username: string; state: string }[]; total: number };
+    expect(body.items).toHaveLength(2);
+    expect(body.total).toBe(2);
+    expect(body.items.map((u) => u.username).sort()).toEqual(['admin', 'user1']);
     // All users should be unlimited since payment is not configured
-    expect(body.every((u) => u.state === 'unlimited')).toBe(true);
+    expect(body.items.every((u) => u.state === 'unlimited')).toBe(true);
   });
 
   it('admin can set user access expiry', async () => {

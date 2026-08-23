@@ -4,6 +4,7 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { createAccessHook } from '../auth/access.middleware.ts';
 import { createAuthHook } from '../auth/auth.middleware.ts';
 import { DiscoveryService, DiscoveryItemNotFoundError } from '../discovery/discovery.ts';
+import { pagedSchema, paginationQuerySchema } from '../pagination/pagination.ts';
 import type { Services } from '../services/services.ts';
 
 // --- Schemas ---
@@ -73,33 +74,16 @@ const adoptEditionConfigResultSchema = z.object({
   sourcesCreated: z.number(),
 });
 
-const discoveryQuerySchema = z.object({
+const discoveryQuerySchema = paginationQuerySchema.extend({
   search: z.string().optional(),
   tag: z.string().optional(),
-  offset: z.coerce.number().int().min(0).optional(),
-  limit: z.coerce.number().int().min(1).max(100).optional(),
 });
 
-const discoverySourcePageSchema = z.object({
-  items: z.array(discoverySourceSchema),
-  total: z.number(),
-  offset: z.number(),
-  limit: z.number(),
-});
+const discoverySourcePageSchema = pagedSchema(discoverySourceSchema);
 
-const discoveryFocusPageSchema = z.object({
-  items: z.array(discoveryFocusSchema),
-  total: z.number(),
-  offset: z.number(),
-  limit: z.number(),
-});
+const discoveryFocusPageSchema = pagedSchema(discoveryFocusSchema);
 
-const discoveryEditionConfigPageSchema = z.object({
-  items: z.array(discoveryEditionConfigSchema),
-  total: z.number(),
-  offset: z.number(),
-  limit: z.number(),
-});
+const discoveryEditionConfigPageSchema = pagedSchema(discoveryEditionConfigSchema);
 
 const errorResponseSchema = z.object({
   error: z.string(),

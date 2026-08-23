@@ -2,6 +2,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryResult, UseMutationResult } from '@tanstack/react-query';
 
 import { queryKeys, useAuthHeaders } from '../../api/api.hooks.ts';
+import { client } from '../../api/api.ts';
+import type { Page } from '../../api/api.ts';
+import { usePagedQuery } from '../utilities/use-paged-query.ts';
+import type { PagerControls } from '../utilities/use-paged-query.ts';
 
 // --- Types ---
 
@@ -58,15 +62,16 @@ type AdminUser = {
   } | null;
 };
 
-// --- Helpers ---
-
-const fetchJson = async <T>(url: string, headers: Record<string, string>, options?: RequestInit): Promise<T> => {
-  const res = await fetch(url, { ...options, headers: { ...headers, 'Content-Type': 'application/json' } });
-  if (!res.ok) {
-    const body = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(body.error ?? `Request failed: ${res.status}`);
+/**
+ * Every call goes through the generated client, so a route or field rename shows
+ * up as a type error here rather than a runtime 404.
+ */
+const unwrap = <T>(result: { data?: T; error?: unknown }): T => {
+  if (result.error !== undefined || result.data === undefined) {
+    const message = (result.error as { error?: string } | undefined)?.error;
+    throw new Error(message ?? 'Request failed');
   }
-  return res.json() as Promise<T>;
+  return result.data;
 };
 
 // --- Hooks ---
@@ -77,7 +82,8 @@ const useUserSubscription = (): UseQueryResult<UserSubscription> => {
   const headers = useAuthHeaders();
   return useQuery({
     queryKey: queryKeys.billing.subscription,
-    queryFn: () => fetchJson<UserSubscription>('/api/billing/subscription', headers ?? {}),
+    queryFn: async (): Promise<UserSubscription> =>
+      unwrap(await client.GET('/api/billing/subscription', { headers })) as UserSubscription,
     enabled: Boolean(headers),
     staleTime: BILLING_STALE_TIME,
   });
@@ -87,7 +93,8 @@ const useAccessStatus = (pollInterval?: number): UseQueryResult<AccessStatus> =>
   const headers = useAuthHeaders();
   return useQuery({
     queryKey: queryKeys.billing.access,
-    queryFn: () => fetchJson<AccessStatus>('/api/billing/access', headers ?? {}),
+    queryFn: async (): Promise<AccessStatus> =>
+      unwrap(await client.GET('/api/billing/access', { headers })) as AccessStatus,
     enabled: Boolean(headers),
     refetchInterval: pollInterval,
     staleTime: BILLING_STALE_TIME,
@@ -101,22 +108,16 @@ const useCreateCheckout = (): UseMutationResult<
 > => {
   const headers = useAuthHeaders();
   return useMutation({
-    mutationFn: (body) =>
-      fetchJson<{ url: string }>('/api/billing/checkout', headers ?? {}, {
-        method: 'POST',
-        body: JSON.stringify(body),
-      }),
+    mutationFn: async (body): Promise<{ url: string }> =>
+      unwrap(await client.POST('/api/billing/checkout', { body, headers })),
   });
 };
 
 const useCreatePortal = (): UseMutationResult<{ url: string }, Error, { returnUrl: string }> => {
   const headers = useAuthHeaders();
   return useMutation({
-    mutationFn: (body) =>
-      fetchJson<{ url: string }>('/api/billing/portal', headers ?? {}, {
-        method: 'POST',
-        body: JSON.stringify(body),
-      }),
+    mutationFn: async (body): Promise<{ url: string }> =>
+      unwrap(await client.POST('/api/billing/portal', { body, headers })),
   });
 };
 
@@ -126,7 +127,8 @@ const useAdminBillingSettings = (): UseQueryResult<PaymentSettings> => {
   const headers = useAuthHeaders();
   return useQuery({
     queryKey: queryKeys.billing.settings,
-    queryFn: () => fetchJson<PaymentSettings>('/api/admin/billing/settings', headers ?? {}),
+    queryFn: async (): Promise<PaymentSettings> =>
+      unwrap(await client.GET('/api/admin/billing/settings', { headers })) as PaymentSettings,
     enabled: Boolean(headers),
   });
 };
@@ -135,35 +137,52 @@ const useUpdateBillingSettings = (): UseMutationResult<PaymentSettings, Error, P
   const headers = useAuthHeaders();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body) =>
-      fetchJson<PaymentSettings>('/api/admin/billing/settings', headers ?? {}, {
-        method: 'PUT',
-        body: JSON.stringify(body),
-      }),
+    mutationFn: async (body): Promise<PaymentSettings> =>
+      unwrap(await client.PUT('/api/admin/billing/settings', { body, headers })) as PaymentSettings,
     onSuccess: (data) => {
       qc.setQueryData(queryKeys.billing.settings, data);
     },
   });
 };
 
-const useAdminUsers = (): UseQueryResult<AdminUser[]> => {
+const ADMIN_USERS_PAGE_SIZE = 25;
+
+type UseAdminUsersResult = {
+  users: AdminUser[];
+  total: number;
+  isLoading: boolean;
+  pagination: PagerControls;
+};
+
+/** Paged — this list grows with signups. */
+const useAdminUsers = (): UseAdminUsersResult => {
   const headers = useAuthHeaders();
-  return useQuery({
-    queryKey: queryKeys.billing.adminUsers,
-    queryFn: () => fetchJson<AdminUser[]>('/api/admin/billing/users', headers ?? {}),
+
+  const paged = usePagedQuery<AdminUser>({
+    queryKey: (offset) => [...queryKeys.billing.adminUsers, offset],
+    fetchPage: async ({ offset, limit }): Promise<Page<AdminUser>> =>
+      unwrap(
+        await client.GET('/api/admin/billing/users', { params: { query: { offset, limit } }, headers }),
+      ) as Page<AdminUser>,
+    pageSize: ADMIN_USERS_PAGE_SIZE,
     enabled: Boolean(headers),
   });
+
+  return { users: paged.items, total: paged.total, isLoading: paged.isLoading, pagination: paged.pagination };
 };
 
 const useAdminSetAccess = (): UseMutationResult<AdminUser, Error, { userId: string; expiresAt: string | null }> => {
   const headers = useAuthHeaders();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ userId, expiresAt }) =>
-      fetchJson<AdminUser>(`/api/admin/billing/users/${userId}/access`, headers ?? {}, {
-        method: 'PUT',
-        body: JSON.stringify({ expiresAt }),
-      }),
+    mutationFn: async ({ userId, expiresAt }): Promise<AdminUser> =>
+      unwrap(
+        await client.PUT('/api/admin/billing/users/{userId}/access', {
+          params: { path: { userId } },
+          body: { expiresAt },
+          headers,
+        }),
+      ) as AdminUser,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.billing.adminUsers });
     },
@@ -174,17 +193,28 @@ const useAdminCancelSubscription = (): UseMutationResult<{ success: boolean }, E
   const headers = useAuthHeaders();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (userId) =>
-      fetchJson<{ success: boolean }>(`/api/admin/billing/users/${userId}/subscription`, headers ?? {}, {
-        method: 'DELETE',
-      }),
+    mutationFn: async (userId): Promise<{ success: boolean }> =>
+      unwrap(
+        await client.DELETE('/api/admin/billing/users/{userId}/subscription', {
+          params: { path: { userId } },
+          headers,
+        }),
+      ),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.billing.adminUsers });
     },
   });
 };
 
-export type { AccessState, AccessStatus, SubscriptionInfo, UserSubscription, PaymentSettings, AdminUser };
+export type {
+  AccessState,
+  AccessStatus,
+  SubscriptionInfo,
+  UserSubscription,
+  PaymentSettings,
+  AdminUser,
+  UseAdminUsersResult,
+};
 export {
   useUserSubscription,
   useAccessStatus,

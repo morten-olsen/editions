@@ -3,6 +3,7 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
 import { createAuthHook } from '../auth/auth.middleware.ts';
 import { listFeedArticles } from '../feed/feed.ts';
+import { pagedSchema, paginationQuerySchema } from '../pagination/pagination.ts';
 import type { Services } from '../services/services.ts';
 
 // --- Schemas ---
@@ -28,16 +29,9 @@ const feedArticleSchema = z.object({
   sourceName: z.string(),
 });
 
-const feedPageSchema = z.object({
-  articles: z.array(feedArticleSchema),
-  total: z.number(),
-  offset: z.number(),
-  limit: z.number(),
-});
+const feedPageSchema = pagedSchema(feedArticleSchema);
 
-const feedQuerySchema = z.object({
-  offset: z.coerce.number().int().min(0).default(0),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
+const feedQuerySchema = paginationQuerySchema.extend({
   sort: z.enum(['top', 'recent']).default('top'),
   status: z.enum(['unread', 'read', 'all']).default('all'),
   from: z.string().optional(),

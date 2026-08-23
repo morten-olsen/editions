@@ -2,9 +2,10 @@ import { createFileRoute } from '@tanstack/react-router';
 
 import { useFeed } from '../hooks/feed/feed.hooks.ts';
 import { PageHeader } from '../components/page-header.tsx';
-import { Button } from '../components/button.tsx';
 import { EmptyState } from '../components/empty-state.tsx';
 import { ArticleCard } from '../components/article-card.tsx';
+import { Pager } from '../components/pager.tsx';
+import { TIME_WINDOW_LABELS } from '../hooks/utilities/time-window.ts';
 import type { TimeWindow, ReadStatus } from '../hooks/feed/feed.hooks.ts';
 
 const IndexPage = (): React.ReactNode => {
@@ -55,9 +56,11 @@ const FeedFilterBar = ({ feed }: { feed: FeedHook }): React.ReactNode => (
       data-ai-label="Time window"
       data-ai-value={feed.window}
     >
-      <option value="all">All time</option>
-      <option value="week">This week</option>
-      <option value="today">Today</option>
+      {(['today', 'week', 'all'] as const).map((w) => (
+        <option key={w} value={w}>
+          {TIME_WINDOW_LABELS[w]}
+        </option>
+      ))}
     </select>
     <select
       value={feed.status}
@@ -82,11 +85,11 @@ const FeedArticles = ({ feed }: { feed: FeedHook }): React.ReactNode => {
     return <div className="text-sm text-ink-tertiary py-12 text-center">Loading...</div>;
   }
 
-  if (!feed.feedPage || feed.feedPage.articles.length === 0) {
-    return <FeedEmptyState sort={feed.sort} status={feed.status} />;
+  if (feed.articles.length === 0) {
+    return <FeedEmptyState sort={feed.sort} status={feed.status} window={feed.window} />;
   }
 
-  const { feedPage, pagination, bookmarkedIds } = feed;
+  const { articles, total, bookmarkedIds } = feed;
 
   return (
     <>
@@ -94,9 +97,9 @@ const FeedArticles = ({ feed }: { feed: FeedHook }): React.ReactNode => {
         className="divide-y divide-border"
         data-ai-id="feed-articles"
         data-ai-role="list"
-        data-ai-label={`${feedPage.total} articles`}
+        data-ai-label={`${total} articles`}
       >
-        {feedPage.articles.map((article) => (
+        {articles.map((article) => (
           <ArticleCard
             key={article.id}
             id={article.id}
@@ -118,47 +121,32 @@ const FeedArticles = ({ feed }: { feed: FeedHook }): React.ReactNode => {
         ))}
       </div>
       <div className="text-xs text-ink-tertiary mt-4">
-        {feedPage.total} article{feedPage.total === 1 ? '' : 's'}
+        {total} article{total === 1 ? '' : 's'}
       </div>
-      {pagination.totalPages > 1 && (
-        <div
-          className="flex items-center justify-between mt-4 pt-4 border-t border-border"
-          data-ai-id="feed-pagination"
-          data-ai-role="info"
-          data-ai-label={`Page ${pagination.currentPage} of ${pagination.totalPages}`}
-        >
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={!pagination.hasPrev}
-            onClick={() => pagination.goPrev()}
-            data-ai-id="feed-prev-page"
-            data-ai-role="button"
-            data-ai-label="Previous page"
-          >
-            Previous
-          </Button>
-          <span className="text-xs text-ink-tertiary">
-            Page {pagination.currentPage} of {pagination.totalPages}
-          </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={!pagination.hasNext}
-            onClick={() => pagination.goNext()}
-            data-ai-id="feed-next-page"
-            data-ai-role="button"
-            data-ai-label="Next page"
-          >
-            Next
-          </Button>
-        </div>
-      )}
+      <Pager pagination={feed.pagination} idPrefix="feed" />
     </>
   );
 };
 
-const FeedEmptyState = ({ sort, status }: { sort: string; status: string }): React.ReactNode => {
+const FeedEmptyState = ({
+  sort,
+  status,
+  window,
+}: {
+  sort: string;
+  status: string;
+  window: TimeWindow;
+}): React.ReactNode => {
+  // The feed opens on Today, so "nothing here" usually means "nothing *today*" —
+  // point at the time window before anything else.
+  if (window !== 'all') {
+    return (
+      <EmptyState
+        title="Nothing new"
+        description={`No articles in this window. Switch the time filter to "${TIME_WINDOW_LABELS.all}" to browse everything.`}
+      />
+    );
+  }
   let description = 'No articles match the current filters.';
   if (sort === 'top' && status === 'unread') {
     description = 'You\'re all caught up! Switch to "All" to browse past articles.';

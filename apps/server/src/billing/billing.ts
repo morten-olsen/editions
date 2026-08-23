@@ -2,9 +2,12 @@ import Stripe from 'stripe';
 
 import { ConfigService } from '../config/config.ts';
 import { DatabaseService } from '../database/database.ts';
+import type { Page, PageOptions } from '../pagination/pagination.ts';
 import { Services } from '../services/services.ts';
 
 import type { AccessState, AccessStatus, PaymentSettings, UpdatePaymentSettings } from './billing.schemas.ts';
+import { listUsersPage } from './billing.admin.ts';
+import type { FormatUserAccessFn } from './billing.admin.ts';
 import { applyBillingWebhookEvent } from './billing.webhooks.ts';
 import type { WebhookDeps } from './billing.webhooks.ts';
 
@@ -415,10 +418,7 @@ class BillingService {
       .execute();
   };
 
-  #formatUserAccess = (
-    u: { id: string; username: string; role: string; access_expires_at: string | null },
-    sub: { status: string; interval: string; current_period_end: string; cancel_at_period_end: number } | undefined,
-  ): AdminUserView => {
+  #formatUserAccess: FormatUserAccessFn<AdminUserView> = (u, sub) => {
     const access = this.#computeAccessStatus(u.access_expires_at);
     return {
       id: u.id,
@@ -437,12 +437,10 @@ class BillingService {
     };
   };
 
-  adminListUsers = async (): Promise<AdminUserView[]> => {
+  /** Paged: this list grows with signups, unlike the per-user lookups. */
+  adminListUsers = async (opts: PageOptions = {}): Promise<Page<AdminUserView>> => {
     const db = await this.#services.get(DatabaseService).getInstance();
-    const users = await db.selectFrom('users').select(['id', 'username', 'role', 'access_expires_at']).execute();
-    const subs = await db.selectFrom('subscriptions').selectAll().execute();
-    const subsByUser = new Map(subs.map((s) => [s.user_id, s]));
-    return users.map((u) => this.#formatUserAccess(u, subsByUser.get(u.id)));
+    return listUsersPage(db, this.#formatUserAccess, opts);
   };
 
   adminGetUser = async (userId: string): Promise<AdminUserView | null> => {

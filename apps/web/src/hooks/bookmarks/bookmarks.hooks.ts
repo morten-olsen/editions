@@ -1,10 +1,11 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { client } from '../../api/api.ts';
+import type { Page } from '../../api/api.ts';
 import { useAuthHeaders, queryKeys } from '../../api/api.hooks.ts';
-import { usePagination } from '../utilities/use-pagination.ts';
-import type { UsePaginationResult } from '../utilities/use-pagination.ts';
+import { usePagedQuery } from '../utilities/use-paged-query.ts';
+import type { PagerControls } from '../utilities/use-paged-query.ts';
 
 type BookmarkWithArticle = {
   id: string;
@@ -22,18 +23,13 @@ type BookmarkWithArticle = {
   sourceType: string;
 };
 
-type BookmarksPage = {
-  bookmarks: BookmarkWithArticle[];
-  total: number;
-  offset: number;
-  limit: number;
-};
+type BookmarksPage = Page<BookmarkWithArticle>;
 
 type UseBookmarksResult = {
   bookmarks: BookmarkWithArticle[];
   total: number;
   isLoading: boolean;
-  pagination: UsePaginationResult;
+  pagination: PagerControls;
   saveUrl: string;
   setSaveUrl: (url: string) => void;
   saveError: string | null;
@@ -46,7 +42,7 @@ const PAGE_SIZE = 30;
 
 const useSaveBookmark = (
   headers: Record<string, string> | undefined,
-  pagination: UsePaginationResult,
+  pagination: PagerControls,
   setSaveUrl: (url: string) => void,
   setSaveError: (error: string | null) => void,
 ): { saveMutation: ReturnType<typeof useMutation<void, Error, string, unknown>> } => {
@@ -76,26 +72,21 @@ const useBookmarks = (): UseBookmarksResult => {
   const queryClient = useQueryClient();
   const [saveUrl, setSaveUrl] = useState('');
   const [saveError, setSaveError] = useState<string | null>(null);
-  const lastTotal = useRef(0);
 
-  const pagination = usePagination({ pageSize: PAGE_SIZE, total: lastTotal.current });
-  const queryKey = [...queryKeys.bookmarks.all, pagination.offset] as const;
-
-  const { data: page, isLoading } = useQuery<BookmarksPage>({
-    queryKey,
-    queryFn: async (): Promise<BookmarksPage> => {
+  const paged = usePagedQuery<BookmarkWithArticle>({
+    queryKey: (offset) => [...queryKeys.bookmarks.all, offset],
+    fetchPage: async ({ offset, limit }): Promise<BookmarksPage> => {
       const { data } = await client.GET('/api/bookmarks', {
-        params: { query: { offset: pagination.offset, limit: PAGE_SIZE } },
+        params: { query: { offset, limit } },
         headers,
       });
       return data as BookmarksPage;
     },
+    pageSize: PAGE_SIZE,
     enabled: !!headers,
   });
 
-  if (page) {
-    lastTotal.current = page.total;
-  }
+  const { pagination, queryKey } = paged;
 
   const { saveMutation } = useSaveBookmark(headers, pagination, setSaveUrl, setSaveError);
 
@@ -109,7 +100,7 @@ const useBookmarks = (): UseBookmarksResult => {
         if (!old) {
           return old;
         }
-        return { ...old, bookmarks: old.bookmarks.filter((b) => b.articleId !== articleId), total: old.total - 1 };
+        return { ...old, items: old.items.filter((b) => b.articleId !== articleId), total: old.total - 1 };
       });
     },
   });
@@ -125,9 +116,9 @@ const useBookmarks = (): UseBookmarksResult => {
   };
 
   return {
-    bookmarks: page?.bookmarks ?? [],
-    total: page?.total ?? 0,
-    isLoading,
+    bookmarks: paged.items,
+    total: paged.total,
+    isLoading: paged.isLoading,
     pagination,
     saveUrl,
     setSaveUrl,

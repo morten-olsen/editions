@@ -5,6 +5,7 @@ import { createAdminHook } from '../auth/admin.middleware.ts';
 import { createAuthHook } from '../auth/auth.middleware.ts';
 import { BillingService } from '../billing/billing.ts';
 import { DatabaseService } from '../database/database.ts';
+import { pagedSchema, paginationQuerySchema } from '../pagination/pagination.ts';
 import {
   accessStatusSchema,
   checkoutRequestSchema,
@@ -226,10 +227,11 @@ const registerAdminBillingRoutes = ({ fastify, services, authenticate, requireAd
     onRequest: [authenticate, requireAdmin],
     schema: {
       security: [{ bearerAuth: [] }],
-      response: { 200: z.array(adminUserAccessSchema), 403: errorResponseSchema },
+      querystring: paginationQuerySchema,
+      response: { 200: pagedSchema(adminUserAccessSchema), 403: errorResponseSchema },
     },
-    handler: async (_req, _reply) => {
-      return services.get(BillingService).adminListUsers();
+    handler: async (req, _reply) => {
+      return services.get(BillingService).adminListUsers({ offset: req.query.offset, limit: req.query.limit });
     },
   });
 

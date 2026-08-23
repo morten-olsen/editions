@@ -1,5 +1,7 @@
 import { z } from 'zod/v4';
 
+import { pagedSchema, paginationQuerySchema } from '../pagination/pagination.ts';
+
 const sourceSchema = z.object({
   id: z.string(),
   userId: z.string(),
@@ -47,11 +49,17 @@ const articleSchema = z.object({
   createdAt: z.string(),
 });
 
-const articlesPageSchema = z.object({
-  articles: z.array(articleSchema),
-  total: z.number(),
-  offset: z.number(),
-  limit: z.number(),
+const articlesPageSchema = pagedSchema(articleSchema);
+
+const sourcesPageSchema = pagedSchema(sourceSchema);
+
+/**
+ * `limit` omitted returns every source (the builders need the full set); the list
+ * view passes an explicit page size. `q` searches name and URL server-side.
+ */
+const listSourcesQuerySchema = paginationQuerySchema.extend({
+  q: z.string().min(1).optional(),
+  includeBookmarks: z.enum(['true', 'false']).optional(),
 });
 
 const articleDetailSchema = z.object({
@@ -81,11 +89,6 @@ const articleIdParamSchema = z.object({
   articleId: z.string(),
 });
 
-const paginationQuerySchema = z.object({
-  offset: z.coerce.number().int().min(0).default(0),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
-});
-
 const jobResponseSchema = z.object({
   jobId: z.string(),
   status: z.string(),
@@ -110,9 +113,10 @@ export {
   errorResponseSchema,
   idParamSchema,
   articlesPageSchema,
+  sourcesPageSchema,
+  listSourcesQuerySchema,
   articleDetailSchema,
   articleIdParamSchema,
-  paginationQuerySchema,
   jobResponseSchema,
   opmlImportResultSchema,
 };

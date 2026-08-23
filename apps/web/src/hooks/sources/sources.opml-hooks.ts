@@ -29,8 +29,8 @@ type UseOpmlResult = {
 
 // -- Private helpers --
 
-const downloadOpmlBlob = (blob: Blob): void => {
-  const blobUrl = URL.createObjectURL(blob);
+const downloadOpmlBlob = (opml: string): void => {
+  const blobUrl = URL.createObjectURL(new Blob([opml], { type: 'application/xml' }));
   const link = document.createElement('a');
   link.href = blobUrl;
   link.download = 'editions-sources.opml';
@@ -71,14 +71,14 @@ const useOpml = (): UseOpmlResult => {
     if (!headers) {
       return;
     }
-    void fetch('/api/sources/opml', { headers })
-      .then((res) => {
-        if (!res.ok) {
+    void client
+      .GET('/api/sources/opml', { headers })
+      .then(({ data }) => {
+        if (!data) {
           throw new Error('Export failed');
         }
-        return res.blob();
+        downloadOpmlBlob(data.opml);
       })
-      .then(downloadOpmlBlob)
       .catch(() => {
         setImportError('Failed to export feeds. Please try again.');
       });
@@ -86,15 +86,14 @@ const useOpml = (): UseOpmlResult => {
 
   const importMutation = useMutation({
     mutationFn: async (opmlText: string): Promise<ImportResult> => {
-      const { data, error: err } = await client.POST('/api/sources/opml' as '/api/sources', {
-        body: { opml: opmlText } as unknown as { name: string; url: string; type: 'rss'; direction: 'newest' },
+      const { data, error: err } = await client.POST('/api/sources/opml', {
+        body: { opml: opmlText },
         headers,
       });
-      if (err) {
-        const msg = (err as unknown as { error?: string }).error ?? 'Failed to import OPML';
-        throw new Error(msg);
+      if (err || !data) {
+        throw new Error((err as { error?: string } | undefined)?.error ?? 'Failed to import OPML');
       }
-      return data as unknown as ImportResult;
+      return data;
     },
     onSuccess: (result: ImportResult): void => {
       setImportResult(result);

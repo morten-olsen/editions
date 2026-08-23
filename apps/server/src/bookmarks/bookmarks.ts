@@ -2,6 +2,8 @@ import crypto from 'node:crypto';
 
 import { DatabaseService } from '../database/database.ts';
 import { JobService } from '../jobs/jobs.ts';
+import { toPage } from '../pagination/pagination.ts';
+import type { Page, PageOptions } from '../pagination/pagination.ts';
 import { SourcesService } from '../sources/sources.ts';
 import type { Services } from '../services/services.ts';
 
@@ -30,12 +32,7 @@ type BookmarkWithArticle = {
   sourceType: string;
 };
 
-type BookmarksPage = {
-  bookmarks: BookmarkWithArticle[];
-  total: number;
-  offset: number;
-  limit: number;
-};
+type BookmarksPage = Page<BookmarkWithArticle>;
 
 type SavedArticle = {
   bookmark: Bookmark;
@@ -43,10 +40,7 @@ type SavedArticle = {
   sourceId: string;
 };
 
-type ListBookmarksOptions = {
-  offset?: number;
-  limit?: number;
-};
+type ListBookmarksOptions = PageOptions;
 
 // --- Service ---
 
@@ -219,8 +213,8 @@ class BookmarksService {
       .limit(limit)
       .execute();
 
-    return {
-      bookmarks: rows.map((row) => ({
+    return toPage({
+      items: rows.map((row) => ({
         id: row.id,
         articleId: row.article_id,
         createdAt: row.created_at,
@@ -235,10 +229,10 @@ class BookmarksService {
         sourceName: row.source_name,
         sourceType: row.source_type,
       })),
-      total: Number(countResult.count),
+      total: countResult.count,
       offset,
       limit,
-    };
+    });
   };
 }
 

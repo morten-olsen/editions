@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 
+import { bearer, client } from '../../api/api.ts';
+
 type ScoringWeightSet = {
   alpha: number;
   beta: number;
@@ -94,11 +96,8 @@ const useScoring = (token: string): UseScoringResult => {
 
   useEffect(() => {
     void (async (): Promise<void> => {
-      const res = await fetch('/api/settings/scoring', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const json = (await res.json()) as ScoringResponse;
+      const { data: json } = await client.GET('/api/settings/scoring', { headers: bearer(token) });
+      if (json) {
         setData(json);
         setWeights(json.weights);
       }
@@ -120,16 +119,11 @@ const useScoring = (token: string): UseScoringResult => {
       return;
     }
     setSaving(true);
-    const res = await fetch('/api/settings/scoring', {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(weights),
+    const { data: json } = await client.PUT('/api/settings/scoring', {
+      body: weights,
+      headers: bearer(token),
     });
-    if (res.ok) {
-      const json = (await res.json()) as ScoringResponse;
+    if (json) {
       setData(json);
       setWeights(json.weights);
       setDirty(false);
@@ -139,12 +133,8 @@ const useScoring = (token: string): UseScoringResult => {
 
   const resetAll = async (): Promise<void> => {
     setSaving(true);
-    const res = await fetch('/api/settings/scoring', {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (res.ok) {
-      const json = (await res.json()) as ScoringResponse;
+    const { data: json } = await client.DELETE('/api/settings/scoring', { headers: bearer(token) });
+    if (json) {
       setData(json);
       setWeights(json.weights);
       setDirty(false);

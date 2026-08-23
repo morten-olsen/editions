@@ -59,7 +59,7 @@ const useFocusSourceSelection = (params?: UseFocusSourceSelectionParams): UseFoc
     queryKey: queryKeys.sources.all,
     queryFn: async (): Promise<Source[]> => {
       const { data } = await client.GET('/api/sources', { headers });
-      return (data as Source[]) ?? [];
+      return data?.items ?? [];
     },
     enabled: !!headers,
   });
@@ -237,7 +237,6 @@ export type {
   FocusEditable,
   FocusArticle,
   FocusArticlesPage,
-  ArticlesWithBookmarks,
   SortMode,
   TimeWindow,
   ReadStatus,

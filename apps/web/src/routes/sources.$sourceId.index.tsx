@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 
 import { useSourceDetail } from '../hooks/sources/sources.hooks.ts';
+import type { Article } from '../hooks/sources/sources.hooks.ts';
+import type { PagerControls } from '../hooks/utilities/use-paged-query.ts';
 import { PageHeader } from '../components/page-header.tsx';
+import { Pager } from '../components/pager.tsx';
 import { Button } from '../components/button.tsx';
 import { EmptyState } from '../components/empty-state.tsx';
 import { Separator } from '../components/separator.tsx';
@@ -22,7 +25,7 @@ const SourceDetailPage = (): React.ReactNode => {
   if (!detail.source) {
     return (
       <div className="py-12 text-center">
-        <div className="text-sm text-critical">{detail.sourceQuery.error?.message ?? 'Source not found'}</div>
+        <div className="text-sm text-critical">Source not found</div>
       </div>
     );
   }
@@ -36,7 +39,7 @@ const SourceDetailPage = (): React.ReactNode => {
         reanalyseResult={detail.reanalyseResult}
         reExtractResult={detail.reExtractResult}
       />
-      <SourceMeta source={detail.source} articlesPage={detail.articlesPage} />
+      <SourceMeta source={detail.source} articlesTotal={detail.articlesTotal} />
       <Separator soft className="mb-6" />
       <SourceArticles source={detail.source} sourceId={sourceId} detail={detail} />
     </div>
@@ -174,34 +177,15 @@ const SourceStatusMessages = ({
 
 /* ---- Meta ---- */
 
-type ArticlesPage = {
-  total: number;
-  articles: {
-    id: string;
-    title: string;
-    author: string | null;
-    summary: string | null;
-    imageUrl: string | null;
-    publishedAt: string | null;
-    sourceType?: string;
-  }[];
-};
-
-const SourceMeta = ({
-  source,
-  articlesPage,
-}: {
-  source: SourceData;
-  articlesPage: ArticlesPage | null | undefined;
-}): React.ReactNode => (
+const SourceMeta = ({ source, articlesTotal }: { source: SourceData; articlesTotal: number }): React.ReactNode => (
   <div
     className="flex items-center gap-4 text-xs text-ink-tertiary mb-6"
     data-ai-id="source-meta"
     data-ai-role="info"
-    data-ai-label={`Last fetched: ${source.lastFetchedAt ? new Date(source.lastFetchedAt).toLocaleString() : 'never'}, ${articlesPage?.total ?? 0} articles`}
+    data-ai-label={`Last fetched: ${source.lastFetchedAt ? new Date(source.lastFetchedAt).toLocaleString() : 'never'}, ${articlesTotal} articles`}
   >
     {source.lastFetchedAt && <span>Last fetched {new Date(source.lastFetchedAt).toLocaleString()}</span>}
-    {articlesPage && <span>{articlesPage.total} articles</span>}
+    {articlesTotal > 0 && <span>{articlesTotal} articles</span>}
   </div>
 );
 
@@ -211,22 +195,16 @@ type SourceArticlesProps = {
   source: SourceData;
   sourceId: string;
   detail: DetailActions & {
-    articlesPage: ArticlesPage | null | undefined;
-    pagination: {
-      totalPages: number;
-      currentPage: number;
-      hasPrev: boolean;
-      hasNext: boolean;
-      goPrev: () => void;
-      goNext: () => void;
-    };
+    articles: Article[];
+    articlesTotal: number;
+    pagination: PagerControls;
   };
 };
 
 const SourceArticles = ({ source, sourceId, detail }: SourceArticlesProps): React.ReactNode => {
-  const { articlesPage, pagination, fetchMutation, handleFetch } = detail;
+  const { articles, articlesTotal, pagination, fetchMutation, handleFetch } = detail;
 
-  if (!articlesPage || articlesPage.articles.length === 0) {
+  if (articles.length === 0) {
     return (
       <EmptyState
         title="No articles yet"
@@ -246,9 +224,9 @@ const SourceArticles = ({ source, sourceId, detail }: SourceArticlesProps): Reac
         className="divide-y divide-border"
         data-ai-id="source-articles"
         data-ai-role="list"
-        data-ai-label={`Articles (${articlesPage.total} total, showing ${articlesPage.articles.length})`}
+        data-ai-label={`Articles (${articlesTotal} total, showing ${articles.length})`}
       >
-        {articlesPage.articles.map((article) => (
+        {articles.map((article) => (
           <ArticleCard
             key={article.id}
             id={article.id}
@@ -264,40 +242,7 @@ const SourceArticles = ({ source, sourceId, detail }: SourceArticlesProps): Reac
         ))}
       </div>
 
-      {pagination.totalPages > 1 && (
-        <div
-          className="flex items-center justify-between mt-6 pt-6 border-t border-border"
-          data-ai-id="source-pagination"
-          data-ai-role="info"
-          data-ai-label={`Page ${pagination.currentPage} of ${pagination.totalPages}`}
-        >
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={!pagination.hasPrev}
-            onClick={pagination.goPrev}
-            data-ai-id="source-prev-page"
-            data-ai-role="button"
-            data-ai-label="Previous page"
-          >
-            Previous
-          </Button>
-          <span className="text-xs text-ink-tertiary">
-            Page {pagination.currentPage} of {pagination.totalPages}
-          </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={!pagination.hasNext}
-            onClick={pagination.goNext}
-            data-ai-id="source-next-page"
-            data-ai-role="button"
-            data-ai-label="Next page"
-          >
-            Next
-          </Button>
-        </div>
-      )}
+      <Pager pagination={pagination} idPrefix="source" />
     </>
   );
 };

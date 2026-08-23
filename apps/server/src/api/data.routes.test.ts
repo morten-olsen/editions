@@ -190,7 +190,7 @@ describe('POST /api/data/import', () => {
 
     // Verify the source exists
     const listRes = await t.inject({ method: 'GET', url: '/api/sources', headers });
-    const sources = JSON.parse(listRes.body) as Record<string, unknown>[];
+    const sources = (JSON.parse(listRes.body) as { items: Record<string, unknown>[] }).items;
     const imported = sources.find((s) => s.name === 'Imported Feed');
     expect(imported).toBeDefined();
   });
@@ -211,7 +211,7 @@ describe('POST /api/data/import', () => {
 
     // Old data should be gone
     const sourcesRes = await t.inject({ method: 'GET', url: '/api/sources', headers });
-    const sources = JSON.parse(sourcesRes.body) as Record<string, unknown>[];
+    const sources = (JSON.parse(sourcesRes.body) as { items: Record<string, unknown>[] }).items;
     const nonBookmarks = sources.filter((s) => s.type !== 'bookmarks');
     expect(nonBookmarks).toHaveLength(1);
     expect(expectDefined(nonBookmarks[0]).name).toBe('New Feed');
@@ -339,7 +339,7 @@ describe('POST /api/data/import', () => {
 
     // Verify Bob has the data
     const sourcesRes = await t.inject({ method: 'GET', url: '/api/sources', headers: userB.headers });
-    const sources = JSON.parse(sourcesRes.body) as Record<string, unknown>[];
+    const sources = (JSON.parse(sourcesRes.body) as { items: Record<string, unknown>[] }).items;
     expect(sources.some((s) => s.name === 'Alice Feed')).toBe(true);
 
     const focusesRes = await t.inject({ method: 'GET', url: '/api/focuses', headers: userB.headers });
@@ -362,7 +362,7 @@ describe('POST /api/data/import', () => {
 
     // Verify user A's data is unchanged
     const sourcesA = await t.inject({ method: 'GET', url: '/api/sources', headers: userA.headers });
-    const sourcesABody = JSON.parse(sourcesA.body) as Record<string, unknown>[];
+    const sourcesABody = (JSON.parse(sourcesA.body) as { items: Record<string, unknown>[] }).items;
     expect(sourcesABody.filter((s) => s.type !== 'bookmarks')).toHaveLength(1);
   });
 

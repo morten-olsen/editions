@@ -2,6 +2,8 @@ import { sql } from 'kysely';
 import type { Kysely } from 'kysely';
 
 import type { DatabaseSchema } from '../database/database.types.ts';
+import { toPage } from '../pagination/pagination.ts';
+import type { Page, PageOptions } from '../pagination/pagination.ts';
 import { effectiveConfidence, mergeVoteContexts, minConfidenceFilterSql, scoreAndRank } from '../ranking/ranking.ts';
 import { VotesService } from '../votes/votes.ts';
 import type { Services } from '../services/services.ts';
@@ -13,9 +15,7 @@ import type { Focus } from './focuses.ts';
 type ArticleSort = 'top' | 'recent';
 type ArticleStatus = 'unread' | 'read' | 'all';
 
-type ListArticlesOptions = {
-  offset?: number;
-  limit?: number;
+type ListArticlesOptions = PageOptions & {
   sort?: ArticleSort;
   from?: string;
   to?: string;
@@ -43,12 +43,7 @@ type FocusArticle = {
   sourceType: string;
 };
 
-type FocusArticlesPage = {
-  articles: FocusArticle[];
-  total: number;
-  offset: number;
-  limit: number;
-};
+type FocusArticlesPage = Page<FocusArticle>;
 
 type ListContext = {
   services: Services;
@@ -195,15 +190,15 @@ const listRecent = async (ctx: ListContext, base: BaseQuery): Promise<FocusArtic
     ctx.focusId,
   );
 
-  return {
-    articles: rows.map((row) => {
+  return toPage({
+    items: rows.map((row) => {
       const confidence = effectiveConfidence(row);
       return mapRowToArticle(row as unknown as Record<string, unknown>, votesMap.get(row.id), confidence);
     }),
     total: ctx.total,
     offset: ctx.offset,
     limit: ctx.limit,
-  };
+  });
 };
 
 const listTop = async (ctx: ListContext, base: BaseQuery): Promise<FocusArticlesPage> => {
@@ -238,14 +233,14 @@ const listTop = async (ctx: ListContext, base: BaseQuery): Promise<FocusArticles
   const articleIds = page.map((r) => r.item.id);
   const votesMap = await votesService.getVotesByArticleIds(ctx.userId, articleIds, ctx.focusId);
 
-  return {
-    articles: page.map(({ item, score }) =>
+  return toPage({
+    items: page.map(({ item, score }) =>
       mapRowToArticle(item as unknown as Record<string, unknown>, votesMap.get(item.id), score),
     ),
     total: ctx.total,
     offset: ctx.offset,
     limit: ctx.limit,
-  };
+  });
 };
 
 // --- Public entry point ---

@@ -44,7 +44,7 @@ Full reference: [docs/coding-standards.md](docs/coding-standards.md)
 - `z.record()` requires two args: `z.record(z.string(), z.unknown())`
 - `.default()` must come before `.transform()` in chains
 - Schema naming: `fooSchema` (camelCase) / `Foo` (PascalCase inferred type)
-- OpenAPI registration via `z.globalRegistry.add(schema, { id: "Name" })` in `api.schemas.ts`
+- OpenAPI registration via `z.globalRegistry.add(schema, { id: "Name" })` at the schema's definition site (there is no central `api.schemas.ts` — route schemas live in `{module}.routes.schemas.ts`)
 - JSON Schema conversion: `z.toJSONSchema(schema, { target: "draft-07" })`
 
 **Tailwind CSS v4:**
@@ -81,6 +81,8 @@ Full reference: [docs/coding-standards.md](docs/coding-standards.md)
 **Auth middleware:** `createAuthHook(services)` returns a Fastify `onRequest` hook that validates the `Authorization: Bearer <token>` header and populates `req.user` (typed as `TokenPayload`). Use `declare module "fastify"` augmentation in `auth.middleware.ts`. Apply per-route via `onRequest` property, not globally.
 
 **Database:** SQLite via Kysely + better-sqlite3. Full schema reference: [docs/database.md](docs/database.md).
+
+**Pagination:** One page contract — `{ items, total, offset, limit }` — from `pagination/pagination.ts` (`pagedSchema`, `paginationQuerySchema`, `toPage`, `Page<T>`). List endpoints that grow with usage return a page; lists bounded by a user's own hand-made entities (focuses, edition configs) return a bare array. `limit: null` in a response means "every row" — the contract for endpoints a picker reads (`GET /sources`). On the web side, `usePagedQuery` + `<Pager idPrefix>` own paging behaviour; never hand-roll offset state or total retention.
 
 **Ranking:** All article scoring goes through `ranking/ranking.ts` (`scoreAndRank`) — never hand-assemble score→sort pipelines, decode embedding BLOBs in callers (use `decodeEmbedding`), or re-implement the confidence rule (`effectiveConfidence` / `minConfidenceFilterSql` own `nli ?? similarity ?? 0` in TS and SQL).
 

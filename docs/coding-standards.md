@@ -380,7 +380,7 @@ z.string()
   .transform((val) => JSON.parse(val));
 ```
 
-**OpenAPI schema registration** — schemas register themselves at their definition site using `z.globalRegistry`. Add new schemas in `api.schemas.ts`:
+**OpenAPI schema registration** — schemas register themselves at their definition site using `z.globalRegistry`. Route schemas live alongside their routes, in `{module}.routes.schemas.ts`:
 
 ```typescript
 z.globalRegistry.add(taskSchema, { id: "Task" });
@@ -392,6 +392,54 @@ z.globalRegistry.add(messageSchema, { id: "Message" });
 ```typescript
 const jsonSchema = z.toJSONSchema(mySchema, { target: "draft-07" });
 ```
+
+---
+
+## Paged list endpoints
+
+Every list endpoint that grows with usage returns one shape, built with
+`pagedSchema` from `pagination/pagination.ts`:
+
+```typescript
+{ items: T[], total: number, offset: number, limit: number | null }
+```
+
+```typescript
+const articlesPageSchema = pagedSchema(articleSchema);
+
+fastify.route({
+  method: 'GET',
+  url: '/sources/:id/articles',
+  schema: { querystring: paginationQuerySchema, response: { 200: articlesPageSchema } },
+  // ...
+});
+```
+
+**When to paginate.** Paginate anything that grows through use — articles,
+issues, bookmarks, votes, sources (an OPML import creates hundreds), users.
+Return a bare array for lists bounded by what one user creates by hand
+(`/focuses`, `/editions/configs`) or by another bounded list
+(`/articles/:id/focuses`). Choosing a bare array is a statement that the list
+cannot grow unbounded; make it deliberately.
+
+**Rules that come with the contract:**
+
+- **`limit` is optional on the query.** An omitted `limit` falls through to the
+  service method's own default, so the default lives next to the query that
+  honours it. Where that default is "everything" (`GET /sources`, read by the
+  focus and edition builders), the response carries `limit: null`.
+- **Page in SQL where you can.** The feed and focus feeds page in memory because
+  scoring needs embeddings; everything else uses `offset`/`limit` in the query.
+  `pagination.ts` deliberately covers only the shape, not the query.
+- **Filter server-side.** A client-side filter over a paged list only filters the
+  loaded page. Add a query parameter instead (e.g. `?q=` on `/sources`).
+- **No silent caps.** Never read `.items` of the first page and present it as the
+  whole list; either page the UI or make the limit visible.
+
+On the web side, `usePagedQuery` (in `hooks/utilities/`) owns the query, the
+offset, total retention across page changes, and clamping when a mutation shrinks
+the list; `<Pager pagination idPrefix>` renders the controls. Neither offset state
+nor prev/next markup should be written by hand again.
 
 ---
 

@@ -1,17 +1,12 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-  type UseQueryResult,
-  type UseMutationResult,
-} from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
 
 import { useAuthHeaders, queryKeys } from '../../api/api.hooks.ts';
 import { client } from '../../api/api.ts';
-import { usePagination } from '../utilities/use-pagination.ts';
-import type { UsePaginationResult } from '../utilities/use-pagination.ts';
+import type { Page } from '../../api/api.ts';
+import { usePagedQuery } from '../utilities/use-paged-query.ts';
+import type { PagerControls } from '../utilities/use-paged-query.ts';
 
 import { pollFetchTask } from './sources.utils.ts';
 
@@ -39,12 +34,7 @@ type Article = {
   publishedAt: string | null;
 };
 
-type ArticlesPage = {
-  articles: Article[];
-  total: number;
-  offset: number;
-  limit: number;
-};
+type ArticlesPage = Page<Article>;
 
 type SourceType = 'rss' | 'podcast';
 type Direction = 'newest' | 'oldest';
@@ -53,23 +43,42 @@ type Direction = 'newest' | 'oldest';
 
 type UseSourcesListResult = {
   sources: Source[];
+  total: number;
   loading: boolean;
-  sourcesQuery: UseQueryResult<Source[], Error>;
+  /** Server-side match on name or URL, so it searches beyond the current page. */
+  search: string;
+  setSearch: (value: string) => void;
+  pagination: PagerControls;
   reanalyseMutation: UseMutationResult<void, Error, void, unknown>;
   reExtractMutation: UseMutationResult<void, Error, void, unknown>;
 };
 
 const useSourcesList = (): UseSourcesListResult => {
   const headers = useAuthHeaders();
+  const [search, setSearchValue] = useState('');
 
-  const sourcesQuery = useQuery({
-    queryKey: queryKeys.sources.all,
-    queryFn: async (): Promise<Source[]> => {
-      const { data } = await client.GET('/api/sources', { headers });
-      return ((data as Source[]) ?? []).filter((s) => s.type !== 'bookmarks');
+  const paged = usePagedQuery<Source>({
+    queryKey: (offset) => [...queryKeys.sources.all, { search, offset }],
+    fetchPage: async ({ offset, limit }): Promise<Page<Source>> => {
+      const { data } = await client.GET('/api/sources', {
+        params: {
+          query: { offset, limit, includeBookmarks: 'false', ...(search ? { q: search } : {}) },
+        },
+        headers,
+      });
+      return data as Page<Source>;
     },
+    pageSize: PAGE_SIZE,
     enabled: !!headers,
   });
+
+  const setSearch = useCallback(
+    (value: string): void => {
+      setSearchValue(value);
+      paged.pagination.reset();
+    },
+    [paged.pagination],
+  );
 
   const reanalyseMutation = useMutation({
     mutationFn: async (): Promise<void> => {
@@ -79,14 +88,17 @@ const useSourcesList = (): UseSourcesListResult => {
 
   const reExtractMutation = useMutation({
     mutationFn: async (): Promise<void> => {
-      await fetch('/api/sources/re-extract-all', { method: 'POST', headers });
+      await client.POST('/api/sources/re-extract-all', { headers });
     },
   });
 
   return {
-    sources: sourcesQuery.data ?? [],
-    loading: sourcesQuery.isLoading,
-    sourcesQuery,
+    sources: paged.items,
+    total: paged.total,
+    loading: paged.isLoading,
+    search,
+    setSearch,
+    pagination: paged.pagination,
     reanalyseMutation,
     reExtractMutation,
   };
@@ -170,11 +182,10 @@ type UseSourceDetailParams = { sourceId: string };
 
 type UseSourceDetailResult = {
   source: Source | undefined;
-  articlesPage: ArticlesPage | null;
+  articles: Article[];
+  articlesTotal: number;
   loading: boolean;
-  sourceQuery: UseQueryResult<Source, Error>;
-  articlesQuery: UseQueryResult<ArticlesPage, Error>;
-  pagination: UsePaginationResult;
+  pagination: PagerControls;
   fetchMutation: UseMutationResult<string, Error, void, unknown>;
   fetchResult: string | null;
   reanalyseMutation: UseMutationResult<string, Error, void, unknown>;
@@ -249,14 +260,13 @@ const useReExtractSourceMutation = (
 ): UseMutationResult<string, Error, void, unknown> =>
   useMutation({
     mutationFn: async (): Promise<string> => {
-      const res = await fetch(`/api/sources/${deps.sourceId}/re-extract`, {
-        method: 'POST',
+      const { data, error: err } = await client.POST('/api/sources/{id}/re-extract', {
+        params: { path: { id: deps.sourceId } },
         headers: deps.headers,
       });
-      if (!res.ok) {
+      if (err || !data) {
         throw new Error('Failed to start re-extraction');
       }
-      const data = (await res.json()) as { enqueued: number };
       return `Enqueued ${data.enqueued} articles for re-extraction`;
     },
     onSuccess: (message: string): void => setReExtractResult(message),
@@ -271,9 +281,6 @@ const useSourceDetail = ({ sourceId }: UseSourceDetailParams): UseSourceDetailRe
   const [fetchResult, setFetchResult] = useState<string | null>(null);
   const [reanalyseResult, setReanalyseResult] = useState<string | null>(null);
   const [reExtractResult, setReExtractResult] = useState<string | null>(null);
-
-  const [articlesTotal, setArticlesTotal] = useState(0);
-  const pagination = usePagination({ pageSize: PAGE_SIZE, total: articlesTotal });
 
   const sourceQuery = useQuery({
     queryKey: queryKeys.sources.detail(sourceId),
@@ -290,20 +297,20 @@ const useSourceDetail = ({ sourceId }: UseSourceDetailParams): UseSourceDetailRe
     enabled: !!headers,
   });
 
-  const articlesQuery = useQuery({
-    queryKey: queryKeys.sources.articles(sourceId, pagination.offset),
-    queryFn: async (): Promise<ArticlesPage> => {
+  const articles = usePagedQuery<Article>({
+    queryKey: (offset) => queryKeys.sources.articles(sourceId, offset),
+    fetchPage: async ({ offset, limit }): Promise<ArticlesPage> => {
       const { data } = await client.GET('/api/sources/{id}/articles', {
-        params: { path: { id: sourceId }, query: { offset: pagination.offset, limit: PAGE_SIZE } },
+        params: { path: { id: sourceId }, query: { offset, limit } },
         headers,
       });
-      const page = data as ArticlesPage;
-      setArticlesTotal(page.total);
-      return page;
+      return data as ArticlesPage;
     },
+    pageSize: PAGE_SIZE,
     enabled: !!headers,
   });
 
+  const pagination = articles.pagination;
   const deps: SourceDetailDeps = { sourceId, headers, queryClient, paginationOffset: pagination.offset };
   const fetchMutation = useFetchSourceMutation(deps, setFetchResult);
   const reanalyseMutation = useReanalyseSourceMutation(deps, setReanalyseResult);
@@ -311,10 +318,9 @@ const useSourceDetail = ({ sourceId }: UseSourceDetailParams): UseSourceDetailRe
 
   return {
     source: sourceQuery.data,
-    articlesPage: articlesQuery.data ?? null,
-    loading: sourceQuery.isLoading || articlesQuery.isLoading,
-    sourceQuery,
-    articlesQuery,
+    articles: articles.items,
+    articlesTotal: articles.total,
+    loading: sourceQuery.isLoading || articles.isLoading,
     pagination,
     fetchMutation,
     fetchResult,
@@ -349,11 +355,8 @@ const useClassificationStats = (): { stats: Map<string, FocusStat[]>; isLoading:
   const { data, isLoading } = useQuery({
     queryKey: ['sources', 'classification-stats'],
     queryFn: async (): Promise<SourceClassificationStats[]> => {
-      const res = await fetch('/api/sources/classification-stats', { headers });
-      if (!res.ok) {
-        return [];
-      }
-      return (await res.json()) as SourceClassificationStats[];
+      const { data } = await client.GET('/api/sources/classification-stats', { headers });
+      return data ?? [];
     },
     enabled: !!headers,
     staleTime: 30_000,

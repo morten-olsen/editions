@@ -5,6 +5,7 @@ import { PageHeader } from '../components/page-header.tsx';
 import { EmptyState } from '../components/empty-state.tsx';
 import { ArticleCard } from '../components/article-card.tsx';
 import { Button } from '../components/button.tsx';
+import { Pager } from '../components/pager.tsx';
 
 const BookmarkSaveForm = ({
   saveUrl,
@@ -50,50 +51,6 @@ const BookmarkSaveForm = ({
     </Button>
   </form>
 );
-
-const BookmarkPagination = ({
-  pagination,
-}: {
-  pagination: ReturnType<typeof useBookmarks>['pagination'];
-}): React.ReactNode => {
-  if (pagination.totalPages <= 1) {
-    return null;
-  }
-  return (
-    <div
-      className="flex items-center justify-between mt-4 pt-4 border-t border-border"
-      data-ai-id="bookmark-pagination"
-      data-ai-role="info"
-      data-ai-label={`Page ${pagination.currentPage} of ${pagination.totalPages}`}
-    >
-      <Button
-        variant="ghost"
-        size="sm"
-        disabled={!pagination.hasPrev}
-        onClick={() => pagination.goPrev()}
-        data-ai-id="bookmark-prev-page"
-        data-ai-role="button"
-        data-ai-label="Previous page"
-      >
-        Previous
-      </Button>
-      <span className="text-xs text-ink-tertiary">
-        Page {pagination.currentPage} of {pagination.totalPages}
-      </span>
-      <Button
-        variant="ghost"
-        size="sm"
-        disabled={!pagination.hasNext}
-        onClick={() => pagination.goNext()}
-        data-ai-id="bookmark-next-page"
-        data-ai-role="button"
-        data-ai-label="Next page"
-      >
-        Next
-      </Button>
-    </div>
-  );
-};
 
 const BookmarksIndexPage = (): React.ReactNode => {
   const {
@@ -161,7 +118,7 @@ const BookmarksIndexPage = (): React.ReactNode => {
           <div className="text-xs text-ink-tertiary mt-4">
             {total} bookmark{total === 1 ? '' : 's'}
           </div>
-          <BookmarkPagination pagination={pagination} />
+          <Pager pagination={pagination} idPrefix="bookmark" />
         </>
       )}
     </>

@@ -1,5 +1,7 @@
 import { z } from 'zod/v4';
 
+import { pagedSchema, paginationQuerySchema } from '../pagination/pagination.ts';
+
 // --- Edition Config Schemas ---
 
 const editionConfigFocusSchema = z.object({
@@ -124,8 +126,29 @@ const updateProgressSchema = z.object({
   currentPosition: z.number().int().min(0),
 });
 
-const listEditionsQuerySchema = z.object({
+const listEditionsQuerySchema = paginationQuerySchema.extend({
   read: z.enum(['true', 'false']).optional(),
+});
+
+const editionSummaryPageSchema = pagedSchema(editionSummarySchema);
+
+// --- Issue sweep ---
+
+const issueSweepFilterSchema = z.object({
+  /** Omitted = both read and unread. */
+  read: z.boolean().optional(),
+  publishedBefore: z.iso.datetime().optional(),
+  /** Protects the N most recent issues regardless of the rest of the filter. */
+  keepLatest: z.number().int().min(0).optional(),
+});
+
+const issueSweepBodySchema = z.object({
+  filter: issueSweepFilterSchema,
+  action: z.enum(['delete', 'mark-read', 'mark-unread']),
+});
+
+const issueSweepResultSchema = z.object({
+  affected: z.number(),
 });
 
 export {
@@ -141,4 +164,8 @@ export {
   editionArticleIdParamSchema,
   updateProgressSchema,
   listEditionsQuerySchema,
+  editionSummaryPageSchema,
+  issueSweepFilterSchema,
+  issueSweepBodySchema,
+  issueSweepResultSchema,
 };

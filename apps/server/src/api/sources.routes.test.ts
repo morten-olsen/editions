@@ -87,7 +87,9 @@ describe('GET /api/sources', () => {
     });
 
     expect(res.statusCode).toBe(200);
-    expect(JSON.parse(res.body)).toEqual([]);
+    const body = JSON.parse(res.body);
+    expect(body.items).toEqual([]);
+    expect(body.total).toBe(0);
   });
 
   it('returns created sources', async () => {
@@ -101,7 +103,66 @@ describe('GET /api/sources', () => {
       headers,
     });
 
-    expect(JSON.parse(res.body)).toHaveLength(2);
+    const body = JSON.parse(res.body);
+    expect(body.items).toHaveLength(2);
+    expect(body.total).toBe(2);
+  });
+
+  it('returns every source when limit is omitted, and a page when it is not', async () => {
+    const headers = await authed();
+    await createSource(headers, 'Feed 1', 'https://example.com/1');
+    await createSource(headers, 'Feed 2', 'https://example.com/2');
+    await createSource(headers, 'Feed 3', 'https://example.com/3');
+
+    const all = JSON.parse((await t.inject({ method: 'GET', url: '/api/sources', headers })).body);
+    expect(all.items).toHaveLength(3);
+    expect(all.limit).toBeNull();
+
+    const paged = JSON.parse((await t.inject({ method: 'GET', url: '/api/sources?limit=2', headers })).body);
+    expect(paged.items).toHaveLength(2);
+    expect(paged.total).toBe(3);
+    expect(paged.limit).toBe(2);
+
+    const second = JSON.parse((await t.inject({ method: 'GET', url: '/api/sources?limit=2&offset=2', headers })).body);
+    expect(second.items).toHaveLength(1);
+    expect(second.total).toBe(3);
+  });
+
+  it('searches name and url server-side, across pages', async () => {
+    const headers = await authed();
+    await createSource(headers, 'Rust Weekly', 'https://rust.example.com/feed');
+    await createSource(headers, 'Cooking', 'https://food.example.com/feed');
+    await createSource(headers, 'Gardening', 'https://rust-free.example.com/feed');
+
+    const byName = JSON.parse((await t.inject({ method: 'GET', url: '/api/sources?q=weekly', headers })).body);
+    expect(byName.items.map((s: { name: string }) => s.name)).toEqual(['Rust Weekly']);
+
+    // Matches the URL of one source and the name of another — the filter runs in
+    // SQL, so the count reflects every match rather than the current page.
+    const byUrl = JSON.parse((await t.inject({ method: 'GET', url: '/api/sources?q=rust&limit=1', headers })).body);
+    expect(byUrl.total).toBe(2);
+    expect(byUrl.items).toHaveLength(1);
+  });
+
+  it('excludes the bookmarks source when asked', async () => {
+    const headers = await authed();
+    await createSource(headers, 'Feed 1', 'https://example.com/1');
+    // Saving a URL creates the built-in bookmarks source.
+    await t.inject({
+      method: 'POST',
+      url: '/api/bookmarks/save',
+      headers,
+      payload: { url: 'https://example.com/an-article' },
+    });
+
+    const withBookmarks = JSON.parse((await t.inject({ method: 'GET', url: '/api/sources', headers })).body);
+    expect(withBookmarks.items.some((s: { type: string }) => s.type === 'bookmarks')).toBe(true);
+
+    const without = JSON.parse(
+      (await t.inject({ method: 'GET', url: '/api/sources?includeBookmarks=false', headers })).body,
+    );
+    expect(without.items.some((s: { type: string }) => s.type === 'bookmarks')).toBe(false);
+    expect(without.total).toBe(1);
   });
 
   it('isolates sources by user', async () => {
@@ -115,7 +176,26 @@ describe('GET /api/sources', () => {
       headers: otherHeaders,
     });
 
-    expect(JSON.parse(res.body)).toHaveLength(0);
+    expect(JSON.parse(res.body).items).toHaveLength(0);
+  });
+
+  it('exports OPML, excluding the bookmarks source', async () => {
+    const headers = await authed();
+    await createSource(headers, 'Feed 1', 'https://example.com/1');
+    await t.inject({
+      method: 'POST',
+      url: '/api/bookmarks/save',
+      headers,
+      payload: { url: 'https://example.com/an-article' },
+    });
+
+    const res = await t.inject({ method: 'GET', url: '/api/sources/opml', headers });
+
+    expect(res.statusCode).toBe(200);
+    const { opml } = JSON.parse(res.body) as { opml: string };
+    expect(opml.startsWith('<?xml')).toBe(true);
+    expect(opml).toContain('https://example.com/1');
+    expect(opml).not.toContain('bookmarks://saved');
   });
 });
 
@@ -254,7 +334,7 @@ describe('GET /api/sources/:id/articles', () => {
 
     expect(res.statusCode).toBe(200);
     const body = JSON.parse(res.body);
-    expect(body.articles).toEqual([]);
+    expect(body.items).toEqual([]);
     expect(body.total).toBe(0);
   });
 

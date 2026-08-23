@@ -4,10 +4,10 @@ import { createTestApp } from '../test-helpers.ts';
 import type { TestContext } from '../test-helpers.ts';
 
 type FeedResponse = {
-  articles: { id: string; title: string; score: number; vote: 1 | -1 | null; sourceName: string }[];
+  items: { id: string; title: string; score: number; vote: 1 | -1 | null; sourceName: string }[];
   total: number;
   offset: number;
-  limit: number;
+  limit: number | null;
 };
 
 const daysAgo = (days: number): string => new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
@@ -85,15 +85,15 @@ describe('feed routes', () => {
     const feed = await getFeed('?sort=recent');
 
     expect(feed.total).toBe(3);
-    expect(feed.articles.map((a) => a.id)).toEqual(['art-new', 'art-mid', 'art-old']);
-    expect(feed.articles.every((a) => a.score === 0)).toBe(true);
+    expect(feed.items.map((a) => a.id)).toEqual(['art-new', 'art-mid', 'art-old']);
+    expect(feed.items.every((a) => a.score === 0)).toBe(true);
   });
 
   it('ranks top sort by recency when no votes exist', async () => {
     const feed = await getFeed('?sort=top');
 
-    expect(feed.articles.map((a) => a.id)).toEqual(['art-new', 'art-mid', 'art-old']);
-    const scores = feed.articles.map((a) => a.score);
+    expect(feed.items.map((a) => a.id)).toEqual(['art-new', 'art-mid', 'art-old']);
+    const scores = feed.items.map((a) => a.score);
     expect(scores[0]).toBeGreaterThan(scores[1] as number);
     expect(scores[1]).toBeGreaterThan(scores[2] as number);
   });
@@ -116,8 +116,8 @@ describe('feed routes', () => {
 
     const feed = await getFeed('?sort=top');
 
-    expect(feed.articles[feed.articles.length - 1]?.id).toBe('art-new');
-    expect(feed.articles.find((a) => a.id === 'art-new')?.vote).toBe(-1);
+    expect(feed.items[feed.items.length - 1]?.id).toBe('art-new');
+    expect(feed.items.find((a) => a.id === 'art-new')?.vote).toBe(-1);
   });
 
   it('filters by read status', async () => {
@@ -125,15 +125,15 @@ describe('feed routes', () => {
     await db.updateTable('articles').set({ read_at: new Date().toISOString() }).where('id', '=', 'art-mid').execute();
 
     const unread = await getFeed('?status=unread');
-    expect(unread.articles.map((a) => a.id).sort()).toEqual(['art-new', 'art-old']);
+    expect(unread.items.map((a) => a.id).sort()).toEqual(['art-new', 'art-old']);
 
     const read = await getFeed('?status=read');
-    expect(read.articles.map((a) => a.id)).toEqual(['art-mid']);
+    expect(read.items.map((a) => a.id)).toEqual(['art-mid']);
   });
 
   it('filters by date range', async () => {
     const feed = await getFeed(`?from=${encodeURIComponent(daysAgo(7))}&to=${encodeURIComponent(daysAgo(2))}`);
-    expect(feed.articles.map((a) => a.id)).toEqual(['art-mid']);
+    expect(feed.items.map((a) => a.id)).toEqual(['art-mid']);
   });
 
   it('paginates after ranking', async () => {
@@ -141,8 +141,8 @@ describe('feed routes', () => {
     const second = await getFeed('?sort=top&limit=2&offset=2');
 
     expect(first.total).toBe(3);
-    expect(first.articles.map((a) => a.id)).toEqual(['art-new', 'art-mid']);
-    expect(second.articles.map((a) => a.id)).toEqual(['art-old']);
+    expect(first.items.map((a) => a.id)).toEqual(['art-new', 'art-mid']);
+    expect(second.items.map((a) => a.id)).toEqual(['art-old']);
   });
 
   it('only shows articles from the requesting user', async () => {
@@ -151,6 +151,6 @@ describe('feed routes', () => {
     const feed = JSON.parse(res.body) as FeedResponse;
 
     expect(feed.total).toBe(0);
-    expect(feed.articles).toEqual([]);
+    expect(feed.items).toEqual([]);
   });
 });

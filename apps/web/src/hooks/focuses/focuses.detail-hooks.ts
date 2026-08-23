@@ -3,69 +3,23 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAuthHeaders, queryKeys } from '../../api/api.hooks.ts';
 import { client } from '../../api/api.ts';
+import { useBookmarkStatus } from '../bookmarks/bookmarks.hooks.ts';
+import { DEFAULT_TIME_WINDOW, windowToRange } from '../utilities/time-window.ts';
+import type { TimeWindow } from '../utilities/time-window.ts';
 import { useOptimisticMap } from '../utilities/use-optimistic-map.ts';
+import { usePagedQuery } from '../utilities/use-paged-query.ts';
+import type { PagerControls } from '../utilities/use-paged-query.ts';
 
-import { PAGE_SIZE, ANALYSIS_JOB_TYPES, windowToRange } from './focuses.utils.ts';
+import { PAGE_SIZE, ANALYSIS_JOB_TYPES } from './focuses.utils.ts';
 import type {
   VoteValue,
   FocusDetail,
+  FocusArticle,
   FocusArticlesPage,
-  ArticlesWithBookmarks,
   SortMode,
-  TimeWindow,
   ReadStatus,
-  JobEntry,
   VoteOverride,
 } from './focuses.types.ts';
-
-// ---------------------------------------------------------------------------
-// useFocusArticlesQuery
-// ---------------------------------------------------------------------------
-
-type FocusArticlesQueryParams = {
-  focusId: string;
-  headers: Record<string, string> | undefined;
-  sort: SortMode;
-  window: TimeWindow;
-  status: ReadStatus;
-  offset: number;
-};
-
-const useFocusArticlesQuery = (
-  params: FocusArticlesQueryParams,
-): { data: ArticlesWithBookmarks | undefined; isLoading: boolean } => {
-  const { focusId, headers, sort, window, status, offset } = params;
-  return useQuery({
-    queryKey: ['focuses', focusId, 'articles', { sort, window, status, offset }],
-    queryFn: async (): Promise<ArticlesWithBookmarks> => {
-      const range = windowToRange(window);
-      const { data } = await client.GET('/api/focuses/{id}/articles', {
-        params: {
-          path: { id: focusId },
-          query: { offset, limit: PAGE_SIZE, sort, status, ...range },
-        },
-        headers,
-      });
-
-      const page = (data as FocusArticlesPage) ?? { articles: [], total: 0, offset: 0, limit: PAGE_SIZE };
-
-      let bookmarkedIds = new Set<string>();
-      const articleIds = page.articles.map((a) => a.id);
-      if (articleIds.length > 0) {
-        const { data: bmData } = await client.POST('/api/bookmarks/check', {
-          body: { articleIds },
-          headers,
-        });
-        if (bmData) {
-          bookmarkedIds = new Set((bmData as { bookmarkedIds: string[] }).bookmarkedIds);
-        }
-      }
-
-      return { page, bookmarkedIds };
-    },
-    enabled: !!headers,
-  });
-};
 
 // ---------------------------------------------------------------------------
 // useAnalysisPolling
@@ -81,14 +35,8 @@ const useAnalysisPolling = (
   const { data: analysisRunning } = useQuery({
     queryKey: ['jobs', 'analysis-running'],
     queryFn: async (): Promise<boolean> => {
-      const res = await fetch('/api/jobs?active=true', {
-        headers: headers as Record<string, string>,
-      });
-      if (!res.ok) {
-        return false;
-      }
-      const body = (await res.json()) as { jobs: JobEntry[] };
-      return body.jobs.some(
+      const { data } = await client.GET('/api/jobs', { params: { query: { active: true } }, headers });
+      return (data?.jobs ?? []).some(
         (j) => ANALYSIS_JOB_TYPES.has(j.type) && (j.status === 'pending' || j.status === 'running'),
       );
     },
@@ -165,34 +113,6 @@ const useFocusVoteHandlers = (
 };
 
 // ---------------------------------------------------------------------------
-// useBookmarkHandler
-// ---------------------------------------------------------------------------
-
-const useBookmarkHandler = (
-  headers: Record<string, string> | undefined,
-  bookmarkMap: ReturnType<typeof useOptimisticMap<boolean>>,
-  serverBookmarkedIds: Set<string>,
-): ((articleId: string) => Promise<void>) =>
-  useCallback(
-    async (articleId: string): Promise<void> => {
-      const currentlyBookmarked = bookmarkMap.get(articleId, serverBookmarkedIds.has(articleId));
-      bookmarkMap.set(articleId, !currentlyBookmarked);
-      if (currentlyBookmarked) {
-        await client.DELETE('/api/articles/{articleId}/bookmark', {
-          params: { path: { articleId } },
-          headers,
-        });
-      } else {
-        await client.PUT('/api/articles/{articleId}/bookmark', {
-          params: { path: { articleId } },
-          headers,
-        });
-      }
-    },
-    [headers, bookmarkMap, serverBookmarkedIds],
-  );
-
-// ---------------------------------------------------------------------------
 // useVoteOverrides
 // ---------------------------------------------------------------------------
 
@@ -229,45 +149,36 @@ type FilterState = {
   sort: SortMode;
   window: TimeWindow;
   status: ReadStatus;
-  offset: number;
 };
 
 type FilterActions = {
   handleFilterChange: (newSort?: SortMode, newWindow?: TimeWindow, newStatus?: ReadStatus) => void;
-  handlePageChange: (newOffset: number) => void;
 };
 
-const useFilterAndPagination = (
+type FilterKey = { sort: SortMode; window: TimeWindow; status: ReadStatus };
+
+const useFocusFilters = (
   voteMap: ReturnType<typeof useOptimisticMap<VoteOverride>>,
-  bookmarkMap: ReturnType<typeof useOptimisticMap<boolean>>,
+  resetPage: () => void,
+  setFilterKey: (key: FilterKey) => void,
 ): FilterState & FilterActions => {
   const [sort, setSort] = useState<SortMode>('top');
-  const [window, setWindow] = useState<TimeWindow>('all');
+  const [window, setWindow] = useState<TimeWindow>(DEFAULT_TIME_WINDOW);
   const [status, setStatus] = useState<ReadStatus>('unread');
-  const [offset, setOffset] = useState(0);
 
   const handleFilterChange = useCallback(
     (newSort: SortMode = sort, newWindow: TimeWindow = window, newStatus: ReadStatus = status): void => {
       setSort(newSort);
       setWindow(newWindow);
       setStatus(newStatus);
-      setOffset(0);
+      setFilterKey({ sort: newSort, window: newWindow, status: newStatus });
+      resetPage();
       voteMap.reset();
-      bookmarkMap.reset();
     },
-    [sort, window, status, voteMap, bookmarkMap],
+    [sort, window, status, voteMap, resetPage, setFilterKey],
   );
 
-  const handlePageChange = useCallback(
-    (newOffset: number): void => {
-      setOffset(newOffset);
-      voteMap.reset();
-      bookmarkMap.reset();
-    },
-    [voteMap, bookmarkMap],
-  );
-
-  return { sort, window, status, offset, handleFilterChange, handlePageChange };
+  return { sort, window, status, handleFilterChange };
 };
 
 // ---------------------------------------------------------------------------
@@ -278,114 +189,130 @@ type UseFocusDetailResult = {
   focus: FocusDetail | undefined;
   loadingFocus: boolean;
   focusError: Error | null;
-  articlesPage: FocusArticlesPage | null;
+  articles: FocusArticle[];
+  total: number;
   loadingArticles: boolean;
   analysisRunning: boolean | undefined;
   sort: SortMode;
   window: TimeWindow;
   status: ReadStatus;
-  pagination: {
-    offset: number;
-    currentPage: number;
-    totalPages: number;
-    hasPrev: boolean;
-    hasNext: boolean;
-  };
+  pagination: PagerControls;
   getVoteOverride: (articleId: string, serverVote: VoteValue) => VoteValue;
   getGlobalVoteOverride: (articleId: string, serverGlobalVote: VoteValue) => VoteValue;
   isBookmarked: (articleId: string) => boolean;
   handleFocusVote: (articleId: string, value: VoteValue) => Promise<void>;
   handleGlobalVote: (articleId: string, value: VoteValue) => Promise<void>;
-  handleBookmarkToggle: (articleId: string) => Promise<void>;
+  handleBookmarkToggle: (articleId: string) => void;
   handleFilterChange: (newSort?: SortMode, newWindow?: TimeWindow, newStatus?: ReadStatus) => void;
-  handlePageChange: (newOffset: number) => void;
   headers: Record<string, string> | undefined;
 };
 
-const useFocusDetail = (focusId: string): UseFocusDetailResult => {
-  const headers = useAuthHeaders();
-  const voteMap = useOptimisticMap<VoteOverride>();
-  const bookmarkMap = useOptimisticMap<boolean>();
-  const { sort, window, status, offset, handleFilterChange, handlePageChange } = useFilterAndPagination(
-    voteMap,
-    bookmarkMap,
-  );
-
-  const {
-    data: focus,
-    isLoading: loadingFocus,
-    error: focusError,
-  } = useQuery({
+const useFocusQuery = (
+  focusId: string,
+  headers: Record<string, string> | undefined,
+): { focus: FocusDetail | undefined; isLoading: boolean; error: Error | null } => {
+  const { data, isLoading, error } = useQuery({
     queryKey: queryKeys.focuses.detail(focusId),
     queryFn: async (): Promise<FocusDetail> => {
-      const { data, error: err } = await client.GET('/api/focuses/{id}', {
+      const { data: focus, error: err } = await client.GET('/api/focuses/{id}', {
         params: { path: { id: focusId } },
         headers,
       });
       if (err) {
         throw new Error('Focus not found');
       }
-      return data as FocusDetail;
+      return focus as FocusDetail;
     },
     enabled: !!headers,
   });
 
-  const { data: articlesData, isLoading: loadingArticles } = useFocusArticlesQuery({
-    focusId,
-    headers,
-    sort,
-    window,
-    status,
-    offset,
+  return { focus: data, isLoading, error: error as Error | null };
+};
+
+const useFocusArticlesPage = (
+  focusId: string,
+  headers: Record<string, string> | undefined,
+  filterKey: FilterKey,
+): ReturnType<typeof usePagedQuery<FocusArticle>> =>
+  usePagedQuery<FocusArticle>({
+    queryKey: (offset) => ['focuses', focusId, 'articles', { ...filterKey, offset }],
+    fetchPage: async ({ offset, limit }): Promise<FocusArticlesPage> => {
+      const { data } = await client.GET('/api/focuses/{id}/articles', {
+        params: {
+          path: { id: focusId },
+          query: {
+            offset,
+            limit,
+            sort: filterKey.sort,
+            status: filterKey.status,
+            ...windowToRange(filterKey.window),
+          },
+        },
+        headers,
+      });
+      return data as FocusArticlesPage;
+    },
+    pageSize: PAGE_SIZE,
+    enabled: !!headers,
   });
 
-  const articlesPage = articlesData?.page ?? null;
-  const serverBookmarkedIds = useMemo(
-    () => articlesData?.bookmarkedIds ?? new Set<string>(),
-    [articlesData?.bookmarkedIds],
+const useFocusDetail = (focusId: string): UseFocusDetailResult => {
+  const headers = useAuthHeaders();
+  const voteMap = useOptimisticMap<VoteOverride>();
+
+  const { focus, isLoading: loadingFocus, error: focusError } = useFocusQuery(focusId, headers);
+
+  const [filterKey, setFilterKey] = useState<FilterKey>({
+    sort: 'top',
+    window: DEFAULT_TIME_WINDOW,
+    status: 'unread',
+  });
+
+  const paged = useFocusArticlesPage(focusId, headers, filterKey);
+  const { sort, window, status, handleFilterChange } = useFocusFilters(voteMap, paged.pagination.reset, setFilterKey);
+
+  // Paging invalidates optimistic vote state, which is keyed by article id.
+  const pagination = useMemo(
+    (): PagerControls => ({
+      ...paged.pagination,
+      goNext: (): void => {
+        voteMap.reset();
+        paged.pagination.goNext();
+      },
+      goPrev: (): void => {
+        voteMap.reset();
+        paged.pagination.goPrev();
+      },
+    }),
+    [paged.pagination, voteMap],
   );
 
-  const total = articlesPage?.total ?? 0;
-  const totalPages = total > 0 ? Math.ceil(total / PAGE_SIZE) : 0;
-
-  const isEmpty = !loadingArticles && (!articlesPage || articlesPage.articles.length === 0);
+  const isEmpty = !paged.isLoading && paged.items.length === 0;
   const analysisRunning = useAnalysisPolling(headers, isEmpty, focusId);
 
   const { getVoteOverride, getGlobalVoteOverride } = useVoteOverrides(voteMap);
-
-  const isBookmarked = useCallback(
-    (articleId: string): boolean => bookmarkMap.get(articleId, serverBookmarkedIds.has(articleId)),
-    [bookmarkMap, serverBookmarkedIds],
-  );
-
+  const { isBookmarked, toggleBookmark } = useBookmarkStatus(paged.items.map((a) => a.id));
   const { handleFocusVote, handleGlobalVote } = useFocusVoteHandlers(focusId, headers, voteMap);
-  const handleBookmarkToggle = useBookmarkHandler(headers, bookmarkMap, serverBookmarkedIds);
 
   return {
     focus,
     loadingFocus,
-    focusError: focusError as Error | null,
-    articlesPage,
-    loadingArticles,
+    focusError,
+    articles: paged.items,
+    total: paged.total,
+    loadingArticles: paged.isLoading,
     analysisRunning,
     sort,
     window,
     status,
-    pagination: {
-      offset,
-      currentPage: Math.floor(offset / PAGE_SIZE) + 1,
-      totalPages,
-      hasPrev: offset > 0,
-      hasNext: offset + PAGE_SIZE < total,
-    },
+    pagination,
     getVoteOverride,
     getGlobalVoteOverride,
     isBookmarked,
     handleFocusVote,
     handleGlobalVote,
-    handleBookmarkToggle,
+    handleBookmarkToggle: toggleBookmark,
     handleFilterChange,
-    handlePageChange,
     headers,
   };
 };

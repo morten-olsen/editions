@@ -53,7 +53,7 @@ const useEditFocusData = (
     queryKey: queryKeys.sources.all,
     queryFn: async (): Promise<Source[]> => {
       const { data } = await client.GET('/api/sources', { headers });
-      return (data as Source[]) ?? [];
+      return data?.items ?? [];
     },
     enabled: !!headers,
   });

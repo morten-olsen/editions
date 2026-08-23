@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react';
 
+import { bearer, client } from '../../api/api.ts';
+import type { ApiBody } from '../../api/api.ts';
 import { Button } from '../../components/button.tsx';
 import { Separator } from '../../components/separator.tsx';
 
@@ -17,13 +19,10 @@ type ImportResult = {
 /* ── Private helpers ───────────────────────────────────────────────── */
 
 const downloadExport = async (token: string): Promise<void> => {
-  const res = await fetch('/api/data/export', {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) {
-    throw new Error(`Export failed: ${res.statusText}`);
+  const { data, error: err } = await client.GET('/api/data/export', { headers: bearer(token) });
+  if (err || !data) {
+    throw new Error('Export failed');
   }
-  const data = await res.json();
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -34,27 +33,21 @@ const downloadExport = async (token: string): Promise<void> => {
 };
 
 const uploadImport = async (token: string, file: File): Promise<ImportResult> => {
-  const text = await file.text();
-  const data = JSON.parse(text) as unknown;
-  if (typeof data !== 'object' || data === null || !('version' in data)) {
+  const parsed = JSON.parse(await file.text()) as unknown;
+  if (typeof parsed !== 'object' || parsed === null || !('version' in parsed)) {
     throw new Error('Invalid export file format');
   }
 
-  const res = await fetch('/api/data/import', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: text,
+  const { data, error: err } = await client.POST('/api/data/import', {
+    body: parsed as ApiBody<'/api/data/import', 'post'>,
+    headers: bearer(token),
   });
 
-  if (!res.ok) {
-    const body = (await res.json()) as { error?: string };
-    throw new Error(body.error ?? `Import failed: ${res.statusText}`);
+  if (err || !data) {
+    throw new Error((err as { error?: string } | undefined)?.error ?? 'Import failed');
   }
 
-  return (await res.json()) as ImportResult;
+  return data as ImportResult;
 };
 
 /* ── Subcomponents ─────────────────────────────────────────────────── */

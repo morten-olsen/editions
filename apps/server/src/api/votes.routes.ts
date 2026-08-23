@@ -2,6 +2,7 @@ import { z } from 'zod/v4';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
 import { createAuthHook } from '../auth/auth.middleware.ts';
+import { pagedSchema, paginationQuerySchema } from '../pagination/pagination.ts';
 import { VotesService } from '../votes/votes.ts';
 import type { Services } from '../services/services.ts';
 
@@ -20,16 +21,9 @@ const voteWithArticleSchema = z.object({
   focusName: z.string().nullable(),
 });
 
-const votesPageSchema = z.object({
-  votes: z.array(voteWithArticleSchema),
-  total: z.number(),
-  offset: z.number(),
-  limit: z.number(),
-});
+const votesPageSchema = pagedSchema(voteWithArticleSchema);
 
-const listVotesQuerySchema = z.object({
-  offset: z.coerce.number().int().min(0).default(0),
-  limit: z.coerce.number().int().min(1).max(100).default(50),
+const listVotesQuerySchema = paginationQuerySchema.extend({
   scope: z.enum(['global', 'focus', 'edition']).optional(),
   value: z.coerce
     .number()

@@ -1,9 +1,12 @@
 import crypto from 'node:crypto';
 
 import { sql } from 'kysely';
+import type { SelectQueryBuilder } from 'kysely';
 
 import { DatabaseService } from '../database/database.ts';
-import type { SourceType } from '../database/database.types.ts';
+import type { DatabaseSchema, SourceType } from '../database/database.types.ts';
+import { toPage } from '../pagination/pagination.ts';
+import type { Page, PageOptions } from '../pagination/pagination.ts';
 import type { Services } from '../services/services.ts';
 
 import { fetchAndStoreFeed } from './sources.fetch.ts';
@@ -81,11 +84,18 @@ type ArticleDetail = Article & {
   progress: number;
 };
 
-type ArticlesPage = {
-  articles: Article[];
-  total: number;
-  offset: number;
-  limit: number;
+type ArticlesPage = Page<Article>;
+
+type SourcesPage = Page<Source>;
+
+type ListSourcesOptions = {
+  offset?: number;
+  /** `null` (the default) returns every source — see `list`. */
+  limit?: number | null;
+  /** Case-insensitive match on name or URL. */
+  q?: string;
+  /** The built-in bookmarks source is excluded when false. */
+  includeBookmarks?: boolean;
 };
 
 // --- Service ---
@@ -97,17 +107,40 @@ class SourcesService {
     this.#services = services;
   }
 
-  list = async (userId: string): Promise<Source[]> => {
+  /**
+   * A user's sources, newest first. `limit` defaults to null — every row — because
+   * the focus and edition builders need the full set to render selection state;
+   * the sources list view passes an explicit page size. `q` matches name or URL
+   * (case-insensitive) server-side, so searching isn't limited to the loaded page.
+   */
+  list = async (
+    userId: string,
+    { offset = 0, limit = null, q, includeBookmarks = true }: ListSourcesOptions = {},
+  ): Promise<SourcesPage> => {
     const db = await this.#services.get(DatabaseService).getInstance();
 
-    const rows = await db
-      .selectFrom('sources')
-      .selectAll()
-      .where('user_id', '=', userId)
-      .orderBy('created_at', 'desc')
-      .execute();
+    const filtered = (): SelectQueryBuilder<DatabaseSchema, 'sources', object> => {
+      let query = db.selectFrom('sources').where('user_id', '=', userId);
+      if (!includeBookmarks) {
+        query = query.where('type', '!=', 'bookmarks');
+      }
+      if (q) {
+        const pattern = `%${q}%`;
+        query = query.where((eb) => eb.or([eb('name', 'like', pattern), eb('url', 'like', pattern)]));
+      }
+      return query;
+    };
 
-    return rows.map(toSource);
+    const countResult = await filtered().select(db.fn.countAll().as('count')).executeTakeFirstOrThrow();
+
+    let rowsQuery = filtered().selectAll().orderBy('created_at', 'desc');
+    if (limit !== null) {
+      rowsQuery = rowsQuery.offset(offset).limit(limit);
+    }
+
+    const rows = await rowsQuery.execute();
+
+    return toPage({ items: rows.map(toSource), total: countResult.count, offset, limit });
   };
 
   getOrCreateBookmarksSource = async (userId: string): Promise<Source> => {
@@ -216,7 +249,7 @@ class SourcesService {
   listArticles = async (
     userId: string,
     sourceId: string,
-    { offset = 0, limit = 20 }: { offset?: number; limit?: number } = {},
+    { offset = 0, limit = 20 }: PageOptions = {},
   ): Promise<ArticlesPage> => {
     // Verify ownership and get source for direction
     const source = await this.get(userId, sourceId);
@@ -251,8 +284,8 @@ class SourcesService {
       .limit(limit)
       .execute();
 
-    return {
-      articles: rows.map(
+    return toPage({
+      items: rows.map(
         (row): Article => ({
           id: row.id,
           sourceId: row.source_id,
@@ -266,10 +299,10 @@ class SourcesService {
           createdAt: row.created_at,
         }),
       ),
-      total: Number(countResult.count),
+      total: countResult.count,
       offset,
       limit,
-    };
+    });
   };
 
   getArticle = async (userId: string, articleId: string): Promise<ArticleDetail> => {
@@ -443,6 +476,8 @@ export type {
   Article,
   ArticleDetail,
   ArticlesPage,
+  ListSourcesOptions,
+  SourcesPage,
   CreateSourceParams,
   UpdateSourceParams,
   SourceClassificationStats,

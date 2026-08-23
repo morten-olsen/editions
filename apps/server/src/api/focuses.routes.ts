@@ -4,6 +4,7 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { createAccessHook } from '../auth/access.middleware.ts';
 import { createAuthHook } from '../auth/auth.middleware.ts';
 import { FocusNotFoundError, FocusesService } from '../focuses/focuses.ts';
+import { pagedSchema, paginationQuerySchema } from '../pagination/pagination.ts';
 import type { Services } from '../services/services.ts';
 import { ArticleNotFoundForVoteError, VotesService } from '../votes/votes.ts';
 
@@ -79,16 +80,9 @@ const focusArticleSchema = z.object({
   sourceType: z.string(),
 });
 
-const focusArticlesPageSchema = z.object({
-  articles: z.array(focusArticleSchema),
-  total: z.number(),
-  offset: z.number(),
-  limit: z.number(),
-});
+const focusArticlesPageSchema = pagedSchema(focusArticleSchema);
 
-const focusArticlesQuerySchema = z.object({
-  offset: z.coerce.number().int().min(0).default(0),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
+const focusArticlesQuerySchema = paginationQuerySchema.extend({
   sort: z.enum(['top', 'recent']).default('top'),
   from: z.string().optional(),
   to: z.string().optional(),

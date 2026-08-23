@@ -8,6 +8,7 @@ import type { Services } from '../services/services.ts';
 import { ArticleNotFoundForVoteError, VotesService } from '../votes/votes.ts';
 
 import { registerGenerateRoutes } from './editions.routes.generate.ts';
+import { registerIssueRoutes } from './editions.routes.issues.ts';
 import {
   editionConfigSchema,
   createEditionConfigSchema,
@@ -310,6 +311,7 @@ const createEditionsRoutes =
     registerConfigReadRoutes(args);
     registerConfigWriteRoutes(args);
     registerGenerateRoutes(args);
+    registerIssueRoutes(args);
     registerEditionReadRoutes(args);
     registerEditionProgressRoutes(args);
     registerEditionVoteRoutes(args);

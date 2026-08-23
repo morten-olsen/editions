@@ -1,46 +1,12 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { client } from '../api/api.ts';
-import { useAuthHeaders } from '../api/api.hooks.ts';
+import { useIssues } from '../hooks/editions/editions.issues-hooks.ts';
+import type { Issue, ReadFilter, SweepAction } from '../hooks/editions/editions.issues-hooks.ts';
 import { SlideIn, StaggerList, StaggerItem, FadeIn } from '../components/animate.tsx';
-
-// --- Types ---
-
-type EditionSummary = {
-  id: string;
-  editionConfigId: string;
-  title: string;
-  totalReadingMinutes: number | null;
-  articleCount: number;
-  currentPosition: number;
-  readAt: string | null;
-  publishedAt: string;
-  createdAt: string;
-  configName: string;
-};
-
-// --- Data hooks ---
-
-const useConfigEditions = (
-  configId: string,
-  readFilter: 'unread' | 'all',
-): { data: EditionSummary[] | undefined; isLoading: boolean } => {
-  const headers = useAuthHeaders();
-
-  return useQuery({
-    queryKey: ['config-editions', configId, readFilter],
-    queryFn: async (): Promise<EditionSummary[]> => {
-      const res = await client.GET('/api/editions/configs/{configId}/editions', {
-        params: { path: { configId }, query: readFilter === 'unread' ? { read: 'false' } : undefined },
-        headers,
-      });
-      return (res.data ?? []) as unknown as EditionSummary[];
-    },
-    enabled: !!headers,
-  });
-};
+import { Button } from '../components/button.tsx';
+import { Pager } from '../components/pager.tsx';
+import { ACTION_LABELS, CleanUpDialog } from '../views/editions/issues-cleanup-dialog.tsx';
 
 // --- Components ---
 
@@ -65,7 +31,7 @@ const IssueRow = ({
   onDelete,
   isDeleting,
 }: {
-  edition: EditionSummary;
+  edition: Issue;
   configId: string;
   onDelete: (id: string) => void;
   isDeleting: boolean;
@@ -76,6 +42,7 @@ const IssueRow = ({
         to="/editions/$configId/issues/$editionId"
         params={{ configId, editionId: edition.id }}
         className="min-w-0 flex-1"
+        data-ai-id={`edition-issue-${edition.id}-link`}
       >
         <div className="flex items-baseline gap-3 mb-1">
           <span className="font-mono text-xs tracking-wide text-ink-faint">{formatFullDate(edition.publishedAt)}</span>
@@ -95,6 +62,9 @@ const IssueRow = ({
         disabled={isDeleting}
         className="shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity duration-fast font-mono text-xs tracking-wide text-ink-faint hover:text-critical"
         title="Delete this issue"
+        data-ai-id={`edition-issue-${edition.id}-delete`}
+        data-ai-role="button"
+        data-ai-label="Delete issue"
       >
         Delete
       </button>
@@ -106,8 +76,8 @@ const FilterToggle = ({
   value,
   onChange,
 }: {
-  value: 'unread' | 'all';
-  onChange: (v: 'unread' | 'all') => void;
+  value: ReadFilter;
+  onChange: (v: ReadFilter) => void;
 }): React.ReactElement => (
   <div className="flex gap-1 bg-surface-sunken rounded-md p-0.5">
     {(['unread', 'all'] as const).map((opt) => (
@@ -118,6 +88,10 @@ const FilterToggle = ({
         className={`font-mono text-xs tracking-wide px-3 py-1 rounded transition-colors duration-fast capitalize ${
           value === opt ? 'bg-surface text-ink shadow-xs' : 'text-ink-tertiary hover:text-ink'
         }`}
+        data-ai-id={`issues-filter-${opt}`}
+        data-ai-role="button"
+        data-ai-label={`Show ${opt} issues`}
+        data-ai-state={value === opt ? 'selected' : 'idle'}
       >
         {opt}
       </button>
@@ -125,7 +99,7 @@ const FilterToggle = ({
   </div>
 );
 
-const EmptyState = ({ filter }: { filter: 'unread' | 'all' }): React.ReactElement => (
+const EmptyState = ({ filter }: { filter: ReadFilter }): React.ReactElement => (
   <FadeIn>
     <div className="py-12 text-center">
       <div className="text-4xl text-accent/20 mb-4 select-none" aria-hidden="true">
@@ -140,74 +114,122 @@ const EmptyState = ({ filter }: { filter: 'unread' | 'all' }): React.ReactElemen
   </FadeIn>
 );
 
+const IssuesHeader = ({
+  configName,
+  total,
+  readFilter,
+  onFilterChange,
+  onCleanUp,
+}: {
+  configName: string | undefined;
+  total: number;
+  readFilter: ReadFilter;
+  onFilterChange: (v: ReadFilter) => void;
+  onCleanUp: () => void;
+}): React.ReactElement => (
+  <div className="mb-8">
+    <Link
+      to="/"
+      className="font-mono text-xs tracking-wide text-ink-faint hover:text-ink transition-colors duration-fast mb-4 inline-block"
+    >
+      ← Back
+    </Link>
+    <div className="flex items-baseline justify-between gap-4">
+      <h1 className="font-serif text-2xl font-medium tracking-tight text-ink">{configName ?? 'Issues'}</h1>
+      <div className="flex items-center gap-3">
+        <FilterToggle value={readFilter} onChange={onFilterChange} />
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={onCleanUp}
+          data-ai-id="issues-sweep-open"
+          data-ai-role="button"
+          data-ai-label="Clean up issues"
+        >
+          Clean up
+        </Button>
+      </div>
+    </div>
+    <p className="font-mono text-xs tracking-wide text-ink-faint mt-2">
+      {total} issue{total === 1 ? '' : 's'}
+    </p>
+  </div>
+);
+
+const SweepResultBanner = ({
+  result,
+  onDismiss,
+}: {
+  result: { action: SweepAction; affected: number };
+  onDismiss: () => void;
+}): React.ReactElement => (
+  <div
+    className="rounded-md border border-border bg-surface-sunken px-4 py-3 mb-4 flex items-center justify-between gap-4"
+    data-ai-id="issues-sweep-result"
+    data-ai-role="info"
+    data-ai-label="Clean-up result"
+  >
+    <span className="text-sm text-ink-secondary">
+      {ACTION_LABELS[result.action]}: {result.affected} issue{result.affected === 1 ? '' : 's'}.
+    </span>
+    <button type="button" onClick={onDismiss} className="font-mono text-xs tracking-wide text-ink-faint hover:text-ink">
+      Dismiss
+    </button>
+  </div>
+);
+
 /* ---------- Page ---------- */
 
 const AllIssuesPage = (): React.ReactNode => {
   const { configId } = Route.useParams();
-  const headers = useAuthHeaders();
-  const queryClient = useQueryClient();
-  const [filter, setFilter] = useState<'unread' | 'all'>('unread');
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  const { data: editions, isLoading } = useConfigEditions(configId, filter);
-
-  const deleteMutation = useMutation({
-    mutationFn: async (editionId: string): Promise<void> => {
-      await client.DELETE('/api/editions/{editionId}', {
-        params: { path: { editionId } },
-        headers,
-      });
-    },
-    onMutate: (editionId) => setDeletingId(editionId),
-    onSettled: () => {
-      setDeletingId(null);
-      void queryClient.invalidateQueries({ queryKey: ['config-editions', configId] });
-    },
-  });
-
-  const handleDelete = useCallback(
-    (editionId: string): void => {
-      deleteMutation.mutate(editionId);
-    },
-    [deleteMutation],
-  );
-
-  const configName = editions?.[0]?.configName;
+  const issues = useIssues(configId);
+  const [cleanUpOpen, setCleanUpOpen] = useState(false);
 
   return (
     <SlideIn from="up" distance={12}>
-      <div className="mb-8">
-        <Link
-          to="/"
-          className="font-mono text-xs tracking-wide text-ink-faint hover:text-ink transition-colors duration-fast mb-4 inline-block"
-        >
-          ← Back
-        </Link>
-        <div className="flex items-baseline justify-between gap-4">
-          <h1 className="font-serif text-2xl font-medium tracking-tight text-ink">{configName ?? 'Issues'}</h1>
-          <FilterToggle value={filter} onChange={setFilter} />
-        </div>
-      </div>
+      <IssuesHeader
+        configName={issues.configName}
+        total={issues.total}
+        readFilter={issues.readFilter}
+        onFilterChange={issues.setReadFilter}
+        onCleanUp={() => setCleanUpOpen(true)}
+      />
 
-      {isLoading ? (
+      {issues.sweepResult && <SweepResultBanner result={issues.sweepResult} onDismiss={issues.clearSweepResult} />}
+
+      {issues.isLoading ? (
         <div className="text-sm text-ink-tertiary py-12 text-center">Loading...</div>
-      ) : !editions || editions.length === 0 ? (
-        <EmptyState filter={filter} />
+      ) : issues.issues.length === 0 ? (
+        <EmptyState filter={issues.readFilter} />
       ) : (
-        <StaggerList>
-          {editions.map((edition) => (
-            <StaggerItem key={edition.id}>
-              <IssueRow
-                edition={edition}
-                configId={configId}
-                onDelete={handleDelete}
-                isDeleting={deletingId === edition.id}
-              />
-            </StaggerItem>
-          ))}
-          <div className="h-px bg-border" />
-        </StaggerList>
+        <>
+          <StaggerList>
+            {issues.issues.map((edition) => (
+              <StaggerItem key={edition.id}>
+                <IssueRow
+                  edition={edition}
+                  configId={configId}
+                  onDelete={issues.deleteIssue}
+                  isDeleting={issues.deletingId === edition.id}
+                />
+              </StaggerItem>
+            ))}
+            <div className="h-px bg-border" />
+          </StaggerList>
+          <Pager pagination={issues.pagination} idPrefix="issues" />
+        </>
       )}
+
+      <CleanUpDialog
+        configId={configId}
+        open={cleanUpOpen}
+        onOpenChange={setCleanUpOpen}
+        pending={issues.sweepPending}
+        onRun={(params) => {
+          issues.runSweep(params);
+          setCleanUpOpen(false);
+        }}
+      />
 
       <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2">
         <Link

@@ -1,6 +1,8 @@
 import { DatabaseService } from '../database/database.ts';
 import { FocusesService } from '../focuses/focuses.ts';
 import { JobService } from '../jobs/jobs.ts';
+import { toPage } from '../pagination/pagination.ts';
+import type { Page, PageOptions } from '../pagination/pagination.ts';
 import { SourcesService } from '../sources/sources.ts';
 import { EditionsService } from '../editions/editions.ts';
 import type { Services } from '../services/services.ts';
@@ -34,18 +36,9 @@ class DiscoveryItemNotFoundError extends DiscoveryError {
 
 // --- Query types ---
 
-type DiscoveryListParams = {
+type DiscoveryListParams = PageOptions & {
   search?: string;
   tag?: string;
-  offset?: number;
-  limit?: number;
-};
-
-type DiscoveryPage<T> = {
-  items: T[];
-  total: number;
-  offset: number;
-  limit: number;
 };
 
 // --- Result types ---
@@ -104,15 +97,15 @@ const filterItems = <T>({ items, search, textFields, tag, tagFields }: FilterIte
   return result;
 };
 
-const paginate = <T>(items: T[], params: DiscoveryListParams): DiscoveryPage<T> => {
+const paginate = <T>(items: T[], params: DiscoveryListParams): Page<T> => {
   const offset = params.offset ?? 0;
   const limit = params.limit ?? 50;
-  return {
+  return toPage({
     items: items.slice(offset, offset + limit),
     total: items.length,
     offset,
     limit,
-  };
+  });
 };
 
 // --- Service ---
@@ -130,7 +123,7 @@ class DiscoveryService {
     return allTags;
   };
 
-  listSources = (params: DiscoveryListParams = {}): DiscoveryPage<DiscoverySource> => {
+  listSources = (params: DiscoveryListParams = {}): Page<DiscoverySource> => {
     return paginate(
       filterItems({
         items: discoverySources,
@@ -143,7 +136,7 @@ class DiscoveryService {
     );
   };
 
-  listFocuses = (params: DiscoveryListParams = {}): DiscoveryPage<DiscoveryFocus> => {
+  listFocuses = (params: DiscoveryListParams = {}): Page<DiscoveryFocus> => {
     return paginate(
       filterItems({
         items: discoveryFocuses,
@@ -155,7 +148,7 @@ class DiscoveryService {
     );
   };
 
-  listEditionConfigs = (params: DiscoveryListParams = {}): DiscoveryPage<DiscoveryEditionConfig> => {
+  listEditionConfigs = (params: DiscoveryListParams = {}): Page<DiscoveryEditionConfig> => {
     return paginate(
       filterItems({
         items: discoveryEditionConfigs,
@@ -344,5 +337,5 @@ class DiscoveryService {
   };
 }
 
-export type { DiscoveryListParams, DiscoveryPage, AdoptSourceResult, AdoptFocusResult, AdoptEditionConfigResult };
+export type { DiscoveryListParams, AdoptSourceResult, AdoptFocusResult, AdoptEditionConfigResult };
 export { DiscoveryService, DiscoveryError, DiscoveryItemNotFoundError };

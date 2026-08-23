@@ -20,7 +20,9 @@ import {
 } from '../hooks/focuses/focuses.edit-route-hooks.ts';
 import type { EditFocusFormResult } from '../hooks/focuses/focuses.edit-route-hooks.ts';
 import { useFocusPreview } from '../hooks/focuses/focuses.preview-hooks.ts';
-import type { PreviewArticle, PreviewConfig, PreviewTimeWindow } from '../hooks/focuses/focuses.preview-hooks.ts';
+import type { PreviewArticle, PreviewConfig } from '../hooks/focuses/focuses.preview-hooks.ts';
+import { TIME_WINDOW_LABELS } from '../hooks/utilities/time-window.ts';
+import type { TimeWindow } from '../hooks/utilities/time-window.ts';
 
 /* ── Update mutation ─────────────────────────────────────────────── */
 
@@ -82,7 +84,7 @@ const EditFocusPage = (): React.ReactNode => {
   const { focusId } = Route.useParams();
   const [error, setError] = useState<string | null>(null);
 
-  const [previewWindow, setPreviewWindow] = useState<PreviewTimeWindow>('all');
+  const [previewWindow, setPreviewWindow] = useState<TimeWindow>('all');
   const { focus, loadingFocus, focusError, allSources, loadingSources } = useEditFocusData(focusId, headers);
   const form = useEditFocusForm(focus);
 
@@ -261,24 +263,23 @@ const FocusConfigPanel = ({
 
 /* ── Preview panel (right side) ──────────────────────────────────── */
 
-const TIME_WINDOWS: { id: PreviewTimeWindow; label: string }[] = [
-  { id: 'all', label: 'All time' },
-  { id: 'week', label: 'This week' },
-  { id: 'today', label: 'Today' },
-];
+const TIME_WINDOWS: { id: TimeWindow; label: string }[] = (['all', 'week', 'today'] as const).map((id) => ({
+  id,
+  label: TIME_WINDOW_LABELS[id],
+}));
 
-const PreviewTimeWindowSelect = ({
+const TimeWindowSelect = ({
   timeWindow,
   onTimeWindowChange,
 }: {
-  timeWindow: PreviewTimeWindow;
-  onTimeWindowChange: (w: PreviewTimeWindow) => void;
+  timeWindow: TimeWindow;
+  onTimeWindowChange: (w: TimeWindow) => void;
 }): React.ReactElement => (
   <div className="flex items-center justify-between mb-4">
     <h3 className="font-mono text-xs tracking-wide text-ink-faint uppercase">Matching articles</h3>
     <select
       value={timeWindow}
-      onChange={(e) => onTimeWindowChange(e.target.value as PreviewTimeWindow)}
+      onChange={(e) => onTimeWindowChange(e.target.value as TimeWindow)}
       className="h-7 rounded-md border border-border bg-surface px-2 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-accent cursor-pointer"
       data-ai-id="preview-time-window"
       data-ai-role="select"
@@ -306,13 +307,13 @@ const FocusPreviewPanel = ({
   total: number;
   isLoading: boolean;
   error: Error | null;
-  timeWindow: PreviewTimeWindow;
-  onTimeWindowChange: (w: PreviewTimeWindow) => void;
+  timeWindow: TimeWindow;
+  onTimeWindowChange: (w: TimeWindow) => void;
 }): React.ReactElement => {
   if (isLoading) {
     return (
       <div>
-        <PreviewTimeWindowSelect timeWindow={timeWindow} onTimeWindowChange={onTimeWindowChange} />
+        <TimeWindowSelect timeWindow={timeWindow} onTimeWindowChange={onTimeWindowChange} />
         <div className="py-8 text-center text-sm text-ink-tertiary">Loading articles…</div>
       </div>
     );
@@ -321,7 +322,7 @@ const FocusPreviewPanel = ({
   if (error) {
     return (
       <div>
-        <PreviewTimeWindowSelect timeWindow={timeWindow} onTimeWindowChange={onTimeWindowChange} />
+        <TimeWindowSelect timeWindow={timeWindow} onTimeWindowChange={onTimeWindowChange} />
         <div className="py-8 text-center">
           <div className="text-sm text-critical mb-1">Preview failed</div>
           <div className="text-xs text-ink-faint">{error.message}</div>
@@ -333,7 +334,7 @@ const FocusPreviewPanel = ({
   if (articles.length === 0) {
     return (
       <div>
-        <PreviewTimeWindowSelect timeWindow={timeWindow} onTimeWindowChange={onTimeWindowChange} />
+        <TimeWindowSelect timeWindow={timeWindow} onTimeWindowChange={onTimeWindowChange} />
         <div className="py-8 text-center">
           <div className="text-sm text-ink-tertiary mb-1">No matching articles</div>
           <div className="text-xs text-ink-faint">
@@ -346,7 +347,7 @@ const FocusPreviewPanel = ({
 
   return (
     <div>
-      <PreviewTimeWindowSelect timeWindow={timeWindow} onTimeWindowChange={onTimeWindowChange} />
+      <TimeWindowSelect timeWindow={timeWindow} onTimeWindowChange={onTimeWindowChange} />
       <div className="text-xs text-ink-tertiary mb-3">
         {total} total{total > articles.length && ` · showing top ${articles.length}`}
       </div>

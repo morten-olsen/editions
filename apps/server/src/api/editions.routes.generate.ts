@@ -6,13 +6,7 @@ import { createAuthHook } from '../auth/auth.middleware.ts';
 import { EditionConfigNotFoundError, EditionError, EditionsService } from '../editions/editions.ts';
 import type { Services } from '../services/services.ts';
 
-import {
-  editionDetailSchema,
-  editionSummarySchema,
-  errorResponseSchema,
-  configIdParamSchema,
-  listEditionsQuerySchema,
-} from './editions.routes.schemas.ts';
+import { editionDetailSchema, errorResponseSchema, configIdParamSchema } from './editions.routes.schemas.ts';
 
 // --- Types ---
 
@@ -125,36 +119,8 @@ const registerGenerateAndPreviewRoutes = ({ fastify, services, authenticate, req
   });
 };
 
-const registerEditionListRoute = ({ fastify, services, authenticate }: RouteArgs): void => {
-  // List editions for a config (optional ?read=true|false filter)
-  fastify.route({
-    method: 'GET',
-    url: '/editions/configs/:configId/editions',
-    onRequest: authenticate,
-    schema: {
-      security: [{ bearerAuth: [] }],
-      params: configIdParamSchema,
-      querystring: listEditionsQuerySchema,
-      response: { 200: z.array(editionSummarySchema), 404: errorResponseSchema },
-    },
-    handler: async (req, reply) => {
-      const editions = services.get(EditionsService);
-      const read = req.query.read === 'true' ? true : req.query.read === 'false' ? false : undefined;
-      try {
-        return await editions.listEditions(req.user.sub, req.params.configId, { read });
-      } catch (err) {
-        if (err instanceof EditionConfigNotFoundError) {
-          return reply.code(404).send({ error: err.message });
-        }
-        throw err;
-      }
-    },
-  });
-};
-
 const registerGenerateRoutes = (args: RouteArgs): void => {
   registerGenerateAndPreviewRoutes(args);
-  registerEditionListRoute(args);
 };
 
 export { registerGenerateRoutes };

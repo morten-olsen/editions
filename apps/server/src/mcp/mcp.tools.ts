@@ -119,6 +119,28 @@ const waitForReadiness = async (ctx: ToolContext, scope: ReadinessScope, waitSec
   return readiness.waitUntilReady({ userId: ctx.userId, scope, timeoutMs: waitSeconds * 1000 });
 };
 
+/**
+ * One sentence telling the agent what to do about the readiness it just got.
+ *
+ * Shared rather than written per tool so all three states always get the same
+ * advice — in particular, that waiting on `stalled` is pointless. An agent that
+ * keeps calling `wait_until_ready` against a permanently stuck scope makes no
+ * progress and burns its budget on it.
+ */
+const readinessAdvice = (readiness: Readiness, whenReady: string): string => {
+  if (readiness.state === 'ready') {
+    return whenReady;
+  }
+  if (readiness.state === 'analysing') {
+    return 'Analysis is still running, so counts and previews are provisional. Call wait_until_ready before drawing conclusions.';
+  }
+  return (
+    `${readiness.pending} article(s) could not be analysed and no job is running, so waiting will not help — ` +
+    'usually extraction failing on dead or unreachable links. Everything else is analysed, so carry on; ' +
+    'use refresh_sources to retry them.'
+  );
+};
+
 // --- Registry ---
 
 type ToolRegistry = {
@@ -162,6 +184,7 @@ export {
   defineTool,
   createToolRegistry,
   readinessFor,
+  readinessAdvice,
   waitForReadiness,
   waitSecondsSchema,
   McpToolError,

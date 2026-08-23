@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import { sql } from 'kysely';
 import type { SelectQueryBuilder } from 'kysely';
 
+import { ConfigService } from '../config/config.ts';
 import { DatabaseService } from '../database/database.ts';
 import type { DatabaseSchema, SourceType } from '../database/database.types.ts';
 import { toPage } from '../pagination/pagination.ts';
@@ -243,7 +244,8 @@ class SourcesService {
   ingestFeed = async (userId: string, sourceId: string): Promise<void> => {
     const source = await this.get(userId, sourceId);
     const db = await this.#services.get(DatabaseService).getInstance();
-    await fetchAndStoreFeed({ db, source });
+    const { maxArticlesPerFetch } = this.#services.get(ConfigService).config.sources;
+    await fetchAndStoreFeed({ db, source, maxItems: maxArticlesPerFetch });
   };
 
   listArticles = async (

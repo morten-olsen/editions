@@ -8,6 +8,25 @@ Analysis cost is dominated by embedding (~80% of time) and NLI classification (~
 
 ## Implemented
 
+### Ingest cap (the cheapest optimization)
+
+Some feeds serve their whole archive — thousands of items in one response. Every ingested article is
+extracted, embedded and classified against every focus, so a single archive feed can cost more than
+the rest of a workspace put together, for material far older than any edition lookback.
+
+`fetchAndStoreFeed` therefore ingests at most `sources.maxArticlesPerFetch` items per fetch (default
+200, configurable in `editions.json`). `selectItemsToIngest` picks the newest by `publishedAt`, or
+the **oldest** when the source's `direction` is `"oldest"` — a backlog source is read forwards, so
+capping to the newest would mean the start of the archive never arrives. Undated items rank last but
+keep their feed order.
+
+The cap applies per fetch, not per source: a feed that publishes normally accumulates history across
+fetches as usual, and only an archive dump is truncated. `parseRssFeed` stays faithful to the feed —
+the cap belongs to ingest, so parsing remains a pure function of the document.
+
+Note this only bounds *new* ingest. A source that already accumulated thousands of articles before
+the cap existed keeps them.
+
 ### Skip re-embedding
 
 Embeddings are content-dependent, not focus-dependent. The embed step (`reconciler.embed.ts`) only processes articles with **no embedding or an embedding from a different model** — a focus change never re-embeds. This saves ~80% of per-article cost on reclassification.

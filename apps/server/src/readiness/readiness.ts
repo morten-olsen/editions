@@ -25,11 +25,20 @@ type PendingSource = {
 
 type Readiness = {
   /**
-   * `ready` means every article in scope has been analysed and no job is in
-   * flight — previews and counts can be trusted. `analysing` means they are
-   * provisional and will change.
+   * - `ready` — everything in scope is analysed and nothing is in flight.
+   *   Previews and counts can be trusted.
+   * - `analysing` — work is in flight, so counts are provisional and will grow.
+   * - `stalled` — articles remain unanalysed but no job is running, so nothing
+   *   will change on its own.
+   *
+   * The `stalled` case is not hypothetical: extraction fails permanently for
+   * some URLs (dead links, blocked scrapers), the job completes, and those
+   * articles stay unanalysed forever. Reporting that as `analysing` would make
+   * any wait loop run until its budget expired, every time. It is a distinct
+   * state because the response differs — waiting helps with `analysing` and
+   * never helps with `stalled`.
    */
-  state: 'ready' | 'analysing';
+  state: 'ready' | 'analysing' | 'stalled';
   /** Articles in scope that have completed the pipeline. */
   analysed: number;
   /** Articles in scope still waiting to be extracted, embedded or classified. */
@@ -247,7 +256,7 @@ class ReadinessService {
     const pending = counts.pending + pendingClassification;
 
     return {
-      state: pending === 0 && activeJobs === 0 ? 'ready' : 'analysing',
+      state: activeJobs > 0 ? 'analysing' : pending > 0 ? 'stalled' : 'ready',
       analysed: counts.analysed,
       pending,
       pendingClassification,
@@ -257,10 +266,15 @@ class ReadinessService {
   };
 
   /**
-   * Polls until the scope is ready or `timeoutMs` elapses. Always resolves with
-   * the latest readiness rather than throwing on timeout — a caller that ran out
-   * of budget still needs to report honestly on what is outstanding, and a
-   * timeout here is an expected outcome, not an error.
+   * Polls while work is in flight, until `timeoutMs` elapses.
+   *
+   * Returns as soon as the state is anything but `analysing` — including
+   * `stalled`, where articles remain unanalysed with no job to finish them.
+   * Waiting on a stalled scope can only ever burn the whole budget.
+   *
+   * Always resolves rather than throwing on timeout: a caller that ran out of
+   * budget still needs to report on what is outstanding, and running out is an
+   * expected outcome, not an error.
    */
   waitUntilReady = async ({ userId, scope, timeoutMs }: WaitRequest): Promise<Readiness> => {
     const deadline = Date.now() + timeoutMs;

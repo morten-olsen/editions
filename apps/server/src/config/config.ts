@@ -30,6 +30,15 @@ const analysisSchema = z.object({
   classifier: z.enum(['nli', 'similarity', 'hybrid']).default('similarity'),
 });
 
+const sourcesSchema = z.object({
+  /**
+   * Items ingested per feed fetch. Archive-serving feeds return thousands, and
+   * each ingested article costs extraction, embedding and classification
+   * against every focus — for material far older than any edition lookback.
+   */
+  maxArticlesPerFetch: z.number().min(1).default(200),
+});
+
 const stripeSchema = z.object({
   secretKey: z.string().default(''),
   webhookSecret: z.string().default(''),
@@ -42,6 +51,7 @@ const configSchema = z.object({
   auth: authSchema.default({ jwtSecret: '', allowSignups: true }),
   scheduler: schedulerSchema.default({ enabled: true, fetchIntervalMinutes: 60 }),
   analysis: analysisSchema.default({ classifier: 'similarity' }),
+  sources: sourcesSchema.default({ maxArticlesPerFetch: 200 }),
   stripe: stripeSchema.default({ secretKey: '', webhookSecret: '', publishableKey: '' }),
 });
 

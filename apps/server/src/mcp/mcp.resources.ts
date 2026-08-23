@@ -138,7 +138,7 @@ later ones take seconds.
 
 Every tool returning analysed data includes a \`readiness\` block:
 
-- \`state\` — \`"ready"\` or \`"analysing"\`.
+- \`state\` — \`"ready"\`, \`"analysing"\` or \`"stalled"\`.
 - \`analysed\` / \`pending\` — articles through the pipeline versus still in it.
 - \`pendingClassification\` — articles already analysed but not yet scored against a focus in scope.
   This is what a freshly created focus looks like while it reconciles.
@@ -150,12 +150,25 @@ While \`state\` is \`"analysing"\`, every count is a lower bound. The failure mo
 prevent is tuning a focus's threshold down to compensate for a corpus that was merely still loading,
 then finding the focus far too permissive once analysis completes.
 
+## Stalled is not analysing
+
+Extraction fetches each article's page, and some never succeed — dead links, paywalls, scraper
+blocks. Those articles stay unanalysed after their job finishes. Nothing retries them on its own.
+
+That is \`state: "stalled"\`: \`pending > 0\` with \`activeJobs === 0\`. It is reported separately from
+\`"analysing"\` because the right response is opposite. Waiting resolves \`"analysing"\`; waiting on
+\`"stalled"\` can only burn your budget, so \`wait_until_ready\` returns from it immediately.
+
+A stalled scope is usually fine to work with — a handful of unreachable links out of fifty articles
+changes nothing about whether a focus is well tuned. Check \`pending\` against \`analysed\`: if it is a
+small fraction, carry on. \`refresh_sources\` retries them.
+
 ## Waiting
 
-\`add_sources\`, \`adopt_from_catalog\` and \`save_focus\` wait for up to \`waitSeconds\` before
-returning. That budget is capped because the transport returns a single response with no way to
-report progress. When it runs out they return honestly with \`state: "analysing"\`; call
-\`wait_until_ready\`, scoped to what you care about, to continue waiting.
+\`add_sources\`, \`adopt_from_catalog\`, \`refresh_sources\` and \`save_focus\` wait for up to
+\`waitSeconds\` before returning. That budget is capped because the transport returns a single
+response with no way to report progress. When it runs out they return honestly with
+\`state: "analysing"\`; call \`wait_until_ready\`, scoped to what you care about, to continue waiting.
 `.trim(),
   },
 ];

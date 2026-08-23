@@ -9,7 +9,7 @@ import { SourcesService } from '../sources/sources.ts';
 import { VotesService } from '../votes/votes.ts';
 
 import { LIMITS, capList, truncate } from './mcp.budget.ts';
-import { defineTool, readinessFor, waitForReadiness } from './mcp.tools.ts';
+import { defineTool, readinessAdvice, readinessFor, waitForReadiness } from './mcp.tools.ts';
 import type { McpTool } from './mcp.tools.ts';
 
 type Db = Kysely<DatabaseSchema>;
@@ -182,12 +182,15 @@ const waitUntilReady = defineTool({
   title: 'Wait for analysis to settle',
   description: [
     'Block until the given sources and focuses have finished analysis, or until waitSeconds elapses.',
-    'Returns the readiness state either way — it does not fail on timeout, so call it again if work is',
-    'still outstanding.',
+    'Returns the readiness state either way — it does not fail on timeout.',
     '',
-    'Use this whenever a previous tool returned state "analysing". Counts and previews taken before',
-    'readiness is "ready" are provisional. Scope it to the sources or focuses you care about; leaving',
-    'both empty waits on everything the user owns, which can take much longer.',
+    'Use this whenever a previous tool returned state "analysing"; counts taken before that are',
+    'provisional. It returns immediately on state "stalled", which means articles remain unanalysed',
+    'with no job running — usually extraction failing on dead links. Do NOT retry a stalled scope in a',
+    'loop; nothing will change. Proceed, or call refresh_sources to retry those articles.',
+    '',
+    'Scope it to the sources or focuses you care about; leaving both empty waits on everything the',
+    'user owns, which can take much longer.',
   ].join(' '),
   scope: 'read',
   readOnly: true,
@@ -200,11 +203,10 @@ const waitUntilReady = defineTool({
     const readiness = await waitForReadiness(ctx, { sourceIds, focusIds }, waitSeconds);
     return {
       readiness,
+      // Only `analysing` means the budget actually ran out — `stalled` returns
+      // early on purpose, so reporting it as a timeout would invite a retry.
       timedOut: readiness.state === 'analysing',
-      nextStep:
-        readiness.state === 'ready'
-          ? 'Everything in scope is analysed. Previews are now trustworthy.'
-          : 'Still analysing. Call wait_until_ready again, or proceed knowing the numbers will change.',
+      nextStep: readinessAdvice(readiness, 'Everything in scope is analysed. Previews are now trustworthy.'),
     };
   },
 });

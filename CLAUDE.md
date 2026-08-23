@@ -80,6 +80,8 @@ Full reference: [docs/coding-standards.md](docs/coding-standards.md)
 
 **Config:** `ConfigService` loads JSON from `/etc/editions/editions.json` → `~/.config/editions/editions.json` → `./editions.json` → env vars (later files override earlier). Env vars: `EDITIONS_HOST`, `EDITIONS_PORT`, `EDITIONS_DB`, `EDITIONS_JWT_SECRET`. Schema validated with Zod.
 
+**Feed ingest:** capped at `sources.maxArticlesPerFetch` items per fetch (default 200). Archive-serving feeds return thousands, and each one costs extraction + embedding + classification against every focus for material older than any edition lookback. `selectItemsToIngest` takes the newest, or the oldest when the source's `direction` is `'oldest'`. See [docs/pipeline-optimization.md](docs/pipeline-optimization.md).
+
 **Auth:** Password hashing via Node.js `crypto.scrypt`. JWT via `jose` (HS256, issuer `"editions"`). No expiration yet (refresh tokens TBD). JWT secret auto-generated if not configured (sessions lost on restart). `password_hash` is nullable on users to support future OAuth-only accounts. First registered user automatically becomes `admin`, subsequent users get `user` role. JWT payload includes `sub`, `username`, `role`.
 
 **Auth middleware:** `createAuthHook(services)` returns a Fastify `onRequest` hook that validates the `Authorization: Bearer <token>` header and populates `req.user` (typed as `TokenPayload`). Use `declare module "fastify"` augmentation in `auth.middleware.ts`. Apply per-route via `onRequest` property, not globally.
@@ -92,7 +94,7 @@ Full reference: [docs/coding-standards.md](docs/coding-standards.md)
 
 **MCP:** Agents connect over HTTP at `POST /api/mcp` with an API key. Tools are plain records in `mcp/mcp.tools.ts`, not SDK objects — the SDK is an adapter in `mcp/mcp.ts`, so tests call `toolRegistry.call` directly with no HTTP. Tools are adapters, never a domain layer: behaviour belongs in domain modules. Two hard rules — every tool returning analysed data must include a `readiness` block (see below), and no tool except `get_article` may return `articles.content`. Both are enforced by tests. See [docs/mcp.md](docs/mcp.md).
 
-**Readiness:** `readiness/readiness.ts` owns "has analysis settled?". It combines DB counts *and* the in-memory job queue — a source mid-fetch has zero articles and so looks trivially ready to SQL alone. Never re-derive readiness from `analysed_at` in a caller.
+**Readiness:** `readiness/readiness.ts` owns "has analysis settled?". It combines DB counts *and* the in-memory job queue — a source mid-fetch has zero articles and so looks trivially ready to SQL alone. Never re-derive readiness from `analysed_at` in a caller. Three states: `ready`, `analysing` (a job is running) and `stalled` (articles unanalysed with nothing running — extraction fails permanently on some URLs). `stalled` must stay distinct: collapsing it into `analysing` makes every wait loop run to its full budget forever.
 
 **Jobs:** Job types + payloads are a typed registry (`JobPayloads` in `jobs/jobs.ts`) — a typo'd `enqueue` type is a compile error. Adding a job type means updating the registry AND the web label maps (`jobs.hooks.ts` `JOB_TYPE_LABELS`, `focuses.utils.ts` `ANALYSIS_JOB_TYPES`). Analysis jobs are presets over `ReconcilerService.reconcile({ scopeFilter, reset, backfillExtractedAt })` — put reset logic there, not in handlers.
 
@@ -108,6 +110,8 @@ Full reference: [docs/coding-standards.md](docs/coding-standards.md)
 - `DatabaseService.getInstance()` returns `Promise<Kysely<DatabaseSchema>>` — always `await` it
 - Dedup index on `articles(source_id, external_id)` — use `ON CONFLICT` or check before insert
 - `sources.config` is JSON text — parse/stringify when reading/writing type-specific settings
+
+**Feed parsing gotcha:** fast-xml-parser's `processEntities.maxTotalExpansions` counts *every* entity replacement including harmless 1:1 ones (`&amp;`, `&#8217;`), and its default of 1000 is well below what a real full-text feed contains — the Rust blog and simonwillison.net both exceeded it. Exceeding it throws, so the whole feed fails rather than degrading. `sources.fetch.ts` raises it to 1,000,000; the DOCTYPE-specific limits that actually guard against billion-laughs are untouched, and the parser refuses to expand nested entities at all, so exponential expansion is structurally impossible.
 
 **Config gotchas:**
 

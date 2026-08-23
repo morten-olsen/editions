@@ -401,7 +401,7 @@ describe('readiness reporting', () => {
     }
   });
 
-  it('reports analysing while articles are unanalysed', async () => {
+  it('reports analysing while a job is in flight', async () => {
     const db = await t.db();
     const sourceId = await seedSource(db, 'Example', 'https://example.com/feed.xml');
     await seedArticles(db, {
@@ -411,6 +411,14 @@ describe('readiness reporting', () => {
         { title: 'Pending', analysed: false },
         { title: 'Also pending', analysed: false },
       ],
+    });
+
+    // A running job is what distinguishes "in flight" from "stuck".
+    t.services.set(JobService, {
+      enqueue: (() => ({ id: 'j', status: 'pending' })) as never,
+      listByUser: (() => [{ id: 'j', status: 'running', affects: { sourceIds: [], focusIds: [] } }]) as never,
+      register: (() => undefined) as never,
+      get: (() => undefined) as never,
     });
 
     const result = (await call('get_workspace')) as unknown as {
@@ -423,23 +431,89 @@ describe('readiness reporting', () => {
     expect(result.readiness.pendingSources[0]?.name).toBe('Example');
   });
 
-  it('reports a focus as analysing while its articles are unscored', async () => {
+  /**
+   * Extraction fails permanently on some URLs, the job completes, and those
+   * articles stay unanalysed. Reported as "analysing" this would make every
+   * wait loop run to its full budget forever.
+   */
+  it('reports stalled when articles are unanalysed but nothing is running', async () => {
+    const db = await t.db();
+    const sourceId = await seedSource(db, 'Example', 'https://example.com/feed.xml');
+    stubJobs(); // listByUser returns no active jobs
+    await seedArticles(db, {
+      sourceId,
+      articles: [
+        { title: 'Done', analysed: true },
+        { title: 'Never extracted', analysed: false },
+      ],
+    });
+
+    const result = (await call('get_workspace')) as unknown as {
+      readiness: { state: string; pending: number; activeJobs: number };
+    };
+
+    expect(result.readiness.state).toBe('stalled');
+    expect(result.readiness.pending).toBe(1);
+    expect(result.readiness.activeJobs).toBe(0);
+  });
+
+  it('does not wait on a stalled scope', async () => {
+    const db = await t.db();
+    const sourceId = await seedSource(db, 'Example', 'https://example.com/feed.xml');
+    stubJobs();
+    await seedArticles(db, { sourceId, articles: [{ title: 'Never extracted', analysed: false }] });
+
+    const started = Date.now();
+    const result = (await call('wait_until_ready', { waitSeconds: 30 })) as unknown as {
+      readiness: { state: string };
+      timedOut: boolean;
+      nextStep: string;
+    };
+
+    expect(result.readiness.state).toBe('stalled');
+    expect(Date.now() - started).toBeLessThan(2000);
+    // Not a timeout — reporting it as one would invite a pointless retry.
+    expect(result.timedOut).toBe(false);
+    expect(result.nextStep).toMatch(/waiting will not help/i);
+  });
+
+  /**
+   * A focus whose articles are analysed but unscored against it. The
+   * article-level counts look clean, so per-focus classification coverage is
+   * the only thing that reveals the focus is not usable yet.
+   */
+  it('detects unscored articles that the article-level counts miss', async () => {
     const db = await t.db();
     const sourceId = await seedSource(db, 'Example', 'https://example.com/feed.xml');
     const focusId = await seedFocus(db, { name: 'New topic', minConfidence: 0.3, sourceIds: [sourceId] });
-
-    // Analysed articles with no score against this focus — what a freshly
-    // created focus looks like mid-reconcile. Article-level counts look clean.
     await seedArticles(db, { sourceId, articles: [{ title: 'Unscored' }, { title: 'Also unscored' }] });
 
+    // Unscoped, every article is analysed — nothing to report.
     const workspace = (await call('get_workspace')) as unknown as { readiness: { state: string } };
     expect(workspace.readiness.state).toBe('ready');
 
-    const preview = (await call('preview_focus', { focusId })) as unknown as {
+    // Scoped to the focus, two articles are missing a score. With no job to
+    // produce them this is stalled, not in flight.
+    const stalled = (await call('preview_focus', { focusId })) as unknown as {
       readiness: { state: string; pendingClassification: number };
     };
-    expect(preview.readiness.state).toBe('analysing');
-    expect(preview.readiness.pendingClassification).toBe(2);
+    expect(stalled.readiness.state).toBe('stalled');
+    expect(stalled.readiness.pendingClassification).toBe(2);
+
+    // With the reconcile job running — what save_focus actually produces — the
+    // same shortfall is in flight and worth waiting on.
+    t.services.set(JobService, {
+      enqueue: (() => ({ id: 'j', status: 'pending' })) as never,
+      listByUser: (() => [{ id: 'j', status: 'running', affects: { sourceIds: [], focusIds: [focusId] } }]) as never,
+      register: (() => undefined) as never,
+      get: (() => undefined) as never,
+    });
+
+    const running = (await call('preview_focus', { focusId })) as unknown as {
+      readiness: { state: string; pendingClassification: number };
+    };
+    expect(running.readiness.state).toBe('analysing');
+    expect(running.readiness.pendingClassification).toBe(2);
   });
 
   it('returns without waiting when nothing is outstanding', async () => {

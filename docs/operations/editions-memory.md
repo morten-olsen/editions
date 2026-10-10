@@ -77,3 +77,38 @@ finite-value check over existing embedding BLOBs. It prints only counts of
 malformed, non-finite and zero-norm vectors, never vectors or identifiers.
 Resources, deadline, hardening, read-only access and cleanup remain unchanged.
 This extension requires fresh review before execution.
+
+## Confirmed incident pattern and fix
+
+The second reviewed probe completed with exit code 0 in 14 seconds and was
+removed by name. It found six non-finite vectors and 114 missing similarity
+scores across nineteen focuses, with no malformed or zero-norm vectors.
+Embedding updates stopped on September 10 at 07:02:40 UTC. This matches the
+locally reproduced full-batch loop (the batch size is 100).
+
+Running the exact original similarity code against SQLite repeated 7,708 batches
+without draining its 100 pending pairs. RSS rose from 85 MB to 537 MB while heap
+remained approximately 30 MB; the harness stopped at its 512 MiB guard. The
+synchronous SQLite/promise loop keeps producing native statements without giving
+the event loop a turn to release them, explaining the RSS growth and stalled
+scheduler. The probe did not establish why the model originally emitted NaN.
+
+The embedding step now scans stored vectors in bounded keyset pages, yielding
+to the event loop between pages. It regenerates missing, stale or non-finite
+vectors through the normal upsert, without deleting articles or running a schema
+migration. Valid vectors are reused. New invalid model output and invalid or
+incompatible similarity inputs fail the job before a NULL score can be written,
+so the full-batch loop cannot continue.
+
+Regression checks use the real pipeline and in-memory SQLite with fake model
+functions: six invalid vectors across nineteen focuses, rejection of new NaN
+output, and recovery with valid embeddings reused. The recovery fixture produces
+171 finite article/focus scores and marks all nine fixture articles analysed.
+
+Rollback keeps the chart disabled if symptoms recur and preserves the PVC.
+Reverting source does not undo successfully regenerated derived vectors, and the
+original leaking image must not be re-enabled. Deployment still requires a fixed
+image digest, resource/heap limits, reviewer completion and the authorized
+72-hour observation routine (six-hourly checks, at least 24 continuous stable
+hours). Routine id: `851b61b0-0a26-4412-a49e-f6e7ce48938d`; it remains disabled
+until the reviewed rollout is recorded.

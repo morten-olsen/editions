@@ -4,6 +4,7 @@ import type { DatabaseSchema } from '../database/database.types.ts';
 import { decodeEmbedding } from '../ranking/ranking.ts';
 
 import type { ReconcileStep } from './reconciler.runner.ts';
+import { isValidEmbedding } from './reconciler.utils.ts';
 import type { ScopeFilter } from './reconciler.utils.ts';
 import type { EmbedFn } from './reconciler.embed.ts';
 
@@ -157,8 +158,8 @@ const createSimilarityStep = (params: {
       const upsertRows: { articleId: string; focusId: string; similarity: number }[] = [];
 
       for (const item of batch) {
-        if (!item.embedding) {
-          continue;
+        if (!isValidEmbedding(item.embedding)) {
+          throw new Error(`Invalid embedding for article ${item.articleId}`);
         }
 
         let focusEmbedding = focusEmbeddingCache.get(item.focusLabel);
@@ -167,10 +168,18 @@ const createSimilarityStep = (params: {
           focusEmbeddingCache.set(item.focusLabel, focusEmbedding);
         }
 
+        if (!isValidEmbedding(focusEmbedding) || focusEmbedding.length !== item.embedding.length) {
+          throw new Error(`Invalid embedding for focus ${item.focusId}`);
+        }
+        const similarity = dotProduct(item.embedding, focusEmbedding);
+        if (!Number.isFinite(similarity)) {
+          throw new Error(`Invalid embedding score for article ${item.articleId}`);
+        }
+
         upsertRows.push({
           articleId: item.articleId,
           focusId: item.focusId,
-          similarity: dotProduct(item.embedding, focusEmbedding),
+          similarity,
         });
       }
 

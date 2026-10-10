@@ -4,6 +4,8 @@ kind: Pod
 metadata:
   name: editions-memory-inspect
   namespace: prod
+  annotations:
+    sidecar.istio.io/inject: "false"
   labels:
     app.kubernetes.io/name: editions-memory-inspect
 spec:

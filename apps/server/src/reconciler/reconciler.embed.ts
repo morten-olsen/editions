@@ -5,6 +5,7 @@ import type { Kysely } from 'kysely';
 import type { DatabaseSchema } from '../database/database.types.ts';
 import { decodeEmbedding } from '../ranking/ranking.ts';
 
+import { ReconcileItemError } from './reconciler.runner.ts';
 import type { ReconcileStep } from './reconciler.runner.ts';
 import type { ScopeFilter } from './reconciler.utils.ts';
 import { prepareText, isValidEmbedding } from './reconciler.utils.ts';
@@ -70,6 +71,25 @@ const pendingEmbeddingIds = async function* (
   }
 };
 
+const upsertEmbedding = async (
+  db: Kysely<DatabaseSchema>,
+  articleId: string,
+  buffer: Buffer,
+  model: string,
+): Promise<void> => {
+  await db
+    .insertInto('article_embeddings')
+    .values({ article_id: articleId, embedding: buffer, model })
+    .onConflict((oc) =>
+      oc.column('article_id').doUpdateSet({
+        embedding: buffer,
+        model,
+        created_at: new Date().toISOString(),
+      }),
+    )
+    .execute();
+};
+
 // --- Step factory ---
 
 const createEmbedStep = (params: {
@@ -123,28 +143,21 @@ const createEmbedStep = (params: {
       }
     },
     processBatch: async (batch: EmbedItem[]): Promise<void> => {
+      let rejected = 0;
+      let firstRejected = '';
       for (const item of batch) {
         const embedding = await embedFn(item.preparedText);
         if (!isValidEmbedding(embedding)) {
-          throw new Error(`Invalid embedding for article ${item.id}`);
+          rejected++;
+          firstRejected ||= item.id;
+          continue;
         }
         const buffer = Buffer.from(embedding.buffer, embedding.byteOffset, embedding.byteLength);
 
-        await db
-          .insertInto('article_embeddings')
-          .values({
-            article_id: item.id,
-            embedding: buffer,
-            model: embeddingModel,
-          })
-          .onConflict((oc) =>
-            oc.column('article_id').doUpdateSet({
-              embedding: buffer,
-              model: embeddingModel,
-              created_at: new Date().toISOString(),
-            }),
-          )
-          .execute();
+        await upsertEmbedding(db, item.id, buffer, embeddingModel);
+      }
+      if (rejected > 0) {
+        throw new ReconcileItemError(rejected, `Invalid embedding for article ${firstRejected}`);
       }
     },
   };

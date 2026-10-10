@@ -97,8 +97,16 @@ The embedding step now scans stored vectors in bounded keyset pages, yielding
 to the event loop between pages. It regenerates missing, stale or non-finite
 vectors through the normal upsert, without deleting articles or running a schema
 migration. Valid vectors are reused. New invalid model output and invalid or
-incompatible similarity inputs fail the job before a NULL score can be written,
-so the full-batch loop cannot continue.
+incompatible similarity inputs are skipped per item, before a NULL score can be
+written. Healthy items in the same batch and later batches continue. Similarity
+uses an article/focus keyset cursor and yields to the event loop, so rejected
+pairs cannot repeat during one run. Only a failure count and the first rejection
+message are retained per step; the job reports failure after all reachable work
+finishes. Database or inference exceptions still abort their step immediately.
+Invalid existing vectors remain eligible for a bounded retry on the next run;
+there is no persistent quarantine or schema change. A failed job or incomplete
+score coverage must not be treated as successful recovery, even if the existing
+mark-analysed phase has set an article timestamp.
 
 Regression checks use the real pipeline and in-memory SQLite with fake model
 functions: six invalid vectors across nineteen focuses, rejection of new NaN
@@ -112,3 +120,48 @@ image digest, resource/heap limits, reviewer completion and the authorized
 72-hour observation routine (six-hourly checks, at least 24 continuous stable
 hours). Routine id: `851b61b0-0a26-4412-a49e-f6e7ce48938d`; it remains disabled
 until the reviewed rollout is recorded.
+
+
+## Recovery observation: 72 hours
+
+These are provisional acceptance thresholds, to be reviewed before enabling the
+new digest. The 1536 MiB container limit and 256 MiB Node heap ceiling apply from
+startup; no initialization grace permits an OOM or host-pressure event.
+Record the rollout time, digest, PVC/PV identity and initial restart counters.
+Check startup and the first analysis job immediately; then inspect continuous
+Prometheus data at least every six hours. Missing telemetry is unverified.
+
+Pass after 72 hours only if all of these hold:
+
+- All six originally invalid vectors are repaired; aggregate invalid-vector and
+  missing-similarity counts are zero for extracted, text-bearing articles with
+  the current model. Analysis and source refresh jobs succeed and timestamps
+  advance. No persistent rejected article is accepted as a successful recovery.
+- No OOM, container restart, node Ready transition or control-plane restart
+  during observation. The expected digest, requests, hard limits and heap
+  ceiling remain present. The original PVC stays Bound to its original PV.
+- After the initial two-hour recovery window, RSS and working set stay below
+  1024 MiB. Over the final continuous 24 hours, the fitted RSS growth rate is
+  at most 8 MiB/hour and the final six-hour median is no more than 128 MiB
+  above the preceding six-hour median. Repeat the window if recovery is slower.
+- Node MemAvailable stays above 10 GiB; swap-out is zero after startup. Memory
+  and I/O PSI full averages remain below 1% over ten-minute windows. No active
+  memory/disk-pressure alert, sustained major-fault or disk-queue increase,
+  or pressure-induced application failures. Compare temperatures and API
+  latency with the pre-rollout healthy baseline; unrelated failures get tasks.
+- Service health and an authenticated edition generation succeed after startup
+  and at the end; no user content or credentials are recorded in evidence.
+
+Abort and disable the chart immediately on OOM, restart, node readiness loss,
+control-plane restart, or attributable host-pressure alert. Also abort on RSS or
+working set above 1228 MiB for five minutes, fitted RSS growth above 32 MiB/hour
+for a six-hour window after warm-up, MemAvailable below 10 GiB for five minutes,
+or sustained swap-out/PSI full above 1% for ten minutes. Two consecutive failed
+analysis jobs, persistent invalid vectors or stalled source refreshes mean stop
+recovery and report the cause; do not leave a poison article silently ignored.
+
+Rollback renames the chart to `.disabled` through Git, verifies workload removal
+and the preserved PVC, and disables the observation routine. Never restore the
+old leaking digest. At 72 hours, record pass/fail/unverified, retain the evidence,
+and disable the routine; extend observation only if the required stable window
+is incomplete. This is observation, not permission to waive a failed threshold.

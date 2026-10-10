@@ -12,6 +12,8 @@ import { applyAnalysisReset, buildReconcileSteps } from './reconciler.ts';
 import type { ScopeFilter } from './reconciler.ts';
 import { runReconcileSteps } from './reconciler.runner.ts';
 import type { ReconcileStep } from './reconciler.runner.ts';
+import { createEmbedStep } from './reconciler.embed.ts';
+import { createSimilarityStep } from './reconciler.similarity.ts';
 import type { EmbedFn } from './reconciler.embed.ts';
 import type { ClassifyFn } from './reconciler.nli.ts';
 
@@ -420,6 +422,26 @@ describe('reconcile steps', () => {
     const steps = buildSteps(db, async () => new Float32Array([NaN, 0, 0, 0])).filter((step) => step.name === 'embed');
     await expect(runReconcileSteps(steps)).rejects.toThrow('Invalid embedding');
     expect(await getEmbeddingCount(db)).toBe(0);
+  });
+
+  it('continues later batches when an article persistently produces non-finite embeddings', async () => {
+    await seedIncidentEmbeddings(db);
+    const { embed } = createFakeEmbedder();
+    const model = async (text: string) =>
+      text.includes('Incident fixture') || text.includes('AI is transforming everything')
+        ? new Float32Array([NaN, 0, 0, 0])
+        : embed(text);
+    const steps = () => [
+      createEmbedStep({ db, embedFn: model, embeddingModel: 'test-model', batchSize: 1 }),
+      createSimilarityStep({ db, embedFn: model, embeddingModel: 'test-model', batchSize: 1 }),
+    ];
+    await expect(runReconcileSteps(steps())).rejects.toThrow('Invalid embedding');
+    expect(await getEmbeddingCount(db)).toBe(8); // Six invalid retained, two healthy embedded
+    const assignments = await getAssignments(db);
+    expect(assignments).toHaveLength(38); // Two healthy articles × nineteen focuses
+    expect(assignments.every((a) => a.similarity !== null && Number.isFinite(a.similarity))).toBe(true);
+    await expect(runReconcileSteps(steps())).rejects.toThrow('Invalid embedding');
+    expect(await getAssignments(db)).toHaveLength(38);
   });
 
   it('regenerates invalid stored embeddings and finishes scoring while reusing valid embeddings', async () => {

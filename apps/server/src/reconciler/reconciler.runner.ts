@@ -30,6 +30,30 @@ class ReconcileStepsError extends Error {
   }
 }
 
+// A batch can finish healthy items while reporting rejected model output.
+// Unexpected infrastructure/database errors still stop that step immediately.
+class ReconcileItemError extends Error {
+  readonly count: number;
+
+  constructor(count: number, message: string) {
+    super(message);
+    this.name = 'ReconcileItemError';
+    this.count = count;
+  }
+}
+
+const processBatch = async (step: ReconcileStep, batch: unknown[]): Promise<{ count: number; message: string }> => {
+  try {
+    await step.processBatch(batch);
+    return { count: 0, message: '' };
+  } catch (err) {
+    if (!(err instanceof ReconcileItemError)) {
+      throw err;
+    }
+    return { count: err.count, message: err.message };
+  }
+};
+
 // --- Step runner ---
 
 // Runs each step to exhaustion. A failing step is recorded but does not
@@ -54,11 +78,18 @@ const runReconcileSteps = async (steps: ReconcileStep<any>[], onProgress?: Progr
     let completed = 0;
     onProgress?.({ phase: step.name, completed, total });
 
+    let rejected = 0;
+    let rejectionMessage = '';
     try {
       for await (const batch of step.fetchBatch()) {
-        await step.processBatch(batch);
-        completed += batch.length;
+        const result = await processBatch(step, batch);
+        rejected += result.count;
+        rejectionMessage ||= result.message;
+        completed += batch.length - result.count;
         onProgress?.({ phase: step.name, completed, total: Math.max(total, completed) });
+      }
+      if (rejected > 0) {
+        throw new Error(`${rejected} rejected items: ${rejectionMessage}`);
       }
     } catch (err) {
       failures.push({
@@ -77,4 +108,4 @@ const runReconcileSteps = async (steps: ReconcileStep<any>[], onProgress?: Progr
 // --- Exports ---
 
 export type { ReconcileStep, ReconcileProgress, ProgressCallback, StepFailure };
-export { runReconcileSteps, ReconcileStepsError };
+export { runReconcileSteps, ReconcileStepsError, ReconcileItemError };

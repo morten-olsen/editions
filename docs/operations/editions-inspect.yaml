@@ -1,0 +1,73 @@
+# Temporary diagnosis only. Do not deploy as part of GitOps or re-enable Editions.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: editions-memory-inspect
+  namespace: prod
+  labels:
+    app.kubernetes.io/name: editions-memory-inspect
+spec:
+  restartPolicy: Never
+  activeDeadlineSeconds: 120
+  automountServiceAccountToken: false
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    runAsGroup: 1001
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: inspect
+      image: code.olsen.cloud/incubator/editions@sha256:9a618e4f7c879fea95e7af4b49626e3b0c1a2f34e9b74c031d5142a1970d89df
+      workingDir: /app/apps/server
+      command: [node, --max-old-space-size=128, --input-type=module, -e]
+      args:
+        - |
+          import Database from 'better-sqlite3';
+          const db = new Database('/data/editions.db', { readonly: true, fileMustExist: true });
+          db.pragma('query_only = ON');
+          const queries = {
+            sources: `SELECT type, count(*) AS count,
+              sum(fetch_error IS NOT NULL) AS failed,
+              sum(last_fetched_at IS NULL) AS never_fetched,
+              min(last_fetched_at) AS oldest_fetch, max(last_fetched_at) AS newest_fetch
+              FROM sources GROUP BY type`,
+            articles: `SELECT count(*) AS count,
+              sum(extracted_at IS NULL) AS unextracted,
+              sum(extracted_at IS NOT NULL AND analysed_at IS NULL) AS awaiting_analysis,
+              max(length(content)) AS max_content_chars,
+              avg(length(content)) AS mean_content_chars,
+              sum(length(content)) AS total_content_chars FROM articles`,
+            backlog: `SELECT count(*) AS source_count, max(n) AS max_articles_per_source,
+              max(pending) AS max_unextracted_per_source FROM (
+              SELECT count(*) AS n, sum(extracted_at IS NULL) AS pending
+              FROM articles GROUP BY source_id)`,
+            focuses: `SELECT count(*) AS count FROM focuses`,
+            embeddings: `SELECT count(*) AS count, sum(length(embedding)) AS bytes FROM article_embeddings`
+          };
+          try {
+            for (const [name, query] of Object.entries(queries)) {
+              console.log(JSON.stringify({ name, rows: db.prepare(query).all() }));
+            }
+          } finally { db.close(); }
+      resources:
+        requests:
+          cpu: 100m
+          memory: 64Mi
+        limits:
+          cpu: 500m
+          memory: 256Mi
+      securityContext:
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: [ALL]
+      volumeMounts:
+        - name: data
+          mountPath: /data
+          readOnly: true
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: editions-data
+        readOnly: true

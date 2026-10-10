@@ -56,3 +56,24 @@ Creation does not re-enable Editions. Cleanup deletes only this temporary pod.
 Further instrumentation is reviewed separately; re-enabling still requires a
 verified leak fix, measured requests/limits, a Node heap ceiling, a pinned image,
 and at least 24 hours of observed memory stability.
+
+## First probe and next hypothesis
+
+The first reviewed probe completed in 11 seconds with exit code 0 and was deleted
+by name. The original PVC remained Bound and the node Ready. It found 63 RSS
+sources, all last fetched on September 10, 24,192 articles, 3,471 unextracted,
+993 extracted but unanalysed, 19 focuses, and 20,721 embeddings totalling
+31,827,456 bytes. Article content totals approximately 161 million characters;
+this retained corpus alone does not explain 63 GiB process RSS.
+
+A local reproduction using the real similarity step and SQLite found that a full
+batch of non-finite embeddings never drains: a NaN dot product is bound as SQL
+NULL, so the pair remains eligible forever. After 500 batches, all 100 pairs
+still needed scoring; RSS grew from 86.1 MB to 125.6 MB. This demonstrates a
+possible loop, not that the preserved production embeddings contain NaN.
+
+The updated probe adds aggregate assignment counts/timestamps and a streaming
+finite-value check over existing embedding BLOBs. It prints only counts of
+malformed, non-finite and zero-norm vectors, never vectors or identifiers.
+Resources, deadline, hardening, read-only access and cleanup remain unchanged.
+This extension requires fresh review before execution.

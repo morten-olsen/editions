@@ -45,12 +45,34 @@ spec:
               SELECT count(*) AS n, sum(extracted_at IS NULL) AS pending
               FROM articles GROUP BY source_id)`,
             focuses: `SELECT count(*) AS count FROM focuses`,
-            embeddings: `SELECT count(*) AS count, sum(length(embedding)) AS bytes FROM article_embeddings`
+            embeddings: `SELECT count(*) AS count, sum(length(embedding)) AS bytes,
+              min(created_at) AS oldest_embedding, max(created_at) AS newest_embedding FROM article_embeddings`,
+            assignments: `SELECT count(*) AS count, sum(similarity IS NULL) AS missing_similarity,
+              sum(nli IS NOT NULL) AS nli_count, max(assigned_at) AS newest_assignment FROM article_focuses`
           };
           try {
             for (const [name, query] of Object.entries(queries)) {
               console.log(JSON.stringify({ name, rows: db.prepare(query).all() }));
             }
+            const health = { count: 0, malformed: 0, nonFinite: 0, zeroNorm: 0 };
+            for (const row of db.prepare('SELECT embedding FROM article_embeddings').iterate()) {
+              health.count++;
+              const data = row.embedding;
+              if (!(data instanceof Uint8Array) || data.byteLength === 0 || data.byteLength % 4 !== 0) {
+                health.malformed++;
+                continue;
+              }
+              const values = new Float32Array(data.buffer, data.byteOffset, data.byteLength / 4);
+              let norm = 0;
+              let finite = true;
+              for (const value of values) {
+                if (!Number.isFinite(value)) { finite = false; break; }
+                norm += value * value;
+              }
+              if (!finite) health.nonFinite++;
+              else if (norm === 0) health.zeroNorm++;
+            }
+            console.log(JSON.stringify({ name: 'embedding_health', counts: health }));
           } finally { db.close(); }
       resources:
         requests:

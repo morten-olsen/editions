@@ -1,9 +1,13 @@
+import { setImmediate } from 'node:timers/promises';
+
 import { sql, type Kysely } from 'kysely';
 
 import type { DatabaseSchema } from '../database/database.types.ts';
 import { decodeEmbedding } from '../ranking/ranking.ts';
 
+import { ReconcileItemError } from './reconciler.runner.ts';
 import type { ReconcileStep } from './reconciler.runner.ts';
+import { isValidEmbedding } from './reconciler.utils.ts';
 import type { ScopeFilter } from './reconciler.utils.ts';
 import type { EmbedFn } from './reconciler.embed.ts';
 
@@ -111,6 +115,48 @@ const rowToSimilarityItem = (row: SimilarityRow): SimilarityItem => ({
   embedding: decodeEmbedding(row.embedding),
 });
 
+const pendingSimilarityBatches = async function* (
+  db: Kysely<DatabaseSchema>,
+  embeddingModel: string,
+  scopeFilter: ScopeFilter | undefined,
+  batchSize: number,
+): AsyncGenerator<SimilarityItem[]> {
+  let articleId = '';
+  let focusId = '';
+  while (true) {
+    const rows = (await buildSimilarityScope(db, embeddingModel, scopeFilter)
+      .select([
+        'articles.id as article_id',
+        'focuses.id as focus_id',
+        'focuses.name',
+        'focuses.description',
+        'article_embeddings.embedding',
+      ])
+      .where((eb) =>
+        eb.or([
+          eb('articles.id', '>', articleId),
+          eb.and([eb('articles.id', '=', articleId), eb('focuses.id', '>', focusId)]),
+        ]),
+      )
+      .orderBy('articles.id')
+      .orderBy('focuses.id')
+      .limit(batchSize)
+      .execute()) as SimilarityRow[];
+    if (rows.length === 0) {
+      break;
+    }
+
+    const last = rows[rows.length - 1] as SimilarityRow;
+    articleId = last.article_id;
+    focusId = last.focus_id;
+    yield rows.map(rowToSimilarityItem);
+    await setImmediate();
+    if (rows.length < batchSize) {
+      break;
+    }
+  }
+};
+
 // --- Step factory ---
 
 const createSimilarityStep = (params: {
@@ -131,33 +177,16 @@ const createSimilarityStep = (params: {
         .executeTakeFirst();
       return Number(row?.count ?? 0);
     },
-    fetchBatch: async function* (): AsyncGenerator<SimilarityItem[]> {
-      while (true) {
-        const rows = (await buildSimilarityScope(db, embeddingModel, scopeFilter)
-          .select([
-            'articles.id as article_id',
-            'focuses.id as focus_id',
-            'focuses.name',
-            'focuses.description',
-            'article_embeddings.embedding',
-          ])
-          .limit(batchSize)
-          .execute()) as SimilarityRow[];
-        if (rows.length === 0) {
-          break;
-        }
-
-        yield rows.map(rowToSimilarityItem);
-        if (rows.length < batchSize) {
-          break;
-        }
-      }
-    },
+    fetchBatch: () => pendingSimilarityBatches(db, embeddingModel, scopeFilter, batchSize),
     processBatch: async (batch: SimilarityItem[]): Promise<void> => {
       const upsertRows: { articleId: string; focusId: string; similarity: number }[] = [];
 
+      let rejected = 0;
+      let firstRejection = '';
       for (const item of batch) {
-        if (!item.embedding) {
+        if (!isValidEmbedding(item.embedding)) {
+          rejected++;
+          firstRejection ||= `Invalid embedding for article ${item.articleId}`;
           continue;
         }
 
@@ -167,14 +196,29 @@ const createSimilarityStep = (params: {
           focusEmbeddingCache.set(item.focusLabel, focusEmbedding);
         }
 
+        if (!isValidEmbedding(focusEmbedding) || focusEmbedding.length !== item.embedding.length) {
+          rejected++;
+          firstRejection ||= `Invalid embedding for focus ${item.focusId}`;
+          continue;
+        }
+        const similarity = dotProduct(item.embedding, focusEmbedding);
+        if (!Number.isFinite(similarity)) {
+          rejected++;
+          firstRejection ||= `Invalid embedding score for article ${item.articleId}`;
+          continue;
+        }
+
         upsertRows.push({
           articleId: item.articleId,
           focusId: item.focusId,
-          similarity: dotProduct(item.embedding, focusEmbedding),
+          similarity,
         });
       }
 
       await batchUpsertSimilarity(db, upsertRows, embeddingModel);
+      if (rejected > 0) {
+        throw new ReconcileItemError(rejected, firstRejection);
+      }
     },
   };
 };

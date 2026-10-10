@@ -12,6 +12,8 @@ import { applyAnalysisReset, buildReconcileSteps } from './reconciler.ts';
 import type { ScopeFilter } from './reconciler.ts';
 import { runReconcileSteps } from './reconciler.runner.ts';
 import type { ReconcileStep } from './reconciler.runner.ts';
+import { createEmbedStep } from './reconciler.embed.ts';
+import { createSimilarityStep } from './reconciler.similarity.ts';
 import type { EmbedFn } from './reconciler.embed.ts';
 import type { ClassifyFn } from './reconciler.nli.ts';
 
@@ -150,6 +152,43 @@ const seed = async (db: Kysely<DatabaseSchema>): Promise<void> => {
       { focus_id: 'focus-all', source_id: 'src-tech' },
       { focus_id: 'focus-all', source_id: 'src-news' },
     ])
+    .execute();
+};
+
+const seedIncidentEmbeddings = async (db: Kysely<DatabaseSchema>): Promise<void> => {
+  await db
+    .insertInto('focuses')
+    .values(
+      Array.from({ length: 17 }, (_, i) => ({
+        id: `incident-focus-${i}`,
+        user_id: 'user-1',
+        name: `Topic ${i}`,
+      })),
+    )
+    .execute();
+  const ids = Array.from({ length: 6 }, (_, i) => `incident-article-${i}`);
+  await db
+    .insertInto('articles')
+    .values(
+      ids.map((id) => ({
+        id,
+        source_id: 'src-tech',
+        external_id: id,
+        title: 'Incident fixture',
+        content: 'Fixture content',
+        extracted_at: new Date().toISOString(),
+      })),
+    )
+    .execute();
+  await db
+    .insertInto('article_embeddings')
+    .values(
+      ids.map((id) => ({
+        article_id: id,
+        model: 'test-model',
+        embedding: Buffer.from(new Float32Array([NaN, 0, 0, 0]).buffer),
+      })),
+    )
     .execute();
 };
 
@@ -356,6 +395,72 @@ describe('reconcile steps', () => {
     const techAssignments = (await getAssignments(db)).filter((a) => a.focus_id === 'focus-tech');
     const aiAssignment = techAssignments.find((a) => a.article_id === 'art-ai');
     expect(aiAssignment?.nli).toBeCloseTo(0.85, 1);
+  });
+
+  it('rejects the incident full batch of six non-finite embeddings across nineteen focuses', async () => {
+    await seedIncidentEmbeddings(db);
+    const { embed } = createFakeEmbedder();
+    const step = buildSteps(db, embed).find((s) => s.name === 'similarity');
+    if (!step) {
+      throw new Error('Missing similarity step');
+    }
+    const iterator = step.fetchBatch();
+    try {
+      const { value: batch } = await iterator.next();
+      if (!batch) {
+        throw new Error('Missing incident batch');
+      }
+      expect(batch).toHaveLength(100);
+      await expect(step.processBatch(batch)).rejects.toThrow('Invalid embedding');
+    } finally {
+      await iterator.return(undefined);
+    }
+    expect(await getAssignments(db)).toHaveLength(0);
+  });
+
+  it('rejects non-finite model output before storing an article embedding', async () => {
+    const steps = buildSteps(db, async () => new Float32Array([NaN, 0, 0, 0])).filter((step) => step.name === 'embed');
+    await expect(runReconcileSteps(steps)).rejects.toThrow('Invalid embedding');
+    expect(await getEmbeddingCount(db)).toBe(0);
+  });
+
+  it('continues later batches when an article persistently produces non-finite embeddings', async () => {
+    await seedIncidentEmbeddings(db);
+    const { embed } = createFakeEmbedder();
+    const model = async (text: string) =>
+      text.includes('Incident fixture') || text.includes('AI is transforming everything')
+        ? new Float32Array([NaN, 0, 0, 0])
+        : embed(text);
+    const steps = () => [
+      createEmbedStep({ db, embedFn: model, embeddingModel: 'test-model', batchSize: 1 }),
+      createSimilarityStep({ db, embedFn: model, embeddingModel: 'test-model', batchSize: 1 }),
+    ];
+    await expect(runReconcileSteps(steps())).rejects.toThrow('Invalid embedding');
+    expect(await getEmbeddingCount(db)).toBe(8); // Six invalid retained, two healthy embedded
+    const assignments = await getAssignments(db);
+    expect(assignments).toHaveLength(38); // Two healthy articles × nineteen focuses
+    expect(assignments.every((a) => a.similarity !== null && Number.isFinite(a.similarity))).toBe(true);
+    await expect(runReconcileSteps(steps())).rejects.toThrow('Invalid embedding');
+    expect(await getAssignments(db)).toHaveLength(38);
+  });
+
+  it('regenerates invalid stored embeddings and finishes scoring while reusing valid embeddings', async () => {
+    await seedIncidentEmbeddings(db);
+    await db
+      .insertInto('article_embeddings')
+      .values({
+        article_id: 'art-ai',
+        model: 'test-model',
+        embedding: Buffer.from(new Float32Array([1, 0, 0, 0]).buffer),
+      })
+      .execute();
+    const { embed, callCount } = createFakeEmbedder();
+    await runReconcileSteps(buildSteps(db, embed));
+    const assignments = await getAssignments(db);
+    expect(assignments).toHaveLength(171); // Nine articles × nineteen focuses
+    expect(assignments.every((a) => a.similarity !== null && Number.isFinite(a.similarity))).toBe(true);
+    expect(callCount()).toBe(27); // Six repaired + two missing article vectors + nineteen focus vectors
+    expect(await getAnalysedCount(db)).toBe(9);
   });
 
   it('scoring degrades gracefully when articles lack embeddings', async () => {

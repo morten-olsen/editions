@@ -26,7 +26,11 @@ const prepareText = (article: {
   return `${article.title}. ${stripHtml(raw)}`.slice(0, 2000);
 };
 
+// Model output must never become a SQL NULL score (SQLite binds NaN as NULL).
+const isValidEmbedding = (embedding: Float32Array | null): embedding is Float32Array =>
+  embedding !== null && embedding.length > 0 && embedding.every(Number.isFinite);
+
 // --- Exports ---
 
 export type { ScopeFilter };
-export { stripHtml, prepareText };
+export { stripHtml, prepareText, isValidEmbedding };

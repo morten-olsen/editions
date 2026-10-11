@@ -141,9 +141,18 @@ This prevents a prolific high-scoring source from consuming the entire budget an
 Each focus has a budget with a type:
 
 - **count** — each article = 1 unit
-- **reading_time** — each article = `ceil(reading_time_seconds / 60)` units (minutes)
+- **reading_time** — each article = `max(1, ceil(reading_time_seconds / 60))` units (minutes); unknown or zero duration consumes one minute for budgeting, without changing the stored reading-time fact
 
 The edition stops adding articles to a focus once its budget is consumed.
+
+Generation scans 64 candidate embeddings at a time and computes every candidate's
+score. Per source/focus it retains at most the sum of the configured budgets
+(count or minutes), enough to cover earlier-focus claims and the current focus.
+It retains only the score and selection metadata, not embeddings. Prior-edition
+exclusions are an SQL anti-join, not an in-memory history set. Memory depends on
+the requested budgets and source/focus counts, not the matching article corpus.
+Score ties use article ID order. Ranking weights and weighted source selection
+are unchanged.
 
 ### Output
 

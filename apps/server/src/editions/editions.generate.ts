@@ -1,3 +1,5 @@
+import { setImmediate } from 'node:timers/promises';
+
 import { sql } from 'kysely';
 import type { Kysely } from 'kysely';
 
@@ -35,6 +37,7 @@ type CandidateRow = {
   similarity: number | null;
   nli: number | null;
   embedding: unknown;
+  rankingScore?: number;
 };
 
 // Everything the (pure) generation algorithm needs for one focus,
@@ -82,29 +85,6 @@ type LoadGenerationInputsParams = {
 
 // --- Loading (all I/O lives here) ---
 
-const loadExcludedArticleIds = async (
-  db: Kysely<DatabaseSchema>,
-  configId: string,
-  needsExcludedSet: boolean,
-): Promise<Set<string>> => {
-  const excluded = new Set<string>();
-  if (!needsExcludedSet) {
-    return excluded;
-  }
-
-  const priorArticles = await db
-    .selectFrom('edition_articles')
-    .innerJoin('editions', 'editions.id', 'edition_articles.edition_id')
-    .select('edition_articles.article_id')
-    .where('editions.edition_config_id', '=', configId)
-    .execute();
-
-  for (const row of priorArticles) {
-    excluded.add(row.article_id);
-  }
-  return excluded;
-};
-
 const loadFocusDetails = async (
   focusesService: FocusesService,
   userId: string,
@@ -141,12 +121,26 @@ const queryCandidates = async ({
   focusId,
   cutoff,
   focusInfo,
+  configId,
+  excludePriorEditions,
+  retainPerSource,
+  voteContext,
+  weights,
+  focusWeight,
+  now,
 }: {
   db: Kysely<DatabaseSchema>;
   userId: string;
   focusId: string;
   cutoff: string;
   focusInfo: FocusDetail;
+  configId: string;
+  excludePriorEditions: boolean;
+  retainPerSource: number;
+  voteContext: VoteContext;
+  weights: ScoringWeights;
+  focusWeight: number;
+  now: number;
 }): Promise<CandidateRow[]> => {
   // Only consider articles from sources linked to this focus
   const linkedSourceIds = [...focusInfo.sourceWeights.keys()];
@@ -156,15 +150,6 @@ const queryCandidates = async ({
     .innerJoin('articles', 'articles.id', 'article_focuses.article_id')
     .innerJoin('sources', 'sources.id', 'articles.source_id')
     .leftJoin('article_embeddings', 'article_embeddings.article_id', 'articles.id')
-    .select([
-      'articles.id',
-      'articles.source_id',
-      'articles.published_at',
-      'articles.consumption_time_seconds',
-      'article_focuses.similarity',
-      'article_focuses.nli',
-      'article_embeddings.embedding',
-    ])
     .where('article_focuses.focus_id', '=', focusId)
     .where('sources.user_id', '=', userId)
     .where('articles.read_at', 'is', null)
@@ -192,7 +177,67 @@ const queryCandidates = async ({
     query = query.where('articles.consumption_time_seconds', '<=', focusInfo.maxConsumptionTimeSeconds);
   }
 
-  return query.execute();
+  if (excludePriorEditions) {
+    query = query.where((eb) =>
+      eb.not(
+        eb.exists(
+          eb
+            .selectFrom('edition_articles')
+            .innerJoin('editions', 'editions.id', 'edition_articles.edition_id')
+            .select('edition_articles.article_id')
+            .whereRef('edition_articles.article_id', '=', 'articles.id')
+            .where('editions.edition_config_id', '=', configId),
+        ),
+      ),
+    );
+  }
+
+  if (retainPerSource === 0) return [];
+  const retained = new Map<string, CandidateRow[]>();
+  let lastId = '';
+  while (true) {
+    // Sort thin IDs first, then load only this page's embedding BLOBs.
+    const page = query.select('articles.id').where('articles.id', '>', lastId).orderBy('articles.id').limit(64);
+    const rows = await db
+      .selectFrom(page.as('page'))
+      .innerJoin('articles', 'articles.id', 'page.id')
+      .innerJoin('article_focuses', 'article_focuses.article_id', 'articles.id')
+      .leftJoin('article_embeddings', 'article_embeddings.article_id', 'articles.id')
+      .select([
+        'articles.id',
+        'articles.source_id',
+        'articles.published_at',
+        'articles.consumption_time_seconds',
+        'article_focuses.similarity',
+        'article_focuses.nli',
+        'article_embeddings.embedding',
+      ])
+      .where('article_focuses.focus_id', '=', focusId)
+      .orderBy('articles.id')
+      .execute();
+    if (rows.length === 0) break;
+    lastId = (rows[rows.length - 1] as CandidateRow).id;
+    const ranked = scoreAndRank({
+      candidates: rows.map((c) => ({ ...c, articleId: c.id, sourceId: c.source_id, publishedAt: c.published_at })),
+      voteContext,
+      weights,
+      sourceWeights: focusInfo.sourceWeights,
+      focusWeight,
+      now,
+    });
+    for (const { item, score } of ranked) {
+      const source = retained.get(item.source_id) ?? [];
+      // The embedding is needed only while scoring the page, never afterwards.
+      source.push({ ...item, embedding: null, rankingScore: score });
+      retained.set(item.source_id, source);
+    }
+    for (const source of retained.values()) {
+      source.sort((a, b) => (b.rankingScore as number) - (a.rankingScore as number) || a.id.localeCompare(b.id));
+      source.length = Math.min(source.length, retainPerSource);
+    }
+    await setImmediate();
+  }
+  return [...retained.values()].flat();
 };
 
 const loadGenerationInputs = async (params: LoadGenerationInputsParams): Promise<GenerateInputs> => {
@@ -213,10 +258,12 @@ const loadGenerationInputs = async (params: LoadGenerationInputsParams): Promise
       ...fc,
       excludePriorEditions: fc.excludePriorEditions ?? defaultExcludePriorEditions,
     }));
-  const needsExcludedSet = sortedFocuses.some((fc) => fc.excludePriorEditions);
+  // Earlier focuses can claim at most this many rows. Keeping this many per
+  // source leaves enough for every later budget, without keeping the corpus.
+  const retainPerSource = sortedFocuses.reduce((sum, fc) => sum + Math.ceil(Math.max(0, fc.budgetValue)), 0);
+  const now = Date.now();
 
-  const [excludedArticleIds, focusDetails, globalContext, editionContext, userWeights] = await Promise.all([
-    loadExcludedArticleIds(db, configId, needsExcludedSet),
+  const [focusDetails, globalContext, editionContext, userWeights] = await Promise.all([
     loadFocusDetails(focusesService, userId, sortedFocuses),
     votesService.loadVoteContext(userId, null),
     votesService.loadEditionVoteContext(userId, configId),
@@ -231,12 +278,24 @@ const loadGenerationInputs = async (params: LoadGenerationInputsParams): Promise
       }
 
       const lookbackHours = fc.lookbackHours ?? defaultLookbackHours;
-      const cutoff = new Date(Date.now() - lookbackHours * 60 * 60 * 1000).toISOString();
+      const cutoff = new Date(now - lookbackHours * 60 * 60 * 1000).toISOString();
 
-      const [candidates, focusContext] = await Promise.all([
-        queryCandidates({ db, userId, focusId: fc.focusId, cutoff, focusInfo: detail }),
-        votesService.loadVoteContext(userId, fc.focusId),
-      ]);
+      const focusContext = await votesService.loadVoteContext(userId, fc.focusId);
+      const voteContext = mergeVoteContexts(mergeVoteContexts(globalContext, focusContext), editionContext);
+      const candidates = await queryCandidates({
+        db,
+        userId,
+        focusId: fc.focusId,
+        cutoff,
+        focusInfo: detail,
+        configId,
+        excludePriorEditions: fc.excludePriorEditions,
+        retainPerSource,
+        voteContext,
+        weights: userWeights.edition,
+        focusWeight: fc.weight,
+        now,
+      });
 
       return {
         focusId: fc.focusId,
@@ -246,14 +305,15 @@ const loadGenerationInputs = async (params: LoadGenerationInputsParams): Promise
         excludePriorEditions: fc.excludePriorEditions,
         sourceWeights: detail.sourceWeights,
         candidates,
-        voteContext: mergeVoteContexts(mergeVoteContexts(globalContext, focusContext), editionContext),
+        voteContext,
       };
     }),
   );
 
   return {
     focuses: focusInputs.filter((f): f is FocusGenerationInput => f !== null),
-    excludedArticleIds,
+    excludedArticleIds: new Set(),
+    now,
     editionWeights: userWeights.edition,
   };
 };
@@ -337,7 +397,7 @@ const selectArticlesByBudget = (params: {
     if (budgetType === 'count') {
       budgetUsed++;
     } else {
-      budgetUsed += Math.ceil((article.consumption_time_seconds ?? 0) / 60);
+      budgetUsed += Math.max(1, Math.ceil((article.consumption_time_seconds ?? 0) / 60));
     }
 
     // Remove source if no more articles
@@ -365,14 +425,16 @@ const generateEdition = (inputs: GenerateInputs): GenerateResult => {
       publishedAt: c.published_at,
     }));
 
-    const scored = scoreAndRank({
-      candidates,
-      voteContext: focus.voteContext,
-      weights: editionWeights,
-      sourceWeights: focus.sourceWeights,
-      focusWeight: focus.weight,
-      now,
-    }).map((s) => s.item);
+    const scored = candidates.every((c) => c.rankingScore !== undefined)
+      ? candidates.sort((a, b) => (b.rankingScore as number) - (a.rankingScore as number) || a.id.localeCompare(b.id))
+      : scoreAndRank({
+          candidates,
+          voteContext: focus.voteContext,
+          weights: editionWeights,
+          sourceWeights: focus.sourceWeights,
+          focusWeight: focus.weight,
+          now,
+        }).map((s) => s.item);
 
     // Filter out already claimed articles and, if applicable, articles from prior editions
     const eligible = scored.filter(

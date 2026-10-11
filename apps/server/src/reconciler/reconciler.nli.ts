@@ -85,6 +85,7 @@ const buildNliScope = (db: Kysely<DatabaseSchema>, classifierModel: string, scop
     q = q.where('articles.source_id', 'in', scopeFilter.sourceIds);
   }
 
+  if (scopeFilter?.pendingOnly) q = q.where('articles.analysed_at', 'is', null);
   return q;
 };
 
@@ -129,6 +130,8 @@ const createNliStep = (params: {
       return Number(row?.count ?? 0);
     },
     fetchBatch: async function* (): AsyncGenerator<NliItem[]> {
+      let articleId = '';
+      let focusId = '';
       while (true) {
         const rows = (await buildNliScope(db, classifierModel, scopeFilter)
           .select([
@@ -141,12 +144,23 @@ const createNliStep = (params: {
             'focuses.name',
             'focuses.description',
           ])
+          .where((eb) =>
+            eb.or([
+              eb('articles.id', '>', articleId),
+              eb.and([eb('articles.id', '=', articleId), eb('article_focuses.focus_id', '>', focusId)]),
+            ]),
+          )
+          .orderBy('articles.id')
+          .orderBy('article_focuses.focus_id')
           .limit(batchSize)
           .execute()) as NliRow[];
         if (rows.length === 0) {
           break;
         }
 
+        const last = rows[rows.length - 1] as NliRow;
+        articleId = last.article_id;
+        focusId = last.focus_id;
         const items = rowsToNliItems(rows);
         if (items.length > 0) {
           yield items;

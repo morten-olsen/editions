@@ -204,7 +204,8 @@ const countPendingClassification = async (
  * touch anything, so it has to be treated as touching this scope too.
  */
 const countActiveJobs = (services: Services, userId: string, scope: ReadinessScope | undefined): number => {
-  const active = services.get(JobService).listByUser(userId, { active: true });
+  const jobs = services.get(JobService);
+  const active = [...jobs.listByUser(userId, { active: true }), ...jobs.listByUser(null, { active: true })];
 
   const sourceIds = new Set(scope?.sourceIds ?? []);
   const focusIds = new Set(scope?.focusIds ?? []);

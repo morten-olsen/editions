@@ -32,6 +32,7 @@ const buildEmbedScope = (db: Kysely<DatabaseSchema>, scopeFilter: ScopeFilter | 
     q = q.where('articles.source_id', 'in', scopeFilter.sourceIds);
   }
 
+  if (scopeFilter?.pendingOnly) q = q.where('articles.analysed_at', 'is', null);
   return q;
 };
 
@@ -46,11 +47,19 @@ const pendingEmbeddingIds = async function* (
 ): AsyncGenerator<string[]> {
   let lastId = '';
   while (true) {
-    const rows = await buildEmbedScope(db, scopeFilter)
-      .select(['articles.id', 'article_embeddings.embedding', 'article_embeddings.model'])
+    // Sort only IDs. Sorting joined embedding BLOBs before LIMIT makes a
+    // scoped backlog allocate native SQLite work proportional to the corpus.
+    const page = buildEmbedScope(db, scopeFilter)
+      .select('articles.id')
       .where('articles.id', '>', lastId)
       .orderBy('articles.id')
-      .limit(batchSize)
+      .limit(batchSize);
+    const rows = await db
+      .selectFrom('articles')
+      .leftJoin('article_embeddings', 'article_embeddings.article_id', 'articles.id')
+      .select(['articles.id', 'article_embeddings.embedding', 'article_embeddings.model'])
+      .where('articles.id', 'in', page)
+      .orderBy('articles.id')
       .execute();
     if (rows.length === 0) {
       return;

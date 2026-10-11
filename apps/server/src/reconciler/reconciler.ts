@@ -132,21 +132,16 @@ const applyAnalysisReset = async (
     query = query.where('articles.source_id', 'in', scopeFilter.sourceIds);
   }
 
-  const ids = (await query.execute()).map((row) => row.id);
-  if (ids.length === 0) {
-    return;
-  }
-
-  await db.deleteFrom('article_focuses').where('article_id', 'in', ids).execute();
+  await db.deleteFrom('article_focuses').where('article_id', 'in', query).execute();
   if (reset === 'content') {
-    await db.deleteFrom('article_embeddings').where('article_id', 'in', ids).execute();
+    await db.deleteFrom('article_embeddings').where('article_id', 'in', query).execute();
     await db
       .updateTable('articles')
       .set({ content: null, extracted_at: null, analysed_at: null })
-      .where('id', 'in', ids)
+      .where('id', 'in', query)
       .execute();
   } else {
-    await db.updateTable('articles').set({ analysed_at: null }).where('id', 'in', ids).execute();
+    await db.updateTable('articles').set({ analysed_at: null }).where('id', 'in', query).execute();
   }
 };
 
@@ -156,9 +151,11 @@ class ReconcilerService {
   #services: Services;
   #worker: Worker | null = null;
   #pending = new Map<string, PendingRequest>();
+  #inference?: { embed: EmbedFn; classify: ClassifyFn };
 
-  constructor(services: Services) {
+  constructor(services: Services, inference?: { embed: EmbedFn; classify: ClassifyFn }) {
     this.#services = services;
+    this.#inference = inference;
   }
 
   // --- Worker lifecycle ---
@@ -202,6 +199,7 @@ class ReconcilerService {
   };
 
   #request = (msg: Record<string, unknown>): Promise<WorkerResponse> => {
+    if (this.#pending.size >= 16) return Promise.reject(new Error('Inference queue is full; retry later'));
     const id = crypto.randomUUID();
 
     return new Promise<WorkerResponse>((resolve, reject) => {
@@ -216,6 +214,7 @@ class ReconcilerService {
   // --- Inference primitives ---
 
   embed = async (text: string): Promise<Float32Array> => {
+    if (this.#inference) return this.#inference.embed(text);
     const response = await this.#request({ type: 'embed', text });
     if (response.type !== 'embed') {
       throw new Error('Unexpected response type');
@@ -228,6 +227,7 @@ class ReconcilerService {
       return [];
     }
 
+    if (this.#inference) return this.#inference.classify(text, labels);
     const response = await this.#request({ type: 'classify', text, labels });
     if (response.type !== 'classify') {
       throw new Error('Unexpected response type');

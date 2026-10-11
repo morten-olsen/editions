@@ -260,6 +260,17 @@ afterEach(async () => {
 });
 
 describe('reconcile steps', () => {
+  it('leaves interrupted classification pending for the next startup', async () => {
+    const { embed } = createFakeEmbedder();
+    const classify: ClassifyFn = async () => {
+      throw new Error('inference interrupted');
+    };
+    await expect(runReconcileSteps(buildSteps(db, embed, classify))).rejects.toThrow('inference interrupted');
+    const articles = await db.selectFrom('articles').select('analysed_at').execute();
+    expect(articles.every((article) => article.analysed_at === null)).toBe(true);
+    expect((await getAssignments(db)).length).toBeGreaterThan(0);
+  });
+
   it('scores all articles against all focuses regardless of source links', async () => {
     const { embed } = createFakeEmbedder();
     const { classify } = createFakeClassifier();

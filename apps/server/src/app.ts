@@ -131,10 +131,9 @@ const recoverUnanalysedArticles = async (services: Services, log: FastifyInstanc
     .where('extracted_at', 'is not', null)
     .where('analysed_at', 'is', null)
     .executeTakeFirstOrThrow();
-  const recovered = Number(result.count);
-  if (recovered > 0) {
-    services.get(JobService).enqueue('reanalyse_all', {}, {});
-    log.info(`Enqueued ${recovered} articles for analysis recovery`);
+  if (Number(result.count) > 0) {
+    services.get(JobService).enqueue('recover_analysis', {});
+    log.info(`Recovering ${Number(result.count)} pending articles without resetting scores`);
   }
 };
 

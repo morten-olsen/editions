@@ -63,6 +63,7 @@ const JOB_TYPE_LABELS: Record<string, string> = {
   reconcile_focus: 'Classify articles',
   reanalyse_source: 'Reanalyse source',
   reanalyse_all: 'Reanalyse all',
+  recover_analysis: 'Recover analysis',
   re_extract_all: 'Re-extract all',
   re_extract_source: 'Re-extract source',
   extract_and_analyse: 'Extract & analyse',

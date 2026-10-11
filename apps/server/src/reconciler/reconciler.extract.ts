@@ -1,6 +1,8 @@
-import { extract } from '@extractus/article-extractor';
+import { extractFromHtml } from '@extractus/article-extractor';
 import type { Kysely } from 'kysely';
 import TurndownService from 'turndown';
+
+import { readBoundedText } from '../http/http.ts';
 
 import type { DatabaseSchema } from '../database/database.types.ts';
 
@@ -103,7 +105,13 @@ const saveExtractedContent = async (
 };
 
 const defaultExtract = async (url: string): Promise<ExtractResult | null> => {
-  const result = await extract(url);
+  const response = await fetch(url, {
+    signal: AbortSignal.timeout(30_000),
+    headers: { 'user-agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0' },
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const html = await readBoundedText(response, 2 * 1024 * 1024);
+  const result = await extractFromHtml(html, response.url || url);
   if (!result?.content) {
     return null;
   }
@@ -158,7 +166,7 @@ const createExtractStep = (params: {
   scopeFilter?: ScopeFilter;
   batchSize?: number;
 }): ReconcileStep<ExtractItem> => {
-  const { db, scopeFilter, batchSize = 4 } = params;
+  const { db, scopeFilter, batchSize = 1 } = params;
 
   return {
     name: 'extract',

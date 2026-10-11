@@ -64,6 +64,8 @@ const runReconcileSteps = async (steps: ReconcileStep<any>[], onProgress?: Progr
   const failures: StepFailure[] = [];
 
   for (const step of steps) {
+    // A failed step must remain recoverable; completed scores stay persisted.
+    if (step.name === 'mark_analysed' && failures.length > 0) continue;
     const startedAt = Date.now();
 
     let total = 0;

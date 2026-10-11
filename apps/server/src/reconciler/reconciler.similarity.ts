@@ -105,6 +105,7 @@ const buildSimilarityScope = (
     q = q.where('articles.source_id', 'in', scopeFilter.sourceIds);
   }
 
+  if (scopeFilter?.pendingOnly) q = q.where('articles.analysed_at', 'is', null);
   return q;
 };
 

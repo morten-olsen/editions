@@ -13,6 +13,7 @@ type JobPayloads = {
   reconcile_focus: { focusId: string; forceReclassify?: boolean };
   reanalyse_source: { sourceId: string };
   reanalyse_all: Record<string, never>;
+  recover_analysis: Record<string, never>;
   re_extract_all: Record<string, never>;
   re_extract_source: { sourceId: string };
   extract_and_analyse: { sourceId: string };
@@ -61,7 +62,9 @@ type ListJobsFilter = {
 
 // --- Constants ---
 
-const DEFAULT_CONCURRENCY = 8;
+const DEFAULT_CONCURRENCY = 1;
+const MAX_QUEUED_JOBS = 128;
+const MAX_FINISHED_JOBS = 256;
 const GC_MAX_AGE_MS = 60 * 60 * 1000; // 1 hour
 
 // --- Service ---
@@ -85,6 +88,18 @@ class JobService {
   };
 
   enqueue = <T extends JobType>(type: T, payload: JobPayloads[T], options?: EnqueueOptions): Job => {
+    this.#gc();
+    for (const job of this.#jobs.values()) {
+      if (
+        (job.status === 'pending' || job.status === 'running') &&
+        job.type === type &&
+        job.userId === (options?.userId ?? null) &&
+        JSON.stringify(this.#payloads.get(job.id)) === JSON.stringify(payload)
+      ) {
+        return job;
+      }
+    }
+    if (this.#queue.length >= MAX_QUEUED_JOBS) throw new Error('Analysis queue is full; retry later');
     const job: Job = {
       id: crypto.randomUUID(),
       type,
@@ -113,7 +128,7 @@ class JobService {
     return this.#jobs.get(id);
   };
 
-  listByUser = (userId: string, filter?: ListJobsFilter): Job[] => {
+  listByUser = (userId: string | null, filter?: ListJobsFilter): Job[] => {
     this.#gc();
 
     const jobs: Job[] = [];
@@ -152,12 +167,16 @@ class JobService {
 
   #gc = (): void => {
     const cutoff = Date.now() - GC_MAX_AGE_MS;
+    let finished = [...this.#jobs.values()].filter(
+      (job) => job.status === 'completed' || job.status === 'failed',
+    ).length;
     for (const [id, job] of this.#jobs) {
       if (
         (job.status === 'completed' || job.status === 'failed') &&
         job.completedAt !== null &&
-        job.completedAt < cutoff
+        (job.completedAt < cutoff || finished > MAX_FINISHED_JOBS)
       ) {
+        finished--;
         this.#jobs.delete(id);
         this.#payloads.delete(id);
       }
@@ -199,6 +218,8 @@ class JobService {
     }
 
     job.completedAt = Date.now();
+    this.#payloads.delete(job.id);
+    this.#gc();
     this.#running--;
     this.#drain();
   };

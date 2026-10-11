@@ -40,8 +40,28 @@ class DatabaseService {
     sqlite.pragma('journal_mode = WAL');
     sqlite.pragma('foreign_keys = ON');
 
+    // Reuse a bounded number of native prepared statements. Creating one per
+    // page leaves their native sort buffers waiting for V8 finalization even
+    // when the JavaScript heap is small, especially beside the model weights.
+    const statements = new Map<string, ReturnType<typeof sqlite.prepare>>();
     const db = new Kysely<DatabaseSchema>({
-      dialect: new SqliteDialect({ database: sqlite }),
+      dialect: new SqliteDialect({
+        database: {
+          prepare: (query: string): ReturnType<typeof sqlite.prepare> => {
+            let statement = statements.get(query);
+            if (!statement) {
+              statement = sqlite.prepare(query);
+              if (statements.size >= 64) statements.delete(statements.keys().next().value as string);
+              statements.set(query, statement);
+            }
+            return statement;
+          },
+          close: (): void => {
+            statements.clear();
+            sqlite.close();
+          },
+        },
+      }),
     });
 
     const migrator = new Migrator({

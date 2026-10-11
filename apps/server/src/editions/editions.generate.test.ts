@@ -84,6 +84,23 @@ describe('generateEdition', () => {
     expect(result.articles.map((a) => a.position)).toEqual([0, 1]);
   });
 
+  it('charges at least one minute for unknown and zero reading times', () => {
+    const result = generate([
+      makeFocus({
+        focusId: 'f',
+        budgetType: 'time',
+        budgetValue: 2,
+        candidates: [
+          makeCandidate({ id: 'unknown', sourceId: 's' }),
+          makeCandidate({ id: 'zero', sourceId: 's', consumptionTimeSeconds: 0 }),
+          makeCandidate({ id: 'extra', sourceId: 's' }),
+        ],
+      }),
+    ]);
+    expect(result.articles.map((a) => a.articleId)).toEqual(['unknown', 'zero']);
+    expect(result.totalReadingSeconds).toBe(0);
+  });
+
   it('respects a reading-time budget in minutes', () => {
     const result = generate([
       makeFocus({

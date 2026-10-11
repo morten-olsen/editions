@@ -41,5 +41,82 @@
     "existing_scores_unchanged": true,
     "peak_rss_bytes": 335319040,
     "exit_code": 0
+  },
+  "generation_acceptance": {
+    "fixture_articles": 25335,
+    "pending_before": 21593,
+    "pending_after": 0,
+    "final_scores": 410267,
+    "BART_pairs": 19,
+    "configured_classifier": "similarity",
+    "scheduler_enabled": false,
+    "peak_rss_bytes_guarded": 2852704256,
+    "peak_main_heap_bytes_sampled": 122106136,
+    "exit_code": 0,
+    "generation_runs": [
+      {
+        "exclude": false,
+        "focuses": 19,
+        "retained": 5525,
+        "retainedEmbeddings": 0,
+        "excludedIds": 0,
+        "selected": 31,
+        "ms": 13004
+      },
+      {
+        "exclude": true,
+        "focuses": 19,
+        "retained": 5436,
+        "retainedEmbeddings": 0,
+        "excludedIds": 0,
+        "selected": 31,
+        "ms": 14146
+      },
+      {
+        "exclude": false,
+        "focuses": 19,
+        "retained": 5525,
+        "retainedEmbeddings": 0,
+        "excludedIds": 0,
+        "selected": 31,
+        "ms": 12923
+      }
+    ],
+    "note": "Final event-loop yielding refinement measured separately below; candidate data flow is identical.",
+    "final_generation_refinement": {
+      "peak_rss_bytes_guarded": 290652160,
+      "peak_main_heap_bytes_100ms": 119818664,
+      "timer_samples": 142,
+      "exit_code": 0,
+      "runs": [
+        {
+          "exclude": false,
+          "focuses": 19,
+          "retained": 5525,
+          "retainedEmbeddings": 0,
+          "excludedIds": 0,
+          "selected": 31,
+          "ms": 15362
+        },
+        {
+          "exclude": true,
+          "focuses": 19,
+          "retained": 5436,
+          "retainedEmbeddings": 0,
+          "excludedIds": 0,
+          "selected": 31,
+          "ms": 14256
+        },
+        {
+          "exclude": false,
+          "focuses": 19,
+          "retained": 5525,
+          "retainedEmbeddings": 0,
+          "excludedIds": 0,
+          "selected": 31,
+          "ms": 13024
+        }
+      ]
+    }
   }
 }

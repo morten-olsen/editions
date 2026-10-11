@@ -54,6 +54,31 @@ below, rather than a claim that every workload has been exercised. Full-corpus
 NLI, full-corpus network re-extraction, and 72-hour stability have not been
 verified by the local acceptance run.
 
+## Generation bounds (2026-10-11)
+
+Morten approved charging unknown/zero consumption time at least one minute of a
+time budget. The stored duration and total actual reading seconds are unchanged.
+This gives every budget a finite article bound. Generation scores all eligible
+articles in 64-row embedding pages, keeps at most the sum of rounded-up budgets
+per source/focus, and drops embeddings immediately after scoring. That retention
+covers earlier-focus claims without imposing an arbitrary candidate cutoff.
+Prior-edition exclusions use a correlated SQL anti-join rather than loading all
+history IDs. Each page yields to the event loop; ranking and source weights are
+unchanged. See [feed-algorithms.md](../feed-algorithms.md).
+
+A second guarded production-copy run exercised real BGE and BART, recovered all
+21,593 pending articles / 410,267 scores, then generated with all 19 focuses and
+a corpus-wide lookback three times, including prior-edition exclusions. Guarded
+RSS peaked at 2,720 MiB; sampled main heap peaked at 117 MiB. Generation retained
+5,525 candidates (5,436 with exclusions), zero embeddings and no history-ID set,
+and selected 31 articles. This fits the existing request/limit/heap settings.
+The final event-loop-yielding refinement repeated all three generations without
+models: 277 MiB guarded RSS, 114 MiB main heap sampled every 100 ms, and 142
+timer ticks during the scan, with identical retention/selection counts.
+The scheduler was disabled in this second run; the original 450-second acceptance
+above exercises scheduler, source refresh and extraction. These measurements do
+not establish full-corpus NLI, full network re-extraction or long-term stability.
+
 ## Current recovery observation: 72 hours
 
 Routine `851b61b0-0a26-4412-a49e-f6e7ce48938d` starts its clock at this rollout.

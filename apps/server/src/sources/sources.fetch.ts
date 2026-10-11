@@ -3,6 +3,8 @@ import crypto from 'node:crypto';
 import { XMLParser } from 'fast-xml-parser';
 import type { Kysely } from 'kysely';
 
+import { readBoundedText } from '../http/http.ts';
+
 import type { DatabaseSchema } from '../database/database.types.ts';
 
 // --- Types ---
@@ -325,7 +327,7 @@ const selectItemsToIngest = (items: FeedItem[], maxItems: number, direction?: st
 const fetchAndStoreFeed = async ({
   db,
   source,
-  fetchFn = fetch,
+  fetchFn = (url) => fetch(url, { signal: AbortSignal.timeout(30_000) }),
   maxItems = DEFAULT_MAX_ITEMS_PER_FETCH,
 }: {
   db: Kysely<DatabaseSchema>;
@@ -339,7 +341,7 @@ const fetchAndStoreFeed = async ({
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-    const xml = await response.text();
+    const xml = await readBoundedText(response, 8 * 1024 * 1024);
     items = parseRssFeed(xml);
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : String(err);

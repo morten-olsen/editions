@@ -5,6 +5,8 @@ import { parentPort } from 'node:worker_threads';
 import { pipeline, env } from '@huggingface/transformers';
 import type { FeatureExtractionPipeline, ZeroShotClassificationPipeline } from '@huggingface/transformers';
 
+import { prepareClassificationText } from './reconciler.inference.ts';
+
 // --- Guard ---
 
 if (!parentPort) {
@@ -17,6 +19,16 @@ const port = parentPort;
 
 const DEFAULT_EMBEDDING_MODEL = 'Xenova/bge-small-en-v1.5';
 const DEFAULT_CLASSIFIER_MODEL = 'Xenova/bart-large-mnli';
+const MODEL_OPTIONS = {
+  dtype: 'fp32',
+  session_options: {
+    intraOpNumThreads: 2,
+    interOpNumThreads: 1,
+    graphOptimizationLevel: 'disabled',
+    enableCpuMemArena: false,
+    enableMemPattern: false,
+  },
+};
 
 // --- Types ---
 
@@ -70,9 +82,11 @@ let classifierPipeline: Promise<ZeroShotClassificationPipeline> | null = null;
 const getEmbeddingPipeline = (): Promise<FeatureExtractionPipeline> => {
   if (!embeddingPipeline) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- transformers.js overloaded pipeline() typing
-    embeddingPipeline = (pipeline as any)('feature-extraction', DEFAULT_EMBEDDING_MODEL, {
-      dtype: 'fp32',
-    }) as Promise<FeatureExtractionPipeline>;
+    embeddingPipeline = (pipeline as any)(
+      'feature-extraction',
+      DEFAULT_EMBEDDING_MODEL,
+      MODEL_OPTIONS,
+    ) as Promise<FeatureExtractionPipeline>;
   }
   return embeddingPipeline;
 };
@@ -83,6 +97,7 @@ const getClassifierPipeline = (): Promise<ZeroShotClassificationPipeline> => {
     classifierPipeline = (pipeline as any)(
       'zero-shot-classification',
       DEFAULT_CLASSIFIER_MODEL,
+      MODEL_OPTIONS,
     ) as Promise<ZeroShotClassificationPipeline>;
   }
   return classifierPipeline;
@@ -116,7 +131,15 @@ const handleClassify = async (msg: ClassifyRequest): Promise<void> => {
     return;
   }
   const classifier = await getClassifierPipeline();
-  const result = await classifier(msg.text, msg.labels, { multi_label: true });
+  const text = prepareClassificationText(msg.text, msg.labels, (premise, label) => {
+    const encoded = classifier.tokenizer(premise, {
+      text_pair: `This example is ${label}.`,
+      truncation: false,
+      return_tensor: false,
+    });
+    return (encoded.input_ids as number[]).length;
+  });
+  const result = await classifier(text, msg.labels, { multi_label: true });
   const output = parseClassifyOutput(result);
   const response: ClassifyResponse = { id: msg.id, type: 'classify', results: toClassifyResults(output) };
   port.postMessage(response);
@@ -131,9 +154,17 @@ const handleMessage = async (msg: WorkerRequest): Promise<void> => {
 
   try {
     if (msg.type === 'embed') {
+      if (classifierPipeline) {
+        await (await classifierPipeline).dispose();
+        classifierPipeline = null;
+      }
       return await handleEmbed(msg);
     }
     if (msg.type === 'classify') {
+      if (embeddingPipeline) {
+        await (await embeddingPipeline).dispose();
+        embeddingPipeline = null;
+      }
       return await handleClassify(msg);
     }
   } catch (err) {
@@ -146,8 +177,9 @@ const handleMessage = async (msg: WorkerRequest): Promise<void> => {
   }
 };
 
+let work: Promise<void> = Promise.resolve();
 port.on('message', (msg: WorkerRequest) => {
-  void handleMessage(msg);
+  work = work.then(() => handleMessage(msg));
 });
 
 export type { WorkerRequest, WorkerResponse, EmbedResponse, ClassifyResponse, ErrorResponse };

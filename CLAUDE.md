@@ -98,7 +98,7 @@ Full reference: [docs/coding-standards.md](docs/coding-standards.md)
 
 **Readiness:** `readiness/readiness.ts` owns "has analysis settled?". It combines DB counts *and* the in-memory job queue — a source mid-fetch has zero articles and so looks trivially ready to SQL alone. Never re-derive readiness from `analysed_at` in a caller. Three states: `ready`, `analysing` (a job is running) and `stalled` (articles unanalysed with nothing running — extraction fails permanently on some URLs). `stalled` must stay distinct: collapsing it into `analysing` makes every wait loop run to its full budget forever.
 
-**Jobs:** Job types + payloads are a typed registry (`JobPayloads` in `jobs/jobs.ts`) — a typo'd `enqueue` type is a compile error. Adding a job type means updating the registry AND the web label maps (`jobs.hooks.ts` `JOB_TYPE_LABELS`, `focuses.utils.ts` `ANALYSIS_JOB_TYPES`). Analysis jobs are presets over `ReconcilerService.reconcile({ scopeFilter, reset, backfillExtractedAt })` — put reset logic there, not in handlers.
+**Jobs:** Job types + payloads are a typed registry (`JobPayloads` in `jobs/jobs.ts`) — a typo'd `enqueue` type is a compile error. Adding a job type means updating the registry AND the web label maps (`jobs.hooks.ts` `JOB_TYPE_LABELS`, `focuses.utils.ts` `ANALYSIS_JOB_TYPES`). Analysis jobs are presets over `ReconcilerService.reconcile({ scopeFilter, reset, backfillExtractedAt })` — put reset logic there, not in handlers. Startup uses `recover_analysis` with `pendingOnly` and no reset; readiness must include global jobs. Keep analysis bounded: one job, 128 queued, 256 finished, 16 serial inference requests, and one resident model. See `docs/article-analysis.md` for input/page/session bounds.
 
 **Database gotchas:**
 

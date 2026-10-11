@@ -68,6 +68,7 @@ const analysisPresets: {
     backfillExtractedAt: true,
   }),
   reanalyse_all: () => ({ reset: 'scores' }),
+  recover_analysis: () => ({ scopeFilter: { pendingOnly: true }, skipExtract: true }),
   re_extract_all: () => ({ reset: 'content' }),
   re_extract_source: (p) => ({ scopeFilter: { sourceIds: [p.sourceId] }, reset: 'content' }),
   extract_and_analyse: (p) => ({ scopeFilter: { sourceIds: [p.sourceId] } }),
@@ -92,6 +93,7 @@ const registerJobHandlers = (services: Services): void => {
   jobService.register('refresh_source', handleRefreshSource);
   jobService.register('reconcile_focus', (p, s, j) => runAnalysis(s, j, analysisPresets.reconcile_focus(p)));
   jobService.register('reanalyse_source', (p, s, j) => runAnalysis(s, j, analysisPresets.reanalyse_source(p)));
+  jobService.register('recover_analysis', (p, s, j) => runAnalysis(s, j, analysisPresets.recover_analysis(p)));
   jobService.register('reanalyse_all', (p, s, j) => runAnalysis(s, j, analysisPresets.reanalyse_all(p)));
   jobService.register('re_extract_all', (p, s, j) => runAnalysis(s, j, analysisPresets.re_extract_all(p)));
   jobService.register('re_extract_source', (p, s, j) => runAnalysis(s, j, analysisPresets.re_extract_source(p)));

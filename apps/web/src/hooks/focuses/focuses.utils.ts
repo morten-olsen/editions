@@ -39,6 +39,7 @@ const ANALYSIS_JOB_TYPES = new Set([
   'reconcile_focus',
   'reanalyse_source',
   'reanalyse_all',
+  'recover_analysis',
   're_extract_all',
   're_extract_source',
   'refresh_source',

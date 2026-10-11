@@ -3,6 +3,7 @@
 type ScopeFilter = {
   sourceIds?: string[];
   focusIds?: string[];
+  pendingOnly?: boolean;
 };
 
 // --- Text preparation ---

@@ -1,7 +1,85 @@
 # Editions memory investigation
 
-Editions stays disabled until its September 2026 process-memory growth is explained
-and fixed. The preserved `prod/editions-data` PVC must not be changed or deleted.
+The current recovery and resource evidence is below. Historical incident evidence
+follows it. The preserved `prod/editions-data` PVC must not be changed or deleted.
+
+## Recovery and sizing (2026-10-11, task b827f044)
+
+Startup recovery now processes only extracted, unanalysed articles, without a
+reset. It leaves completed scores and analysed timestamps untouched, including
+scores from an earlier model. The scheduler holds due editions while analysis
+runs and retries afterward. Failed inference cannot stamp analysis complete.
+
+A read-only copy of the disabled production database contained 25,335 articles,
+21,593 extracted pending articles, 19 focuses and no scores. A guarded local run
+through the actual application startup, scheduler, job handlers and real models
+completed all 410,267 similarity pairs and checkpointed all 21,593 articles.
+Source refresh, extraction and scoring of newly ingested articles continued.
+The 450-second run exited normally with 21,668 analysed articles and 411,692
+scores; it published no empty editions (the original startup replay published
+three). [Sanitized measurements](editions-memory-evidence.json) retain the counts
+and peak, without database contents, URLs or credentials.
+
+The production configuration resolves to **similarity**: the Docker image and
+chart provide no classifier override. BART is optional for NLI/hybrid analysis;
+it was explicitly exercised for sizing, without changing the production
+strategy. Real BART classified the three largest stored articles against all
+19 focuses (57 pairs), plus all 19 focuses during full-app startup. Every model
+remains fp32; there is no quantization change.
+
+Measured evidence:
+
+| Run | RSS | Main JavaScript heap | Result |
+|---|---:|---:|---|
+| Original full configured analysis | 670 MiB sampled peak | 67 MiB | 410,267 pairs completed |
+| Original startup, six minutes | 948 MiB sampled peak | 144 MiB | Private 65 MiB heap snapshot captured |
+| Both models, original ONNX optimization | 3,817 MiB sampled | 33 MiB | Agent connection lost before classification completed; failed acceptance |
+| Bounded BART, largest three articles | 2,538 MiB guarded peak | 41 MiB sampled | 57 pairs completed; worker heap ~38 MiB |
+| Fixed application startup with both models | 2841 MiB guarded peak | 162 MiB sampled peak | Full pending analysis completed; refresh/extraction continued |
+
+Private main and worker heap snapshots did **not** reproduce the reported
+~1 GiB of retained JavaScript objects. Do not describe that historical heap
+retainer as identified. The reproduced failures were native ONNX memory
+pressure and BART losing its end token when an unusually token-dense article
+was truncated. Graph optimization/arenas are disabled, inputs are bounded and
+only one model is resident at a time. Corpus-sized reset ID arrays and repeated
+native SQLite statement creation are also removed. The exact historical heap
+retainer remains unverified.
+
+The bounds are in [article-analysis.md](../article-analysis.md). Use a 3 GiB
+application request, a 4 GiB hard limit, two CPUs and a 512 MiB Node heap ceiling.
+The request covers the measured model/application peak with headroom; the hard
+limit protects the node. This is subject to the live rollout and observation
+below, rather than a claim that every workload has been exercised. Full-corpus
+NLI, full-corpus network re-extraction, and 72-hour stability have not been
+verified by the local acceptance run.
+
+## Current recovery observation: 72 hours
+
+Routine `851b61b0-0a26-4412-a49e-f6e7ce48938d` starts its clock at this rollout.
+Every six hours, read continuous Prometheus RSS/working-set data, restart/last
+state, the expected image digest, score coverage, job outcomes, node readiness
+and host pressure. Use the rollout task comment as the digest/time baseline.
+
+Pass only after 72 hours with at least 24 continuous stable hours: no OOM or
+restart; successful recovery and advancing fetch/analysis timestamps; repaired
+vectors and complete score coverage for extracted text-bearing articles;
+healthy service and populated editions; final-24-hour RSS slope <=8 MiB/hour;
+final-six-hour median <=128 MiB above the preceding six hours. With BART, expect
+up to about 2.8 GiB RSS during bounded startup; ordinary similarity-only operation
+may be lower. Missing telemetry is unverified.
+
+Abort on OOM/restart/readiness loss, attributable node/control-plane pressure,
+RSS or working set >3,277 MiB for five minutes, RSS slope >32 MiB/hour over six
+hours after warm-up, MemAvailable <10 GiB for five minutes, sustained swap-out
+or memory/I/O PSI full >1% for ten minutes, two failed analysis jobs, or persistent
+invalid vectors. Disable through Git by renaming the chart to
+`editions.disabled`, verify workload removal and the original preserved PVC,
+and disable the routine. Never restore an earlier leaking image or waive a
+threshold. At 72 hours, record pass/fail/unverified and disable the routine;
+extend only for an incomplete stable window.
+
+## Historical investigation
 
 ## Observations (2026-10-10)
 
@@ -122,9 +200,10 @@ hours). Routine id: `851b61b0-0a26-4412-a49e-f6e7ce48938d`; it remains disabled
 until the reviewed rollout is recorded.
 
 
-## Recovery observation: 72 hours
+## Superseded 2026-10-10 thresholds
 
-These are provisional acceptance thresholds, to be reviewed before enabling the
+These historical thresholds were superseded by the 2026-10-11 criteria above.
+These were provisional acceptance thresholds, to be reviewed before enabling the
 new digest. The 1536 MiB container limit and 256 MiB Node heap ceiling apply from
 startup; no initialization grace permits an OOM or host-pressure event.
 Record the rollout time, digest, PVC/PV identity and initial restart counters.
@@ -165,3 +244,5 @@ and the preserved PVC, and disables the observation routine. Never restore the
 old leaking digest. At 72 hours, record pass/fail/unverified, retain the evidence,
 and disable the routine; extend observation only if the required stable window
 is incomplete. This is observation, not permission to waive a failed threshold.
+
+A subsequent startup on the completed local database preserved all 411,692 existing scores (hash and count), with no pending recovery job and 320 MiB peak RSS. The startup regression test separately exercises existing scores alongside pending articles.

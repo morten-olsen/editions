@@ -17,7 +17,7 @@ network     CPU        CPU (fast)     CPU (slow)   bookkeeping
 - **embed** (`reconciler.embed.ts`) — embeds prepared text (title + content, truncated — see `prepareText` in `reconciler.utils.ts`) for articles missing an embedding or embedded with a different model. Articles with no usable text are skipped.
 - **similarity** (`reconciler.similarity.ts`) — scores every (article × focus) pair for the same user by cosine similarity between the article embedding and the focus-label embedding (cached per run). `focus_sources` does **not** limit which pairs get scored — it controls display thresholds.
 - **nli** (`reconciler.nli.ts`) — zero-shot classification via BART-MNLI for pairs that have similarity but no current NLI score. Only runs when the configured classifier is `nli` or `hybrid`.
-- **mark_analysed** (`reconciler.mark-analysed.ts`) — stamps `analysed_at` on every extracted article in scope. Note: this includes articles the embed step skipped for having no text — intentional, so they aren't reprocessed forever. The runner's progress (`completed` vs `total`) is where skips become visible.
+- **mark_analysed** (`reconciler.mark-analysed.ts`) — stamps `analysed_at` on every extracted article in scope. Note: this includes articles the embed step skipped for having no text — intentional, so they aren't reprocessed forever. A failed earlier step prevents this checkpoint, leaving unfinished analysis recoverable while preserving scores already written. The runner's progress (`completed` vs `total`) is where skips become visible.
 
 Each step is a `ReconcileStep` — `{ name, fetchBatch, processBatch, countRemaining? }` (`reconciler.runner.ts`). The runner (`runReconcileSteps`) drains each step, reports progress with **real totals** (via `countRemaining`), and isolates failures: a failing step is recorded but later steps still run; the aggregate `ReconcileStepsError` is thrown at the end so the surrounding job still reports failure.
 
@@ -41,7 +41,7 @@ Clearing derived state lives behind the reconciler's interface (`applyAnalysisRe
 - `reset: 'content'` — additionally delete embeddings and null `content`/`extracted_at` so extraction redoes everything (podcast articles keep their content).
 - `backfillExtractedAt` — mark content-bearing articles as extracted first, so articles ingested before extraction tracking existed re-enter the pipeline.
 
-The job layer (`jobs/jobs.handlers.ts`) expresses every analysis job as a **preset** over these options — `reconcile_focus`, `reanalyse_source`, `reanalyse_all`, `re_extract_source`, `re_extract_all`, `extract_and_analyse` are one operation with different reset/scope parameters. Job types and payloads are a typed registry in `jobs/jobs.ts` (`JobPayloads`); a typo'd job type is a compile error. `refresh_source` is the exception: it first ingests the feed (`SourcesService.ingestFeed`) and then reconciles the source.
+The job layer (`jobs/jobs.handlers.ts`) expresses every analysis job as a **preset** over these options — `reconcile_focus`, `reanalyse_source`, `reanalyse_all`, `recover_analysis`, `re_extract_source`, `re_extract_all`, `extract_and_analyse` are one operation with different reset/scope parameters. Job types and payloads are a typed registry in `jobs/jobs.ts` (`JobPayloads`); a typo'd job type is a compile error. `refresh_source` is the exception: it first ingests the feed (`SourcesService.ingestFeed`) and then reconciles the source.
 
 ## Analysis state tracking
 
@@ -51,11 +51,11 @@ The job layer (`jobs/jobs.handlers.ts`) expresses every analysis job as a **pres
 | `extracted_at` | Full content extracted (or at ingest, for podcasts) |
 | `analysed_at` | Pipeline completed for this article |
 
-Recovery: on server start, articles with `extracted_at IS NOT NULL AND analysed_at IS NULL` trigger a `reanalyse_all` job (`app.ts`).
+Recovery: on server start, articles with `extracted_at IS NOT NULL AND analysed_at IS NULL` trigger one global `recover_analysis` job (`app.ts`). It skips extraction, filters to pending articles, and never resets scores. Completed article/focus scores are reused after interruption. Readiness includes this global job for every user; the scheduler holds due editions while analysis is active and retries without consuming the due schedule.
 
 ## Worker architecture
 
-ML inference runs in a dedicated `worker_threads` worker (`reconciler.worker.ts`) so the main event loop never blocks. The worker loads models lazily on first request and caches them for the process lifetime; embeddings transfer back zero-copy. `ReconcilerService.embed`/`classify` are thin promise wrappers over the message protocol, and are exactly the shape the step factories inject (`EmbedFn`, `ClassifyFn`) — tests substitute fakes at that seam and compose the real pipeline via `buildReconcileSteps` (see `reconciler.test.ts`).
+ML inference runs in a dedicated `worker_threads` worker (`reconciler.worker.ts`) so the main event loop never blocks. The worker serializes requests, loads models lazily, and disposes the previous model before switching between embeddings and NLI; embeddings transfer back zero-copy. `ReconcilerService.embed`/`classify` are thin promise wrappers over the message protocol, and are exactly the shape the step factories inject (`EmbedFn`, `ClassifyFn`) — tests substitute fakes at that seam and compose the real pipeline via `buildReconcileSteps` (see `reconciler.test.ts`).
 
 **Models** (defaults in `reconciler.ts`): embedding `Xenova/bge-small-en-v1.5` (384-dim, ~33MB ONNX; chosen over `all-MiniLM-L6-v2` on eval F1), classifier `Xenova/bart-large-mnli`. Downloaded on first run to `~/.cache/huggingface` (override with `HF_HOME`). No data leaves the server at inference time.
 
@@ -92,3 +92,24 @@ Ranking — how confidence, votes, and recency combine into article ordering —
 - **Batch inference:** transformers.js supports batching. If added, it belongs inside the steps' `processBatch` (where batches already exist) — a previous public batch protocol on the worker went unused and was removed.
 - **sqlite-vec integration:** a virtual table backed by `article_embeddings` for ANN search; the blob format is already float32-compatible.
 - **Model selection config:** expose embedding/classifier model choice via `editions.json`.
+
+## Resource bounds
+
+One analysis/refresh job runs at a time, with at most 128 pending jobs and 256
+finished records. Repeated active jobs with the same payload are coalesced;
+finished payloads are released immediately. There are at most 16 outstanding
+inference requests, processed serially by the worker. SQLite reuses at most 64
+prepared statements; resets use SQL subqueries rather than loading corpus IDs.
+
+Extraction reads one article at a time and caps a decompressed HTML response at
+2 MiB; feed responses are capped at 8 MiB, with 30-second network timeouts and
+the existing 200-item ingest limit. Embedding pages contain at most 32 articles,
+similarity pages 100 pairs, and NLI pages 16 pairs. Embedding scans sort IDs
+before loading vectors, and NLI uses a keyset cursor even for rows without text.
+Model text is capped at 2,000 characters. BART checks the complete pair against
+a 512-token budget before inference, preserving its special tokens.
+
+Both models retain fp32 weights. ONNX uses two intra-op threads and one inter-op
+thread, with graph optimization, memory arenas and memory patterns disabled to
+avoid the measured native-memory peaks. See
+[the memory evidence and rollout criteria](operations/editions-memory.md).

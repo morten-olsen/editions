@@ -1,0 +1,45 @@
+{
+  "fixture": {
+    "articles": 25335,
+    "extracted_pending": 21593,
+    "focuses": 19,
+    "initial_scores": 0
+  },
+  "duration_seconds": 450,
+  "peak_rss_bytes_guarded": 2978865152,
+  "peak_main_heap_bytes_sampled": 169782128,
+  "samples": 90,
+  "first_sample": "2026-10-11T20:03:02.676Z",
+  "last_sample": "2026-10-11T20:10:29.383Z",
+  "recovery": [
+    {
+      "status": "completed",
+      "progress": {
+        "phase": "mark_analysed",
+        "completed": 21593,
+        "total": 21593
+      }
+    }
+  ],
+  "final_analysed": 21668,
+  "final_scores": 411692,
+  "exit_code": 0,
+  "BART_pairs_separate_largest_articles": 57,
+  "BART_pairs_during_startup": 19,
+  "configured_classifier": "similarity",
+  "empty_editions_during_original_startup_replay": 3,
+  "empty_editions_during_fixed_startup": 0,
+  "unverified": [
+    "historical ~1 GiB JavaScript retainer",
+    "full-corpus NLI",
+    "full-corpus network re-extraction",
+    "72-hour stability"
+  ],
+  "subsequent_restart": {
+    "pending_before": 0,
+    "existing_scores": 411692,
+    "existing_scores_unchanged": true,
+    "peak_rss_bytes": 335319040,
+    "exit_code": 0
+  }
+}

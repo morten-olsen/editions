@@ -4,6 +4,7 @@ import { BillingService } from '../billing/billing.ts';
 import { DatabaseService } from '../database/database.ts';
 import { EditionsService } from '../editions/editions.ts';
 import { JobService } from '../jobs/jobs.ts';
+import { ReadinessService } from '../readiness/readiness.ts';
 import { destroySymbol } from '../services/services.ts';
 import type { Services } from '../services/services.ts';
 
@@ -43,11 +44,11 @@ class SchedulerService {
     this.#log.info(`Scheduler started (fetch interval: ${this.#config.fetchIntervalMinutes}m)`);
 
     // Run immediately on start, then every 60 seconds
-    void this.#tick();
-    this.#interval = setInterval(() => void this.#tick(), 60_000);
+    void this.tick();
+    this.#interval = setInterval(() => void this.tick(), 60_000);
   };
 
-  #tick = async (): Promise<void> => {
+  tick = async (): Promise<void> => {
     if (this.#running) {
       return;
     }
@@ -147,6 +148,12 @@ class SchedulerService {
         // Check if the cron should have fired between the last edition and now
         const nextRun = cron.nextRun(since);
         if (!nextRun || nextRun > now) {
+          continue;
+        }
+
+        const readiness = await this.#services.get(ReadinessService).get({ userId: config.user_id });
+        if (readiness.state === 'analysing') {
+          this.#log.info(`Holding edition "${config.name}" until analysis settles`);
           continue;
         }
 

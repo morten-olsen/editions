@@ -79,30 +79,73 @@ The scheduler was disabled in this second run; the original 450-second acceptanc
 above exercises scheduler, source refresh and extraction. These measurements do
 not establish full-corpus NLI, full network re-extraction or long-term stability.
 
-## Current recovery observation: 72 hours
+## Approved controlled retrial (2026-10-12, task cae84e02)
 
-Routine `851b61b0-0a26-4412-a49e-f6e7ce48938d` starts its clock at this rollout.
-Every six hours, read continuous Prometheus RSS/working-set data, restart/last
-state, the expected image digest, score coverage, job outcomes, node readiness
-and host pressure. Use the rollout task comment as the digest/time baseline.
+Morten approved the revised abort/acceptance rules at 12:25:57 UTC. This is a
+new controlled trial, not acceptance of the aborted October 11 watch. That
+watch had stable RSS and working-set/file-cache growth; neither cache cause nor
+plateau was established. Before rollout, resolve the API/K3s process restart
+attribution; unresolved attribution or attributable pressure is a blocker.
+Routine `851b61b0-0a26-4412-a49e-f6e7ce48938d` must use the following exact
+criteria and stay disabled until the verified new rollout baseline is recorded.
 
-Pass only after 72 hours with at least 24 continuous stable hours: no OOM or
-restart; successful recovery and advancing fetch/analysis timestamps; repaired
-vectors and complete score coverage for extracted text-bearing articles;
-healthy service and populated editions; final-24-hour RSS slope <=8 MiB/hour;
-final-six-hour median <=128 MiB above the preceding six hours. With BART, expect
-up to about 2.8 GiB RSS during bounded startup; ordinary similarity-only operation
-may be lower. Missing telemetry is unverified.
+<!-- retrial-criteria:start -->
+Read-only checkpoints every six hours for a new 72-hour online trial. Start the
+clock only after the new application container is Running/Ready, its original
+PVC is writable without EACCES, and immediate startup checks succeed. Record the
+new pod, start time, imageID, app/sidecar restart counters and lastState; the
+aborted October 11 watch supplies historical evidence, not elapsed trial time.
 
-Abort on OOM/restart/readiness loss, attributable node/control-plane pressure,
-RSS or working set >3,277 MiB for five minutes, RSS slope >32 MiB/hour over six
-hours after warm-up, MemAvailable <10 GiB for five minutes, sustained swap-out
-or memory/I/O PSI full >1% for ten minutes, two failed analysis jobs, or persistent
-invalid vectors. Disable through Git by renaming the chart to
-`editions.disabled`, verify workload removal and the original preserved PVC,
-and disable the routine. Never restore an earlier leaking image or waive a
-threshold. At 72 hours, record pass/fail/unverified and disable the routine;
-extend only for an incomplete stable window.
+Keep c12c082b at digest
+`sha256:a24a3086583f2745fe16847a02c11e9144255edcc03b8131caaf07c4dd006c26`,
+3Gi request / 4Gi hard limit, 250m request / two CPU limit and 512Mi V8 heap.
+Keep the existing mesh, exposure and original `prod/editions-data` volume
+`pvc-3aee7126-144a-4c58-b91d-caa06b42b6d0`. No migration, data deletion,
+credential rotation or exposure change is authorized by this trial.
+
+Pass only after 72 hours with at least 24 continuous stable hours: no OOM,
+app/sidecar restart, loss of readiness or attributable host/control-plane
+pressure; successful recovery, advancing source refresh/extraction/analysis,
+complete similarity scores for extracted text-bearing articles and valid
+vectors; functioning health API and authenticated generation with populated
+editions. Final-24-hour fitted RSS slope must be <=8 MiB/hour and final-six-hour
+RSS median must be <=128 MiB above the preceding six-hour RSS median. Missing
+telemetry, incomplete job history or unexercised paths are unverified.
+
+Abort on OOM, app/sidecar restart or readiness loss; attributable
+node/control-plane pressure; RSS OR working set >3277 MiB continuously for five
+minutes; fitted RSS growth >32 MiB/hour over any complete six-hour window wholly
+after the initial two-hour warmup; host MemAvailable <10 GiB for five minutes;
+sustained swap-out for ten minutes or memory/I/O PSI full >1% for ten minutes;
+two failed analysis jobs, persistent invalid vectors or stalled source refresh.
+Separate external feed/extraction failures from analysis failures. An unexplained
+control-plane process restart blocks rollout/acceptance pending attribution.
+
+Working-set growth alone >32 MiB/hour over a complete six-hour window triggers
+investigation, not automatic disable. Report RSS, working set, file cache,
+cgroup anon/active_file/inactive_file separately; investigate cache accounting,
+source/database activity and host pressure. The absolute working-set gate and
+all other abort guards still apply. Do not claim a cache or working-set plateau
+without measured evidence.
+
+Use pod-specific, container-specific continuous Prometheus samples and ordinary
+least-squares slopes in MiB/hour; evaluate rolling six-hour windows after warmup
+and both final-six-hour medians, without hiding an earlier crossing. Record
+coverage/gaps, cgroup OOM events, node Ready/pressure history, swap-out, PSI, API
+process start/latency, analysis job outcomes, score coverage and vector validity.
+Preserve pre-trial scores; analysed timestamps alone do not prove recovery.
+Production similarity does not exercise optional BART/full-corpus NLI. Full
+network re-extraction and the historical JavaScript retainer remain unverified.
+
+On abort, disable through Git by renaming the chart to `editions.disabled`,
+verify workload removal and the original preserved PVC, disable routine
+`851b61b0-0a26-4412-a49e-f6e7ce48938d` and hand the incident to Morten. Never
+restore an earlier leaking/score-resetting image or waive a threshold. At
+72 hours, record pass/fail/unverified and disable the routine; extend only for an
+incomplete stable window. Report checkpoints and final evidence on restoration
+task `cae84e02-0d5b-4a92-8159-4f828d1e95f1` and incident
+`8ccaff6f-4170-4a73-9193-38e5de7d26a5`; close each checkpoint's own task.
+<!-- retrial-criteria:end -->
 
 ## Historical investigation
 

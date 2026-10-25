@@ -51,7 +51,7 @@ The job layer (`jobs/jobs.handlers.ts`) expresses every analysis job as a **pres
 | `extracted_at` | Full content extracted (or at ingest, for podcasts) |
 | `analysed_at` | Pipeline completed for this article |
 
-Recovery: on server start, articles with `extracted_at IS NOT NULL AND analysed_at IS NULL` trigger one global `recover_analysis` job (`app.ts`). It skips extraction, filters to pending articles, and never resets scores. Completed article/focus scores are reused after interruption. Readiness includes this global job for every user; the scheduler holds due editions while analysis is active and retries without consuming the due schedule.
+Recovery: on server start, articles with `extracted_at IS NOT NULL AND analysed_at IS NULL` trigger one global `recover_analysis` job (`app.ts`). It skips extraction, filters to pending articles, and never resets scores. Completed article/focus scores are reused after interruption. Readiness includes this global job for every user; the scheduler holds due editions while analysis is active and retries without consuming the due schedule. Each tick checks due editions before enqueueing new feed refreshes, so a settled pipeline can publish between retries of failing feeds instead of being blocked again on every tick. Publication uses the articles already analysed; newly fetched articles enter a later edition.
 
 ## Worker architecture
 

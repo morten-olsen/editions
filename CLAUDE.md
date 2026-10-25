@@ -68,6 +68,16 @@ Full reference: [docs/coding-standards.md](docs/coding-standards.md)
 
 **Lazy initialization pattern:** Services with async setup (DB connections, migrations) use a cached-promise pattern: `getInstance()` calls `#setup()` once, caches the promise. Consumers `await` `getInstance()` — first call initializes, subsequent calls return the cached result. This ensures resources aren't created until needed. See `DatabaseService` for the reference implementation.
 
+## Delivery gotcha
+
+The GitHub mirror still has an active main-push Release workflow that tags,
+publishes and deploys to Fly.io. For a homelab-only fix without release approval,
+put `[skip actions]` in both the source commit and the Forgejo merge commit;
+GitHub supports this push-workflow skip, while Woodpecker still runs its checks
+and image build. Verify both results after merge. Never use `[skip ci]` for this.
+See [GitHub's skip instructions](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/skip-workflow-runs)
+and [Woodpecker's skip syntax](https://woodpecker-ci.org/docs/3.18/usage/workflow-syntax#skip-commits).
+
 ## Architecture
 
 **Monorepo:** pnpm workspace — `apps/server` (Fastify backend), `apps/web` (Vite + React frontend). Tooling managed via `mise.toml` (Node 24, pnpm 10, task).

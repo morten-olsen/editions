@@ -55,8 +55,10 @@ class SchedulerService {
     this.#running = true;
 
     try {
-      await this.#fetchDueSources();
+      // Give settled analysis a publication opportunity before new fetches
+      // make readiness active again. Failed feeds remain due on every tick.
       await this.#generateDueEditions();
+      await this.#fetchDueSources();
     } catch (err) {
       this.#log.error(`Scheduler tick failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
